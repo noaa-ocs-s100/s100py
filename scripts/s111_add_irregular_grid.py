@@ -1,10 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #******************************************************************************
 #
 #******************************************************************************
 import argparse
 import h5py
 import numpy
-import iso8601
 import pytz
 import netCDF4
 import math
@@ -45,7 +46,6 @@ def create_xy_group(hdf_file, latc, lonc):
         xCoordinates[0][index] = longitude
         yCoordinates[0][index] = latitude
 
-
     #Add the 'Group XY' to store the position information.
     groupName = 'Group XY'
     print("Creating", groupName, "dataset.")
@@ -56,10 +56,9 @@ def create_xy_group(hdf_file, latc, lonc):
     xy_group.create_dataset('Y', (1, numberOfLon), dtype=numpy.float64, data=yCoordinates)       
 
     return (minX, minY, maxX, maxY)
-
-
+  
 #******************************************************************************        
-def create_direction_speed(group, ua, va):
+def create_direction_speed(newGroup, ur, vr):
     """ Create the speed and direction datasets.
 
     :param group: The HDF group to add the speed and direction datasets to.
@@ -71,14 +70,15 @@ def create_direction_speed(group, ua, va):
     min_speed = None
     max_speed = None
 
-    numberOfVaValues = len(va)
+    numberOfVaValues = len(vr)
 
     directions = numpy.empty((1, numberOfVaValues), dtype=numpy.float64)
     speeds = numpy.empty((1, numberOfVaValues), dtype=numpy.float64)
+    
     for index in range(0, numberOfVaValues):
 
-        v_ms = va[index]
-        u_ms = ua[index]
+        v_ms = vr[index]
+        u_ms = ur[index]
 
         #Convert from metres per second to knots
         v_knot = v_ms * ms2Knots
@@ -110,7 +110,7 @@ def create_direction_speed(group, ua, va):
 
 
 #******************************************************************************        
-def create_data_groups(hdf_file, times, ua, va):
+def create_data_groups(hdf_file, times, ur, vr):
     """Create the data groups in the S-111 file. (One group for each time value)
 
     :param hdf_file: The S-111 HDF file.
@@ -120,11 +120,12 @@ def create_data_groups(hdf_file, times, ua, va):
     :returns: A tuple containing the minimum time, maximum time, time interval, minimum speed, and maximum speed of the source data.
     """
 
-    numberOfTimes = times.shape[0]
-    
+    numberOfTimes = len(times) #times.shape[0]
+
     interval = None
     minTime = maxTime = None
     minSpeed = maxSpeed = None
+
     for index in range(0, numberOfTimes):
 
         newGroupName = 'Group ' + str(index + 1)
@@ -135,9 +136,7 @@ def create_data_groups(hdf_file, times, ua, va):
         newGroup.attrs.create('Title', groupTitle.encode())
 
         #Store the start time.
-        strVal = times[index].tostring().decode()
-        timeVal = iso8601.parse_date(strVal)
-        timeVal = timeVal.astimezone(pytz.utc)
+        timeVal = times[index]
 
         #Keep track of the min/max time so we can update the metadata
         if minTime == None:
@@ -149,7 +148,7 @@ def create_data_groups(hdf_file, times, ua, va):
         strVal = timeVal.strftime("%Y%m%dT%H%M%SZ")
         newGroup.attrs.create('DateTime', strVal.encode())
 
-        groupMinSpeed, groupMaxSpeed = create_direction_speed(newGroup, ua[index], va[index])
+        groupMinSpeed, groupMaxSpeed = create_direction_speed(newGroup, ur, vr)
 
         #Keep track of the min/max speed so we can update the metadata
         if minSpeed == None:
@@ -158,7 +157,7 @@ def create_data_groups(hdf_file, times, ua, va):
         else:
             minSpeed = min(minSpeed, groupMinSpeed)
             maxSpeed = max(maxSpeed, groupMaxSpeed)
-
+        
     #Figure out what the interval is between the times (use only the first)
     if numberOfTimes > 1:
 
@@ -213,21 +212,15 @@ def update_metadata(hdf_file, numberOfTimes, numberOfValues, minTime, maxTime, i
     strVal = maxTime.strftime("%Y%m%dT%H%M%SZ")
     hdf_file.attrs.create('dateTimeOfLastRecord', strVal.encode())
 
-    #Update the geo coverage in the metadata. (These are not set anymore... since 1.09)
-    #hdf_file.attrs.create('westBoundLongitude', minX, dtype=numpy.float64)
-    #hdf_file.attrs.create('eastBoundLongitude', maxX, dtype=numpy.float64)
-    #hdf_file.attrs.create('southBoundLatitude', minY, dtype=numpy.float64)
-    #hdf_file.attrs.create('northBoundLatitude', maxY, dtype=numpy.float64)
-
     #Update the surface speed values.
-    if 'minSurfCurrentSpeed' in hdf_file.attrs:
-        minSpeed = min(minSpeed, hdf_file.attrs['minSurfCurrentSpeed'])
+    if 'minDatasetCurrentSpeed' in hdf_file.attrs:
+        minSpeed = min(minSpeed, hdf_file.attrs['minDatasetCurrentSpeed'])
 
-    if 'maxSurfCurrentSpeed' in hdf_file.attrs:
-        maxSpeed = max(maxSpeed, hdf_file.attrs['maxSurfCurrentSpeed'])
+    if 'maxDatasetCurrentSpeed' in hdf_file.attrs:
+        maxSpeed = max(maxSpeed, hdf_file.attrs['maxDatasetCurrentSpeed'])
 
-    hdf_file.attrs.create('minSurfCurrentSpeed', minSpeed)
-    hdf_file.attrs.create('maxSurfCurrentSpeed', maxSpeed)
+    hdf_file.attrs.create('minDatasetCurrentSpeed', minSpeed)
+    hdf_file.attrs.create('maxDatasetCurrentSpeed', maxSpeed)
 
 
 #******************************************************************************        
@@ -244,10 +237,23 @@ def create_command_line():
 
     return parser
 
+#****************************************************************************** 
+
+def rot1d(u, v, ang):
+    """
+    rotate vectors by geometric angle 
+
+    """
+    angsin = numpy.sin(ang)
+    angcos = numpy.cos(ang)
+    ur = u*angcos - v*angsin
+    vr = u*angsin + v*angcos
+    return ur, vr 
 
 #******************************************************************************        
-def main():
 
+def main():
+    
     #Create the command line parser.
     parser = create_command_line()
 
@@ -258,36 +264,52 @@ def main():
     with h5py.File(results.inOutFile[0], "r+") as hdf_file:
 
         #Open the grid file.
-        with netCDF4.Dataset(results.grid_file, "r", format="NETCDF4") as grid_file:
-
+        with netCDF4.Dataset(results.grid_file, "r", format="NETCDF3 Classic") as grid_file:
             #Grab the data that we need.
-            times = grid_file.variables['Times']
-            latc = grid_file.variables['latc']
-            lonc = grid_file.variables['lonc']
-            ua = grid_file.variables['ua']
-            va = grid_file.variables['va']
+            #Flatten data to a 1D array
+            latc = grid_file.variables['lat_rho'][1:,1:].flatten()
+            lonc = grid_file.variables['lon_rho'][1:,1:].flatten()
+            latu = grid_file.variables['lat_u'][1:,:].flatten()
+            lonu = grid_file.variables['lon_u'][1:,:].flatten()
+            latv = grid_file.variables['lat_v'][:,1:].flatten()
+            lonv = grid_file.variables['lon_v'][:,1:].flatten()
+            ua = grid_file.variables['u'][0,-1,1:,:].flatten()
+            va = grid_file.variables['v'][0,-1,:,1:].flatten()     
+            ang = grid_file.variables['angle'][1:,1:].flatten()
+            masku = grid_file.variables['mask_u'][1:,:].flatten()
+            maskv = grid_file.variables['mask_v'][:,1:].flatten()
+            maskc = grid_file.variables['mask_rho'][1:,1:].flatten()
+            timesv = grid_file.variables['ocean_time']
+            #convert gregorian timestamp to datetime timestamp
+            times = netCDF4.num2date(timesv,timesv.units)
+
+            ur, vr = rot1d(ua,va,ang) 
 
             #Verify that these arrays are the same size.
-            numberOfTimes = times.shape[0]
-            numberOfVaSeries = va.shape[0]
-            numberOfUaSeries = ua.shape[0]
+            numberOfTimes = len(times) #times.shape[0]
+            numberOfVaSeries = va.ndim
+            numberOfUaSeries = ua.ndim
             if numberOfTimes != numberOfVaSeries or numberOfTimes != numberOfUaSeries:
                 raise Exception('The number of time values does not match the number of speed and distance values.')
-
+        
             #Verify that these arrays are the same size.
             numberOfLat = latc.shape[0]
             numberOfLon = lonc.shape[0]
-            numberOfVaValues = va.shape[1]
-            numberOfUaValues = ua.shape[1]
+            numberOfVaValues = va.shape[0]
+            numberOfUaValues = ua.shape[0]
             if numberOfLat != numberOfLon:
                 raise Exception('The input latitude and longitude array are different sizes.')
             elif numberOfLat != numberOfVaValues or numberOfLat != numberOfUaValues:
                 raise Exception('The number of positions does not match the number of speed and distance values.')
 
+            print ("Number of VAvalues", numberOfVaValues)
+
             #Verify that the input data is in the correct units.
-            vaUnits = va.getncattr('units')
-            uaUnits = ua.getncattr('units')
-            if vaUnits != uaUnits and vaUnits != 'metres s-1':
+            v_units = grid_file.variables['v']
+            u_units = grid_file.variables['u']
+            vaUnits = v_units.getncattr('units')
+            uaUnits = u_units.getncattr('units')
+            if vaUnits != uaUnits and vaUnits != 'meter second-1':
                 raise Exception('The input velocity data is stored in an unsupported unit.')
 
             print("Adding irregular grid dataset")
@@ -298,7 +320,7 @@ def main():
             minX, minY, maxX, maxY = create_xy_group(hdf_file, latc, lonc)
     
             #Add all of the groups
-            minTime, maxTime, interval, minSpeed, maxSpeed = create_data_groups(hdf_file, times, ua, va)
+            minTime, maxTime, interval, minSpeed, maxSpeed = create_data_groups(hdf_file, times, ur, vr)
 
             #Update the s-111 file's metadata
             update_metadata(hdf_file, numberOfTimes, numberOfVaValues,
