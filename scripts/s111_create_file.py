@@ -1,6 +1,5 @@
-#******************************************************************************
-#
-#******************************************************************************
+#!/usr/bin/env python
+
 import argparse
 import h5py
 import numpy
@@ -32,16 +31,15 @@ def get_metadata_type(attribute_name):
          Carrier Metadata
     """
     #Integer types
-    typeMap['horizDatumValue'] = numpy.int64
+    typeMap['horizDatumValue'] = numpy.int64 
     typeMap['timeRecordInterval'] = numpy.int64
     typeMap['numberOfTimes'] = numpy.int64
     typeMap['numberOfStations'] = numpy.int64
-    typeMap['verticalDatum'] = numpy.int64
     typeMap['numPointsLongitudinal'] = numpy.int64
     typeMap['numPointsLatitudinal'] = numpy.int64
     typeMap['minGridPointLongitudinal'] = numpy.int64
     typeMap['minGridPointLatitudinal'] = numpy.int64
-
+    typeMap['numberOfNodes'] = numpy.int64
     #Real types
     typeMap['surfaceCurrentDepth'] = numpy.float64
     typeMap['gridOriginLongitude'] = numpy.float64
@@ -49,13 +47,13 @@ def get_metadata_type(attribute_name):
     typeMap['gridSpacingLongitudinal'] = numpy.float64
     typeMap['gridSpacingLatitudinal'] = numpy.float64
     typeMap['gridLandMaskValue'] = numpy.float64
-    typeMap['uncertaintyOfSpeed'] = numpy.float64
-    typeMap['uncertaintyOfDirection'] = numpy.float64
-    typeMap['uncertaintyOfHorzPosition'] = numpy.float64
-    typeMap['uncertaintyOfVertPosition'] = numpy.float64
-    typeMap['uncertaintyOfTime'] = numpy.float64
-    typeMap['minSurfCurrentSpeed'] = numpy.float64
-    typeMap['maxSurfCurrentSpeed'] = numpy.float64
+    typeMap['speedUncertainty'] = numpy.float64
+    typeMap['directionUncertainty'] = numpy.float64
+    typeMap['horizontalPositionUncertainty'] = numpy.float64
+    typeMap['verticalUncertainty'] = numpy.float64
+    typeMap['timeUncertainty'] = numpy.float64
+    typeMap['minDatasetCurrentSpeed'] = numpy.float64
+    typeMap['maxDatasetCurrentSpeed'] = numpy.float64
 
     #String types
     typeMap['productSpecification'] = numpy.bytes_
@@ -63,33 +61,16 @@ def get_metadata_type(attribute_name):
     typeMap['nameRegion'] = numpy.bytes_
     typeMap['nameSubregion'] = numpy.bytes_
     typeMap['horizDatumReference'] = numpy.bytes_
-    typeMap['protectionScheme'] = numpy.bytes_
     typeMap['dateTimeOfFirstRecord'] = numpy.bytes_
     typeMap['dateTimeOfLastRecord'] = numpy.bytes_ 
     typeMap['methodCurrentsProduct'] = numpy.bytes_
 
     #Enumeration types
-    typeMap['dataProtection'] = numpy.int64
     typeMap['typeOfCurrentData'] = numpy.int64
     typeMap['dataCodingFormat'] = numpy.int64
     typeMap['depthTypeIndex'] = numpy.int64
+    typeMap['verticalDatum'] = numpy.int64
 
-    #Removed?
-    typeMap['nationalOriginator'] = numpy.bytes_
-    typeMap['producingAgency'] = numpy.bytes_    
-    typeMap['updateApplicationDate'] = numpy.bytes_
-    typeMap['fileName'] = numpy.bytes_
-    typeMap['dataType'] = numpy.bytes_
-    typeMap['methodOrSource'] = numpy.bytes_
-    typeMap['editionNumber'] = numpy.int64
-    typeMap['updateNumber'] = numpy.int64 
-    typeMap['numberOfNodes'] = numpy.int64
-    
-    #Removed in 1.09
-    #typeMap['westBoundLongitude'] = numpy.float64
-    #typeMap['eastBoundLongitude'] = numpy.float64
-    #typeMap['southBoundLatitude'] = numpy.float64
-    #typeMap['northBoundLatitude'] = numpy.float64
 
     if attribute_name not in typeMap:
         return None
@@ -132,24 +113,17 @@ def add_metadata(attributes, metadata_file):
             colnum += 1
 
 
-    #We have a few pieces of metadata that may have been specified... but we want to ignore
-    #They are computed attributes.
+    #Attribute information is derived from netcdf files 
     clear_metadata_value(attributes, 'dateTimeOfFirstRecord')
     clear_metadata_value(attributes, 'dateTimeOfLastRecord')
     clear_metadata_value(attributes, 'numberOfStations')
     clear_metadata_value(attributes, 'numberOfTimes')
     clear_metadata_value(attributes, 'dataCodingFormat')
     clear_metadata_value(attributes, 'timeRecordInterval')
-    clear_metadata_value(attributes, 'minSurfCurrentSpeed')
-    clear_metadata_value(attributes, 'maxSurfCurrentSpeed')
-
-    #Removed in 1.09
-    #clear_metadata_value(attributes, 'westBoundLongitude')
-    #clear_metadata_value(attributes, 'eastBoundLongitude')
-    #clear_metadata_value(attributes, 'southBoundLatitude')
-    #clear_metadata_value(attributes, 'northBoundLatitude')
+    clear_metadata_value(attributes, 'minDatasetCurrentSpeed')
+    clear_metadata_value(attributes, 'maxDatasetCurrentSpeed')
     
-    #Since this is a new file, we don't have any stations yet.
+
     attributes.create('numberOfStations', 0, dtype=numpy.int64)
     attributes.create('numberOfTimes', 0, dtype=numpy.int64)
 
