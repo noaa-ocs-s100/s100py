@@ -110,7 +110,7 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, Xv, Yv):
 def createRegGrid(water_u,water_lat_u, water_lon_u, water_v, water_lat_v, water_lon_v):
 
     ugridX = numpy.linspace(min(water_lon_u), max(water_lon_u), 200)
-    ugridY = numpy.linspace(min(water_lat_u), max(water_lat_v), 200)
+    ugridY = numpy.linspace(min(water_lat_u), max(water_lat_u), 200)
     Xu, Yu = numpy.meshgrid(ugridX, ugridY)
 
     ucoords = numpy.column_stack((water_lon_u, water_lat_u))
@@ -221,8 +221,9 @@ def main():
 
             print("Data sucessfully added")
 
-        #Flush any edits out.
-        hdf_file.flush()
+            #Flush any edits out.
+            hdf_file.flush()
+            #hdf_file.close()
 
 
 if __name__ == "__main__":
