@@ -115,9 +115,6 @@ def createRegGrid(water_u,water_lat_u, water_lon_u, water_v, water_lat_v, water_
 
     ucoords = numpy.column_stack((water_lon_u, water_lat_u))
     ugrid = griddata(ucoords, water_u, (Xu, Yu), method='nearest', fill_value=numpy.nan)
-    #mask = numpy.all(numpy.isnan(ugrid), axis=1)
-    #ugrid[~mask]
-    #ugrid = ma.masked_where((ugrid < 0) | numpy.isnan(ugrid), ugrid)
     #ugrid = numpy.nan_to_num(ugrid)
 
     vgridX = numpy.linspace(min(water_lon_v), max(water_lon_v), 200)
@@ -126,7 +123,6 @@ def createRegGrid(water_u,water_lat_u, water_lon_u, water_v, water_lat_v, water_
 
     vcoords = numpy.column_stack((water_lon_v, water_lat_v))
     vgrid = griddata(vcoords, water_v, (Xv, Yv), method='nearest', fill_value=numpy.nan)
-    #vgrid = ma.masked_where((vgrid < 0) | numpy.isnan(vgrid), vgrid)
     #vgrid = numpy.nan_to_num(vgrid)
 
     return (ugrid, vgrid, Xv, Yv)
