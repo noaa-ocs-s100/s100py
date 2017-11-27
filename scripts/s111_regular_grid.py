@@ -47,7 +47,7 @@ def convertVectors(directions, speeds, ugrid, vgrid):
 
 # ******************************************************************************
 
-def createGroup(hdf_file, grid_file, ugrid, vgrid, Xv, Yv):
+def createGroup(hdf_file, grid_file, ugrid, vgrid, x, y):
 
     ocean_time = grid_file.variables['ocean_time']
     # convert gregorian timestamp to datetime timestamp
@@ -80,8 +80,8 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, Xv, Yv):
             # Write data to empty HDF5 datasets
             direction_dataset = newGroup.create_dataset('Direction', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=directions)
             speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=speeds)
-            x_dataset = newGroup.create_dataset('X', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=Xv)
-            y_dataset = newGroup.create_dataset('Y', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=Yv)
+            x_dataset = newGroup.create_dataset('X', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=x)
+            y_dataset = newGroup.create_dataset('Y', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=y)
 
             # Add CF attributes and geographic coordinates
             direction_dataset.attrs['units'] = 'degrees'
@@ -127,12 +127,10 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, Xv, Yv):
         directions, speeds = convertVectors(directions, speeds, ugrid, vgrid)
 
         # Write data to empty HDF5 datasets
-        direction_dataset = newGroup.create_dataset('Direction', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64,
-                                                    data=directions)
-        speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64,
-                                                data=speeds)
-        x_dataset = newGroup.create_dataset('X', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=Xv)
-        y_dataset = newGroup.create_dataset('Y', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=Yv)
+        direction_dataset = newGroup.create_dataset('Direction', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64,data=directions)
+        speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64,data=speeds)
+        x_dataset = newGroup.create_dataset('X', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=x)
+        y_dataset = newGroup.create_dataset('Y', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=y)
 
         # Add CF attributes and geographic coordinates
         direction_dataset.attrs['units'] = 'degrees'
@@ -156,28 +154,24 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, Xv, Yv):
 
 # ******************************************************************************
 
-def createRegGrid(water_u, water_lat_u, water_lon_u, water_v, water_lat_v, water_lon_v):
+def createRegGrid(water_u, water_lat_u, water_lon_u, water_v, water_lat_v, water_lon_v, water_rho, water_lat_rho, water_lon_rho):
 
-    ugridX = numpy.linspace(min(water_lon_u), max(water_lon_u), 200)
-    ugridY = numpy.linspace(min(water_lat_u), max(water_lat_u), 200)
-    Xu, Yu = numpy.meshgrid(ugridX, ugridY)
+    gridX = numpy.linspace(min(water_lon_rho), max(water_lon_rho), 200)
+    gridY = numpy.linspace(min(water_lat_rho), max(water_lat_rho), 200)
+    x, y = numpy.meshgrid(gridX, gridY)
 
     ucoords = numpy.column_stack((water_lon_u, water_lat_u))
-    ugrid = griddata(ucoords, water_u, (Xu, Yu), method='nearest', fill_value=numpy.nan)
-
-    vgridX = numpy.linspace(min(water_lon_v), max(water_lon_v), 200)
-    vgridY = numpy.linspace(min(water_lat_v), max(water_lat_v), 200)
-    Xv, Yv = numpy.meshgrid(vgridX, vgridY)
+    ugrid = griddata(ucoords, water_u, (x, y), method='nearest', fill_value=numpy.nan)
 
     vcoords = numpy.column_stack((water_lon_v, water_lat_v))
-    vgrid = griddata(vcoords, water_v, (Xv, Yv), method='nearest', fill_value=numpy.nan)
+    vgrid = griddata(vcoords, water_v, (x, y), method='nearest', fill_value=numpy.nan)
 
-    return (ugrid, vgrid, Xv, Yv)
+    return (ugrid, vgrid, x, y)
 
 
 # ******************************************************************************
 
-def maskedArray(grid_file, rot_u, lat_u, lon_u, rot_v, lat_v, lon_v):
+def maskedArray(grid_file, rot_u, lat_u, lon_u, rot_v, lat_v, lon_v, ang_rho, lat_rho, lon_rho):
 
     mask_rho = grid_file.variables['mask_rho'][1:, 1:].flatten()
     mask_u = grid_file.variables['mask_u'][1:, :].flatten()
@@ -193,7 +187,11 @@ def maskedArray(grid_file, rot_u, lat_u, lon_u, rot_v, lat_v, lon_v):
     water_lat_v = ma.compressed(ma.masked_array(lat_v, combine_mask))
     water_lon_v = ma.compressed(ma.masked_array(lon_v, combine_mask))
 
-    return (water_u, water_lat_u, water_lon_u, water_v, water_lat_v, water_lon_v)
+    water_ang_rho = ma.compressed(ma.masked_array(ang_rho, combine_mask))
+    water_lat_rho = ma.compressed(ma.masked_array(lat_rho, combine_mask))
+    water_lon_rho = ma.compressed(ma.masked_array(lon_rho, combine_mask))
+
+    return (water_u, water_lat_u, water_lon_u, water_v, water_lat_v, water_lon_v, water_ang_rho, water_lat_rho, water_lon_rho)
 
 
 # ******************************************************************************
@@ -253,13 +251,13 @@ def main():
             rot_u, rot_v = rot2d(u, v, ang_rho)
 
             # Call masked arrays function and return masked arrays
-            water_u, water_lat_u, water_lon_u, water_v, water_lat_v, water_lon_v = maskedArray(grid_file, rot_u, lat_u,lon_u, rot_v, lat_v, lon_v)
+            water_u, water_lat_u, water_lon_u, water_v, water_lat_v, water_lon_v, water_ang_rho, water_lat_rho, water_lon_rho = maskedArray(grid_file, rot_u, lat_u,lon_u, rot_v, lat_v, lon_v, ang_rho, lat_rho, lon_rho)
 
             # Create regular grid function using masked u and v arrays
-            ugrid, vgrid, Xv, Yv = createRegGrid(water_u, water_lat_u, water_lon_u, water_v, water_lat_v, water_lon_v)
+            ugrid, vgrid, x, y = createRegGrid(water_u, water_lat_u, water_lon_u, water_v, water_lat_v, water_lon_v, water_ang_rho, water_lat_rho, water_lon_rho)
 
             # Create HDF5 groups and datasets
-            createGroup(hdf_file, grid_file, ugrid, vgrid, Xv, Yv)
+            createGroup(hdf_file, grid_file, ugrid, vgrid, x, y)
 
             print("Data sucessfully added")
 
