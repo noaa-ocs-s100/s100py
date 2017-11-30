@@ -70,6 +70,9 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, x, y):
             strVal = timeVal.strftime("%Y%m%dT%H%M%SZ")
             newGroup.attrs.create('DateTime', strVal.encode())
 
+            hdf_file.attrs.modify('dateTimeOfFirstRecord', strVal)
+            hdf_file.attrs.modify('dateTimeOfLastRecord', strVal)
+
             # Create dataset containers for speed and direction , with input from function convertVectors
             directions = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64)
             speeds = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64)
@@ -119,6 +122,14 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, x, y):
         strVal = timeVal.strftime("%Y%m%dT%H%M%SZ")
         newGroup.attrs.create('DateTime', strVal.encode())
 
+        hdf_file.attrs.modify('dateTimeOfLastRecord', strVal)
+        one = hdf_file.attrs['dateTimeOfFirstRecord']
+        firstTime = datetime.datetime.strptime((hdf_file.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
+        lastTime = datetime.datetime.strptime((hdf_file.attrs['dateTimeOfLastRecord']),"%Y%m%dT%H%M%SZ")
+        interval = lastTime - firstTime
+        timeInterval=  interval.total_seconds()
+        hdf_file.attrs.modify('timeRecordInterval', timeInterval)
+                 
         # Create dataset containers for speed and direction , with input from function convertVectors
         directions = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64)
         speeds = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64)
