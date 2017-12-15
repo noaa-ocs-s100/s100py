@@ -74,17 +74,17 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, x, y):
             hdf_file.attrs.modify('dateTimeOfLastRecord', strVal)
 
             # Create dataset containers for speed and direction , with input from function convertVectors
-            directions = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64)
-            speeds = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64)
+            directions = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32)
+            speeds = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32)
 
             # Call function to convert u and v to current speed and direction
             directions, speeds = convertVectors(directions, speeds, ugrid, vgrid)
 
             # Write data to empty HDF5 datasets
-            direction_dataset = newGroup.create_dataset('Direction', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=directions)
-            speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=speeds)
-            x_dataset = newGroup.create_dataset('X', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=x)
-            y_dataset = newGroup.create_dataset('Y', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=y)
+            direction_dataset = newGroup.create_dataset('Direction', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32, data=directions)
+            speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32, data=speeds)
+            x_dataset = newGroup.create_dataset('X', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32, data=x)
+            y_dataset = newGroup.create_dataset('Y', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32, data=y)
 
             # Add CF attributes and geographic coordinates
             direction_dataset.attrs['units'] = 'degrees'
@@ -131,17 +131,17 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, x, y):
         hdf_file.attrs.modify('timeRecordInterval', timeInterval)
                  
         # Create dataset containers for speed and direction , with input from function convertVectors
-        directions = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64)
-        speeds = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64)
+        directions = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32)
+        speeds = numpy.empty((ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32)
 
         # Call function to convert u and v to current speed and direction
         directions, speeds = convertVectors(directions, speeds, ugrid, vgrid)
 
         # Write data to empty HDF5 datasets
-        direction_dataset = newGroup.create_dataset('Direction', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64,data=directions)
-        speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64,data=speeds)
-        x_dataset = newGroup.create_dataset('X', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=x)
-        y_dataset = newGroup.create_dataset('Y', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float64, data=y)
+        direction_dataset = newGroup.create_dataset('Direction', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32,data=directions)
+        speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32,data=speeds)
+        x_dataset = newGroup.create_dataset('X', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32, data=x)
+        y_dataset = newGroup.create_dataset('Y', (ugrid.shape[0], ugrid.shape[1]), dtype=numpy.float32, data=y)
 
         # Add CF attributes and geographic coordinates
         direction_dataset.attrs['units'] = 'degrees'
@@ -162,7 +162,7 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, x, y):
         x_dataset.attrs['units'] = 'degrees_east'
         x_dataset.attrs['standard_name'] = 'longitude'
     
-
+        
 # ******************************************************************************
 
 def createRegGrid(water_u, water_lat_u, water_lon_u, water_v, water_lat_v, water_lon_v, water_rho, water_lat_rho, water_lon_rho):
