@@ -116,16 +116,10 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid):
             #Add CF attributes and geographic coordinates
             direction_dataset.attrs['units'] = 'degrees'
             direction_dataset.attrs['long_name'] = 'surface_current_direction'
-            vlen = h5py.special_dtype (vlen = str)
-            direction_dataset.attrs.create ('coordinates', data = ['X', 'Y'],
-            dtype=vlen)
             
             speed_dataset.attrs['units'] = 'knots'
             speed_dataset.attrs['long_name'] = 'surface_current_speed'
-            vlen = h5py.special_dtype (vlen = str)
-            speed_dataset.attrs.create ('coordinates', data = ['X', 'Y'],
-            dtype=vlen)
-            
+
             y_dataset.attrs['long_name'] = 'latitude'
             y_dataset.attrs['units'] = 'degrees_north'
             y_dataset.attrs['standard_name'] ='latitude'
@@ -134,8 +128,12 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid):
             x_dataset.attrs['units'] = 'degrees_east' 
             x_dataset.attrs['standard_name']= 'longitude'
 
-            #hdf_file.attrs.modify('minDatasetCurrentSpeed', minSpeed)
-            #hdf_file.attrs.modify('maxDatasetCurrentSpeed', maxSpeed)
+            #Update global speed attributes and number of timestamps
+            minSpeed = numpy.amin(speeds)
+            maxSpeed = numpy.amax(speeds)
+            hdf_file.attrs.modify('minDatasetCurrentSpeed', minSpeed)
+            hdf_file.attrs.modify('maxDatasetCurrentSpeed', maxSpeed)
+            hdf_file.attrs.modify('numberOfTimes', numberOfTimes)
                     
     else:
             grps = hdf_file.items()
@@ -145,7 +143,7 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid):
             print("Creating", newGroupName, "dataset.")
             newGroup = hdf_file.create_group(newGroupName)
     
-            groupTitle = 'Regular Grid at DateTime ' + str(numGrps + 1)
+            groupTitle = 'Regular Grid at DateTime ' + str(numGrps)
             newGroup.attrs.create('Title', groupTitle.encode())
     
             timeVal = times[0]
@@ -174,18 +172,21 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid):
             #Add CF attributes and geographic coordinates
             direction_dataset.attrs['units'] = 'degrees'
             direction_dataset.attrs['long_name'] = 'surface_current_direction'
-            vlen = h5py.special_dtype (vlen = str)
-            direction_dataset.attrs.create ('coordinates', data = ['X', 'Y'],
-            dtype=vlen)
             
             speed_dataset.attrs['units'] = 'knots'
             speed_dataset.attrs['long_name'] = 'surface_current_speed'
-            vlen = h5py.special_dtype (vlen = str)
-            speed_dataset.attrs.create ('coordinates', data = ['X', 'Y'],
-            dtype=vlen)
         
-            #hdf_file.attrs.modify('minDatasetCurrentSpeed', minSpeed)
-            #hdf_file.attrs.modify('maxDatasetCurrentSpeed', maxSpeed)
+            #Update global speed attributes and number of timestamps
+            minSpeed = numpy.amin(speeds)
+            maxSpeed = numpy.amax(speeds)
+            numberOfTimes = numGrps
+            hdf_file.attrs.modify('numberOfTimes', numberOfTimes)
+            prior_minSpeed = hdf_file.attrs['minDatasetCurrentSpeed']
+            prior_maxSpeed = hdf_file.attrs['maxDatasetCurrentSpeed']
+            if minSpeed < prior_minSpeed:
+                hdf_file.attrs.modify('minDatasetCurrentSpeed', minSpeed)
+            if maxSpeed > prior_maxSpeed:
+                hdf_file.attrs.modify('maxDatasetCurrentSpeed', maxSpeed)
 
 
 #******************************************************************************   
@@ -208,37 +209,27 @@ def interpolate2RegGrid(water_lat_rho,water_lon_rho,rot_urho, rot_vrho, index_fi
     xgrid, ygrid = numpy.meshgrid(gridX, gridY)
 
     #Read the Index and Coefficient NetCDF variables          
-    ncindex_x0 = index_file.variables['x0'][:,:]
-    ncindex_y0 = index_file.variables['y0'][:,:]
     ncindex_xi1 = index_file.variables['xi1'][:,:]
     ncindex_eta1 = index_file.variables['eta1'][:,:]
-    ncindex_x1 = index_file.variables['x1'][:,:]
-    ncindex_y1 = index_file.variables['y1'][:,:]
     ncindex_w1 = index_file.variables['w1'][:,:]
     ncindex_xi2 = index_file.variables['xi2'][:,:]
     ncindex_eta2 = index_file.variables['eta2'][:,:]
-    ncindex_x2 = index_file.variables['x2'][:,:]
-    ncindex_y2 = index_file.variables['y2'][:,:]
     ncindex_w2 = index_file.variables['w2'][:,:]
     ncindex_xi3 = index_file.variables['xi3'][:,:]
     ncindex_eta3 = index_file.variables['eta3'][:,:]
-    ncindex_x3 = index_file.variables['x3'][:,:]
-    ncindex_y3 = index_file.variables['y3'][:,:]
     ncindex_w3 = index_file.variables['w3'][:,:]
     ncindex_xi4 = index_file.variables['xi4'][:,:]
     ncindex_eta4 = index_file.variables['eta4'][:,:]
-    ncindex_x4 = index_file.variables['x4'][:,:]
-    ncindex_y4 = index_file.variables['y4'][:,:]
     ncindex_w4 = index_file.variables['w4'][:,:]
-    w_sum = index_file.variables['w_sum'][:,:]
+    ncindex_wsum = index_file.variables['w_sum'][:,:]
 
     #Create masked empty regular grid for variable u
-    ugrid = numpy.ma.empty(shape=[ncindex_x0.shape[0],ncindex_x0.shape[1]]) 
+    ugrid = numpy.ma.empty(shape=[ncindex_xi1.shape[0],ncindex_xi1.shape[1]]) 
         
     #For each regular grid cell, read the corresponding xi1/eta1/w1, xi2/eta2/w2, xi3/eta3/w3, and xi4/eta4/w4 values
-    for y in range(ncindex_x0.shape[0]):
-        for x in range(ncindex_x0.shape[1]):
-            if not ncindex_x0.mask[y,x]:
+    for y in range(ncindex_xi1.shape[0]):
+        for x in range(ncindex_xi1.shape[1]):
+            if not ncindex_xi1.mask[y,x]:
                 xi1 = ncindex_xi1.data[y,x]
                 eta1 = ncindex_eta1.data[y,x]
                 xi2 = ncindex_xi2.data[y,x]
@@ -252,15 +243,15 @@ def interpolate2RegGrid(water_lat_rho,water_lon_rho,rot_urho, rot_vrho, index_fi
                 u3 = rot_urho.data[eta3,xi3]
                 u4 = rot_urho.data[eta4,xi4]
                 #Use Inverse Distance Weigting algorithm to interpolate u to the regular grid
-                ugrid[y,x] = ((((ncindex_w1.data[y,x]) * u1) + ((ncindex_w2.data[y,x]) * u2) + ((ncindex_w3[y,x]) * u3) + ((ncindex_w4[y,x])  * u4)) / w_sum[y,x])
+                ugrid[y,x] = ((((ncindex_w1.data[y,x]) * u1) + ((ncindex_w2.data[y,x]) * u2) + ((ncindex_w3[y,x]) * u3) + ((ncindex_w4[y,x])  * u4)) / ncindex_wsum[y,x])
     
     #Create masked empty regular grid for variable v        
-    vgrid = numpy.ma.empty(shape=[ncindex_x0.shape[0],ncindex_x0.shape[1]])
+    vgrid = numpy.ma.empty(shape=[ncindex_xi1.shape[0],ncindex_xi1.shape[1]])
 
     #For each regular grid cell, read the corresponding xi1/eta1/w1, xi2/eta2/w2, xi3/eta3/w3, and xi4/eta4/w4 values
-    for y in range(ncindex_x0.shape[0]):
-        for x in range(ncindex_x0.shape[1]):
-            if not ncindex_x0.mask[y,x]:
+    for y in range(ncindex_xi1.shape[0]):
+        for x in range(ncindex_xi1.shape[1]):
+            if not ncindex_xi1.mask[y,x]:
                 xi1 = ncindex_xi1.data[y,x]
                 eta1 = ncindex_eta1.data[y,x]
                 xi2 = ncindex_xi2.data[y,x]
@@ -274,10 +265,10 @@ def interpolate2RegGrid(water_lat_rho,water_lon_rho,rot_urho, rot_vrho, index_fi
                 v3 = rot_vrho.data[eta3,xi3]
                 v4 = rot_vrho.data[eta4,xi4]
                 #Use Inverse Distance Weigting algorithm to interpolate v to the regular grid
-                vgrid[y,x] = ((((ncindex_w1.data[y,x]) * v1) + ((ncindex_w2.data[y,x]) * v2) + ((ncindex_w3[y,x]) * v3) + ((ncindex_w4[y,x])  * v4)) / w_sum[y,x])
+                vgrid[y,x] = ((((ncindex_w1.data[y,x]) * v1) + ((ncindex_w2.data[y,x]) * v2) + ((ncindex_w3[y,x]) * v3) + ((ncindex_w4[y,x])  * v4)) / ncindex_wsum[y,x])
                         
 
-    return (xgrid, ygrid, gridX, gridY, ugrid, vgrid, minLon, minLat)
+    return xgrid, ygrid, gridX, gridY, ugrid, vgrid, minLon, minLat
 
 #****************************************************************************** 
 
@@ -289,7 +280,7 @@ def rot2d(u_rho, v_rho, water_ang_rho):
     rot_urho = u_rho*angcos - v_rho*angsin
     rot_vrho = u_rho*angsin + v_rho*angcos
 
-    return (rot_urho, rot_vrho)
+    return rot_urho, rot_vrho
 
 #****************************************************************************** 
 
@@ -312,7 +303,7 @@ def avg2rho(water_u, water_v):
             v_rho[eta,xi] = (water_v[eta,xi] + water_v[eta+1,xi])/2
         v_rho[eta,water_v.shape[1]-1] = water_v[eta,water_v.shape[1]-1]   
 
-    return (u_rho, v_rho)
+    return u_rho, v_rho
     
 #******************************************************************************     
 
@@ -321,13 +312,13 @@ def maskingLand(u, v, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho):
 
     water_u = ma.masked_array(u, numpy.logical_not(mask_u))
     water_v = ma.masked_array(v, numpy.logical_not(mask_v))
-    water_u = u.filled(0)
-    water_v = v.filled(0)
+    water_u = water_u.filled(0)
+    water_v = water_v.filled(0)
     water_ang_rho = ma.masked_array(ang_rho, numpy.logical_not(mask_rho))
     water_lat_rho = ma.masked_array(lat_rho, numpy.logical_not(mask_rho))
     water_lon_rho = ma.masked_array(lon_rho, numpy.logical_not(mask_rho))  
            
-    return (water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho)
+    return water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho
 
 
 #******************************************************************************        
@@ -366,10 +357,6 @@ def main():
                 ang_rho = grid_file.variables['angle'][1:,1:]
                 lat_rho = grid_file.variables['lat_rho'][1:,1:]
                 lon_rho = grid_file.variables['lon_rho'][1:,1:]
-                lat_u = grid_file.variables['lat_u'][1:,:]
-                lon_u = grid_file.variables['lon_u'][1:,:]
-                lat_v = grid_file.variables['lat_v'][:,1:]
-                lon_v = grid_file.variables['lon_v'][:,1:]
                 u = grid_file.variables['u'][0,-1,1:,:]
                 v = grid_file.variables['v'][0,-1,:,1:]
                 mask_u = grid_file.variables['mask_u'][1:,:]
