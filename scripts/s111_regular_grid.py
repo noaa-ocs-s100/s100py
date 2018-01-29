@@ -67,7 +67,7 @@ def convertVectors(directions, speeds, ugrid, vgrid):
     
 #******************************************************************************   
 
-def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid):
+def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
     """Create an inital HDF5 Group containing Speeds, Directions, and XY Datasets.
        For every additional NetCDF file Create an HDF5 Group containing Speeds and Direction Datasets.
        Update HDF5 time attributes.
@@ -84,7 +84,7 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid):
         
         for index in range(0, numberOfTimes):
     
-            newGroupName = 'Group_' + str(index + 1)
+            newGroupName = 'Group_' + str(index + 1).zfill(3)
             print("Creating", newGroupName ,"dataset.")
             newGroup = hdf_file.create_group(newGroupName)
             
@@ -106,19 +106,34 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid):
             #Calculate Current Speed and Direction at Regular Grid Point
             directions, speeds = convertVectors(directions, speeds, ugrid, vgrid)                        
             
+            #Add regular grid mask to speeds, direction, and xygrids
+            #Add fill values
+            minSpeed = numpy.nanmin(speeds)
+            maxSpeed = numpy.nanmax(speeds)
+            minSpeed = numpy.round(minSpeed,2)
+            maxSpeed = numpy.round(maxSpeed,2)
+            directions = ma.masked_array(directions, ncindex_xi1.mask)  
+            speeds = ma.masked_array(speeds, ncindex_xi1.mask)
+            directions = directions.filled(-9999.0)
+            speeds = speeds.filled(-9999.0)
+            xgrid = ma.masked_array(xgrid, ncindex_xi1.mask)
+            ygrid = ma.masked_array(ygrid, ncindex_xi1.mask)
+            xgrid = xgrid.filled(-9999.0)
+            ygrid = ygrid.filled(-9999.0)
+            
             #Write data to empty HDF5 datasets 
-            direction_dataset = newGroup.create_dataset('Direction', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", fillvalue=90)
-            speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", fillvalue=0)
+            direction_dataset = newGroup.create_dataset('Direction', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9,  fillvalue=-9999.0)
+            speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
             groupXY = hdf_file.create_group("Group_XY")
-            x_dataset = groupXY.create_dataset('X', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=xgrid, chunks=True, compression="gzip")
-            y_dataset = groupXY.create_dataset('Y', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=ygrid, chunks=True, compression="gzip")
+            x_dataset = groupXY.create_dataset('X', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=xgrid, chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
+            y_dataset = groupXY.create_dataset('Y', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=ygrid, chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
             
             #Add CF attributes and geographic coordinates
             direction_dataset.attrs['units'] = 'degrees'
-            direction_dataset.attrs['long_name'] = 'surface_current_direction'
+            direction_dataset.attrs['long_name'] = 'surfaceCurrentDirection'
             
             speed_dataset.attrs['units'] = 'knots'
-            speed_dataset.attrs['long_name'] = 'surface_current_speed'
+            speed_dataset.attrs['long_name'] = 'surfaceCurrentSpeed'
 
             y_dataset.attrs['long_name'] = 'latitude'
             y_dataset.attrs['units'] = 'degrees_north'
@@ -129,8 +144,6 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid):
             x_dataset.attrs['standard_name']= 'longitude'
 
             #Update global speed attributes and number of timestamps
-            minSpeed = numpy.amin(speeds)
-            maxSpeed = numpy.amax(speeds)
             hdf_file.attrs.modify('minDatasetCurrentSpeed', minSpeed)
             hdf_file.attrs.modify('maxDatasetCurrentSpeed', maxSpeed)
             hdf_file.attrs.modify('numberOfTimes', numberOfTimes)
@@ -139,7 +152,7 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid):
             grps = hdf_file.items()
             numGrps = len(grps)
     
-            newGroupName = 'Group_' + str(numGrps)
+            newGroupName = 'Group_' + str(numGrps).zfill(3)
             print("Creating", newGroupName, "dataset.")
             newGroup = hdf_file.create_group(newGroupName)
     
@@ -164,21 +177,34 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid):
             speeds = numpy.empty((ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32)
             
             directions, speeds = convertVectors(directions, speeds, ugrid, vgrid) 
-                        
+            
+            #Add regular grid mask to speeds, direction, and xygrids
+            #Add fill values
+            minSpeed = numpy.nanmin(speeds)
+            maxSpeed = numpy.nanmax(speeds)
+            minSpeed = numpy.round(minSpeed,2)
+            maxSpeed = numpy.round(maxSpeed,2)
+            directions = ma.masked_array(directions, ncindex_xi1.mask)  
+            speeds = ma.masked_array(speeds, ncindex_xi1.mask)
+            directions = directions.filled(-9999.0)
+            speeds = speeds.filled(-9999.0)
+            xgrid = ma.masked_array(xgrid, ncindex_xi1.mask)
+            ygrid = ma.masked_array(ygrid, ncindex_xi1.mask)
+            xgrid = xgrid.filled(-9999.0)
+            ygrid = ygrid.filled(-9999.0)
+
             #Write data to empty HDF5 datasets 
-            direction_dataset = newGroup.create_dataset('Direction', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,chunks=True, compression="gzip", fillvalue=90)
-            speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds, chunks=True, compression="gzip", fillvalue=0)
+            direction_dataset = newGroup.create_dataset('Direction', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
+            speed_dataset = newGroup.create_dataset('Speed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds, chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
     
             #Add CF attributes and geographic coordinates
             direction_dataset.attrs['units'] = 'degrees'
-            direction_dataset.attrs['long_name'] = 'surface_current_direction'
+            direction_dataset.attrs['long_name'] = 'surfaceCurrentDirection'
             
             speed_dataset.attrs['units'] = 'knots'
-            speed_dataset.attrs['long_name'] = 'surface_current_speed'
+            speed_dataset.attrs['long_name'] = 'surfaceCurrentSpeed'
         
             #Update global speed attributes and number of timestamps
-            minSpeed = numpy.amin(speeds)
-            maxSpeed = numpy.amax(speeds)
             numberOfTimes = numGrps
             hdf_file.attrs.modify('numberOfTimes', numberOfTimes)
             prior_minSpeed = hdf_file.attrs['minDatasetCurrentSpeed']
@@ -268,7 +294,7 @@ def interpolate2RegGrid(water_lat_rho,water_lon_rho,rot_urho, rot_vrho, index_fi
                 vgrid[y,x] = ((((ncindex_w1.data[y,x]) * v1) + ((ncindex_w2.data[y,x]) * v2) + ((ncindex_w3[y,x]) * v3) + ((ncindex_w4[y,x])  * v4)) / ncindex_wsum[y,x])
                         
 
-    return xgrid, ygrid, gridX, gridY, ugrid, vgrid, minLon, minLat
+    return xgrid, ygrid, gridX, gridY, ugrid, vgrid, minLon, minLat, ncindex_xi1
 
 #****************************************************************************** 
 
@@ -312,6 +338,7 @@ def maskingLand(u, v, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho):
 
     water_u = ma.masked_array(u, numpy.logical_not(mask_u))
     water_v = ma.masked_array(v, numpy.logical_not(mask_v))
+    #u/v masked values need to be set to 0 for averaging 
     water_u = water_u.filled(0)
     water_v = water_v.filled(0)
     water_ang_rho = ma.masked_array(ang_rho, numpy.logical_not(mask_rho))
@@ -373,10 +400,10 @@ def main():
                 rot_urho, rot_vrho = rot2d(u_rho, v_rho, water_ang_rho)
 
                 #Call create regular grid function 
-                xgrid, ygrid, gridX, gridY, ugrid, vgrid, minLon, minLat = interpolate2RegGrid(water_lat_rho,water_lon_rho,rot_urho, rot_vrho, index_file)
+                xgrid, ygrid, gridX, gridY, ugrid, vgrid, minLon, minLat, ncindex_xi1 = interpolate2RegGrid(water_lat_rho,water_lon_rho,rot_urho, rot_vrho, index_file)
 
                 #Create HDF5 groups and datasets
-                createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid)
+                createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1)
 
                 #Update HDF5 attributes
                 updateAttributes(hdf_file, ugrid, gridX, gridY, minLon, minLat)
