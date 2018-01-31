@@ -247,7 +247,7 @@ def interpolate2RegGrid(water_lat_rho,water_lon_rho,rot_urho, rot_vrho, index_fi
     ncindex_xi4 = index_file.variables['xi4'][:,:]
     ncindex_eta4 = index_file.variables['eta4'][:,:]
     ncindex_w4 = index_file.variables['w4'][:,:]
-    ncindex_wsum = index_file.variables['w_sum'][:,:]
+    ncindex_wsum = index_file.variables['wsum'][:,:]
 
     #Create masked empty regular grid for variable u
     ugrid = numpy.ma.empty(shape=[ncindex_xi1.shape[0],ncindex_xi1.shape[1]]) 
