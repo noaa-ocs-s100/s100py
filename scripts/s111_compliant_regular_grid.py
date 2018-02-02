@@ -32,6 +32,12 @@ def updateAttributes(hdf_file, ugrid, gridX, gridY, minLon, minLat):
     hdf_file.attrs.modify('surfaceCurrentDepth', 2)
     hdf_file.attrs.modify('gridOriginLongitude', minLon)
     hdf_file.attrs.modify('gridOriginLatitude', minLat)
+    hdf_file.attrs.modify('nameRegion', 'US_East_Coast')
+    hdf_file.attrs.modify('nameSubregion', 'Cheaspeake_Bay')
+    hdf_file.attrs.modify('methodCurrentsProduct', 'ROMS_Hydrodynamic_Model')
+    hdf_file.attrs.modify('gridLandMaskValue', -9999.0 )
+    hdf_file.attrs.modify('dataCodingFormat', 2)
+    hdf_file.attrs.modify('depthTypeIndex', 2)
 
 #******************************************************************************   
 
@@ -66,13 +72,13 @@ def convertVectors(directions, speeds, ugrid, vgrid):
     
 #******************************************************************************   
 
-def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
+def createGroup(hdf_file, netcdf_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
     """Create an inital HDF5 Group containing Speeds, Directions, and XY Datasets.
        For every additional NetCDF file Create an HDF5 Group containing Speeds and Direction Datasets.
        Update HDF5 time attributes.
     """
     #Read in time variable 
-    ocean_time = grid_file.variables['ocean_time']
+    ocean_time = netcdf_file.variables['ocean_time']
     
     #Convert gregorian timestamp to datetime timestamp
     times = netCDF4.num2date(ocean_time,ocean_time.units)
@@ -97,6 +103,7 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
             hdf_file.attrs.modify('dateTimeOfIssue', strVal)                                 
             hdf_file.attrs.modify('dateTimeOfFirstRecord', strVal)
             hdf_file.attrs.modify('dateTimeOfLastRecord', strVal)
+            hdf_file.attrs.modify('typeOfCurrentData', 6)
                                   
             #Create dataset containers for speed and direction , with input from function convertVectors
             directions = numpy.empty((vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32)
@@ -119,8 +126,8 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
             ygrid = ygrid.filled(-9999.0)                    
             
             #Write data to empty HDF5 datasets 
-            newGroup.create_dataset('Direction', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
-            newGroup.create_dataset('Speed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
+            newGroup.create_dataset('surfaceCurrentDirection', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
+            newGroup.create_dataset('surfaceCurrentSpeed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
 
             hdf_file.attrs.modify('minDatasetCurrentSpeed', minSpeed)
             hdf_file.attrs.modify('maxDatasetCurrentSpeed', maxSpeed)
@@ -142,7 +149,6 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
             strVal = timeVal.strftime("%Y%m%dT%H%M%SZ")
             newGroup.attrs.create('DateTime', strVal.encode())
     
-            hdf_file.attrs.modify('dateTimeOfIssue', strVal) 
             hdf_file.attrs.modify('dateTimeOfLastRecord', strVal)
             firstTime = datetime.datetime.strptime((hdf_file.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
             lastTime = datetime.datetime.strptime((hdf_file.attrs['dateTimeOfLastRecord']),"%Y%m%dT%H%M%SZ")
@@ -170,8 +176,8 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
             ygrid = ygrid.filled(-9999.0)
 
             #Write data to empty HDF5 datasets 
-            newGroup.create_dataset('Direction', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
-            newGroup.create_dataset('Speed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds, chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
+            newGroup.create_dataset('surfaceCurrentDirection', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
+            newGroup.create_dataset('surfaceCurrentSpeed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds, chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
 
             numberOfTimes = numGrps + 1
             hdf_file.attrs.modify('numberOfTimes', numberOfTimes)
@@ -183,7 +189,6 @@ def createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
                 hdf_file.attrs.modify('maxDatasetCurrentSpeed', maxSpeed)
             
 
-    return directions, speeds
 #******************************************************************************   
 
 def interpolate2RegGrid(water_lat_rho,water_lon_rho,rot_urho, rot_vrho, index_file):
@@ -307,6 +312,7 @@ def maskingLand(u, v, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho):
 
     water_u = ma.masked_array(u, numpy.logical_not(mask_u))
     water_v = ma.masked_array(v, numpy.logical_not(mask_v))
+    #u/v masked values need to be set to 0 for averaging 
     water_u = water_u.filled(0)
     water_v = water_v.filled(0)
     water_ang_rho = ma.masked_array(ang_rho, numpy.logical_not(mask_rho))
@@ -323,11 +329,11 @@ def createCommandLine():
        returns: The command line parser.
     """
 
-    parser = argparse.ArgumentParser(description='Add S-111 regular grid Dataset')
+    parser = argparse.ArgumentParser(description='Create S-111 Regular Grid Dataset')
 
-    parser.add_argument('-g', '--grid-file', help='The netcdf file containing the regular grid data.', required=True)
-    parser.add_argument('-i', '--index_file', help='The netcdf index and coefficient file needed for interpolation.', required=True)
-    parser.add_argument("inOutFile", nargs=1)
+    parser.add_argument('-f', '--netcdf_file', help='Add the ocean model netcdf file.', required=True)
+    parser.add_argument('-i', '--index_file', help='Add index and coefficient netcdf file.', required=True)
+    parser.add_argument("hdf_file", nargs=1)
 
     return parser
 
@@ -341,23 +347,23 @@ def main():
     results = parser.parse_args()
     
     #Open the HDF5 file
-    with h5py.File(results.inOutFile[0], "r+") as hdf_file:
+    with h5py.File(results.hdf_file[0], "r+") as hdf_file:
         
         #Open the index and coefficient file
         with netCDF4.Dataset(results.index_file, "r", format="NETCDF4") as index_file:
 
-            #Open the grid file
-            with netCDF4.Dataset(results.grid_file, "r", format="NETCDF3 Classic") as grid_file:
+            #Open the NetCDF file
+            with netCDF4.Dataset(results.netcdf_file, "r", format="NETCDF3 Classic") as netcdf_file:
                
                 #Extract the variables from the NetCDF
-                ang_rho = grid_file.variables['angle'][1:,1:]
-                lat_rho = grid_file.variables['lat_rho'][1:,1:]
-                lon_rho = grid_file.variables['lon_rho'][1:,1:]
-                u = grid_file.variables['u'][0,-1,1:,:]
-                v = grid_file.variables['v'][0,-1,:,1:]
-                mask_u = grid_file.variables['mask_u'][1:,:]
-                mask_v = grid_file.variables['mask_v'][:,1:]
-                mask_rho = grid_file.variables['mask_rho'][1:,1:]
+                ang_rho = netcdf_file.variables['angle'][1:,1:]
+                lat_rho = netcdf_file.variables['lat_rho'][1:,1:]
+                lon_rho = netcdf_file.variables['lon_rho'][1:,1:]
+                u = netcdf_file.variables['u'][0,-1,1:,:]
+                v = netcdf_file.variables['v'][0,-1,:,1:]
+                mask_u = netcdf_file.variables['mask_u'][1:,:]
+                mask_v = netcdf_file.variables['mask_v'][:,1:]
+                mask_rho = netcdf_file.variables['mask_rho'][1:,1:]
 
                 #Call masked arrays function and return masked arrays
                 water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho = maskingLand(u, v, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho)
@@ -372,7 +378,7 @@ def main():
                 xgrid, ygrid, gridX, gridY, ugrid, vgrid, minLon, minLat, ncindex_xi1 = interpolate2RegGrid(water_lat_rho,water_lon_rho,rot_urho, rot_vrho, index_file)
 
                 #Create HDF5 groups and datasets
-                directions, speeds = createGroup(hdf_file, grid_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1)
+                createGroup(hdf_file, netcdf_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1)
 
                 #Update HDF5 attributes
                 updateAttributes(hdf_file, ugrid, gridX, gridY, minLon, minLat)
