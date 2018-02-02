@@ -36,7 +36,7 @@ def add_metadata(hdf_file):
     hdf_file.attrs.create('directionUncertainty', -1.0 , dtype=numpy.float32)
     hdf_file.attrs.create('positionUncertainty', -1.0 , dtype=numpy.float32)
     hdf_file.attrs.create('verticalUncertainty', -1.0 , dtype=numpy.float32)
-    hdf_file.attrs.create('timeUncertainty', 0 , dtype=numpy.float32)
+    hdf_file.attrs.create('timeUncertainty', -1.0 , dtype=numpy.float32)
     hdf_file.attrs.create('minDatasetCurrentSpeed', 0 , dtype=numpy.float32)
     hdf_file.attrs.create('maxDatasetCurrentSpeed', 0 , dtype=numpy.float32)
 
