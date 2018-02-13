@@ -77,13 +77,11 @@ def createGroup(hdf_file, netcdf_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
        For every additional NetCDF file Create an HDF5 Group containing Speeds and Direction Datasets.
        Update HDF5 time attributes.
     """
-    #Read in time variable 
-    ocean_time = netcdf_file.variables['ocean_time']
     
     #Convert gregorian timestamp to datetime timestamp
-    times = netCDF4.num2date(ocean_time,ocean_time.units)
+    time = netCDF4.num2date(netcdf_file.variables['ocean_time'][:], netcdf_file.variables['ocean_time'].units)
 
-    numberOfTimes = times.shape[0]
+    numberOfTimes = time.shape[0]
 
     if hdf_file.items() == []:
         
@@ -96,13 +94,13 @@ def createGroup(hdf_file, netcdf_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
             groupTitle = 'Regular Grid at DateTime ' + str(index + 1)
             newGroup.attrs.create('Title', groupTitle.encode())
     
-            timeVal = times[index]
+            timeVal = time[index]
     
             strVal = timeVal.strftime("%Y%m%dT%H%M%SZ")
             newGroup.attrs.create('DateTime', strVal.encode())                    
-            hdf_file.attrs.modify('dateTimeOfIssue', strVal)                                 
-            hdf_file.attrs.modify('dateTimeOfFirstRecord', strVal)
-            hdf_file.attrs.modify('dateTimeOfLastRecord', strVal)
+            hdf_file.attrs.modify('dateTimeOfIssue', strVal.encode())                                 
+            hdf_file.attrs.modify('dateTimeOfFirstRecord', strVal.encode())
+            hdf_file.attrs.modify('dateTimeOfLastRecord', strVal.encode())
             hdf_file.attrs.modify('typeOfCurrentData', 6)
                                   
             #Create dataset containers for speed and direction , with input from function convertVectors
@@ -126,30 +124,60 @@ def createGroup(hdf_file, netcdf_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
             ygrid = ygrid.filled(-9999.0)                    
             
             #Write data to empty HDF5 datasets 
-            newGroup.create_dataset('surfaceCurrentDirection', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
-            newGroup.create_dataset('surfaceCurrentSpeed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
+            newGroup.create_dataset('surfaceCurrentDirection', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
+            newGroup.create_dataset('surfaceCurrentSpeed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
 
             hdf_file.attrs.modify('minDatasetCurrentSpeed', minSpeed)
             hdf_file.attrs.modify('maxDatasetCurrentSpeed', maxSpeed)
             hdf_file.attrs.modify('numberOfTimes', numberOfTimes)
-                    
+
+
+            # Create the compound datatype for Group F attributes
+            DIM0 = 2
+            DATASET = "Attributes"
+
+            dtype = numpy.dtype([("0", h5py.special_dtype(vlen=str)), 
+                              ("1", h5py.special_dtype(vlen=str)),
+                              ("2", h5py.special_dtype(vlen=str)),
+                              ("3", h5py.special_dtype(vlen=str)),
+                              ("4", h5py.special_dtype(vlen=str)),
+                              ("5", h5py.special_dtype(vlen=str))])
+            
+            fdata = numpy.zeros((DIM0,), dtype=dtype)
+            fdata['0'][0] = ("surfaceCurrentSpeed")
+            fdata['1'][0] = ("Surface current speed")
+            fdata['2'][0] = ("knots")
+            fdata['3'][0] = ("-9999.0")
+            fdata['4'][0] = ("96,56")
+            fdata['5'][0] = ("H5T_FLOAT")
+            fdata['0'][1] = ("surfaceCurrentDirection")
+            fdata['1'][1] = ("Surface current direction")
+            fdata['2'][1] = ("degrees")
+            fdata['3'][1] = ("-9999.0")
+            fdata['4'][1] = ("96,56")
+            fdata['5'][1] = ("H5T_FLOAT")
+
+            groupF = hdf_file.create_group("Group F")
+            dset = groupF.create_dataset(DATASET,(DIM0,), dtype = dtype)
+            dset[...] = fdata
+
     else:
             grps = hdf_file.items()
             numGrps = len(grps)
     
-            newGroupName = 'Group' + ' ' + str(numGrps + 1)
+            newGroupName = 'Group' + ' ' + str(numGrps)
             print("Creating", newGroupName, "dataset.")
             newGroup = hdf_file.create_group(newGroupName)
     
-            groupTitle = 'Regular Grid at DateTime ' + str(numGrps + 1)
+            groupTitle = 'Regular Grid at DateTime ' + str(numGrps)
             newGroup.attrs.create('Title', groupTitle.encode())
     
-            timeVal = times[0]
+            timeVal = time[0]
     
             strVal = timeVal.strftime("%Y%m%dT%H%M%SZ")
             newGroup.attrs.create('DateTime', strVal.encode())
     
-            hdf_file.attrs.modify('dateTimeOfLastRecord', strVal)
+            hdf_file.attrs.modify('dateTimeOfLastRecord', strVal.encode())
             firstTime = datetime.datetime.strptime((hdf_file.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
             lastTime = datetime.datetime.strptime((hdf_file.attrs['dateTimeOfLastRecord']),"%Y%m%dT%H%M%SZ")
             interval = lastTime - firstTime
@@ -176,8 +204,8 @@ def createGroup(hdf_file, netcdf_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
             ygrid = ygrid.filled(-9999.0)
 
             #Write data to empty HDF5 datasets 
-            newGroup.create_dataset('surfaceCurrentDirection', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
-            newGroup.create_dataset('surfaceCurrentSpeed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds, chunks=True, compression="gzip", fillvalue=-9999.0, compression_opts=9)
+            newGroup.create_dataset('surfaceCurrentDirection', (vgrid.shape[0],vgrid.shape[1]), dtype=numpy.float32, data=directions,chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
+            newGroup.create_dataset('surfaceCurrentSpeed', (ugrid.shape[0],ugrid.shape[1]), dtype=numpy.float32, data=speeds, chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
 
             numberOfTimes = numGrps + 1
             hdf_file.attrs.modify('numberOfTimes', numberOfTimes)
@@ -353,7 +381,7 @@ def main():
         with netCDF4.Dataset(results.index_file, "r", format="NETCDF4") as index_file:
 
             #Open the NetCDF file
-            with netCDF4.Dataset(results.netcdf_file, "r", format="NETCDF3 Classic") as netcdf_file:
+            with netCDF4.Dataset(results.netcdf_file, "r", format="NETCDF3_Classic") as netcdf_file:
                
                 #Extract the variables from the NetCDF
                 ang_rho = netcdf_file.variables['angle'][1:,1:]
