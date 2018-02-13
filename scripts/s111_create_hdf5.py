@@ -14,7 +14,8 @@ OFS S-100/S-111 HDF5 File
 """
 def add_metadata(hdf_file):
     """ Add metadata to HDF5 file."""
-
+    
+    #Integer types
     hdf_file.attrs.create('horizDatumValue', 0 , dtype=numpy.int32) 
     hdf_file.attrs.create('timeRecordInterval', 0 , dtype=numpy.int32)
     hdf_file.attrs.create('numberOfTimes', 0 , dtype=numpy.int32)
@@ -41,8 +42,7 @@ def add_metadata(hdf_file):
     hdf_file.attrs.create('maxDatasetCurrentSpeed', 0 , dtype=numpy.float32)
 
     #String types
-    #Changed dtype = numpy.bytes_ to dt (variable length ascii) can't store null bytes
-    dt = h5py.special_dtype(vlen=bytes)
+    dt = h5py.special_dtype(vlen=str)
     hdf_file.attrs.create('productSpecification', 'S-111_v1.11.0' , dtype=dt)
     hdf_file.attrs.create('dateTimeOfIssue', '' , dtype=dt)
     hdf_file.attrs.create('nameRegion', '' , dtype=dt)
@@ -62,6 +62,7 @@ def add_metadata(hdf_file):
         print(att)
     
     hdf_file.close()
+    
 #****************************************************************************** 
 
 def create_dataset(output_file):
