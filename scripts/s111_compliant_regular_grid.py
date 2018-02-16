@@ -32,12 +32,18 @@ def updateAttributes(hdf_file, ugrid, gridX, gridY, minLon, minLat):
     hdf_file.attrs.modify('surfaceCurrentDepth', 2)
     hdf_file.attrs.modify('gridOriginLongitude', minLon)
     hdf_file.attrs.modify('gridOriginLatitude', minLat)
-    hdf_file.attrs.modify('nameRegion', 'US_East_Coast')
-    hdf_file.attrs.modify('nameSubregion', 'Cheaspeake_Bay')
-    hdf_file.attrs.modify('methodCurrentsProduct', 'ROMS_Hydrodynamic_Model')
     hdf_file.attrs.modify('gridLandMaskValue', -9999.0 )
     hdf_file.attrs.modify('dataCodingFormat', 2)
     hdf_file.attrs.modify('depthTypeIndex', 2)
+    
+    region = numpy.string_("US_East_Coast")
+    subRegion = numpy.string_('Cheaspeake_Bay')
+    methodCurrentProduct = numpy.string_('ROMS_Hydrodynamic_Model')
+    
+    hdf_file.attrs.modify('nameRegion', region)
+    hdf_file.attrs.modify('nameSubregion', subRegion)
+    hdf_file.attrs.modify('methodCurrentsProduct', methodCurrentProduct)
+
 
 #******************************************************************************   
 
@@ -83,7 +89,7 @@ def createGroup(hdf_file, netcdf_file, ugrid, vgrid, xgrid, ygrid, ncindex_xi1):
 
     numberOfTimes = time.shape[0]
 
-    if hdf_file.items() == []:
+    if len(hdf_file.items()) == 0:
         
         for index in range(0, numberOfTimes):
     
