@@ -117,28 +117,36 @@ class S111File:
         # Open model output netCDF
         with roms.ROMSOutputFile(model_output_file) as model_output:
             with roms.ROMSIndexFile(model_index_file) as model_index:
-                reg_grid_uv = model_output.uvToRegularGrid(model_index)
+                reg_grid_u,reg_grid_v = model_output.uvToRegularGrid(model_index)
                 
                 # Create HDF5 groups and datasets
-                self.create_group(model_output, reg_grid_uv)
+                self.create_group(model_output, model_index, reg_grid_u, reg_grid_v)
                 
                 # Update HDF5 attributes
-                self.update_attributes(reg_grid_uv)
+                self.update_attributes(model_index)
                 
                 print("Data sucessfully added")
 
 
-    def create_group(self, model_output, reg_grid_uv):
+    def create_group(self, model_output, model_index, reg_grid_u, reg_grid_v):
         """Create inital HDF5 Group with Speeds, Directions, and XY Datasets.
 
         For every additional NetCDF file Create an HDF5 Group containing Speeds
         and Direction Datasets. Update HDF5 time attributes.
 
+        *********************
+        TODO: REDUCE DUPLICATE CODE BETWEEN IF/ELSE BLOCKS
+        *********************
+
         Args:
             model_output: `ROMSOutputFile` representing the source model output
                 file.
-            reg_grid_uv: `RegularGridUV` representing U, V, and related
-                data after interpolating to a regular grid.
+            model_index: `ROMSIndexFile` representing the model index and
+                coefficients file.
+            reg_grid_u: `numpy.ma.masked_array` representing U data after
+                interpolating to a regular grid.
+            reg_grid_v: `numpy.ma.masked_array` representing V data after
+                interpolating to a regular grid.
         """
         # Convert gregorian timestamp to datetime timestamp
         time = netCDF4.num2date(model_output.nc_file.variables['ocean_time'][:], model_output.nc_file.variables['ocean_time'].units)
@@ -162,35 +170,26 @@ class S111File:
                 self.h5_file.attrs.modify('dateTimeOfLastRecord', str_time_val.encode())
                 self.h5_file.attrs.modify('typeOfCurrentData', 6)
                                       
-                # Create dataset containers for speed and direction
-                directions = numpy.empty((reg_grid_uv.vgrid.shape[0],reg_grid_uv.vgrid.shape[1]), dtype=numpy.float32)
-                speeds = numpy.empty((reg_grid_uv.ugrid.shape[0],reg_grid_uv.ugrid.shape[1]), dtype=numpy.float32)
-                
                 # Convert currents at regular grid points from u/v to speed and
                 # direction
-                directions, speeds = roms.convertUVToSpeedDirection(directions, speeds, reg_grid_uv.ugrid, reg_grid_uv.vgrid)    
+                directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v, model_index)    
 
                 min_speed = numpy.nanmin(speeds)
                 max_speed = numpy.nanmax(speeds)
                 min_speed = numpy.round(min_speed,2)
                 max_speed = numpy.round(max_speed,2)
-                directions = ma.masked_array(directions, reg_grid_uv.ncindex_xi1.mask)  
-                speeds = ma.masked_array(speeds, reg_grid_uv.ncindex_xi1.mask)
+                directions = ma.masked_array(directions, model_index.var_xi1.mask)  
+                speeds = ma.masked_array(speeds, model_index.var_xi1.mask)
                 directions = directions.filled(-9999.0)
                 speeds = speeds.filled(-9999.0)
-                reg_grid_uv.xgrid = ma.masked_array(reg_grid_uv.xgrid, reg_grid_uv.ncindex_xi1.mask)
-                reg_grid_uv.ygrid = ma.masked_array(reg_grid_uv.ygrid, reg_grid_uv.ncindex_xi1.mask)
-                reg_grid_uv.xgrid = reg_grid_uv.xgrid.filled(-9999.0)
-                reg_grid_uv.ygrid = reg_grid_uv.ygrid.filled(-9999.0)                    
                 
                 # Write data to empty HDF5 datasets 
-                new_group.create_dataset('surfaceCurrentDirection', (reg_grid_uv.vgrid.shape[0],reg_grid_uv.vgrid.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
-                new_group.create_dataset('surfaceCurrentSpeed', (reg_grid_uv.ugrid.shape[0],reg_grid_uv.ugrid.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
+                new_group.create_dataset('surfaceCurrentDirection', (directions.shape[0], directions.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
+                new_group.create_dataset('surfaceCurrentSpeed', (speeds.shape[0], speeds.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
 
                 self.h5_file.attrs.modify('minDatasetCurrentSpeed', min_speed)
                 self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
                 self.h5_file.attrs.modify('numberOfTimes', numberOfTimes)
-
 
                 # Create the compound datatype for Group F attributes
                 DIM0 = 2
@@ -244,30 +243,22 @@ class S111File:
             timeInterval=  interval.total_seconds()
             self.h5_file.attrs.modify('timeRecordInterval', timeInterval)
                 
-            # Create dataset containers for speed and direction, with input from function convertVectors
-            directions = numpy.empty((reg_grid_uv.vgrid.shape[0], reg_grid_uv.vgrid.shape[1]), dtype=numpy.float32)
-            speeds = numpy.empty((reg_grid_uv.ugrid.shape[0], reg_grid_uv.ugrid.shape[1]), dtype=numpy.float32)
-            
             # Convert currents at regular grid points from u/v to speed and
             # direction
-            directions, speeds = roms.convertUVToSpeedDirection(directions, speeds, reg_grid_uv.ugrid, reg_grid_uv.vgrid)
+            directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v, model_index)    
             
             min_speed = numpy.nanmin(speeds)
             max_speed = numpy.nanmax(speeds)
             min_speed = numpy.round(min_speed,2)
             max_speed = numpy.round(max_speed,2)
-            directions = ma.masked_array(directions, reg_grid_uv.ncindex_xi1.mask)  
-            speeds = ma.masked_array(speeds, reg_grid_uv.ncindex_xi1.mask)
+            directions = ma.masked_array(directions, model_index.var_xi1.mask)  
+            speeds = ma.masked_array(speeds, model_index.var_xi1.mask)
             directions = directions.filled(-9999.0)
             speeds = speeds.filled(-9999.0)
-            reg_grid_uv.xgrid = ma.masked_array(xgrid, reg_grid_uv.ncindex_xi1.mask)
-            reg_grid_uv.ygrid = ma.masked_array(ygrid, reg_grid_uv.ncindex_xi1.mask)
-            reg_grid_uv.xgrid = reg_grid_uv.xgrid.filled(-9999.0)
-            reg_grid_uv.ygrid = reg_grid_uv.ygrid.filled(-9999.0)
 
             # Write data to empty HDF5 datasets 
-            new_group.create_dataset('surfaceCurrentDirection', (reg_grid_uv.vgrid.shape[0], reg_grid_uv.vgrid.shape[1]), dtype=numpy.float32, data=directions,chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
-            new_group.create_dataset('surfaceCurrentSpeed', (reg_grid_uv.ugrid.shape[0], reg_grid_uv.ugrid.shape[1]), dtype=numpy.float32, data=speeds, chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
+            new_group.create_dataset('surfaceCurrentDirection', (directions.shape[0], directions.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
+            new_group.create_dataset('surfaceCurrentSpeed', (speeds.shape[0], speeds.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
 
             numberOfTimes = num_groups + 1
             self.h5_file.attrs.modify('numberOfTimes', numberOfTimes)
@@ -278,29 +269,34 @@ class S111File:
             if max_speed > prior_max_speed:
                 self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
-    def update_attributes(self, reg_grid_uv):
+    def update_attributes(self, model_index):
         """Update HDF5 attributes based on grid properties.
+        
+        *********************
+        TODO: MOVE REGION/SUBREGION/CURRENTPRODUCT VALUES OUT OF THIS FUNCTION
+        *********************
 
         Args:
-            reg_grid_uv: `RegularGridUV` representing the U/V values
-                interpolated to a regular grid.
-        """   
-        nodes = reg_grid_uv.ugrid.flatten()
-        gridSpacingLon = reg_grid_uv.grid_x[1] - reg_grid_uv.grid_x[0]
-        gridSpacingLat = reg_grid_uv.grid_y[1] - reg_grid_uv.grid_y[0]
+            model_index: `ROMSIndexFile` instance representing model index and
+                coefficients file.
+        """
+        num_nodes = model_index.dim_x.size * model_index.dim_y.size
+        min_lon = numpy.nanmin(model_index.var_x)
+        min_lat = numpy.nanmin(model_index.var_y)
+        grid_spacing_lon = model_index.var_x[1] - model_index.var_x[0]
+        grid_spacing_lat = model_index.var_y[1] - model_index.var_y[0]
                         
-        self.h5_file.attrs.modify('gridSpacingLongitudinal',gridSpacingLon) 
-        self.h5_file.attrs.modify('gridSpacingLatitudinal',gridSpacingLat) 
-        self.h5_file.attrs.modify('gridSpacingLatitudinal',gridSpacingLat)
+        self.h5_file.attrs.modify('gridSpacingLongitudinal',grid_spacing_lon) 
+        self.h5_file.attrs.modify('gridSpacingLatitudinal',grid_spacing_lat) 
         self.h5_file.attrs.modify('horizDatumValue', 4326) 
-        self.h5_file.attrs.modify('numPointsLongitudinal', reg_grid_uv.ugrid.shape[0])
-        self.h5_file.attrs.modify('numPointsLatitudinal', reg_grid_uv.ugrid.shape[1])
-        self.h5_file.attrs.modify('minGridPointLongitudinal', reg_grid_uv.min_lon)
-        self.h5_file.attrs.modify('minGridPointLatitudinal', reg_grid_uv.min_lat)
-        self.h5_file.attrs.modify('numberOfNodes', nodes.shape[0])
+        self.h5_file.attrs.modify('numPointsLongitudinal', model_index.dim_x.size)
+        self.h5_file.attrs.modify('numPointsLatitudinal', model_index.dim_y.size)
+        self.h5_file.attrs.modify('minGridPointLongitudinal', min_lon)
+        self.h5_file.attrs.modify('minGridPointLatitudinal', min_lat)
+        self.h5_file.attrs.modify('numberOfNodes', num_nodes)
         self.h5_file.attrs.modify('surfaceCurrentDepth', 2)
-        self.h5_file.attrs.modify('gridOriginLongitude', reg_grid_uv.min_lon)
-        self.h5_file.attrs.modify('gridOriginLatitude', reg_grid_uv.min_lat)
+        self.h5_file.attrs.modify('gridOriginLongitude', min_lon)
+        self.h5_file.attrs.modify('gridOriginLatitude', min_lat)
         self.h5_file.attrs.modify('gridLandMaskValue', -9999.0 )
         self.h5_file.attrs.modify('dataCodingFormat', 2)
         self.h5_file.attrs.modify('depthTypeIndex', 2)
