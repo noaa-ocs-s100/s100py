@@ -181,10 +181,10 @@ class ROMSIndexFile:
                 x0 = self.var_x[x]
                 y0 = self.var_y[y]
                 found_cell = False
-                for xi1 in range(roms_file.var_lat_rho.shape[1]-1):
+                for xi1 in range(roms_file.num_xi):
                     if found_cell:
                         break
-                    for eta1 in range(roms_file.var_lat_rho.shape[0]-1):
+                    for eta1 in range(roms_file.num_eta):
                         xi2 = xi1 + 1
                         eta2 = eta1
                         xi3 = xi1 + 1
@@ -286,21 +286,32 @@ class ROMSOutputFile:
         self.var_ang_rho = self.nc_file.variables['angle'][1:,1:]
         self.var_lat_rho = self.nc_file.variables['lat_rho'][1:,1:]
         self.var_lon_rho = self.nc_file.variables['lon_rho'][1:,1:]
-        self.var_u = self.nc_file.variables['u'][0,-1,1:,:]
-        self.var_v = self.nc_file.variables['v'][0,-1,:,1:]
+        self.var_u = self.nc_file.variables['u'][0,:,1:,:]
+        self.var_v = self.nc_file.variables['v'][0,:,:,1:]
         self.var_mask_u = self.nc_file.variables['mask_u'][1:,:]
         self.var_mask_v = self.nc_file.variables['mask_v'][:,1:]
         self.var_mask_rho = self.nc_file.variables['mask_rho'][1:,1:]
+        self.var_zeta = self.nc_file.variables['zeta'][0,1:,1:]
+        self.var_h = self.nc_file.variables['h'][1:,1:]
+        self.var_s_rho = self.nc_file.variables['s_rho'][:]
+        self.var_hc = self.nc_file.variables['hc'][:]
+        self.var_cs_r = self.nc_file.variables['Cs_r'][:]
+        self.num_eta = self.var_h.shape[0]
+        self.num_xi = self.var_h.shape[1]
+        self.num_sigma = self.var_s_rho.shape[0]
 
     def uvToRegularGrid(self, model_index):
         """Interpolate u/v to regular grid"""
         # Extract the variables from the NetCDF
 
+        # Call vertical function and return u and v at target depth
+        u_depth, v_depth = vertInterp(self.var_u, self.var_v, self.var_s_rho, self.var_zeta, self.var_h, self.var_hc, self.var_cs_r, self.num_eta, self.num_xi, self.num_sigma)
+
         # Call masked arrays function and return masked arrays
-        water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho = maskLand(self.var_u, self.var_v, self.var_ang_rho, self.var_lat_rho, self.var_lon_rho, self.var_mask_u, self.var_mask_v, self.var_mask_rho)
-        
+        water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho = maskLand(u_depth, v_depth, self.var_ang_rho, self.var_lat_rho, self.var_lon_rho, self.var_mask_u, self.var_mask_v, self.var_mask_rho)
+
         # Call average to rho function u and v scalar values to rho
-        u_rho, v_rho = averageUVToRho(water_u, water_v)
+        u_rho, v_rho = averageUVToRho(water_u, water_v, self.num_eta, self.num_xi)
        
         # Call rotate function and return rotated u and v vectors
         rot_urho, rot_vrho = rotateUV2D(u_rho, v_rho, water_ang_rho)
@@ -435,7 +446,7 @@ def interpolateUVToRegularGrid(water_lat_rho, water_lon_rho, rot_urho, rot_vrho,
 
     return (ugrid, vgrid)
 
-def averageUVToRho(water_u, water_v):
+def averageUVToRho(water_u, water_v, num_eta, num_xi):
     """Average u and v scalars to rho.
 
     Args:
@@ -449,39 +460,41 @@ def averageUVToRho(water_u, water_v):
         (respectively) averaged to rho points.
     """
     # Average u values
-    u_rho = numpy.ndarray([water_u.shape[0],water_u.shape[1]])
+    u_rho = numpy.ndarray([num_eta, num_xi])
     
-    for eta in range(water_u.shape[0]):
-        for xi in range(water_u.shape[1]-1):
+    for eta in range(num_eta):
+        for xi in range(num_xi-1):
             u_rho[eta,xi] = (water_u[eta,xi] + water_u[eta,xi+1])/2
-        u_rho[water_u.shape[0]-1,xi] = water_u[water_u.shape[0]-1,xi]  
+        u_rho[num_eta-1,xi] = water_u[num_eta-1,xi]
         
     # Average v values
-    v_rho = numpy.ndarray([water_v.shape[0],water_v.shape[1]])
+    v_rho = numpy.ndarray([num_eta, num_xi])
     
-    for xi in range(water_v.shape[1]):
-        for eta in range(water_v.shape[0]-1):
+    for xi in range(num_xi):
+        for eta in range(num_eta-1):
             v_rho[eta,xi] = (water_v[eta,xi] + water_v[eta+1,xi])/2
-        v_rho[eta,water_v.shape[1]-1] = water_v[eta,water_v.shape[1]-1]   
+        v_rho[eta,num_xi-1] = water_v[eta,num_xi-1]
 
     return u_rho, v_rho
 
-def maskLand(u, v, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho):
+def maskLand(u_depth, v_depth, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho):
     """Create masked arrays for specified variables to mask land values.
 
     Args:
-        u: `numpy.ndarray` containing u values for entire grid.
-        v: `numpy.ndarray` containing v values for entire grid.
-        ang_rho: `numpy.ndarray` containing angle-of-rotation values at rho
-            points.
+        u_depth: `numpy.ndarray` containing u values for entire grid at
+            specified depth.
+        v_depth: `numpy.ndarray` containing v values for entire grid at
+            specified depth.
+        ang_rho: `numpy.ndarray` containing angle-of-rotation values at
+            rho points.
         lat_rho: `numpy.ndarray` containing latitude values of rho points.
         lon_rho: `numpy.ndarray` containing longitude values of rho points.
         mask_u: `numpy.ndarray` containing mask values for u points.
         mask_v: `numpy.ndarray` containing mask values for v points.
         mask_rho: `numpy.ndarray` containing mask values for rho points.
     """
-    water_u = ma.masked_array(u, numpy.logical_not(mask_u))
-    water_v = ma.masked_array(v, numpy.logical_not(mask_v))
+    water_u = ma.masked_array(u_depth, numpy.logical_not(mask_u))
+    water_v = ma.masked_array(v_depth, numpy.logical_not(mask_v))
     # u/v masked values need to be set to 0 for averaging 
     water_u = water_u.filled(0)
     water_v = water_v.filled(0)
@@ -491,3 +504,84 @@ def maskLand(u, v, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho):
            
     return water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho
 
+def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
+    """Vertically interpolate variables to target depth.
+
+    Args:
+        u: `numpy.ndarray` containing u values for entire grid.
+        v: `numpy.ndarray` containing v values for entire grid.
+        s_rho: `numpy.ndarray` s-coordinate at rho points, -1 min 0 max, positive up.
+        zeta: `numpy.ndarray` containing msl free surface at rho points in meters.
+        h: `numpy.ndarray` containing bathymetry at rho points.
+        hc: `numpy.ndarray` containing s-coordinate parameter, critical depth".
+        cs_r: `numpy.ndarray` containing s-coordinate stretching curves at rho points.
+    """
+
+    z = numpy.ma.empty(shape=[num_eta,num_xi, 20])
+
+    # Roms vertical transformation equation 1
+    for k in range (num_sigma):
+        S = ((hc * s_rho[k]) + (h - hc) * cs_r[k])
+        z[:,:,k] = S + zeta * (1 + S/h)
+
+    # For areas shallower than 9m the target depth is half the total depth
+    # For areas deeper than 9m the target depth is 4.5m from zeta
+    total_depth = h + zeta
+    target_depth = zeta - numpy.minimum(9,total_depth)/2
+
+    # For every rho point store z index values and depth values, above and below
+    # the target depth
+    z_level = numpy.ma.empty(shape=[num_eta,num_xi, 4])
+
+    for eta in range (num_eta):
+        for xi in range(num_xi):
+          if zeta.mask[eta,xi] != True:
+              # Finds the closest values above and below the target depth
+              depth1= (z[eta,xi,:])[(z[eta,xi,:]) >= (target_depth[eta,xi])].min()
+              depth2 = (z[eta,xi,:])[(z[eta,xi,:]) <= (target_depth[eta,xi])].max()
+               # Identifies the z levels and the depths above and below the target
+              zmin = min(enumerate(z[eta,xi,:]), key=lambda x: abs(x[1]-depth1))
+              zmax = min(enumerate(z[eta,xi,:]), key=lambda x: abs(x[1]-depth2))
+              # Store each variable in the z_level masked array
+              z_level[eta,xi,0]= zmin[0]# z level 1
+              z_level[eta,xi,1]= zmax[0]# z level 2
+              z_level[eta,xi,2]= zmin[1]# z level 1 depth value
+              z_level[eta,xi,3]= zmax[1]# z level 2 depth value
+
+    u_depth = numpy.ma.empty(shape=[num_eta,num_xi])
+
+    for eta in range (num_eta):
+        for xi in range(num_xi):
+          if zeta.mask[eta,xi] != True:
+              z1 = z_level[eta,xi,2] # z level 1 depth value
+              z2 = z_level[eta,xi,3] # z level 2 depth value
+              u_zmin = int(z_level[eta,xi,0])# u sigma level corresponding to the z level 1
+              u_zmax = int(z_level[eta,xi,1])# u sigma level corresponding to the z level 2
+              u1 = u[u_zmin,eta,xi]# u sigma level 1
+              u2 = u[u_zmax,eta,xi]# u sigma level 2
+              td1 = target_depth[eta,xi]
+              # Using linear interpolation calculate u at target depth
+              u_interp= u2 - ((u2-u1)*((z2 - td1)/(z2-z1)))
+              # Store inerpolated u values in a masked array
+              u_depth[eta,xi] = u_interp
+              u_depth = numpy.nan_to_num(u_depth,-9999.0)
+
+    v_depth = numpy.ma.empty(shape=[num_eta,num_xi])
+
+    for eta in range (num_eta):
+        for xi in range(num_xi):
+          if zeta.mask[eta,xi] != True:
+              z1 = z_level[eta,xi,2] # z level 1 value
+              z2 = z_level[eta,xi,3] # z level 2 value
+              v_zmin = int(z_level[eta,xi,0])# v sigma level corresponding to the z level 1
+              v_zmax = int(z_level[eta,xi,1])# v sigma level corresponding to the z level 2
+              v1 = v[v_zmin,eta,xi]# v sigma level 1
+              v2 = v[v_zmax,eta,xi]# v sigma level 2
+              d1 = target_depth[eta,xi]
+              # Using linear interpolation calculate v at target depth
+              v_interp= v2 - ((v2-v1)*((z2 - d1)/(z2-z1)))
+              # Store inerpolated v values in a masked array
+              v_depth[eta,xi] = v_interp
+              v_depth = numpy.nan_to_num(v_depth,-9999.0)
+
+    return u_depth, v_depth
