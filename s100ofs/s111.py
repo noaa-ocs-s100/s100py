@@ -294,7 +294,7 @@ class S111File:
         self.h5_file.attrs.modify('minGridPointLongitudinal', min_lon)
         self.h5_file.attrs.modify('minGridPointLatitudinal', min_lat)
         self.h5_file.attrs.modify('numberOfNodes', num_nodes)
-        self.h5_file.attrs.modify('surfaceCurrentDepth', 2)
+        self.h5_file.attrs.modify('surfaceCurrentDepth', 4.5)
         self.h5_file.attrs.modify('gridOriginLongitude', min_lon)
         self.h5_file.attrs.modify('gridOriginLatitude', min_lat)
         self.h5_file.attrs.modify('gridLandMaskValue', -9999.0 )
