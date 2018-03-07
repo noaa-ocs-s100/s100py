@@ -511,7 +511,7 @@ def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
         u: `numpy.ndarray` containing u values for entire grid.
         v: `numpy.ndarray` containing v values for entire grid.
         s_rho: `numpy.ndarray` s-coordinate at rho points, -1 min 0 max, positive up.
-        zeta: `numpy.ndarray` containing msl free surface at rho points in meters.
+        zeta: `numpy.ndarray` containing MSL free surface at rho points in meters.
         h: `numpy.ndarray` containing bathymetry at rho points.
         hc: `numpy.ndarray` containing s-coordinate parameter, critical depth".
         cs_r: `numpy.ndarray` containing s-coordinate stretching curves at rho points.
@@ -529,8 +529,8 @@ def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
     total_depth = h + zeta
     target_depth = zeta - numpy.minimum(9,total_depth)/2
 
-    # For every rho point store z index values and depth values, above and below
-    # the target depth
+    # For every rho point store z level index values and depth values, 
+    # above and below the target depth in a masked array
     z_level = numpy.ma.empty(shape=[num_eta,num_xi, 4])
 
     for eta in range (num_eta):
@@ -539,7 +539,7 @@ def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
               # Finds the closest values above and below the target depth
               depth1= (z[eta,xi,:])[(z[eta,xi,:]) >= (target_depth[eta,xi])].min()
               depth2 = (z[eta,xi,:])[(z[eta,xi,:]) <= (target_depth[eta,xi])].max()
-               # Identifies the z levels and the depths above and below the target
+            # Identifies the z levels and the depths above and below the target
               zmin = min(enumerate(z[eta,xi,:]), key=lambda x: abs(x[1]-depth1))
               zmax = min(enumerate(z[eta,xi,:]), key=lambda x: abs(x[1]-depth2))
               # Store each variable in the z_level masked array
@@ -555,8 +555,8 @@ def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
           if zeta.mask[eta,xi] != True:
               z1 = z_level[eta,xi,2] # z level 1 depth value
               z2 = z_level[eta,xi,3] # z level 2 depth value
-              u_zmin = int(z_level[eta,xi,0])# u sigma level corresponding to the z level 1
-              u_zmax = int(z_level[eta,xi,1])# u sigma level corresponding to the z level 2
+              u_zmin = int(z_level[eta,xi,0])# u sigma level corresponding to z level 1
+              u_zmax = int(z_level[eta,xi,1])# u sigma level corresponding to z level 2
               u1 = u[u_zmin,eta,xi]# u sigma level 1
               u2 = u[u_zmax,eta,xi]# u sigma level 2
               td1 = target_depth[eta,xi]
@@ -573,8 +573,8 @@ def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
           if zeta.mask[eta,xi] != True:
               z1 = z_level[eta,xi,2] # z level 1 value
               z2 = z_level[eta,xi,3] # z level 2 value
-              v_zmin = int(z_level[eta,xi,0])# v sigma level corresponding to the z level 1
-              v_zmax = int(z_level[eta,xi,1])# v sigma level corresponding to the z level 2
+              v_zmin = int(z_level[eta,xi,0])# v sigma level corresponding to z level 1
+              v_zmax = int(z_level[eta,xi,1])# v sigma level corresponding to z level 2
               v1 = v[v_zmin,eta,xi]# v sigma level 1
               v2 = v[v_zmax,eta,xi]# v sigma level 2
               d1 = target_depth[eta,xi]
