@@ -129,7 +129,7 @@ class S111File:
 
 
     def create_group(self, model_output, model_index, reg_grid_u, reg_grid_v):
-        """Create inital HDF5 Group with Speeds, Directions, and XY Datasets.
+        """Create inital HDF5 Group with Speeds and Directions.
 
         For every additional NetCDF file Create an HDF5 Group containing Speeds
         and Direction Datasets. Update HDF5 time attributes.
@@ -260,7 +260,7 @@ class S111File:
             new_group.create_dataset('surfaceCurrentDirection', (directions.shape[0], directions.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
             new_group.create_dataset('surfaceCurrentSpeed', (speeds.shape[0], speeds.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
 
-            numberOfTimes = num_groups + 1
+            numberOfTimes = num_groups 
             self.h5_file.attrs.modify('numberOfTimes', numberOfTimes)
             prior_min_speed = self.h5_file.attrs['minDatasetCurrentSpeed']
             prior_max_speed = self.h5_file.attrs['maxDatasetCurrentSpeed']
