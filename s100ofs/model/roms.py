@@ -181,10 +181,10 @@ class ROMSIndexFile:
                 x0 = self.var_x[x]
                 y0 = self.var_y[y]
                 found_cell = False
-                for xi1 in range(roms_file.num_xi):
+                for xi1 in range(roms_file.num_xi-1):
                     if found_cell:
                         break
-                    for eta1 in range(roms_file.num_eta):
+                    for eta1 in range(roms_file.num_eta-1):
                         xi2 = xi1 + 1
                         eta2 = eta1
                         xi3 = xi1 + 1
