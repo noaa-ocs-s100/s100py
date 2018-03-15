@@ -25,19 +25,20 @@ MS2KNOTS = 1.943844
 _package = "s100ofs"
 _dirPath = os.path.dirname(os.path.realpath(_package))
 
+
 class RegularGrid:
     """Create a regular grid from an irregular grid.
 
-        This class reads data from a ROMS model output file. Creates a RegularGrid
-        Determines 160K grid coverage and creates a standardize 160k RegularGrid.
+        This class reads data from a ROMS model output file and creates a regular grid
+        at specified resolution. Using either the ocean model extent or a shapefile.  
+
     """
     
-    def __init__(self, path, res):
+    def __init__(self, path):
         """Initialize ROMSOutputFile object and open file at specified path.
 
         Args:
             path: Path of target NetCDF file.
-            res: Resolution specified from cbofs.py
         
         Raises:
             Exception: Specified NetCDF file does not exist.
@@ -50,29 +51,45 @@ class RegularGrid:
             # File doesn't exist, raise error
             raise(Exception("NetCDF file does not exist: {}".format(self.path)))
 
-        self.res = res
-
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
-def init_handles(self, path):
-    """Initialize handles to NetCDF variables.
+    def close(self):
+        self.nc_file.close()
 
-    Because there is no U for the first column (xi=0) and no V for the
-    first row (eta=0) in the ROMS staggered grid, we must skip the first
-    row and column of every variable associated with rho points as well as
-    the first row (eta=0) of U values, and the first column (xi=0) of V
-    values. This ensures that u, v, and all other rho variables have the
-    same dimensions in xi and eta, with u[eta,xi], v[eta,xi], and rho
-    variables e.g. ang_rho[eta,xi] all correspond with the same grid cell
-    for a given [eta,xi] coordinate.
-    """
-    self.lat_rho = self.nc_file.variables['lat_rho'][1:,1:]
-    self.lon_rho = self.nc_file.variables['lon_rho'][1:,1:]
-    self.mask_rho = self.nc_file.variables['mask_rho'][1:,1:]
+    def init_handles(self):
+        """Initialize handles to NetCDF variables.
+
+        Because there is no U for the first column (xi=0) and no V for the
+        first row (eta=0) in the ROMS staggered grid, we must skip the first
+        row and column of every variable associated with rho points as well as
+        the first row (eta=0) of U values, and the first column (xi=0) of V
+        values. This ensures that u, v, and all other rho variables have the
+        same dimensions in xi and eta, with u[eta,xi], v[eta,xi], and rho
+        variables e.g. ang_rho[eta,xi] all correspond with the same grid cell
+        for a given [eta,xi] coordinate.
+        """
+        self.lat_rho = self.nc_file.variables['lat_rho'][1:,1:]
+        self.lon_rho = self.nc_file.variables['lon_rho'][1:,1:]
+        self.mask_rho = self.nc_file.variables['mask_rho'][1:,1:]
+
+    def init_grid(self, res):
+        """Initialize grid at specified resolution.
+
+        Args:
+            res: Resolution of grid. 
+            option: Shapefile Extent.
+
+        Create regular grid and return dimensions, using default ocean model
+        extent or using an extent derived from shapefile coverage. 
+        """
+        self.res = res
+        print (res)
+
+        num_cells_y, num_cells_x = ofsExtent(self,res)
 
 def ofsExtent(self, res):
     """For any ocean model extent, determine resolution and create regular grid.
@@ -87,17 +104,17 @@ def ofsExtent(self, res):
     maxLat = numpy.nanmax(water_lat_rho)
 
     dist_x = abs(maxLon - minLon)
-    dist_y = abs(maxlat - minLat)
+    dist_y = abs(maxLat - minLat)
 
     #Midpoint constant 
     #The number of meteres per degree of latitude at the equator
     #Length of 1 degree of Longitude = cosine (latitude) * length of degree (meters) at equator 
     midLat = (minLat + (maxLat-minLat))/2
     radius= 6371000 # Radius of earth in meters 
-    c = ((radius * math.pi)/180)*cos(midLat)
+    c = ((radius * math.pi)/180)*math.cos(midLat)
     
     # Target resolution in decimal degrees
-    target_dd = self.res/c
+    target_dd = res/c
     
     num_cells_x = int(round(dist_x/target_dd))
     cellsize_x =  dist_x/num_cells_x
@@ -121,6 +138,9 @@ def ofsExtent(self, res):
         gridY.append(y)
         y += cellsize_y
     
+    print (num_cells_y)
+    print (num_cells_x) 
+
     return num_cells_y, num_cells_x
 
 def shpExtent(self, res, minLon,maxLon, minLat, maxLat):
@@ -209,6 +229,7 @@ def shpExtent(self, res, minLon,maxLon, minLat, maxLat):
         gridY.append(y)
         y += cellsize_y
 
+    print (num_cells_y)  
     return num_cells_y, num_cells_x
     
 def gridSubset(self, num_cells_y, num_cells_x, xgrid, ygrid):
@@ -253,10 +274,11 @@ def gridShoreline(self, num_cells_y, num_cells_x, xgrid, ygrid):
         for xi in range (num_cells_x):
             point = Point(xgrid[eta,xi], ygrid[eta,xi])                    
             if point.within(water) == True:
-               shoreline_mask[eta,xi] = 1    
+               shoreline_mask[eta,xi] = 1
+            else:
+               shoreline_mask[eta,xi] = -9999.0
 
-
-class ROMSIndexFile:
+class ROMSIndexFile(RegularGrid):
     """Store information about an index file used during interpolation.
     
     Attributes:
@@ -331,7 +353,7 @@ class ROMSIndexFile:
         self.var_w4 = self.nc_file.variables['w4'][:,:]
         self.var_wsum = self.nc_file.variables['wsum'][:,:]
     
-    def init_nc(self, roms_file, num_cells_x, num_cells_y):
+    def init_nc(self, roms_file):
         """Initialize NetCDF dimensions/variables/attributes.
 
         Args:
@@ -340,8 +362,8 @@ class ROMSIndexFile:
             num_cells_x: Number of cells in x dimension of regular grid.
             num_cells_y: Number of cells in y dimension of regular grid.
         """
-        self.dim_y = self.nc_file.createDimension('y', num_cells_y)
-        self.dim_x = self.nc_file.createDimension('x', num_cells_x)
+        self.dim_y = self.nc_file.createDimension('y', RegularGrid.num_cells_y)
+        self.dim_x = self.nc_file.createDimension('x', RegularGrid.num_cells_x)
 
         self.var_y = self.nc_file.createVariable('y', 'f4', ('y',), fill_value=-9999)
         self.var_y.long_name = "latitude of regular grid point"
@@ -473,6 +495,7 @@ class ROMSIndexFile:
                                 self.var_wsum[y,x] = wsum
                                 found_cell = True
                                 break
+
 
 class ROMSOutputFile:
     """Read/process data from a ROMS model output file.
