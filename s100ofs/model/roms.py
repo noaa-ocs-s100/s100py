@@ -11,274 +11,127 @@ import datetime
 import math
 import os
 
+import gdal
 import netCDF4
 import numpy
 import numpy.ma as ma
-
-import gdal
 import osr
 import ogr
 from shapely.geometry import Polygon, Point, MultiPolygon, shape
 
-# Conversion factor for meters/sec to knots
-MS2KNOTS = 1.943844
 _package = "s100ofs"
 _dirPath = os.path.dirname(os.path.realpath(_package))
 
+# Conversion factor for meters/sec to knots
+MS2KNOTS = 1.943844
+
+# Approximate radius of the Earth spheroid, in meters.
+EARTH_RADIUS_METERS=6371000
+
+# Default fill value for NetCDF variables
+FILLVALUE=-9999.0
 
 class RegularGrid:
-    """Create a regular grid from an irregular grid.
+    """Encapsulate information describing a regular lat-lon grid.
 
-        This class reads data from a ROMS model output file and creates a regular grid
-        at specified resolution. Using either the ocean model extent or a shapefile.  
-
+    Attributes:
+        x_min: X-coordinate of the left edge of the bottom-left grid cell.
+        y_min: Y-coordinate of the bottom edge of the bottom-left grid cell.
+        x_max: X-coordinate of the right edge of the top-right grid cell.
+        y_max: Y-coordinate of the top edge of the top-right grid cell.
+        cellsize_x: Width of each regular grid cell in the x-direction.
+        cellsize_y: Height of each regular grid cell in the y-direction.
+        x_coords: List containing calculated x-coordinate of each grid column.
+            The coordinate identifies the center location of each grid cell
+            (for example, the x-coordinate of the first grid cell is equal to
+            origin_x + cellsize_x/2.
+        y_coords: List containing calculated y-coordinate of each grid row. The
+            coordinate identifies the center location of each grid cell (for
+            example, the y-coordinate of the first grid cell is equal to
+            origin_y + cellsize_y/2.
     """
-    
-    def __init__(self, path):
-        """Initialize ROMSOutputFile object and open file at specified path.
+    def __init__(self, x_min, y_min, x_max, y_max, cellsize_x, cellsize_y):
+        """Initialize RegularGrid object.
 
         Args:
-            path: Path of target NetCDF file.
+            x_min: X-coordinate of the left edge of the bottom-left grid cell.
+            y_min: Y-coordinate of the bottom edge of the bottom-left grid
+                cell.
+            x_max: X-coordinate of the right edge of the top-right grid cell.
+            y_max: Y-coordinate of the top edge of the top-right grid cell.
+            cellsize_x: Width of each regular grid cell in the x-direction.
+            cellsize_y: Height of each regular grid cell in the y-direction.
+        """
+        self.x_min = x_min
+        self.y_min = y_min
+        self.x_max = x_max
+        self.y_max = y_max
+        self.cellsize_x = cellsize_x
+        self.cellsize_y = cellsize_y
+        self.calc_gridpoints()
+
+    def calc_gridpoints(self):
+        """Calculate and store x/y coordinates of grid points."""
+        # Cell positions are calculated at center (midpoint) of cell
+        x = self.x_min + self.cellsize_x/2
+        y = self.y_min + self.cellsize_y/2
         
-        Raises:
-            Exception: Specified NetCDF file does not exist.
-        """
-        self.path = path
-        if os.path.exists(self.path):
-            self.nc_file = netCDF4.Dataset(self.path, "r", format="NETCDF3_Classic")
-            self.init_handles()
-        else:
-            # File doesn't exist, raise error
-            raise(Exception("NetCDF file does not exist: {}".format(self.path)))
+        self.x_coords = []
+        while x <= self.x_max:
+            self.x_coords.append(x)
+            x += self.cellsize_x
+        
+        self.y_coords = []
+        while y <= self.y_max:
+            self.y_coords.append(y)
+            y += self.cellsize_y
 
-    def __enter__(self):
-        return self
+    @staticmethod
+    def calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters):
+        """Calculate actual x/y cell sizes from an extent and target cell size.
+        
+        Given a lat/lon extent and target cell size in meters, calculate actual
+        x and y cell sizes (in decimal degrees) that approximate the target
+        cell size while ensuring the extent is divided into a whole number of
+        cells in the x and y directions.
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-    def close(self):
-        self.nc_file.close()
-
-    def init_handles(self):
-        """Initialize handles to NetCDF variables.
-
-        Because there is no U for the first column (xi=0) and no V for the
-        first row (eta=0) in the ROMS staggered grid, we must skip the first
-        row and column of every variable associated with rho points as well as
-        the first row (eta=0) of U values, and the first column (xi=0) of V
-        values. This ensures that u, v, and all other rho variables have the
-        same dimensions in xi and eta, with u[eta,xi], v[eta,xi], and rho
-        variables e.g. ang_rho[eta,xi] all correspond with the same grid cell
-        for a given [eta,xi] coordinate.
-        """
-        self.lat_rho = self.nc_file.variables['lat_rho'][1:,1:]
-        self.lon_rho = self.nc_file.variables['lon_rho'][1:,1:]
-        self.mask_rho = self.nc_file.variables['mask_rho'][1:,1:]
-
-    def init_grid(self, res):
-        """Initialize grid at specified resolution.
+        Because degrees-per-meter varies by latitude, the midpoint of the given
+        extent is used to calculate the conversion factor, as it should
+        represent the average value for the whole grid.
 
         Args:
-            res: Resolution of grid. 
-            option: Shapefile Extent.
+            lon_min: Minimum longitude of extent.
+            lat_min: Minimum latitude of extent.
+            lon_max: Maximum longitude of extent.
+            lat_max: Maximum latitude of extent.
+            target_cellsize_meters: Target cell size, in meters. Actual
+                calculated cell sizes will be approximations of this.
 
-        Create regular grid and return dimensions, using default ocean model
-        extent or using an extent derived from shapefile coverage. 
+        Returns:
+            A 2-tuple in the form (cellsize_x, cellsize_y)
         """
-        self.res = res
-        print (res)
+        grid_width = abs(lon_max - lon_min)
+        grid_height = abs(lat_max - lat_min)
 
-        num_cells_y, num_cells_x = ofsExtent(self,res)
+        # Calculate number of meters per degree of longitude at the center of
+        # the grid. This value can then be used to convert a cellsize in meters
+        # to one in decimal degrees. The center of the grid is used as a good
+        # approximation, since this value will vary by latitude.
+        lat_mid = lat_min + grid_height/2
+        meters_per_degree = ((EARTH_RADIUS_METERS * math.pi)/180)*math.cos(midLat)
+        
+        # Target cell size in decimal degrees
+        target_cellsize_dd = target_cellsize_meters/meters_per_degree
+        
+        num_cells_x = int(round(grid_width/target_cellsize_dd))
+        cellsize_x =  grid_width/num_cells_x
 
-def ofsExtent(self, res):
-    """For any ocean model extent, determine resolution and create regular grid.
-
-    """
-    #Determine ocean model extent
-    water_lat_rho = ma.masked_array(self.lat_rho, numpy.logical_not(self.mask_rho))
-    water_lon_rho = ma.masked_array(self.lon_rho, numpy.logical_not(self.mask_rho))
-    minLon = numpy.nanmin(water_lon_rho)
-    maxLon = numpy.nanmax(water_lon_rho)
-    minLat = numpy.nanmin(water_lat_rho)
-    maxLat = numpy.nanmax(water_lat_rho)
-
-    dist_x = abs(maxLon - minLon)
-    dist_y = abs(maxLat - minLat)
-
-    #Midpoint constant 
-    #The number of meteres per degree of latitude at the equator
-    #Length of 1 degree of Longitude = cosine (latitude) * length of degree (meters) at equator 
-    midLat = (minLat + (maxLat-minLat))/2
-    radius= 6371000 # Radius of earth in meters 
-    c = ((radius * math.pi)/180)*math.cos(midLat)
+        num_cells_y = int(round(grid_height/target_cellsize_dd))
+        cellsize_y = grid_height/num_cells_y
+        
+        return cellsize_x, cellsize_y
     
-    # Target resolution in decimal degrees
-    target_dd = res/c
-    
-    num_cells_x = int(round(dist_x/target_dd))
-    cellsize_x =  dist_x/num_cells_x
-
-    num_cells_y = int(round(dist_y/target_dd))
-    cellsize_y = dist_y/num_cells_y
-    
-    #Creates a regular grid 
-    step_x = cellsize_x/2
-    step_y = cellsize_y/2
-    x = minLon + step_x
-    y = minLat + step_y
-    
-    gridX = []
-    while x <= maxLon:
-        gridX.append(x)
-        x += cellsize_x
-    
-    gridY = []
-    while y <= maxLat:
-        gridY.append(y)
-        y += cellsize_y
-    
-    print (num_cells_y)
-    print (num_cells_x) 
-
-    return num_cells_y, num_cells_x
-
-def shpExtent(self, res, minLon,maxLon, minLat, maxLat):
-    """For any shapefile extent, determine resolution and create regular grid.
-
-    """
-    #Read in 160k grid 
-    _shpfile="grids_160k.shp"
-    shp_path = os.path.realpath(_shpfile)
-
-    shp = ogr.Open(shp_path)
-    layer = shp.GetLayer()   
-
-    #Read in 160k grid geometry
-    #Export to Json to use FID atttribute
-    grid160k_list = []
-
-    for feature in layer:
-        geom = feature.GetGeometryRef()
-        grid160k_list.append(geom.ExportToJson())
-
-    #Create OGR Geometry from ocean model grid extent   
-    #Create ring
-    ring = ogr.Geometry(ogr.wkbLinearRing)
-    ring.AddPoint(self.minLon, self.maxLat)
-    ring.AddPoint(self.minLon, self.minLat)
-    ring.AddPoint(self.maxLon, self.minLat)
-    ring.AddPoint(self.maxLon, self.maxLat)
-    ring.AddPoint(self.minLon, self.maxLat)
-    # Create polygon
-    ofs_poly = ogr.Geometry(ogr.wkbPolygon)
-    ofs_poly.AddGeometry(ring)
-
-    #Find the intersection between 160k grid and ocean model grid extent
-    intersect = []
-    index = []
-    #intersection
-    for polygon in range (len(grid160k_list)):
-        grid_poly = ogr.CreateGeometryFromJson(grid160k_list[polygon])
-        intersection = ofs_poly.Intersection(grid_poly)                
-        if intersection.ExportToWkt() != "GEOMETRYCOLLECTION EMPTY":
-            intersect.append(intersection.ExportToJson()) 
-            index.append(polygon)
-
-    #Create a new polygon with the grid_160k cells that cover the ocean model extent    
-    multipolygon = ogr.Geometry(ogr.wkbMultiPolygon)
-    for id in index: 
-        multipolygon.AddGeometry(ogr.CreateGeometryFromJson(grid160k_list[id]))
-
-    #Get coverage extent    
-    (minX, maxX, minY, maxY) = multipolygon.GetEnvelope()
-    
-    #Coverage Extent, X distance & Y distance
-    dist_x = abs(maxX - minX)
-    dist_y = abs(maxY - minY)
-
-    #Midpoint constant 
-    #The number of meteres per degree of latitude at the equator
-    #Length of 1 degree of Longitude = cosine (latitude) * length of degree (meters) at equator 
-    midLat = (minY + (maxY-minY))/2
-    radius= 6371000 # Radius of earth in meters 
-    c = ((radius * math.pi)/180)*cos(midLat)
-    
-    # Target resolution in decimal degrees
-    target_dd = self.res/c
-    
-    num_cells_x = int(round(dist_x/target_dd))
-    cellsize_x =  dist_x/num_cells_x
-
-    num_cells_y = int(round(dist_y/target_dd))
-    cellsize_y = dist_y/num_cells_y
-    
-    #Creates a regular grid 
-    step_x = cellsize_x/2
-    step_y = cellsize_y/2
-    x = minX + step_x
-    y = minY + step_y
-    
-    gridX = []
-    while x <= maxX:
-        gridX.append(x)
-        x += cellsize_x
-    
-    gridY = []
-    while y <= maxY:
-        gridY.append(y)
-        y += cellsize_y
-
-    print (num_cells_y)  
-    return num_cells_y, num_cells_x
-    
-def gridSubset(self, num_cells_y, num_cells_x, xgrid, ygrid):
-    """Use 160k grids to subset ocean model output.
-
-    """    
-    #subset_masks
-    subset_mask = numpy.ma.empty(shape=[num_cells_y,num_cells_x],  dtype=int) 
-     
-    #Run through intersected polygons and test every regular grid point
-    #If the regular grid point falls within an intersected polygon assign it 
-    #the fid value
-    for id in index: 
-        grid_160k = shape(json.loads(poly_list[id]))             
-        for eta in range (num_cells_y):
-            for xi in range (num_cells_x):
-                point = Point(xgrid[eta,xi], ygrid[eta,xi])                    
-                if point.within(grid_160k) == True:
-                   subset_mask[eta,xi] = id      
-
-
-def gridShoreline(self, num_cells_y, num_cells_x, xgrid, ygrid): 
-    """Use shoreline shp to mask out land at highest resolution.
-
-    """   
-    _shoreline ="shoreline.shp"
-    shr_path = os.path.realpath(_shoreline)
-
-    shp = ogr.Open(shr_path)
-    layer = shp.GetLayer() 
-
-    for feature in layer:
-        geom = feature.GetGeometryRef()
-        shore_poly = geom.ExportToJson()
-
-    #Test every regular grid point, if it falls within the shoreline polygon
-    #Assign it a value of 1
-    shoreline_mask = numpy.ma.empty(shape=[num_cells_y, num_cells_x],  dtype=int)     
-    
-    water = shape(json.loads(shore_poly))  
-    for eta in range (num_cells_y):
-        for xi in range (num_cells_x):
-            point = Point(xgrid[eta,xi], ygrid[eta,xi])                    
-            if point.within(water) == True:
-               shoreline_mask[eta,xi] = 1
-            else:
-               shoreline_mask[eta,xi] = -9999.0
-
-class ROMSIndexFile(RegularGrid):
+class ROMSIndexFile:
     """Store information about an index file used during interpolation.
     
     Attributes:
@@ -303,6 +156,11 @@ class ROMSIndexFile(RegularGrid):
         var_w1: Handle to w4 variable (weight coefficient of point 4).
         var_wsum: Handle to wsum variable (sum of weight coefficients 1-4).
     """
+
+    DIMNAME_X = 'x'
+    DIMNAME_Y = 'y'
+    DIMNAME_SUBGRID = 'subgrid'
+
     def __init__(self, path, clobber=False):
         """Initialize ROMSIndexFile object and open file at specified path.
 
@@ -333,11 +191,26 @@ class ROMSIndexFile(RegularGrid):
 
     def init_handles(self):
         """Initialize handles to NetCDF dimensions/variables."""
-        self.dim_y = self.nc_file.dimensions['y']
-        self.dim_x = self.nc_file.dimensions['x']
+        self.dim_y = self.nc_file.dimensions[self.DIMNAME_Y]
+        self.dim_x = self.nc_file.dimensions[self.DIMNAME_X]
 
-        self.var_y = self.nc_file.variables['y'][:]
-        self.var_x = self.nc_file.variables['x'][:]
+        try:
+            self.var_shoreline_mask = self.nc_file.variables['shoreline_mask'][:,:]
+        except KeyError:
+            pass
+
+        try:
+            self.dim_subgrid = self.nc_file.dimensions[self.DIMNAME_SUBGRID]
+        except KeyError:
+            pass
+
+        try:
+            self.var_subgrid_mask = self.nc_file.variables['subgrid_mask'][:,:,:]
+        except KeyError:
+            pass
+
+        self.var_y = self.nc_file.variables[self.DIMNAME_Y][:]
+        self.var_x = self.nc_file.variables[self.DIMNAME_X][:]
 
         self.var_xi1 = self.nc_file.variables['xi1'][:,:]
         self.var_eta1 = self.nc_file.variables['eta1'][:,:]
@@ -353,58 +226,246 @@ class ROMSIndexFile(RegularGrid):
         self.var_w4 = self.nc_file.variables['w4'][:,:]
         self.var_wsum = self.nc_file.variables['wsum'][:,:]
     
-    def init_nc(self, roms_file):
+    def create_dims_coordvars(self, num_y, num_x):
+        """Create NetCDF dimensions and coordinate variables.
+
+        Args:
+            num_y: Number of cells in x dimension.
+            num_x: Number of cells in y dimension.
+        """
+        self.dim_y = self.nc_file.createDimension(self.DIMNAME_Y, num_y)
+        self.dim_x = self.nc_file.createDimension(self.DIMNAME_X, num_x)
+        
+        # Create coordinate variables with same name as dimensions
+        self.var_y = self.nc_file.createVariable(self.DIMNAME_Y, 'f4', (self.DIMNAME_Y,), fill_value=FILLVALUE)
+        self.var_y.long_name = "latitude of regular grid point"
+        self.var_y.units = "degree_north"
+        self.var_y.standard_name = "latitude"
+
+        self.var_x = self.nc_file.createVariable(self.DIMNAME_X, 'f4', (self.DIMNAME_X,), fill_value=FILLVALUE)
+        self.var_x.long_name = "longitude of regular grid point"
+        self.var_x.units = "degree_east"
+        self.var_x.standard_name = "longitude"
+
+    def create_index_coefficient_vars(self):
+        """Create index/coefficient NetCDF variables."""
+        self.var_xi1 = self.nc_file.createVariable('xi1', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_eta1 = self.nc_file.createVariable('eta1', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_w1 = self.nc_file.createVariable('w1', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_xi2 = self.nc_file.createVariable('xi2', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_eta2 = self.nc_file.createVariable('eta2', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_w2 = self.nc_file.createVariable('w2', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_xi3 = self.nc_file.createVariable('xi3', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_eta3 = self.nc_file.createVariable('eta3', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_w3 = self.nc_file.createVariable('w3', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_xi4 = self.nc_file.createVariable('xi4', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_eta4 = self.nc_file.createVariable('eta4', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_w4 = self.nc_file.createVariable('w4', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_wsum = self.nc_file.createVariable('wsum', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+
+    def create_shoreline_mask_var(self):
+        """Create shoreline mask NetCDF variable."""
+        self.var_shoreline_mask = self.nc_file.createVariable('shoreline_mask', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+
+    def create_subgrid_dims_vars(self, num_subgrids):
+        """Create subgrid-related NetCDF dimensions/variables.
+
+        Args:
+            num_subgrids: Number of subgrids.
+        """
+        self.dim_subgrid = self.nc_file.createDimension(self.DIMNAME_SUBGRID, num_subgrids)
+        self.var_subgrid_id = self.nc_file.createVariable('subgrid_id', 'i4', (self.DIMNAME_SUBGRID,),fill_value=FILLVALUE)
+        self.var_subgrid_mask = self.nc_file.createVariable('subgrid_mask', 'i4', (self.DIMNAME_Y,self.DIMNAME_X,self.DIMNAME_SUBGRID),fill_value=FILLVALUE)
+    
+    def init_nc(self, roms_file, target_res_meters, shoreline_shp=None, subset_grid_shp=None):
         """Initialize NetCDF dimensions/variables/attributes.
 
         Args:
             roms_file: `ROMSOutputFile` instance containing model output used
                 to identify properties of original grid.
-            num_cells_x: Number of cells in x dimension of regular grid.
-            num_cells_y: Number of cells in y dimension of regular grid.
+            target_res_meters: Target resolution of grid cells, in meters.
+                Actual calculated grid cell x/y resolution will vary slightly
+                from this value, since the regular grid uses lat/lon
+                coordinates (thus a cell's width/height in meters will vary by
+                latitude), and since it will be adjusted in order to fit a
+                whole number of grid cells in the x and y directions within the
+                calculated grid extent.
+            shoreline_shp: (Optional, default None) Path to a polygon shapefile
+                containing features identifying land areas. If specified,
+                a shoreline mask variable will be created/populated.
+            subset_grid_shp: (Optional, default None) Path to a polygon
+                shapefile containing orthogonal rectangles identifying areas
+                to be used to subset (chop up) the full regular grid into
+                tiles. Shapefile is assumed to be in the WGS84 projection. If
+                None, the index file will be created assuming no subsets are
+                desired and the extent of the model will be used instead.
         """
-        self.dim_y = self.nc_file.createDimension('y', RegularGrid.num_cells_y)
-        self.dim_x = self.nc_file.createDimension('x', RegularGrid.num_cells_x)
-
-        self.var_y = self.nc_file.createVariable('y', 'f4', ('y',), fill_value=-9999)
-        self.var_y.long_name = "latitude of regular grid point"
-        self.var_y.units = "degree_north"
-        self.var_y.standard_name = "latitude"
-
-        self.var_x = self.nc_file.createVariable('x', 'f4', ('x',), fill_value=-9999)
-        self.var_x.long_name = "longitude of regular grid point"
-        self.var_x.units = "degree_east"
-        self.var_x.standard_name = "longitude"
-
-        # Write out lat/lon coordinates to y/x coordinate variables
+        # Calculate extent of valid (water) points
         water_lat_rho = ma.masked_array(roms_file.var_lat_rho, numpy.logical_not(roms_file.var_mask_rho))
         water_lon_rho = ma.masked_array(roms_file.var_lon_rho, numpy.logical_not(roms_file.var_mask_rho))
         lon_min = numpy.nanmin(water_lon_rho)
         lon_max = numpy.nanmax(water_lon_rho)
         lat_min = numpy.nanmin(water_lat_rho)
         lat_max = numpy.nanmax(water_lat_rho)
-        self.var_x[:] = numpy.linspace(lon_min, lon_max, num_cells_x)
-        self.var_y[:] = numpy.linspace(lat_min, lat_max, num_cells_y)
+        
+        # Populate grid x/y coordinate variables and subset-related variables
+        # (if applicable)
+        if subset_grid_shp is None:
+            self.init_xy(lon_min, lat_min, lon_max, lat_max, target_res_meters)
+        else:
+            self.init_xy_with_subsets(lon_min, lat_min, lon_max, lat_max, target_res_meters, subset_grid_shp)
+        
+        # Create NetCDF variables
+        self.create_index_coefficient_vars()
 
-        self.var_xi1 = self.nc_file.createVariable('xi1', 'i4', ('y','x'),fill_value=-9999)
-        self.var_eta1 = self.nc_file.createVariable('eta1', 'i4', ('y','x'),fill_value=-9999)
-        self.var_w1 = self.nc_file.createVariable('w1', 'f4', ('y','x'),fill_value=-9999)
-        self.var_xi2 = self.nc_file.createVariable('xi2', 'i4', ('y','x'),fill_value=-9999)
-        self.var_eta2 = self.nc_file.createVariable('eta2', 'i4', ('y','x'),fill_value=-9999)
-        self.var_w2 = self.nc_file.createVariable('w2', 'f4', ('y','x'),fill_value=-9999)
-        self.var_xi3 = self.nc_file.createVariable('xi3', 'i4', ('y','x'),fill_value=-9999)
-        self.var_eta3 = self.nc_file.createVariable('eta3', 'i4', ('y','x'),fill_value=-9999)
-        self.var_w3 = self.nc_file.createVariable('w3', 'f4', ('y','x'),fill_value=-9999)
-        self.var_xi4 = self.nc_file.createVariable('xi4', 'i4', ('y','x'),fill_value=-9999)
-        self.var_eta4 = self.nc_file.createVariable('eta4', 'i4', ('y','x'),fill_value=-9999)
-        self.var_w4 = self.nc_file.createVariable('w4', 'f4', ('y','x'),fill_value=-9999)
-        self.var_wsum = self.nc_file.createVariable('wsum', 'f4', ('y','x'),fill_value=-9999)
-
+        if shoreline_shp is not None:
+            self.init_shoreline_mask(shoreline_shp)
+        
         #self.gridOriginLongitude = 
         #self.gridOriginLatitude = 
         #self.gridSpacingLongitude = 
         #self.gridSpacingLatitude = 
         self.nc_file.model = "CBOFS"
         self.nc_file.format = "netCDF-4"
+
+        # Calculate the indexes/coefficients - can take many hours
+        self.compute_indexes_coefficients(roms_file)
+
+    def init_xy(self, lon_min, lat_min, lon_max, lat_max, target_cellsize_meters):
+        """Create & initialize x/y dimensions/coordinate vars.
+        
+        Args:
+            lon_min: Minimum longitude of domain.
+            lat_min: Minimum latitude of domain.
+            lon_max: Maximum longitude of domain.
+            lat_max: Maximum latitude of domain.
+            target_cellsize_meters: Target cell size, in meters. Actual
+                calculated cell sizes will be approximations of this.
+        """
+        # Calculate actual x/y cell sizes
+        cellsize_x, cellsize_y = RegularGrid.calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_res_meters)
+        
+        # Build a regular grid using calculated cell sizes and given extent
+        reg_grid = RegularGrid(lon_min, lat_min, lon_max, lat_max, cellsize_x, cellsize_y)
+        
+        # Create NetCDF dimensions & coordinate variables using dimension sizes
+        # from regular grid
+        self.create_dims_coordvars(len(reg_grid.y_coords), len(reg_grid.x_coords))
+        
+        # Populate NetCDF coordinate variables using regular grid coordinates
+        self.var_x[:] = reg_grid.x_coords[:]
+        self.var_y[:] = reg_grid.y_coords[:]
+
+    def init_xy_with_subsets(self, lon_min, lat_min, lon_max, lat_max, target_cellsize_meters, subset_grid_shp):
+        """Create & initialize x/y dimensions/coordinate vars and subset vars.
+
+        Args:
+            lon_min: Minimum longitude of domain.
+            lat_min: Minimum latitude of domain.
+            lon_max: Maximum longitude of domain.
+            lat_max: Maximum latitude of domain.
+            target_cellsize_meters: Target cell size, in meters. Actual
+                calculated cell sizes will be approximations of this.
+            subset_grid_shp: Path to subset grid polygon shapefile used to
+                define subgrid domains.
+
+        Raises: Exception when given subset grid shapefile does not exist or
+            does not include any grid polygons intersecting with given extent.
+        """
+        #_shpfile="grids_160k.shp"
+        #shp_path = os.path.realpath(_shpfile)
+
+        #shp = ogr.Open(shp_path)
+        shp = ogr.Open(subset_grid_shp)
+        layer = shp.GetLayer()
+
+        # Create OGR Geometry from ocean model grid extent
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+        ring.AddPoint(self.minLon, self.maxLat)
+        ring.AddPoint(self.minLon, self.minLat)
+        ring.AddPoint(self.maxLon, self.minLat)
+        ring.AddPoint(self.maxLon, self.maxLat)
+        ring.AddPoint(self.minLon, self.maxLat)
+        # Create polygon
+        ofs_poly = ogr.Geometry(ogr.wkbPolygon)
+        ofs_poly.AddGeometry(ring)
+
+        # Find the intersection between 160k grid and ocean model grid extent
+        subset_polys = []
+        fid = 0
+        for feature in layer:
+            subset_poly = feature.GetGeometryRef()
+            intersection = ofs_poly.Intersection(subset_poly)
+            if intersection.ExportToWkt() != "GEOMETRYCOLLECTION EMPTY":
+                subset_polys.append(fid, intersection.ExportToJson())
+            fid += 1
+
+        if len(subset_polys) == 0:
+            raise Exception("Given subset grid shapefile contains no polygons that intersect with model domain; cannot proceed.")
+        
+        # Use a single subset polygon to calculate x/y cell sizes. This ensures
+        # that cells do not fall on the border between two grid polygons.
+        sp_x_min, sp_x_max, sp_y_min, sp_y_max = subset_polys[0].GetEnvelope()
+        cellsize_x, cellsize_y = RegularGrid.calc_cellsizes(sp_x_min, sp_y_min, sp_x_max, sp_y_max, target_cellsize_meters)
+
+        # Combine identified subset grid polygons into single multipolygon to
+        # calculate full extent of all combined subset grids
+        multipolygon = ogr.Geometry(ogr.wkbMultiPolygon)
+        for fid, subset_poly in subset_polys:
+            multipolygon.AddGeometry(subset_poly)
+
+        (x_min, x_max, y_min, y_max) = multipolygon.GetEnvelope()
+        full_reg_grid = RegularGrid(x_min, y_min, x_max, y_max, cellsize_x, cellsize_y)
+        
+        # Create NetCDF dimensions & coordinate variables using dimension sizes
+        # from regular grid
+        self.create_dims_coordvars(len(full_reg_grid.y_coords), len(full_reg_grid.x_coords))
+        
+        # Populate NetCDF coordinate variables using regular grid coordinates
+        self.var_x[:] = full_reg_grid.x_coords[:]
+        self.var_y[:] = full_reg_grid.y_coords[:]
+
+        # Create subgrid dimension/variables
+        self.create_subgrid_dims_vars(len(subset_polys))
+        
+        # Populate subgrid mask variable
+        for subgrid_index, (fid, subset_poly) in enumerate(subset_polys):
+            # Convert OGR geometry to shapely geometry
+            subset_poly_shape = shape(json.loads(subset_poly.ExportToJson()))
+            for eta in range(len(self.var_y)):
+                for xi in range(len(self.var_x)):
+                    point = Point(self.var_x[eta,xi], self.var_y[eta,xi])
+                    if point.within(subset_poly):
+                        self.var_subgrid_mask[eta,xi,subgrid_index] = 1
+
+    def init_shoreline_mask(self, shoreline_shp):
+        """Use shoreline shapefile to mask out land at highest resolution.
+        
+        Args:
+            shoreline_shp: Path to a polygon shapefile containing features
+                identifying land areas.
+        """
+        #_shoreline ="shoreline.shp"
+        #shr_path = os.path.realpath(_shoreline)
+
+        #shp = ogr.Open(shr_path)
+        shp = ogr.Open(shoreline_shp)
+        layer = shp.GetLayer()
+
+        for feature in layer:
+            geom = feature.GetGeometryRef()
+            shore_poly = geom.ExportToJson()
+
+        self.create_shoreline_mask_var()
+
+        # Test every regular grid point, if it falls outside the shoreline
+        # polygon, assign it a value of 1
+        land = shape(json.loads(shore_poly))
+        for eta in range(len(self.var_y)):
+            for xi in range(len(self.var_x)):
+                point = Point(self.var_x[eta,xi], self.var_y[eta,xi])
+                if not point.within(land):
+                   self.var_shoreline_mask[eta,xi] = 1
 
     def compute_indexes_coefficients(self, roms_file):
         """Compute index/coefficient variables and store in NetCDF file.
@@ -496,7 +557,6 @@ class ROMSIndexFile(RegularGrid):
                                 found_cell = True
                                 break
 
-
 class ROMSOutputFile:
     """Read/process data from a ROMS model output file.
 
@@ -584,6 +644,7 @@ class ROMSOutputFile:
 
         # Call create regular grid function 
         return interpolateUVToRegularGrid(water_lat_rho, water_lon_rho, rot_urho, rot_vrho, model_index)
+
 
 def convertUVToSpeedDirection(reg_grid_u, reg_grid_v, model_index):
     """Convert u and v averaged/rotated vectors to speed/direction.
@@ -830,7 +891,7 @@ def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
               u_interp= u2 - ((u2-u1)*((z2 - td1)/(z2-z1)))
               # Store inerpolated u values in a masked array
               u_depth[eta,xi] = u_interp
-              u_depth = numpy.nan_to_num(u_depth,-9999.0)
+              u_depth = numpy.nan_to_num(u_depth,FILLVALUE)
 
     v_depth = numpy.ma.empty(shape=[num_eta,num_xi])
 
@@ -848,6 +909,6 @@ def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
               v_interp= v2 - ((v2-v1)*((z2 - d1)/(z2-z1)))
               # Store inerpolated v values in a masked array
               v_depth[eta,xi] = v_interp
-              v_depth = numpy.nan_to_num(v_depth,-9999.0)
+              v_depth = numpy.nan_to_num(v_depth,FILLVALUE)
 
     return u_depth, v_depth
