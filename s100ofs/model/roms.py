@@ -10,8 +10,10 @@ lat/lon horizontal grid at a given depth-below-surface.
 import datetime
 import math
 import os
+import sys
 
 import gdal
+import json
 import netCDF4
 import numpy
 import numpy.ma as ma
@@ -86,6 +88,7 @@ class RegularGrid:
             self.y_coords.append(y)
             y += self.cellsize_y
 
+
     @staticmethod
     def calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters):
         """Calculate actual x/y cell sizes from an extent and target cell size.
@@ -118,7 +121,7 @@ class RegularGrid:
         # to one in decimal degrees. The center of the grid is used as a good
         # approximation, since this value will vary by latitude.
         lat_mid = lat_min + grid_height/2
-        meters_per_degree = ((EARTH_RADIUS_METERS * math.pi)/180)*math.cos(midLat)
+        meters_per_degree = ((EARTH_RADIUS_METERS * math.pi)/180)*math.cos(lat_mid)
         
         # Target cell size in decimal degrees
         target_cellsize_dd = target_cellsize_meters/meters_per_degree
@@ -311,27 +314,29 @@ class ROMSIndexFile:
         # Populate grid x/y coordinate variables and subset-related variables
         # (if applicable)
         if subset_grid_shp is None:
-            self.init_xy(lon_min, lat_min, lon_max, lat_max, target_res_meters)
+            reg_grid =self.init_xy(lon_min, lat_min, lon_max, lat_max, target_res_meters)
+            self.gridOriginLongitude = reg_grid.x_min
+            self.gridOriginLatitude = reg_grid.y_min
         else:
-            self.init_xy_with_subsets(lon_min, lat_min, lon_max, lat_max, target_res_meters, subset_grid_shp)
-        
+            reg_grid = self.init_xy_with_subsets(lon_min, lat_min, lon_max, lat_max, target_res_meters, subset_grid_shp)
+            self.gridOriginLongitude = reg_grid.x_min
+            self.gridOriginLatitude = reg_grid.y_min
+
         # Create NetCDF variables
         self.create_index_coefficient_vars()
 
         if shoreline_shp is not None:
-            self.init_shoreline_mask(shoreline_shp)
-        
-        #self.gridOriginLongitude = 
-        #self.gridOriginLatitude = 
-        #self.gridSpacingLongitude = 
-        #self.gridSpacingLatitude = 
+            land = self.init_shoreline_mask(reg_grid, shoreline_shp)
+
         self.nc_file.model = "CBOFS"
         self.nc_file.format = "netCDF-4"
 
-        # Calculate the indexes/coefficients - can take many hours
-        self.compute_indexes_coefficients(roms_file)
+        print (len(reg_grid.y_coords),len(reg_grid.x_coords))
 
-    def init_xy(self, lon_min, lat_min, lon_max, lat_max, target_cellsize_meters):
+        # Calculate the indexes/coefficients - can take many hours
+        self.compute_indexes_coefficients(roms_file, land)
+
+    def init_xy(self, lon_min, lat_min, lon_max, lat_max, target_res_meters):
         """Create & initialize x/y dimensions/coordinate vars.
         
         Args:
@@ -343,7 +348,7 @@ class ROMSIndexFile:
                 calculated cell sizes will be approximations of this.
         """
         # Calculate actual x/y cell sizes
-        cellsize_x, cellsize_y = RegularGrid.calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_res_meters)
+        cellsize_x, cellsize_y, num_cells_x, num_cells_y = RegularGrid.calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_res_meters)
         
         # Build a regular grid using calculated cell sizes and given extent
         reg_grid = RegularGrid(lon_min, lat_min, lon_max, lat_max, cellsize_x, cellsize_y)
@@ -355,8 +360,12 @@ class ROMSIndexFile:
         # Populate NetCDF coordinate variables using regular grid coordinates
         self.var_x[:] = reg_grid.x_coords[:]
         self.var_y[:] = reg_grid.y_coords[:]
+        self.gridSpacingLongitude = cellsize_x
+        self.gridSpacingLatitude = cellsize_y
 
-    def init_xy_with_subsets(self, lon_min, lat_min, lon_max, lat_max, target_cellsize_meters, subset_grid_shp):
+        return reg_grid
+
+    def init_xy_with_subsets(self, lon_min, lat_min, lon_max, lat_max, target_res_meters, subset_grid_shp):
         """Create & initialize x/y dimensions/coordinate vars and subset vars.
 
         Args:
@@ -372,8 +381,6 @@ class ROMSIndexFile:
         Raises: Exception when given subset grid shapefile does not exist or
             does not include any grid polygons intersecting with given extent.
         """
-        #_shpfile="grids_160k.shp"
-        #shp_path = os.path.realpath(_shpfile)
 
         #shp = ogr.Open(shp_path)
         shp = ogr.Open(subset_grid_shp)
@@ -381,93 +388,131 @@ class ROMSIndexFile:
 
         # Create OGR Geometry from ocean model grid extent
         ring = ogr.Geometry(ogr.wkbLinearRing)
-        ring.AddPoint(self.minLon, self.maxLat)
-        ring.AddPoint(self.minLon, self.minLat)
-        ring.AddPoint(self.maxLon, self.minLat)
-        ring.AddPoint(self.maxLon, self.maxLat)
-        ring.AddPoint(self.minLon, self.maxLat)
+        ring.AddPoint(lon_min, lat_max)
+        ring.AddPoint(lon_min, lat_min)
+        ring.AddPoint(lon_max, lat_min)
+        ring.AddPoint(lon_max, lat_max)
+        ring.AddPoint(lon_min, lat_max)
         # Create polygon
         ofs_poly = ogr.Geometry(ogr.wkbPolygon)
         ofs_poly.AddGeometry(ring)
 
         # Find the intersection between 160k grid and ocean model grid extent
-        subset_polys = []
+        subset_polys = {}
+        fids = []
         fid = 0
         for feature in layer:
-            subset_poly = feature.GetGeometryRef()
-            intersection = ofs_poly.Intersection(subset_poly)
+            geom = feature.GetGeometryRef()
+            intersection = ofs_poly.Intersection(geom)
             if intersection.ExportToWkt() != "GEOMETRYCOLLECTION EMPTY":
-                subset_polys.append(fid, intersection.ExportToJson())
+                subset_polys[fid] = geom.ExportToJson()
+                fids.append(fid)
             fid += 1
 
-        if len(subset_polys) == 0:
+        if len(fids) == 0:
             raise Exception("Given subset grid shapefile contains no polygons that intersect with model domain; cannot proceed.")
-        
+
         # Use a single subset polygon to calculate x/y cell sizes. This ensures
         # that cells do not fall on the border between two grid polygons.
-        sp_x_min, sp_x_max, sp_y_min, sp_y_max = subset_polys[0].GetEnvelope()
-        cellsize_x, cellsize_y = RegularGrid.calc_cellsizes(sp_x_min, sp_y_min, sp_x_max, sp_y_max, target_cellsize_meters)
+        singlepolygon = ogr.Geometry(ogr.wkbMultiPolygon)
+        singlepolygon.AddGeometry(ogr.CreateGeometryFromJson(subset_polys[fids[0]]))
+        sp_x_min, sp_x_max, sp_y_min, sp_y_max = singlepolygon.GetEnvelope()
 
+        cellsize_x, cellsize_y = RegularGrid.calc_cellsizes(sp_x_min, sp_y_min, sp_x_max, sp_y_max, target_res_meters)
         # Combine identified subset grid polygons into single multipolygon to
         # calculate full extent of all combined subset grids
         multipolygon = ogr.Geometry(ogr.wkbMultiPolygon)
-        for fid, subset_poly in subset_polys:
-            multipolygon.AddGeometry(subset_poly)
+        for fid in fids:
+            multipolygon.AddGeometry(ogr.CreateGeometryFromJson(subset_polys[fid]))
 
         (x_min, x_max, y_min, y_max) = multipolygon.GetEnvelope()
         full_reg_grid = RegularGrid(x_min, y_min, x_max, y_max, cellsize_x, cellsize_y)
-        
+
         # Create NetCDF dimensions & coordinate variables using dimension sizes
         # from regular grid
         self.create_dims_coordvars(len(full_reg_grid.y_coords), len(full_reg_grid.x_coords))
-        
         # Populate NetCDF coordinate variables using regular grid coordinates
         self.var_x[:] = full_reg_grid.x_coords[:]
         self.var_y[:] = full_reg_grid.y_coords[:]
+        self.gridSpacingLongitude = full_reg_grid.cellsize_x
+        self.gridSpacingLatitude = full_reg_grid.cellsize_y
 
         # Create subgrid dimension/variables
         self.create_subgrid_dims_vars(len(subset_polys))
-        
+
         # Populate subgrid mask variable
-        for subgrid_index, (fid, subset_poly) in enumerate(subset_polys):
+        for subgrid_index, fid in enumerate(fids):
             # Convert OGR geometry to shapely geometry
-            subset_poly_shape = shape(json.loads(subset_poly.ExportToJson()))
+            subset_poly_shape = shape(json.loads(subset_polys[fid]))
             for eta in range(len(self.var_y)):
                 for xi in range(len(self.var_x)):
-                    point = Point(self.var_x[eta,xi], self.var_y[eta,xi])
-                    if point.within(subset_poly):
+                    point = Point(self.var_x[xi], self.var_y[eta])
+                    if point.within(subset_poly_shape):
                         self.var_subgrid_mask[eta,xi,subgrid_index] = 1
 
-    def init_shoreline_mask(self, shoreline_shp):
+        return full_reg_grid
+
+
+    def init_shoreline_mask(self, reg_grid, shoreline_shp):
         """Use shoreline shapefile to mask out land at highest resolution.
         
         Args:
             shoreline_shp: Path to a polygon shapefile containing features
                 identifying land areas.
         """
-        #_shoreline ="shoreline.shp"
-        #shr_path = os.path.realpath(_shoreline)
 
         #shp = ogr.Open(shr_path)
         shp = ogr.Open(shoreline_shp)
         layer = shp.GetLayer()
 
+        # Create OGR Geometry from ocean model grid extent
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+        ring.AddPoint(reg_grid.x_min, reg_grid.y_max)
+        ring.AddPoint(reg_grid.x_min, reg_grid.y_min)
+        ring.AddPoint(reg_grid.x_max, reg_grid.y_min)
+        ring.AddPoint(reg_grid.x_max, reg_grid.y_max)
+        ring.AddPoint(reg_grid.x_min, reg_grid.y_max)
+        # Create polygon
+        ofs_poly = ogr.Geometry(ogr.wkbPolygon)
+        ofs_poly.AddGeometry(ring)
+
+        # Find the intersection between shoreline shapefile and ocean model grid extent
         for feature in layer:
             geom = feature.GetGeometryRef()
-            shore_poly = geom.ExportToJson()
+            intersection = ofs_poly.Intersection(geom)
 
-        self.create_shoreline_mask_var()
+        # Create a memory layer to rasterize from.
+        driver = ogr.GetDriverByName('Memory')
+        memds=driver.CreateDataSource('tmpmemds')
+        lyr=memds.CreateLayer('land', geom_type=ogr.wkbPolygon)
+        feat = ogr.Feature(lyr.GetLayerDefn())
+        feat.SetGeometry(intersection)
+        lyr.CreateFeature(feat)
 
-        # Test every regular grid point, if it falls outside the shoreline
-        # polygon, assign it a value of 1
-        land = shape(json.loads(shore_poly))
-        for eta in range(len(self.var_y)):
-            for xi in range(len(self.var_x)):
-                point = Point(self.var_x[eta,xi], self.var_y[eta,xi])
-                if not point.within(land):
-                   self.var_shoreline_mask[eta,xi] = 1
+        # Create raster
+        pixelWidth = reg_grid.cellsize_x
+        pixelHeight = reg_grid.cellsize_y
+        cols = len(reg_grid.y_coords)
+        rows = len(reg_grid.x_coords)
+        target_ds = gdal.GetDriverByName('GTiff').Create("land.tif", rows, cols, 1, gdal.GDT_Float32)
+        target_ds.SetGeoTransform((reg_grid.x_min, pixelWidth, 0, reg_grid.y_min, 0,  pixelHeight))
+        band = target_ds.GetRasterBand(1)
+        NoData_value = 1
+        band.SetNoDataValue(1)
+        band.FlushCache()
 
-    def compute_indexes_coefficients(self, roms_file):
+        gdal.RasterizeLayer(target_ds, [1], lyr, None, None)
+        target_dsSRS = osr.SpatialReference()
+        target_dsSRS.ImportFromEPSG(4326)
+        target_ds.SetProjection(target_dsSRS.ExportToWkt())
+        target_ds = None
+
+        # Store as numpy array, land = 255, water = 1
+        land = gdal.Open("land.tif").ReadAsArray()
+
+        return land
+
+    def compute_indexes_coefficients(self, roms_file, land):
         """Compute index/coefficient variables and store in NetCDF file.
         
         For every regular grid point x0,y0 which falls inside four valid
@@ -507,6 +552,8 @@ class ROMSIndexFile:
                 x0 = self.var_x[x]
                 y0 = self.var_y[y]
                 found_cell = False
+                if land[y,x] != 1:
+                    continue
                 for xi1 in range(roms_file.num_xi-1):
                     if found_cell:
                         break
