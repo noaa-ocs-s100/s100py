@@ -3,7 +3,7 @@
 S-111 is an IHO standard outlining formats for storing and sending surface
 water current data and metadata.
 """
-from contextlib import ContextDecorator
+import contextlib
 import datetime
 import math
 import os
@@ -105,54 +105,88 @@ class S111File:
         self.h5_file.attrs.create('dataCodingFormat', 0 , dtype=numpy.int32)
         self.h5_file.attrs.create('depthTypeIndex', 0 , dtype=numpy.int32)
         self.h5_file.attrs.create('verticalDatum', 0 , dtype=numpy.int32)
-    
 
-    def add_output(self, model_output_file, model_index_file):
-        """Add (append) model output to the S111 file
-
-        Args:
-            model_output_file: Path to model output file to be appended.
-            model_index_file: Path to model index file required to perform
-                regular grid interpolation.
-        """
-        # Open model output netCDF
-        with roms.ROMSOutputFile(model_output_file) as model_output:
-            with roms.ROMSIndexFile(model_index_file) as model_index:
-                reg_grid_u,reg_grid_v = model_output.uvToRegularGrid(model_index)
-                
-                # Create HDF5 groups and datasets
-                self.create_group(model_output, model_index, reg_grid_u, reg_grid_v)
-                
-                # Update HDF5 attributes
-                self.update_attributes(model_index)
-                
-                print("Data sucessfully added")
-
-
-    def create_group(self, model_output, model_index, reg_grid_u, reg_grid_v):
-        """Create inital HDF5 Group with Speeds and Directions.
-
-        For every additional NetCDF file Create an HDF5 Group containing Speeds
-        and Direction Datasets. Update HDF5 time attributes.
-
-        Args:
-            model_output: `ROMSOutputFile` representing the source model output
-                file.
-            model_index: `ROMSIndexFile` representing the model index and
-                coefficients file.
-            reg_grid_u: `numpy.ma.masked_array` representing U data after
-                interpolating to a regular grid.
-            reg_grid_v: `numpy.ma.masked_array` representing V data after
-                interpolating to a regular grid.
-        """
-        # Convert gregorian timestamp to datetime timestamp
-        time = netCDF4.num2date(model_output.nc_file.variables['ocean_time'][:], model_output.nc_file.variables['ocean_time'].units)
-        numberOfTimes = time.shape[0]
-        time_val = time[0]
-        str_time_val = time_val.strftime("%Y%m%dT%H%M%SZ")
+    def update_attributes(self, model_index, subgrid_index=None):
+        """Update HDF5 attributes based on grid properties.
         
+        *********************
+        TODO: MOVE REGION/SUBREGION/CURRENTPRODUCT VALUES OUT OF THIS FUNCTION
+        *********************
 
-        if len(self.h5_file.items()) == 0:  
+        Args:
+            model_index: `ROMSIndexFile` instance representing model index and
+                coefficients file.
+            subgrid_index: (Optional, default None) Index of subgrid, if any,
+                that this S111File represents. Corresponds with index into
+                subgrid dimension of model index file.
+        """
+        # Grid spacing is uniform, so just look at width between first 2 cells
+        cellsize_x = model_index.var_x[1] - model_index.var_x[0]
+        cellsize_y = model_index.var_y[1] - model_index.var_y[0]
+
+        if subgrid_index is not None:
+            if subgrid_index < 0 or subgrid_index >= model_index.dim_subgrid.size:
+                raise Exception("Subgrid index [{}] out of model index subgrid dimension range [0-{}]".format(subgrid_index, model_index.dim_subgrid.size-1))
+            num_points_lon = 1 + model_index.subgrid_x_max[subgrid_index] - model_index.subgrid_x_min[subgrid_index]
+            num_points_lat = 1 + model_index.subgrid_y_max[subgrid_index] - model_index.subgrid_y_min[subgrid_index]
+            #***** need to subtract 0.5*cellsize to get actual min_lon/min_lat ???
+            # i.e. does min lon/lat represent center, or bottom-left corner of origin pixel???
+            min_lon = model_index.var_x[model_index.subgrid_x_min[subgrid_index]]
+            min_lat = model_index.var_y[model_index.subgrid_y_min[subgrid_index]]
+        else:
+            num_points_lon = model_index.dim_x.size
+            num_points_lat = model_index.dim_y.size
+            #***** need to subtract 0.5*cellsize to get actual min_lon/min_lat ???
+            # i.e. does min lon/lat represent center, or bottom-left corner of origin pixel???
+            min_lon = numpy.nanmin(model_index.var_x)
+            min_lat = numpy.nanmin(model_index.var_y)
+
+        num_nodes = num_points_lon * num_points_lat
+                        
+        self.h5_file.attrs.modify('gridSpacingLongitudinal', cellsize_x) 
+        self.h5_file.attrs.modify('gridSpacingLatitudinal', cellsize_y) 
+        self.h5_file.attrs.modify('horizDatumValue', 4326) 
+        self.h5_file.attrs.modify('numPointsLongitudinal', num_points_lon)
+        self.h5_file.attrs.modify('numPointsLatitudinal', num_points_lat)
+        self.h5_file.attrs.modify('minGridPointLongitudinal', min_lon)
+        self.h5_file.attrs.modify('minGridPointLatitudinal', min_lat)
+        self.h5_file.attrs.modify('numberOfNodes', num_nodes)
+        self.h5_file.attrs.modify('surfaceCurrentDepth', 4.5)
+        self.h5_file.attrs.modify('gridOriginLongitude', min_lon)
+        self.h5_file.attrs.modify('gridOriginLatitude', min_lat)
+        self.h5_file.attrs.modify('gridLandMaskValue', FILLVALUE)
+        self.h5_file.attrs.modify('dataCodingFormat', 2)
+        self.h5_file.attrs.modify('depthTypeIndex', 2)
+        self.h5_file.attrs.modify('typeOfCurrentData', 6)
+        
+        region = numpy.string_("US_East_Coast")
+        subRegion = numpy.string_('Chesapeake_Bay')
+        methodCurrentProduct = numpy.string_('ROMS_Hydrodynamic_Model')
+        
+        self.h5_file.attrs.modify('nameRegion', region)
+        self.h5_file.attrs.modify('nameSubregion', subRegion)
+        self.h5_file.attrs.modify('methodCurrentsProduct', methodCurrentProduct)
+
+    def add_data(self, time_value, reg_grid_speed, reg_grid_direction):
+        """Add data to the S111 file.
+        
+        As data is added, new Groups will be added and relevant attributes will
+        be updated.
+
+        Args:
+            time_value: `datetime.datetime` instance representing valid time of
+                the nowcast/forecast data being added.
+            reg_grid_speed: `numpy.ma.masked_array` representing current speed
+                data after interpolating to a regular grid and converting from
+                u/v components.
+            reg_grid_direction: `numpy.ma.masked_array` representing current
+                direction data after interpolating to a regular grid and
+                converting from u/v components.
+        """
+        time_str = time_value.strftime("%Y%m%dT%H%M%SZ")
+
+        if len(self.h5_file.items()) == 0:
+            num_groups = 1
             new_group_name = 'Group_001' 
             print("Creating", new_group_name ,"dataset.")
             new_group = self.h5_file.create_group(new_group_name)
@@ -160,9 +194,9 @@ class S111File:
             group_title = 'Regular Grid at DateTime 1' 
             new_group.attrs.create('Title', group_title.encode())
 
-            self.h5_file.attrs.modify('dateTimeOfIssue', str_time_val.encode())                                 
-            self.h5_file.attrs.modify('dateTimeOfFirstRecord', str_time_val.encode())
-            self.h5_file.attrs.modify('dateTimeOfLastRecord', str_time_val.encode())
+            self.h5_file.attrs.modify('dateTimeOfIssue', time_str.encode())                                 
+            self.h5_file.attrs.modify('dateTimeOfFirstRecord', time_str.encode())
+            self.h5_file.attrs.modify('dateTimeOfLastRecord', time_str.encode())
                                   
             # Create the compound datatype for Group F attributes
             DIM0 = 2
@@ -197,30 +231,26 @@ class S111File:
             grps = self.h5_file.items()
             num_groups = len(grps)
     
-            new_group_name = 'Group' + ' ' + str(num_groups)
+            new_group_name = 'Group {}'.format(num_groups)
             print("Creating", new_group_name, "dataset.")
             new_group = self.h5_file.create_group(new_group_name)
     
-            group_title = 'Regular Grid at DateTime ' + str(num_groups)
+            group_title = 'Regular Grid at DateTime {}'.format(num_groups)
             new_group.attrs.create('Title', group_title.encode())
     
-            self.h5_file.attrs.modify('dateTimeOfLastRecord', str_time_val.encode())
+            self.h5_file.attrs.modify('dateTimeOfLastRecord', time_str.encode())
             firstTime = datetime.datetime.strptime((self.h5_file.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
             lastTime = datetime.datetime.strptime((self.h5_file.attrs['dateTimeOfLastRecord']),"%Y%m%dT%H%M%SZ")
             interval = lastTime - firstTime
             timeInterval=  interval.total_seconds()
             self.h5_file.attrs.modify('timeRecordInterval', timeInterval)
-                
-        # Convert currents at regular grid points from u/v to speed and
-        # direction
-        directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v, model_index)    
-
-        min_speed = numpy.nanmin(speeds)
-        max_speed = numpy.nanmax(speeds)
+         
+        # Note: make sure numpy.nanmin works with masked arrays       
+        min_speed = numpy.nanmin(reg_grid_speed)
+        max_speed = numpy.nanmax(reg_grid_speed)
         min_speed = numpy.round(min_speed,2)
         max_speed = numpy.round(max_speed,2)
-        directions = ma.masked_array(directions, model_index.var_xi1.mask)  
-        speeds = ma.masked_array(speeds, model_index.var_xi1.mask)
+
         directions = directions.filled(FILLVALUE)
         speeds = speeds.filled(FILLVALUE)
         
@@ -229,12 +259,12 @@ class S111File:
         new_group.create_dataset('surfaceCurrentSpeed', (speeds.shape[0], speeds.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
 
         # Update attributes from datasets added
-        new_group.attrs.create('DateTime', str_time_val.encode())
+        new_group.attrs.create('DateTime', time_str.encode())
         
         if len(self.h5_file.items()) == 2:
             self.h5_file.attrs.modify('minDatasetCurrentSpeed', min_speed)
             self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
-            self.h5_file.attrs.modify('numberOfTimes', numberOfTimes)
+            self.h5_file.attrs.modify('numberOfTimes', 1)
         else:
             numberOfTimes = num_groups 
             self.h5_file.attrs.modify('numberOfTimes', numberOfTimes)
@@ -245,45 +275,117 @@ class S111File:
             if max_speed > prior_max_speed:
                 self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
+def romsToS111(roms_index_file, roms_output_files, s111_path_prefix):
+    """Convert ROMS model output to regular grid in S111 format.
 
-    def update_attributes(self, model_index):
-        """Update HDF5 attributes based on grid properties.
-        
-        *********************
-        TODO: MOVE REGION/SUBREGION/CURRENTPRODUCT VALUES OUT OF THIS FUNCTION
-        *********************
+    Note: Only a single time per ROMS file is currently supported. If a ROMS
+    NetCDF includes more than one time/forecast, only the first will be
+    extracted.
+
+    *** TODO: Get name of model (cbofs) from index or output file ***
+
+    Args:
+        roms_index_file: `ROMSIndexFile` instance containing precalculated grid
+            and interpolation information.
+        roms_output_files: List of `ROMSOutputFile` instances pointing to one
+            or more NetCDF output files from a ROMS-based modeling system.
+            Files should be provided in ascending chronological order, as this
+            order will be maintained when appending subsequent
+            nowcasts/forecasts to each other in individual S111 files.
+        s111_path_prefix: Path prefix for desired output location for generated
+            S-111 files. If specified path ends in "/", file(s) will be output
+            to specified directory with autogenerated names. Otherwise,
+            generated file(s) will be placed at specified file path, but with a
+            filename suffix appended based on the properties of the target
+            output grid and the ROMS file.
+    """
+    # Open index file
+    # Determine output files to be created (one for whole domain or one per subgrid)
+    # Open/initialize each s111 output file
+    # For each ROMS file:
+    #   interpolate to full grid, convert uv to spd/dir
+    #   subset if configured
+    #   output to s111 file(s)
+    if s111_path_prefix.endswith("/"):
+        s111_path_prefix += "cbofs"
+    with roms.ROMSIndexFile(roms_index_file) as roms_index:
+        if roms_index.dim_subgrid is not None and roms_index.var_subgrid_mask is not None:
+            # Output to subgrids
+            with contextlib.ExitStack() as stack:
+                s111_files = []
+                for i in range(roms_index.dim_subgrid.size):
+                    s111_file = S111File("{}_subgrid_{}".format(s111_path_prefix, roms_index.var_subgrid_id[i]))
+                    stack.enter_context(s111_file)
+                    s111_file.update_attributes(roms_index, i)
+                    s111_files.append(s111_file)
+                roms_files = []
+                times = []
+                for roms_output_file in roms_output_files:
+                    roms_file = roms.ROMSOutputFile(roms_output_file)
+                    stack.enter_context(roms_file)
+                    roms_files.append(roms_file)
+                    # Convert gregorian timestamp to datetime timestamp
+                    time_val = netCDF4.num2date(roms_file.nc_file.variables['ocean_time'][:], model_output.nc_file.variables['ocean_time'].units)[0]
+                    times.append(time_val)
+                
+                for i, roms_file in enumerate(roms_files):
+                    reg_grid_u, reg_grid_v = roms_file.uvToRegularGrid(roms_index)
+                    # Convert currents at regular grid points from u/v to speed
+                    # and direction
+                    directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v)
+                    directions = ma.masked_array(directions, roms_index.var_xi1.mask)  
+                    speeds = ma.masked_array(speeds, roms_index.var_xi1.mask)
+                    
+                    for subgrid_index, s111_file in enumerate(s111_files):
+                        x_min = roms_index.var_subgrid_x_min[subgrid_index]
+                        x_max = roms_index.var_subgrid_x_max[subgrid_index]
+                        y_min = roms_index.var_subgrid_y_min[subgrid_index]
+                        y_max = roms_index.var_subgrid_y_max[subgrid_index]
+                        subgrid_speed = speeds[y_min:y_max+1, x_min:x_max+1]
+                        subgrid_direction = directions[y_min:y_max+1, x_min:x_max+1]
+                        s111_file.add_data(times[i], subgrid_speed, subgrid_direction)
+        else:
+            # Output to default grid (no subgrids)
+                        
+
+
+    def add_output(self, model_output_file, model_index_file):
+        """Add (append) model output to the S111 file
 
         Args:
-            model_index: `ROMSIndexFile` instance representing model index and
-                coefficients file.
+            model_output_file: Path to model output file to be appended.
+            model_index_file: Path to model index file required to perform
+                regular grid interpolation.
         """
-        num_nodes = model_index.dim_x.size * model_index.dim_y.size
-        min_lon = numpy.nanmin(model_index.var_x)
-        min_lat = numpy.nanmin(model_index.var_y)
-        grid_spacing_lon = model_index.var_x[1] - model_index.var_x[0]
-        grid_spacing_lat = model_index.var_y[1] - model_index.var_y[0]
+        # Open model output netCDF
+        with roms.ROMSOutputFile(model_output_file) as model_output:
+            with roms.ROMSIndexFile(model_index_file) as model_index:
+                reg_grid_u,reg_grid_v = model_output.uvToRegularGrid(model_index)
+                
+                        s111_file
+        else:
+            # Output to default grid (no subgrids)
                         
-        self.h5_file.attrs.modify('gridSpacingLongitudinal',grid_spacing_lon) 
-        self.h5_file.attrs.modify('gridSpacingLatitudinal',grid_spacing_lat) 
-        self.h5_file.attrs.modify('horizDatumValue', 4326) 
-        self.h5_file.attrs.modify('numPointsLongitudinal', model_index.dim_x.size)
-        self.h5_file.attrs.modify('numPointsLatitudinal', model_index.dim_y.size)
-        self.h5_file.attrs.modify('minGridPointLongitudinal', min_lon)
-        self.h5_file.attrs.modify('minGridPointLatitudinal', min_lat)
-        self.h5_file.attrs.modify('numberOfNodes', num_nodes)
-        self.h5_file.attrs.modify('surfaceCurrentDepth', 4.5)
-        self.h5_file.attrs.modify('gridOriginLongitude', min_lon)
-        self.h5_file.attrs.modify('gridOriginLatitude', min_lat)
-        self.h5_file.attrs.modify('gridLandMaskValue', FILLVALUE )
-        self.h5_file.attrs.modify('dataCodingFormat', 2)
-        self.h5_file.attrs.modify('depthTypeIndex', 2)
-        self.h5_file.attrs.modify('typeOfCurrentData', 6)
-        
-        region = numpy.string_("US_East_Coast")
-        subRegion = numpy.string_('Cheaspeake_Bay')
-        methodCurrentProduct = numpy.string_('ROMS_Hydrodynamic_Model')
-        
-        self.h5_file.attrs.modify('nameRegion', region)
-        self.h5_file.attrs.modify('nameSubregion', subRegion)
-        self.h5_file.attrs.modify('methodCurrentsProduct', methodCurrentProduct)
+
+
+    def add_output(self, model_output_file, model_index_file):
+        """Add (append) model output to the S111 file
+
+        Args:
+            model_output_file: Path to model output file to be appended.
+            model_index_file: Path to model index file required to perform
+                regular grid interpolation.
+        """
+        # Open model output netCDF
+        with roms.ROMSOutputFile(model_output_file) as model_output:
+            with roms.ROMSIndexFile(model_index_file) as model_index:
+                reg_grid_u,reg_grid_v = model_output.uvToRegularGrid(model_index)
+                
+                # Create HDF5 groups and datasets
+                self.create_group(model_output, model_index, reg_grid_u, reg_grid_v)
+                
+                # Update HDF5 attributes
+                self.update_attributes(model_index, subgrid_id)
+                
+                print("Data sucessfully added")
 
