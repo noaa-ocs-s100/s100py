@@ -197,19 +197,31 @@ class ROMSIndexFile:
         self.dim_x = self.nc_file.dimensions[self.DIMNAME_X]
 
         try:
-            self.var_shoreline_mask = self.nc_file.variables['shoreline_mask'][:,:]
-        except KeyError:
-            pass
-
-        try:
             self.dim_subgrid = self.nc_file.dimensions[self.DIMNAME_SUBGRID]
         except KeyError:
-            pass
+            self.dim_subgrid = None
 
         try:
-            self.var_subgrid_mask = self.nc_file.variables['subgrid_mask'][:,:,:]
+            self.var_subgrid_id = self.nc_file.variables['subgrid_id'][:]
         except KeyError:
-            pass
+            self.var_subgrid_id = None
+
+        try:
+            self.var_subgrid_x_min = self.nc_file.variables['subgrid_x_min'][:]
+        except KeyError:
+            self.var_subgrid_x_min = None
+        try:
+            self.var_subgrid_x_max = self.nc_file.variables['subgrid_x_max'][:]
+        except KeyError:
+            self.var_subgrid_x_max = None
+        try:
+            self.var_subgrid_y_min = self.nc_file.variables['subgrid_y_min'][:]
+        except KeyError:
+            self.var_subgrid_y_min = None
+        try:
+            self.var_subgrid_y_max = self.nc_file.variables['subgrid_y_max'][:]
+        except KeyError:
+            self.var_subgrid_y_max = None
 
         self.var_y = self.nc_file.variables[self.DIMNAME_Y][:]
         self.var_x = self.nc_file.variables[self.DIMNAME_X][:]
@@ -265,10 +277,6 @@ class ROMSIndexFile:
         self.var_w4 = self.nc_file.createVariable('w4', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
         self.var_wsum = self.nc_file.createVariable('wsum', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
 
-    def create_shoreline_mask_var(self):
-        """Create shoreline mask NetCDF variable."""
-        self.var_shoreline_mask = self.nc_file.createVariable('shoreline_mask', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-
     def create_subgrid_dims_vars(self, num_subgrids):
         """Create subgrid-related NetCDF dimensions/variables.
 
@@ -277,7 +285,10 @@ class ROMSIndexFile:
         """
         self.dim_subgrid = self.nc_file.createDimension(self.DIMNAME_SUBGRID, num_subgrids)
         self.var_subgrid_id = self.nc_file.createVariable('subgrid_id', 'i4', (self.DIMNAME_SUBGRID,),fill_value=FILLVALUE)
-        self.var_subgrid_mask = self.nc_file.createVariable('subgrid_mask', 'i4', (self.DIMNAME_Y,self.DIMNAME_X,self.DIMNAME_SUBGRID),fill_value=FILLVALUE)
+        self.var_subgrid_x_min = self.nc_file.createVariable('subgrid_x_min', 'i4', (self.DIMNAME_SUBGRID,))
+        self.var_subgrid_x_max = self.nc_file.createVariable('subgrid_x_max', 'i4', (self.DIMNAME_SUBGRID,))
+        self.var_subgrid_y_min = self.nc_file.createVariable('subgrid_y_min', 'i4', (self.DIMNAME_SUBGRID,))
+        self.var_subgrid_y_max = self.nc_file.createVariable('subgrid_y_max', 'i4', (self.DIMNAME_SUBGRID,))
     
     def init_nc(self, roms_file, target_cellsize_meters, shoreline_shp=None, subset_grid_shp=None):
         """Initialize NetCDF dimensions/variables/attributes.
@@ -443,15 +454,34 @@ class ROMSIndexFile:
         # Create subgrid dimension/variables
         self.create_subgrid_dims_vars(len(subset_polys))
 
-        # Populate subgrid mask variable
+        # Calculate subgrid mask ranges, populate subgrid ID
         for subgrid_index, fid in enumerate(fids):
+            self.var_subgrid_id[subgrid_index] = fid
+            # Start with extreme values for min/max, then narrow down
+            subgrid_x_min = full_reg_grid.dim_x.size
+            subgrid_x_max = 0
+            subgrid_y_min = full_reg_grid.dim_y.size
+            subgrid_y_max = 0
             # Convert OGR geometry to shapely geometry
             subset_poly_shape = shape(json.loads(subset_polys[fid]))
             for eta in range(len(self.var_y)):
                 for xi in range(len(self.var_x)):
                     point = Point(self.var_x[xi], self.var_y[eta])
                     if point.within(subset_poly_shape):
-                        self.var_subgrid_mask[eta,xi,subgrid_index] = 1
+                        if eta < subgrid_y_min:
+                            subgrid_y_min = eta
+                        if eta > subgrid_y_max:
+                            subgrid_y_max = eta
+                        if xi < subgrid_x_min:
+                            subgrid_x_min = eta
+                        if xi > subgrid_x_max:
+                            subgrid_x_max = eta
+            if subgrid_x_min >= subgrid_x_max or subgrid_y_min >= subgrid_y_max:
+                raise Exception("Error calculating subgrid index ranges for subgrid [{} - fid {}]:\nx_min: {}, x_max: {}, y_min: {}, y_max: {}".format(subgrid_index, fid, subgrid_x_min, subgrid_x_max, subgrid_y_min, subgrid_y_max))
+            self.var_subgrid_x_min[subgrid_index] = subgrid_x_min
+            self.var_subgrid_x_max[subgrid_index] = subgrid_x_max
+            self.var_subgrid_y_min[subgrid_index] = subgrid_y_min
+            self.var_subgrid_y_max[subgrid_index] = subgrid_y_max
 
         return full_reg_grid
 
@@ -705,7 +735,7 @@ class ROMSOutputFile:
         return interpolateUVToRegularGrid(water_lat_rho, water_lon_rho, rot_urho, rot_vrho, model_index)
 
 
-def convertUVToSpeedDirection(reg_grid_u, reg_grid_v, model_index):
+def convertUVToSpeedDirection(reg_grid_u, reg_grid_v):
     """Convert u and v averaged/rotated vectors to speed/direction.
 
     Input u/v values are assumed to be in meters/sec. Output speed values will
@@ -716,8 +746,6 @@ def convertUVToSpeedDirection(reg_grid_u, reg_grid_v, model_index):
             the regular grid.
         reg_grid_v: `numpy.ma.masked_array` containing v values interpolated to
             the regular grid.
-        model_index: `ROMSIndexFile` instance representing index and
-            coefficients file.
     """
     directions = numpy.empty((reg_grid_u.shape[0],reg_grid_u.shape[1]), dtype=numpy.float32)
     speeds = numpy.empty((reg_grid_u.shape[0],reg_grid_u.shape[1]), dtype=numpy.float32)
