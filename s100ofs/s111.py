@@ -15,6 +15,9 @@ import numpy.ma as ma
 
 from .model import roms
 
+# Default fill value for NetCDF variables
+FILLVALUE=-9999.0
+
 class S111File:
     """Create and manage S-111 files.
 
@@ -102,10 +105,8 @@ class S111File:
         self.h5_file.attrs.create('dataCodingFormat', 0 , dtype=numpy.int32)
         self.h5_file.attrs.create('depthTypeIndex', 0 , dtype=numpy.int32)
         self.h5_file.attrs.create('verticalDatum', 0 , dtype=numpy.int32)
+    
 
-        for att in self.h5_file.attrs:
-            print(att)
-        
     def add_output(self, model_output_file, model_index_file):
         """Add (append) model output to the S111 file
 
@@ -134,10 +135,6 @@ class S111File:
         For every additional NetCDF file Create an HDF5 Group containing Speeds
         and Direction Datasets. Update HDF5 time attributes.
 
-        *********************
-        TODO: REDUCE DUPLICATE CODE BETWEEN IF/ELSE BLOCKS
-        *********************
-
         Args:
             model_output: `ROMSOutputFile` representing the source model output
                 file.
@@ -151,74 +148,50 @@ class S111File:
         # Convert gregorian timestamp to datetime timestamp
         time = netCDF4.num2date(model_output.nc_file.variables['ocean_time'][:], model_output.nc_file.variables['ocean_time'].units)
         numberOfTimes = time.shape[0]
+        time_val = time[0]
+        str_time_val = time_val.strftime("%Y%m%dT%H%M%SZ")
+        
 
         if len(self.h5_file.items()) == 0:  
-            for index in range(0, numberOfTimes):
-                new_group_name = 'Group' + ' ' + str(index + 1)
-                print("Creating", new_group_name ,"dataset.")
-                new_group = self.h5_file.create_group(new_group_name)
-                
-                group_title = 'Regular Grid at DateTime ' + str(index + 1)
-                new_group.attrs.create('Title', group_title.encode())
-        
-                time_val = time[index]
-        
-                str_time_val = time_val.strftime("%Y%m%dT%H%M%SZ")
-                new_group.attrs.create('DateTime', str_time_val.encode())                    
-                self.h5_file.attrs.modify('dateTimeOfIssue', str_time_val.encode())                                 
-                self.h5_file.attrs.modify('dateTimeOfFirstRecord', str_time_val.encode())
-                self.h5_file.attrs.modify('dateTimeOfLastRecord', str_time_val.encode())
-                self.h5_file.attrs.modify('typeOfCurrentData', 6)
-                                      
-                # Convert currents at regular grid points from u/v to speed and
-                # direction
-                directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v, model_index)    
+            new_group_name = 'Group_001' 
+            print("Creating", new_group_name ,"dataset.")
+            new_group = self.h5_file.create_group(new_group_name)
+            
+            group_title = 'Regular Grid at DateTime 1' 
+            new_group.attrs.create('Title', group_title.encode())
 
-                min_speed = numpy.nanmin(speeds)
-                max_speed = numpy.nanmax(speeds)
-                min_speed = numpy.round(min_speed,2)
-                max_speed = numpy.round(max_speed,2)
-                directions = ma.masked_array(directions, model_index.var_xi1.mask)  
-                speeds = ma.masked_array(speeds, model_index.var_xi1.mask)
-                directions = directions.filled(-9999.0)
-                speeds = speeds.filled(-9999.0)
-                
-                # Write data to empty HDF5 datasets 
-                new_group.create_dataset('surfaceCurrentDirection', (directions.shape[0], directions.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
-                new_group.create_dataset('surfaceCurrentSpeed', (speeds.shape[0], speeds.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
+            self.h5_file.attrs.modify('dateTimeOfIssue', str_time_val.encode())                                 
+            self.h5_file.attrs.modify('dateTimeOfFirstRecord', str_time_val.encode())
+            self.h5_file.attrs.modify('dateTimeOfLastRecord', str_time_val.encode())
+                                  
+            # Create the compound datatype for Group F attributes
+            DIM0 = 2
+            DATASET = "Attributes"
 
-                self.h5_file.attrs.modify('minDatasetCurrentSpeed', min_speed)
-                self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
-                self.h5_file.attrs.modify('numberOfTimes', numberOfTimes)
+            dtype = numpy.dtype([("0", h5py.special_dtype(vlen=str)), 
+                              ("1", h5py.special_dtype(vlen=str)),
+                              ("2", h5py.special_dtype(vlen=str)),
+                              ("3", h5py.special_dtype(vlen=str)),
+                              ("4", h5py.special_dtype(vlen=str)),
+                              ("5", h5py.special_dtype(vlen=str))])
+            
+            fdata = numpy.zeros((DIM0,), dtype=dtype)
+            fdata['0'][0] = ("surfaceCurrentSpeed")
+            fdata['1'][0] = ("Surface current speed")
+            fdata['2'][0] = ("knots")
+            fdata['3'][0] = ("-9999.0")
+            fdata['4'][0] = ("96,56")
+            fdata['5'][0] = ("H5T_FLOAT")
+            fdata['0'][1] = ("surfaceCurrentDirection")
+            fdata['1'][1] = ("Surface current direction")
+            fdata['2'][1] = ("degrees")
+            fdata['3'][1] = ("-9999.0")
+            fdata['4'][1] = ("96,56")
+            fdata['5'][1] = ("H5T_FLOAT")
 
-                # Create the compound datatype for Group F attributes
-                DIM0 = 2
-                DATASET = "Attributes"
-
-                dtype = numpy.dtype([("0", h5py.special_dtype(vlen=str)), 
-                                  ("1", h5py.special_dtype(vlen=str)),
-                                  ("2", h5py.special_dtype(vlen=str)),
-                                  ("3", h5py.special_dtype(vlen=str)),
-                                  ("4", h5py.special_dtype(vlen=str)),
-                                  ("5", h5py.special_dtype(vlen=str))])
-                
-                fdata = numpy.zeros((DIM0,), dtype=dtype)
-                fdata['0'][0] = ("surfaceCurrentSpeed")
-                fdata['1'][0] = ("Surface current speed")
-                fdata['2'][0] = ("knots")
-                fdata['3'][0] = ("-9999.0")
-                fdata['4'][0] = ("96,56")
-                fdata['5'][0] = ("H5T_FLOAT")
-                fdata['0'][1] = ("surfaceCurrentDirection")
-                fdata['1'][1] = ("Surface current direction")
-                fdata['2'][1] = ("degrees")
-                fdata['3'][1] = ("-9999.0")
-                fdata['4'][1] = ("96,56")
-                fdata['5'][1] = ("H5T_FLOAT")
-
-                groupF = self.h5_file.create_group("Group F")
-                dset = groupF.create_dataset(DATASET,(DIM0,), dtype = dtype)
-                dset[...] = fdata
+            groupF = self.h5_file.create_group("Group F")
+            dset = groupF.create_dataset(DATASET,(DIM0,), dtype = dtype)
+            dset[...] = fdata
 
         else:
             grps = self.h5_file.items()
@@ -231,11 +204,6 @@ class S111File:
             group_title = 'Regular Grid at DateTime ' + str(num_groups)
             new_group.attrs.create('Title', group_title.encode())
     
-            time_val = time[0]
-    
-            str_time_val = time_val.strftime("%Y%m%dT%H%M%SZ")
-            new_group.attrs.create('DateTime', str_time_val.encode())
-    
             self.h5_file.attrs.modify('dateTimeOfLastRecord', str_time_val.encode())
             firstTime = datetime.datetime.strptime((self.h5_file.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
             lastTime = datetime.datetime.strptime((self.h5_file.attrs['dateTimeOfLastRecord']),"%Y%m%dT%H%M%SZ")
@@ -243,23 +211,31 @@ class S111File:
             timeInterval=  interval.total_seconds()
             self.h5_file.attrs.modify('timeRecordInterval', timeInterval)
                 
-            # Convert currents at regular grid points from u/v to speed and
-            # direction
-            directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v, model_index)    
-            
-            min_speed = numpy.nanmin(speeds)
-            max_speed = numpy.nanmax(speeds)
-            min_speed = numpy.round(min_speed,2)
-            max_speed = numpy.round(max_speed,2)
-            directions = ma.masked_array(directions, model_index.var_xi1.mask)  
-            speeds = ma.masked_array(speeds, model_index.var_xi1.mask)
-            directions = directions.filled(-9999.0)
-            speeds = speeds.filled(-9999.0)
+        # Convert currents at regular grid points from u/v to speed and
+        # direction
+        directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v, model_index)    
 
-            # Write data to empty HDF5 datasets 
-            new_group.create_dataset('surfaceCurrentDirection', (directions.shape[0], directions.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
-            new_group.create_dataset('surfaceCurrentSpeed', (speeds.shape[0], speeds.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=-9999.0)
+        min_speed = numpy.nanmin(speeds)
+        max_speed = numpy.nanmax(speeds)
+        min_speed = numpy.round(min_speed,2)
+        max_speed = numpy.round(max_speed,2)
+        directions = ma.masked_array(directions, model_index.var_xi1.mask)  
+        speeds = ma.masked_array(speeds, model_index.var_xi1.mask)
+        directions = directions.filled(FILLVALUE)
+        speeds = speeds.filled(FILLVALUE)
+        
+        # Write data to empty HDF5 datasets 
+        new_group.create_dataset('surfaceCurrentDirection', (directions.shape[0], directions.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
+        new_group.create_dataset('surfaceCurrentSpeed', (speeds.shape[0], speeds.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
 
+        # Update attributes from datasets added
+        new_group.attrs.create('DateTime', str_time_val.encode())
+        
+        if len(self.h5_file.items()) == 2:
+            self.h5_file.attrs.modify('minDatasetCurrentSpeed', min_speed)
+            self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
+            self.h5_file.attrs.modify('numberOfTimes', numberOfTimes)
+        else:
             numberOfTimes = num_groups 
             self.h5_file.attrs.modify('numberOfTimes', numberOfTimes)
             prior_min_speed = self.h5_file.attrs['minDatasetCurrentSpeed']
@@ -268,6 +244,7 @@ class S111File:
                 self.h5_file.attrs.modify('minDatasetCurrentSpeed', min_speed)
             if max_speed > prior_max_speed:
                 self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
+
 
     def update_attributes(self, model_index):
         """Update HDF5 attributes based on grid properties.
@@ -297,9 +274,10 @@ class S111File:
         self.h5_file.attrs.modify('surfaceCurrentDepth', 4.5)
         self.h5_file.attrs.modify('gridOriginLongitude', min_lon)
         self.h5_file.attrs.modify('gridOriginLatitude', min_lat)
-        self.h5_file.attrs.modify('gridLandMaskValue', -9999.0 )
+        self.h5_file.attrs.modify('gridLandMaskValue', FILLVALUE )
         self.h5_file.attrs.modify('dataCodingFormat', 2)
         self.h5_file.attrs.modify('depthTypeIndex', 2)
+        self.h5_file.attrs.modify('typeOfCurrentData', 6)
         
         region = numpy.string_("US_East_Coast")
         subRegion = numpy.string_('Cheaspeake_Bay')
