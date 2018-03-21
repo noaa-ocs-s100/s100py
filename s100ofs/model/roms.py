@@ -88,7 +88,6 @@ class RegularGrid:
             self.y_coords.append(y)
             y += self.cellsize_y
 
-
     @staticmethod
     def calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters):
         """Calculate actual x/y cell sizes from an extent and target cell size.
@@ -280,19 +279,19 @@ class ROMSIndexFile:
         self.var_subgrid_id = self.nc_file.createVariable('subgrid_id', 'i4', (self.DIMNAME_SUBGRID,),fill_value=FILLVALUE)
         self.var_subgrid_mask = self.nc_file.createVariable('subgrid_mask', 'i4', (self.DIMNAME_Y,self.DIMNAME_X,self.DIMNAME_SUBGRID),fill_value=FILLVALUE)
     
-    def init_nc(self, roms_file, target_res_meters, shoreline_shp=None, subset_grid_shp=None):
+    def init_nc(self, roms_file, target_cellsize_meters, shoreline_shp=None, subset_grid_shp=None):
         """Initialize NetCDF dimensions/variables/attributes.
 
         Args:
             roms_file: `ROMSOutputFile` instance containing model output used
                 to identify properties of original grid.
-            target_res_meters: Target resolution of grid cells, in meters.
-                Actual calculated grid cell x/y resolution will vary slightly
-                from this value, since the regular grid uses lat/lon
-                coordinates (thus a cell's width/height in meters will vary by
-                latitude), and since it will be adjusted in order to fit a
-                whole number of grid cells in the x and y directions within the
-                calculated grid extent.
+            target_cellsize_meters: Target cell size of grid cells, in meters.
+                Actual calculated x/y grid cell sizes will vary slightly from
+                this value, since the regular grid uses lat/lon coordinates
+                (thus a cell's width/height in meters will vary by latitude),
+                and since it will be adjusted in order to fit a whole number of
+                grid cells in the x and y directions within the calculated grid
+                extent.
             shoreline_shp: (Optional, default None) Path to a polygon shapefile
                 containing features identifying land areas. If specified,
                 a shoreline mask variable will be created/populated.
@@ -314,11 +313,11 @@ class ROMSIndexFile:
         # Populate grid x/y coordinate variables and subset-related variables
         # (if applicable)
         if subset_grid_shp is None:
-            reg_grid =self.init_xy(lon_min, lat_min, lon_max, lat_max, target_res_meters)
+            reg_grid = self.init_xy(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters)
             self.gridOriginLongitude = reg_grid.x_min
             self.gridOriginLatitude = reg_grid.y_min
         else:
-            reg_grid = self.init_xy_with_subsets(lon_min, lat_min, lon_max, lat_max, target_res_meters, subset_grid_shp)
+            reg_grid = self.init_xy_with_subsets(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters, subset_grid_shp)
             self.gridOriginLongitude = reg_grid.x_min
             self.gridOriginLatitude = reg_grid.y_min
 
@@ -336,7 +335,7 @@ class ROMSIndexFile:
         # Calculate the indexes/coefficients - can take many hours
         self.compute_indexes_coefficients(roms_file, land)
 
-    def init_xy(self, lon_min, lat_min, lon_max, lat_max, target_res_meters):
+    def init_xy(self, lon_min, lat_min, lon_max, lat_max, target_cellsize_meters):
         """Create & initialize x/y dimensions/coordinate vars.
         
         Args:
@@ -348,7 +347,7 @@ class ROMSIndexFile:
                 calculated cell sizes will be approximations of this.
         """
         # Calculate actual x/y cell sizes
-        cellsize_x, cellsize_y, num_cells_x, num_cells_y = RegularGrid.calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_res_meters)
+        cellsize_x, cellsize_y, num_cells_x, num_cells_y = RegularGrid.calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters)
         
         # Build a regular grid using calculated cell sizes and given extent
         reg_grid = RegularGrid(lon_min, lat_min, lon_max, lat_max, cellsize_x, cellsize_y)
@@ -365,7 +364,7 @@ class ROMSIndexFile:
 
         return reg_grid
 
-    def init_xy_with_subsets(self, lon_min, lat_min, lon_max, lat_max, target_res_meters, subset_grid_shp):
+    def init_xy_with_subsets(self, lon_min, lat_min, lon_max, lat_max, target_cellsize_meters, subset_grid_shp):
         """Create & initialize x/y dimensions/coordinate vars and subset vars.
 
         Args:
@@ -380,6 +379,10 @@ class ROMSIndexFile:
 
         Raises: Exception when given subset grid shapefile does not exist or
             does not include any grid polygons intersecting with given extent.
+
+        Returns: Instance of `RegularGrid` representing the extended generated
+            grid whose extent matches the union of all intersecting subset grid
+            polygons.
         """
 
         #shp = ogr.Open(shp_path)
@@ -418,7 +421,7 @@ class ROMSIndexFile:
         singlepolygon.AddGeometry(ogr.CreateGeometryFromJson(subset_polys[fids[0]]))
         sp_x_min, sp_x_max, sp_y_min, sp_y_max = singlepolygon.GetEnvelope()
 
-        cellsize_x, cellsize_y = RegularGrid.calc_cellsizes(sp_x_min, sp_y_min, sp_x_max, sp_y_max, target_res_meters)
+        cellsize_x, cellsize_y = RegularGrid.calc_cellsizes(sp_x_min, sp_y_min, sp_x_max, sp_y_max, target_cellsize_meters)
         # Combine identified subset grid polygons into single multipolygon to
         # calculate full extent of all combined subset grids
         multipolygon = ogr.Geometry(ogr.wkbMultiPolygon)
@@ -452,13 +455,19 @@ class ROMSIndexFile:
 
         return full_reg_grid
 
-
     def init_shoreline_mask(self, reg_grid, shoreline_shp):
         """Use shoreline shapefile to mask out land at highest resolution.
         
         Args:
+            reg_grid: `RegularGrid` instance describing the regular grid for
+                which the shoreline mask will be created.
             shoreline_shp: Path to a polygon shapefile containing features
                 identifying land areas.
+
+        Returns:
+            2D numpy array, matching the dimensions of the given RegularGrid,
+            containing a value of 1 for water areas and a value of 255 for land
+            areas.
         """
 
         #shp = ogr.Open(shr_path)
@@ -546,6 +555,9 @@ class ROMSIndexFile:
         Args:
             roms_file: `ROMSOutputFile` instance containing irregular grid
                 structure to be used to compute index/coefficient values.
+            land: 2D numpy array, matching the dimensions of this index file,
+                containing a value of 1 for water areas and a value of 255 for
+                land areas.
         """
         for y in range(self.dim_y.size):
             for x in range(self.dim_x.size):
