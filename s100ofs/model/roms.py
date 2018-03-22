@@ -325,12 +325,12 @@ class ROMSIndexFile:
         # (if applicable)
         if subset_grid_shp is None:
             reg_grid = self.init_xy(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters)
-            self.gridOriginLongitude = reg_grid.x_min
-            self.gridOriginLatitude = reg_grid.y_min
+            self.nc_file.gridOriginLongitude = reg_grid.x_min
+            self.nc_file.gridOriginLatitude = reg_grid.y_min
         else:
             reg_grid = self.init_xy_with_subsets(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters, subset_grid_shp)
-            self.gridOriginLongitude = reg_grid.x_min
-            self.gridOriginLatitude = reg_grid.y_min
+            self.nc_file.gridOriginLongitude = reg_grid.x_min
+            self.nc_file.gridOriginLatitude = reg_grid.y_min
 
         # Create NetCDF variables
         self.create_index_coefficient_vars()
