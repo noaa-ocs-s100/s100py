@@ -187,7 +187,7 @@ class S111File:
 
         if len(self.h5_file.items()) == 0:
             num_groups = 1
-            new_group_name = 'Group_001' 
+            new_group_name = 'Group 1' 
             print("Creating", new_group_name ,"dataset.")
             new_group = self.h5_file.create_group(new_group_name)
             
@@ -198,35 +198,6 @@ class S111File:
             self.h5_file.attrs.modify('dateTimeOfFirstRecord', time_str.encode())
             self.h5_file.attrs.modify('dateTimeOfLastRecord', time_str.encode())
                                   
-            # Create the compound datatype for Group F attributes
-            DIM0 = 2
-            DATASET = "Attributes"
-
-            dtype = numpy.dtype([("0", h5py.special_dtype(vlen=str)), 
-                              ("1", h5py.special_dtype(vlen=str)),
-                              ("2", h5py.special_dtype(vlen=str)),
-                              ("3", h5py.special_dtype(vlen=str)),
-                              ("4", h5py.special_dtype(vlen=str)),
-                              ("5", h5py.special_dtype(vlen=str))])
-            
-            fdata = numpy.zeros((DIM0,), dtype=dtype)
-            fdata['0'][0] = ("surfaceCurrentSpeed")
-            fdata['1'][0] = ("Surface current speed")
-            fdata['2'][0] = ("knots")
-            fdata['3'][0] = ("-9999.0")
-            fdata['4'][0] = ("96,56")
-            fdata['5'][0] = ("H5T_FLOAT")
-            fdata['0'][1] = ("surfaceCurrentDirection")
-            fdata['1'][1] = ("Surface current direction")
-            fdata['2'][1] = ("degrees")
-            fdata['3'][1] = ("-9999.0")
-            fdata['4'][1] = ("96,56")
-            fdata['5'][1] = ("H5T_FLOAT")
-
-            groupF = self.h5_file.create_group("Group F")
-            dset = groupF.create_dataset(DATASET,(DIM0,), dtype = dtype)
-            dset[...] = fdata
-
         else:
             grps = self.h5_file.items()
             num_groups = len(grps)
@@ -261,7 +232,35 @@ class S111File:
         # Update attributes from datasets added
         new_group.attrs.create('DateTime', time_str.encode())
         
-        if len(self.h5_file.items()) == 2:
+        if len(self.h5_file.items()) == 1:
+            # Create the compound datatype for Group F attributes
+            DIM0 = 2
+            DATASET = "featureAttributes"
+
+            dtype = numpy.dtype([("0", h5py.special_dtype(vlen=str)), 
+                              ("1", h5py.special_dtype(vlen=str)),
+                              ("2", h5py.special_dtype(vlen=str)),
+                              ("3", h5py.special_dtype(vlen=str)),
+                              ("4", h5py.special_dtype(vlen=str)),
+                              ("5", h5py.special_dtype(vlen=str))])
+            
+            fdata = numpy.zeros((DIM0,), dtype=dtype)
+            fdata['0'][0] = ("surfaceCurrentSpeed")
+            fdata['1'][0] = ("Surface current speed")
+            fdata['2'][0] = ("knots")
+            fdata['3'][0] = str(new_group.fillvalue)
+            fdata['4'][0] = str(new_group.chunks)
+            fdata['5'][0] = str(new_group.dtype)
+            fdata['0'][1] = ("surfaceCurrentDirection")
+            fdata['1'][1] = ("Surface current direction")
+            fdata['2'][1] = ("degrees")
+            fdata['3'][1] = str(new_group.fillvalue)
+            fdata['4'][1] = str(new_group.chunks)
+            fdata['5'][1] = str(new_group.dtype)
+
+            groupF = self.h5_file.create_group("Group F")
+            dset = groupF.create_dataset(DATASET,(DIM0,), dtype = dtype)
+            dset[...] = fdata
             self.h5_file.attrs.modify('minDatasetCurrentSpeed', min_speed)
             self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
             self.h5_file.attrs.modify('numberOfTimes', 1)
