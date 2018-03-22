@@ -226,8 +226,8 @@ class S111File:
         speeds = speeds.filled(FILLVALUE)
         
         # Write data to empty HDF5 datasets 
-        new_group.create_dataset('surfaceCurrentDirection', (directions.shape[0], directions.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
-        new_group.create_dataset('surfaceCurrentSpeed', (speeds.shape[0], speeds.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
+        dir_dataset = new_group.create_dataset('surfaceCurrentDirection', (directions.shape[0], directions.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
+        spd_dataset = new_group.create_dataset('surfaceCurrentSpeed', (speeds.shape[0], speeds.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
 
         # Update attributes from datasets added
         new_group.attrs.create('DateTime', time_str.encode())
@@ -248,15 +248,15 @@ class S111File:
             fdata['0'][0] = ("surfaceCurrentSpeed")
             fdata['1'][0] = ("Surface current speed")
             fdata['2'][0] = ("knots")
-            fdata['3'][0] = str(new_group.fillvalue)
-            fdata['4'][0] = str(new_group.chunks)
-            fdata['5'][0] = str(new_group.dtype)
+            fdata['3'][0] = str(spd_dataset.fillvalue)
+            fdata['4'][0] = str(spd_dataset.chunks)
+            fdata['5'][0] = str(spd_dataset.dtype)
             fdata['0'][1] = ("surfaceCurrentDirection")
             fdata['1'][1] = ("Surface current direction")
             fdata['2'][1] = ("degrees")
-            fdata['3'][1] = str(new_group.fillvalue)
-            fdata['4'][1] = str(new_group.chunks)
-            fdata['5'][1] = str(new_group.dtype)
+            fdata['3'][1] = str(dir_dataset.fillvalue)
+            fdata['4'][1] = str(dir_dataset.chunks)
+            fdata['5'][1] = str(dir_dataset.dtype)
 
             groupF = self.h5_file.create_group("Group F")
             dset = groupF.create_dataset(DATASET,(DIM0,), dtype = dtype)
