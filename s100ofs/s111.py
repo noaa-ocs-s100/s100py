@@ -221,13 +221,13 @@ class S111File:
         max_speed = numpy.nanmax(reg_grid_speed)
         min_speed = numpy.round(min_speed,2)
         max_speed = numpy.round(max_speed,2)
-
+        
         directions = reg_grid_direction.filled(FILLVALUE)
         speeds = reg_grid_speed.filled(FILLVALUE)
         
         # Write data to empty HDF5 datasets 
-        dir_dataset = new_group.create_dataset('surfaceCurrentDirection', (directions.shape[0], directions.shape[1]), dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
-        spd_dataset = new_group.create_dataset('surfaceCurrentSpeed', (speeds.shape[0], speeds.shape[1]), dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
+        dir_dataset = new_group.create_dataset('surfaceCurrentDirection', directions.shape, dtype=numpy.float32, data=directions,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
+        spd_dataset = new_group.create_dataset('surfaceCurrentSpeed', speeds.shape, dtype=numpy.float32, data=speeds,  chunks=True, compression="gzip", compression_opts=9, fillvalue=FILLVALUE)
 
         # Update attributes from datasets added
         new_group.attrs.create('DateTime', time_str.encode())
