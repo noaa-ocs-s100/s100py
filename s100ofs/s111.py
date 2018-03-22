@@ -277,6 +277,10 @@ class S111File:
 def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix):
     """Convert ROMS model output to regular grid in S111 format.
 
+    If the supplied ROMS index NetCDF contains information identifying
+    subgrids, one S111 file will be generated for each subgrid. Otherwise, a
+    single S111 file will be created for the entire domain.
+
     Note: Only a single time per ROMS file is currently supported. If a ROMS
     NetCDF includes more than one time/forecast, only the first will be
     extracted.
@@ -298,13 +302,6 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix):
             filename suffix appended based on the properties of the target
             output grid and the ROMS file.
     """
-    # Open index file
-    # Determine output files to be created (one for whole domain or one per subgrid)
-    # Open/initialize each s111 output file
-    # For each ROMS file:
-    #   interpolate to full grid, convert uv to spd/dir
-    #   subset if configured
-    #   output to s111 file(s)
     if s111_path_prefix.endswith("/"):
         s111_path_prefix += "cbofs"
     with roms.ROMSIndexFile(roms_index_path) as roms_index:
@@ -332,7 +329,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix):
                     # Convert currents at regular grid points from u/v to speed
                     # and direction
                     directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v)
-                    directions = ma.masked_array(directions, roms_index.var_xi1.mask)  
+                    directions = ma.masked_array(directions, roms_index.var_xi1.mask)
                     speeds = ma.masked_array(speeds, roms_index.var_xi1.mask)
                     
                     for subgrid_index, s111_file in enumerate(s111_files):
@@ -345,5 +342,20 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix):
                         s111_file.add_data(times[i], subgrid_speed, subgrid_direction)
         else:
             # Output to default grid (no subgrids)
-            pass
+            with S111File("{}.h5".format(s111_path_prefix)) as s111_file:
+                s111_file.update_attributes(roms_index)
+                for roms_output_path in roms_output_paths:
+                    with roms.ROMSOutputFile(roms_output_path) as roms_file:
+                        # Convert gregorian timestamp to datetime timestamp
+                        time_val = netCDF4.num2date(roms_file.nc_file.variables['ocean_time'][:], roms_file.nc_file.variables['ocean_time'].units)[0]
+                        
+                        reg_grid_u, reg_grid_v = roms_file.uvToRegularGrid(roms_index)
+                        
+                        # Convert currents at regular grid points from u/v to speed
+                        # and direction
+                        directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v)
+                        directions = ma.masked_array(directions, roms_index.var_xi1.mask)
+                        speeds = ma.masked_array(speeds, roms_index.var_xi1.mask)
+                        
+                        s111_file.add_data(time_val, speeds, directions)
 
