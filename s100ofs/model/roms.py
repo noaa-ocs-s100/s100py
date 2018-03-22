@@ -458,9 +458,9 @@ class ROMSIndexFile:
         for subgrid_index, fid in enumerate(fids):
             self.var_subgrid_id[subgrid_index] = fid
             # Start with extreme values for min/max, then narrow down
-            subgrid_x_min = full_reg_grid.dim_x.size
+            subgrid_x_min = len(full_reg_grid.x_coords)
             subgrid_x_max = 0
-            subgrid_y_min = full_reg_grid.dim_y.size
+            subgrid_y_min = len(full_reg_grid.y_coords)
             subgrid_y_max = 0
             # Convert OGR geometry to shapely geometry
             subset_poly_shape = shape(json.loads(subset_polys[fid]))
@@ -473,9 +473,9 @@ class ROMSIndexFile:
                         if eta > subgrid_y_max:
                             subgrid_y_max = eta
                         if xi < subgrid_x_min:
-                            subgrid_x_min = eta
+                            subgrid_x_min = xi
                         if xi > subgrid_x_max:
-                            subgrid_x_max = eta
+                            subgrid_x_max = xi
             if subgrid_x_min >= subgrid_x_max or subgrid_y_min >= subgrid_y_max:
                 raise Exception("Error calculating subgrid index ranges for subgrid [{} - fid {}]:\nx_min: {}, x_max: {}, y_min: {}, y_max: {}".format(subgrid_index, fid, subgrid_x_min, subgrid_x_max, subgrid_y_min, subgrid_y_max))
             self.var_subgrid_x_min[subgrid_index] = subgrid_x_min
