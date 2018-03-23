@@ -751,6 +751,8 @@ def convertUVToSpeedDirection(reg_grid_u, reg_grid_v):
     speeds = numpy.empty((reg_grid_u.shape[0],reg_grid_u.shape[1]), dtype=numpy.float32)
     for y in range(reg_grid_u.shape[0]):
         for x in range(reg_grid_u.shape[1]):
+            if reg_grid_u.mask[y,x]:
+                continue
             u_ms = reg_grid_u[y,x]
             v_ms = reg_grid_v[y,x]
 
@@ -769,6 +771,9 @@ def convertUVToSpeedDirection(reg_grid_u, reg_grid_v):
 
             directions[y,x] = currentDirectionNorth
             speeds[y,x] = currentSpeed
+
+    directions = numpy.ma.masked_array(directions, reg_grid_u.mask)
+    speeds = numpy.ma.masked_array(speeds, reg_grid_u.mask)
 
     return directions, speeds
 
@@ -857,6 +862,10 @@ def interpolateUVToRegularGrid(water_lat_rho, water_lon_rho, rot_urho, rot_vrho,
                 # Use Inverse Distance Weigting algorithm to interpolate v to
                 # the regular grid
                 vgrid[y,x] = ((((model_index.var_w1[y,x]) * v1) + ((model_index.var_w2[y,x]) * v2) + ((model_index.var_w3[y,x]) * v3) + ((model_index.var_w4[y,x])  * v4)) / model_index.var_wsum[y,x])
+
+    # Apply mask from index file
+    ugrid = numpy.ma.masked_array(ugrid, model_index.var_xi1.mask)
+    vgrid = numpy.ma.masked_array(vgrid, model_index.var_xi1.mask)
 
     return (ugrid, vgrid)
 
