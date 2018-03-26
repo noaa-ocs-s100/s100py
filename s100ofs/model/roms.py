@@ -21,9 +21,6 @@ import osr
 import ogr
 from shapely.geometry import Polygon, Point, MultiPolygon, shape
 
-_package = "s100ofs"
-_dirPath = os.path.dirname(os.path.realpath(_package))
-
 # Conversion factor for meters/sec to knots
 MS2KNOTS = 1.943844
 
@@ -358,7 +355,7 @@ class ROMSIndexFile:
                 calculated cell sizes will be approximations of this.
         """
         # Calculate actual x/y cell sizes
-        cellsize_x, cellsize_y, num_cells_x, num_cells_y = RegularGrid.calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters)
+        cellsize_x, cellsize_y = RegularGrid.calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters)
         
         # Build a regular grid using calculated cell sizes and given extent
         reg_grid = RegularGrid(lon_min, lat_min, lon_max, lat_max, cellsize_x, cellsize_y)
@@ -370,8 +367,8 @@ class ROMSIndexFile:
         # Populate NetCDF coordinate variables using regular grid coordinates
         self.var_x[:] = reg_grid.x_coords[:]
         self.var_y[:] = reg_grid.y_coords[:]
-        self.gridSpacingLongitude = cellsize_x
-        self.gridSpacingLatitude = cellsize_y
+        self.nc_file.gridSpacingLongitude = cellsize_x
+        self.nc_file.gridSpacingLatitude = cellsize_y
 
         return reg_grid
 
@@ -448,8 +445,8 @@ class ROMSIndexFile:
         # Populate NetCDF coordinate variables using regular grid coordinates
         self.var_x[:] = full_reg_grid.x_coords[:]
         self.var_y[:] = full_reg_grid.y_coords[:]
-        self.gridSpacingLongitude = full_reg_grid.cellsize_x
-        self.gridSpacingLatitude = full_reg_grid.cellsize_y
+        self.nc_file.gridSpacingLongitude = full_reg_grid.cellsize_x
+        self.nc_file.gridSpacingLatitude = full_reg_grid.cellsize_y
 
         # Create subgrid dimension/variables
         self.create_subgrid_dims_vars(len(subset_polys))
