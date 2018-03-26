@@ -718,19 +718,18 @@ class ROMSOutputFile:
 
         # Call vertical function and return u and v at target depth
         u_depth, v_depth = vertInterp(self.var_u, self.var_v, self.var_s_rho, self.var_zeta, self.var_h, self.var_hc, self.var_cs_r, self.num_eta, self.num_xi, self.num_sigma)
-
+        
         # Call masked arrays function and return masked arrays
         water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho = maskLand(u_depth, v_depth, self.var_ang_rho, self.var_lat_rho, self.var_lon_rho, self.var_mask_u, self.var_mask_v, self.var_mask_rho)
 
         # Call average to rho function u and v scalar values to rho
-        u_rho, v_rho = averageUVToRho(water_u, water_v, self.num_eta, self.num_xi)
-       
+        u_rho, v_rho = averageUVToRho(water_u, water_v)
+        
         # Call rotate function and return rotated u and v vectors
         rot_urho, rot_vrho = rotateUV2D(u_rho, v_rho, water_ang_rho)
-
+        
         # Call create regular grid function 
         return interpolateUVToRegularGrid(water_lat_rho, water_lon_rho, rot_urho, rot_vrho, model_index)
-
 
 def convertUVToSpeedDirection(reg_grid_u, reg_grid_v):
     """Convert u and v averaged/rotated vectors to speed/direction.
@@ -750,17 +749,25 @@ def convertUVToSpeedDirection(reg_grid_u, reg_grid_v):
         for x in range(reg_grid_u.shape[1]):
             if reg_grid_u.mask[y,x]:
                 continue
-            u_ms = reg_grid_u[y,x]
-            v_ms = reg_grid_v[y,x]
+            try:
+                u_ms = reg_grid_u[y,x]
+                v_ms = reg_grid_v[y,x]
 
-            #Convert from meters per second to knots
-            u_knot = u_ms * MS2KNOTS
-            v_knot = v_ms * MS2KNOTS
+                #Convert from meters per second to knots
+                u_knot = u_ms * MS2KNOTS
+                v_knot = v_ms * MS2KNOTS
 
-            currentSpeed = math.sqrt(math.pow(u_knot, 2) + math.pow(v_knot, 2))
-            currentDirectionRadians = math.atan2(v_knot, u_knot)
-            currentDirectionDegrees = math.degrees(currentDirectionRadians)
-            currentDirectionNorth = 90.0 - currentDirectionDegrees
+                currentSpeed = math.sqrt(math.pow(u_knot, 2) + math.pow(v_knot, 2))
+                currentDirectionRadians = math.atan2(v_knot, u_knot)
+                currentDirectionDegrees = math.degrees(currentDirectionRadians)
+                currentDirectionNorth = 90.0 - currentDirectionDegrees
+            except OverflowError as e:
+                print("OverflowError convering uv to speed/dir at y,x: {},{}".format(y,x))
+                print("reg_grid_u.mask[y,x]: {}".format(reg_grid_u.mask[y,x]))
+                print("reg_grid_v.mask[y,x]: {}".format(reg_grid_v.mask[y,x]))
+                print("u_ms: {}, v_ms: {}".format(u_ms, v_ms))
+                print("u_knot: {}, v_knot: {}".format(u_ms, v_ms))
+                raise e
 
             #The direction must always be positive.
             if currentDirectionNorth < 0.0:
@@ -866,9 +873,17 @@ def interpolateUVToRegularGrid(water_lat_rho, water_lon_rho, rot_urho, rot_vrho,
 
     return (ugrid, vgrid)
 
-def averageUVToRho(water_u, water_v, num_eta, num_xi):
+def averageUVToRho(water_u, water_v):
     """Average u and v scalars to rho.
 
+    U values at rho [eta,xi] are calculated by averaging u[eta,xi] with
+    u[eta,xi+1], except for the final xi, where u at rho [eta,xi_max] is
+    simply set to u[eta,xi_max-1].
+    
+    V values at rho [eta,xi] are calculated by averaging v[eta,xi] with
+    u[eta+1,xi], except for the final eta, where v at rho [eta_max,xi] is
+    simply set to v[eta_max-1,xi].
+    
     Args:
         water_u: 2D numpy array containing U values to be averaged, with all
             NoData/Land-masked point values set to zero.
@@ -879,13 +894,16 @@ def averageUVToRho(water_u, water_v, num_eta, num_xi):
         A 2-tuple of 2D `numpy.ndarray`s containing u and v values
         (respectively) averaged to rho points.
     """
+    num_eta = water_u.shape[0]
+    num_xi = water_u.shape[1]
+
     # Average u values
     u_rho = numpy.ndarray([num_eta, num_xi])
     
     for eta in range(num_eta):
         for xi in range(num_xi-1):
             u_rho[eta,xi] = (water_u[eta,xi] + water_u[eta,xi+1])/2
-        u_rho[num_eta-1,xi] = water_u[num_eta-1,xi]
+        u_rho[eta,num_xi-1] = water_u[eta,num_xi-1]
         
     # Average v values
     v_rho = numpy.ndarray([num_eta, num_xi])
@@ -893,7 +911,7 @@ def averageUVToRho(water_u, water_v, num_eta, num_xi):
     for xi in range(num_xi):
         for eta in range(num_eta-1):
             v_rho[eta,xi] = (water_v[eta,xi] + water_v[eta+1,xi])/2
-        v_rho[eta,num_xi-1] = water_v[eta,num_xi-1]
+        v_rho[num_eta-1,xi] = water_v[num_eta-1,xi]
 
     return u_rho, v_rho
 
