@@ -117,7 +117,8 @@ class RegularGrid:
         # to one in decimal degrees. The center of the grid is used as a good
         # approximation, since this value will vary by latitude.
         lat_mid = lat_min + grid_height/2
-        meters_per_degree = ((EARTH_RADIUS_METERS * math.pi)/180)*math.cos(lat_mid)
+        lat_mid_radians = math.radians(lat_mid)
+        meters_per_degree = ((EARTH_RADIUS_METERS * math.pi)/180)*math.cos(lat_mid_radians)
         
         # Target cell size in decimal degrees
         target_cellsize_dd = target_cellsize_meters/meters_per_degree
