@@ -30,7 +30,7 @@ class S111File:
     Attributes:
         path: Path (relative or absolute) to the file.
     """
-    def __init__(self, path):
+    def __init__(self, path, clobber=False):
         """Initializes S111File object and opens h5 file at specified path.
 
         If `path` has an extension other than ".h5", it is replaced with
@@ -38,17 +38,21 @@ class S111File:
 
         Args:
             path: Path of target hdf5 file. Must end in ".h5", otherwise its
-        extension will be replaced with ".h5".
+                extension will be replaced with ".h5".
+            clobber: (Optional, default False) If True, existing h5 file at
+                specified path, if any, will be deleted and the new file will
+                be opened in write mode.
         """
         filepath, file_extension = os.path.splitext(path)
         self.path = filepath + ".h5"
-        if os.path.exists(self.path):
-            # File already exists, open in append mode
-            self.h5_file = h5py.File(self.path, "r+")
-        else:
+
+        if not os.path.exists(self.path) or clobber:
             # File doesn't exist, open in create (write) mode and add metadata
             self.h5_file = h5py.File(self.path, "w")
             self.add_metadata()
+        else:
+            # File already exists, open in append mode
+            self.h5_file = h5py.File(self.path, "r+")
 
     def __enter__(self):
         return self
@@ -91,7 +95,7 @@ class S111File:
 
         # String types
         dt = h5py.special_dtype(vlen=str)
-        self.h5_file.attrs.create('productSpecification', 'S-111_v1.11.0' , dtype=dt)
+        self.h5_file.attrs.create('productSpecification', 'S-111_v0.1.12' , dtype=dt)
         self.h5_file.attrs.create('dateTimeOfIssue', '' , dtype=dt)
         self.h5_file.attrs.create('nameRegion', '' , dtype=dt)
         self.h5_file.attrs.create('nameSubregion', '' , dtype=dt)
@@ -167,7 +171,7 @@ class S111File:
         self.h5_file.attrs.modify('nameSubregion', subRegion)
         self.h5_file.attrs.modify('methodCurrentsProduct', methodCurrentProduct)
 
-    def add_data(self, time_value, reg_grid_speed, reg_grid_direction):
+    def add_data(self, time_value, reg_grid_speed, reg_grid_direction, cycletime):
         """Add data to the S111 file.
         
         As data is added, new Groups will be added and relevant attributes will
@@ -187,17 +191,18 @@ class S111File:
 
         if len(self.h5_file.items()) == 0:
             num_groups = 1
-            new_group_name = 'Group_001' 
+            new_group_name = 'Group_001'
             print("Creating", new_group_name ,"dataset.")
             new_group = self.h5_file.create_group(new_group_name)
-            
-            group_title = 'Regular Grid at DateTime 1' 
+
+            group_title = 'Regular Grid at DateTime 1'
             new_group.attrs.create('Title', group_title.encode())
 
-            self.h5_file.attrs.modify('dateTimeOfIssue', time_str.encode())                                 
+            issuance = cycletime.strftime("%Y%m%dT%H%M%SZ")
+            self.h5_file.attrs.modify('dateTimeOfIssue', issuance.encode())
             self.h5_file.attrs.modify('dateTimeOfFirstRecord', time_str.encode())
             self.h5_file.attrs.modify('dateTimeOfLastRecord', time_str.encode())
-                                  
+
         else:
             grps = self.h5_file.items()
             num_groups = len(grps)
@@ -250,13 +255,13 @@ class S111File:
             fdata['2'][0] = ("knots")
             fdata['3'][0] = str(spd_dataset.fillvalue)
             fdata['4'][0] = str(spd_dataset.chunks)
-            fdata['5'][0] = str(new_group.get("surfaceCurrentSpeed",getclass =True))
+            fdata['5'][0] = ("H5T_FLOAT")
             fdata['0'][1] = ("surfaceCurrentDirection")
             fdata['1'][1] = ("Surface current direction")
             fdata['2'][1] = ("degrees")
             fdata['3'][1] = str(dir_dataset.fillvalue)
             fdata['4'][1] = str(dir_dataset.chunks)
-            fdata['5'][1] = str(new_group.get("surfaceCurrentDirection",getclass =True))
+            fdata['5'][1] = ("H5T_FLOAT")
 
             groupF = self.h5_file.create_group("Group F")
             dset = groupF.create_dataset(DATASET,(DIM0,), dtype = dtype)
@@ -274,7 +279,7 @@ class S111File:
             if max_speed > prior_max_speed:
                 self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
-def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix):
+def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime):
     """Convert ROMS model output to regular grid in S111 format.
 
     If the supplied ROMS index NetCDF contains information identifying
@@ -302,15 +307,18 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix):
             filename suffix appended based on the properties of the target
             output grid and the ROMS file.
     """
+    # Path format/prefix for output S111 files. Forecast initialization (reference)
+    # time will be injected using datetime.strftime()
     if s111_path_prefix.endswith("/"):
-        s111_path_prefix += "cbofs"
+        file_issuance = cycletime.strftime("%Y%m%dT%HZ")
+        s111_path_prefix += ("{}{}".format("US_S111_TYP2_", file_issuance))
     with roms.ROMSIndexFile(roms_index_path) as roms_index:
         if roms_index.dim_subgrid is not None and roms_index.var_subgrid_id is not None:
             # Output to subgrids
             with contextlib.ExitStack() as stack:
                 s111_files = []
                 for i in range(roms_index.dim_subgrid.size):
-                    s111_file = S111File("{}_subgrid_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_id[i]))
+                    s111_file = S111File("{}_subgrid_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_id[i]), clobber=True)
                     stack.enter_context(s111_file)
                     s111_file.update_attributes(roms_index, i)
                     s111_files.append(s111_file)
@@ -339,10 +347,10 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix):
                         y_max = roms_index.var_subgrid_y_max[subgrid_index]
                         subgrid_speed = speeds[y_min:y_max+1, x_min:x_max+1]
                         subgrid_direction = directions[y_min:y_max+1, x_min:x_max+1]
-                        s111_file.add_data(times[i], subgrid_speed, subgrid_direction)
+                        s111_file.add_data(times[i], subgrid_speed, subgrid_direction, cycletime)
         else:
             # Output to default grid (no subgrids)
-            with S111File("{}.h5".format(s111_path_prefix)) as s111_file:
+            with S111File("{}.h5".format(s111_path_prefix), clobber=True) as s111_file:
                 s111_file.update_attributes(roms_index)
                 for roms_output_path in roms_output_paths:
                     with roms.ROMSOutputFile(roms_output_path) as roms_file:
@@ -357,5 +365,5 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix):
                         directions = ma.masked_array(directions, roms_index.var_xi1.mask)
                         speeds = ma.masked_array(speeds, roms_index.var_xi1.mask)
                         
-                        s111_file.add_data(time_val, speeds, directions)
+                        s111_file.add_data(time_val, speeds, directions, cycletime)
 
