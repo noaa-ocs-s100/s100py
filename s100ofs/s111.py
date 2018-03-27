@@ -187,7 +187,7 @@ class S111File:
 
         if len(self.h5_file.items()) == 0:
             num_groups = 1
-            new_group_name = 'Group 1' 
+            new_group_name = 'Group_001' 
             print("Creating", new_group_name ,"dataset.")
             new_group = self.h5_file.create_group(new_group_name)
             
@@ -202,7 +202,7 @@ class S111File:
             grps = self.h5_file.items()
             num_groups = len(grps)
     
-            new_group_name = 'Group {}'.format(num_groups)
+            new_group_name = 'Group_{}'.format(str(num_groups).zfill(3))
             print("Creating", new_group_name, "dataset.")
             new_group = self.h5_file.create_group(new_group_name)
     
@@ -235,7 +235,7 @@ class S111File:
         if len(self.h5_file.items()) == 1:
             # Create the compound datatype for Group F attributes
             DIM0 = 2
-            DATASET = "featureAttributes"
+            DATASET = "surfaceCurrent"
 
             dtype = numpy.dtype([("0", h5py.special_dtype(vlen=str)), 
                               ("1", h5py.special_dtype(vlen=str)),
