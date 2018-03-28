@@ -394,7 +394,6 @@ class ROMSIndexFile:
             polygons.
         """
 
-        #shp = ogr.Open(shp_path)
         shp = ogr.Open(subset_grid_shp)
         layer = shp.GetLayer()
 
@@ -498,7 +497,6 @@ class ROMSIndexFile:
             areas.
         """
 
-        #shp = ogr.Open(shr_path)
         shp = ogr.Open(shoreline_shp)
         layer = shp.GetLayer()
 
@@ -828,7 +826,6 @@ def interpolateUVToRegularGrid(water_lat_rho, water_lon_rho, rot_urho, rot_vrho,
     for y in range(model_index.dim_y.size):
         for x in range(model_index.dim_x.size):
             if not model_index.var_xi1.mask[y,x]:
-                # Need to specify '.data[y,x]' or just '[y,x]' sufficient?
                 xi1 = model_index.var_xi1[y,x]
                 eta1 = model_index.var_eta1[y,x]
                 xi2 = model_index.var_xi2[y,x]

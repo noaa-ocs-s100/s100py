@@ -58,7 +58,7 @@ class S111File:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.h5_file.flush() # is this required??
+        self.h5_file.flush()
         self.h5_file.close()
 
     def close(self):
@@ -124,7 +124,7 @@ class S111File:
                 that this S111File represents. Corresponds with index into
                 subgrid dimension of model index file.
         """
-        # Grid spacing is uniform, so just look at width between first 2 cells
+        # Width between first two cells, grid spacing is uniform
         cellsize_x = model_index.var_x[1] - model_index.var_x[0]
         cellsize_y = model_index.var_y[1] - model_index.var_y[0]
 
@@ -220,8 +220,7 @@ class S111File:
             interval = lastTime - firstTime
             timeInterval=  interval.total_seconds()
             self.h5_file.attrs.modify('timeRecordInterval', timeInterval)
-         
-        # Note: make sure numpy.nanmin works with masked arrays       
+
         min_speed = numpy.nanmin(reg_grid_speed)
         max_speed = numpy.nanmax(reg_grid_speed)
         min_speed = numpy.round(min_speed,2)
@@ -266,9 +265,11 @@ class S111File:
             groupF = self.h5_file.create_group("Group F")
             dset = groupF.create_dataset(DATASET,(DIM0,), dtype = dtype)
             dset[...] = fdata
+            # Update attributes
             self.h5_file.attrs.modify('minDatasetCurrentSpeed', min_speed)
             self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
             self.h5_file.attrs.modify('numberOfTimes', 1)
+
         else:
             numberOfTimes = num_groups 
             self.h5_file.attrs.modify('numberOfTimes', numberOfTimes)
@@ -290,8 +291,6 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime):
     NetCDF includes more than one time/forecast, only the first will be
     extracted.
 
-    *** TODO: Get name of model (cbofs) from index or output file ***
-
     Args:
         roms_index_path: Path to ROMS index NetCDF file containing
             precalculated grid and interpolation information.
@@ -307,11 +306,10 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime):
             filename suffix appended based on the properties of the target
             output grid and the ROMS file.
     """
-    # Path format/prefix for output S111 files. Forecast initialization (reference)
-    # time will be injected using datetime.strftime()
+    # Path format/prefix for output S111 files. Forecast initialization (reference).
     if s111_path_prefix.endswith("/"):
         file_issuance = cycletime.strftime("%Y%m%dT%HZ")
-        s111_path_prefix += ("{}{}".format("US_S111_TYP2_", file_issuance))
+        s111_path_prefix += ("{}{}".format("US_S111_CBOFS_TYP2_", file_issuance))
     with roms.ROMSIndexFile(roms_index_path) as roms_index:
         if roms_index.dim_subgrid is not None and roms_index.var_subgrid_id is not None:
             # Output to subgrids
