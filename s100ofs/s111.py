@@ -18,6 +18,23 @@ from .model import roms
 # Default fill value for NetCDF variables
 FILLVALUE=-9999.0
 
+# Dict lookup for HDF5 data type class names
+# See https://github.com/h5py/h5py/blob/master/h5py/api_types_hdf5.pxd#L509
+H5T_CLASS_T = {
+    h5py.h5t.NO_CLASS: "H5T_NO_CLASS",
+    h5py.h5t.INTEGER: "H5T_INTEGER",
+    h5py.h5t.FLOAT: "H5T_FLOAT",
+    h5py.h5t.TIME: "H5T_TIME",
+    h5py.h5t.STRING: "H5T_STRING",
+    h5py.h5t.BITFIELD: "H5T_BITFIELD",
+    h5py.h5t.OPAQUE: "H5T_OPAQUE",
+    h5py.h5t.COMPOUND: "H5T_COMPOUND",
+    h5py.h5t.REFERENCE: "H5T_REFERENCE",
+    h5py.h5t.ENUM: "H5T_ENUM",
+    h5py.h5t.VLEN: "H5T_VLEN",
+    h5py.h5t.ARRAY: "H5T_ARRAY"
+}
+
 class S111File:
     """Create and manage S-111 files.
 
@@ -249,18 +266,18 @@ class S111File:
                               ("5", h5py.special_dtype(vlen=str))])
             
             fdata = numpy.zeros((DIM0,), dtype=dtype)
-            fdata['0'][0] = ("surfaceCurrentSpeed")
-            fdata['1'][0] = ("Surface current speed")
-            fdata['2'][0] = ("knots")
+            fdata['0'][0] = "surfaceCurrentSpeed"
+            fdata['1'][0] = "Surface current speed"
+            fdata['2'][0] = "knots"
             fdata['3'][0] = str(spd_dataset.fillvalue)
             fdata['4'][0] = str(spd_dataset.chunks)
-            fdata['5'][0] = ("H5T_FLOAT")
-            fdata['0'][1] = ("surfaceCurrentDirection")
-            fdata['1'][1] = ("Surface current direction")
-            fdata['2'][1] = ("degrees")
+            fdata['5'][0] = H5T_CLASS_T[h5py.h5t.FLOAT]
+            fdata['0'][1] = "surfaceCurrentDirection"
+            fdata['1'][1] = "Surface current direction"
+            fdata['2'][1] = "degrees"
             fdata['3'][1] = str(dir_dataset.fillvalue)
             fdata['4'][1] = str(dir_dataset.chunks)
-            fdata['5'][1] = ("H5T_FLOAT")
+            fdata['5'][1] = H5T_CLASS_T[h5py.h5t.FLOAT]
 
             groupF = self.h5_file.create_group("Group F")
             dset = groupF.create_dataset(DATASET,(DIM0,), dtype = dtype)
