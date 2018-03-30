@@ -85,7 +85,7 @@ class S111File:
         """Add empty global metadata attributes to HDF5 file."""
         
         # Integer types
-        self.h5_file.attrs.create('horizDatumValue', 0 , dtype=numpy.int32) 
+        self.h5_file.attrs.create('horizontalDatumValue', 0 , dtype=numpy.int32) 
         self.h5_file.attrs.create('timeRecordInterval', 0 , dtype=numpy.int32)
         self.h5_file.attrs.create('numberOfTimes', 0 , dtype=numpy.int32)
         self.h5_file.attrs.create('numberOfStations', 0 , dtype=numpy.int32)
@@ -104,7 +104,7 @@ class S111File:
         self.h5_file.attrs.create('gridLandMaskValue', 0 , dtype=numpy.float32)
         self.h5_file.attrs.create('speedUncertainty', -1.0 , dtype=numpy.float32)
         self.h5_file.attrs.create('directionUncertainty', -1.0 , dtype=numpy.float32)
-        self.h5_file.attrs.create('positionUncertainty', -1.0 , dtype=numpy.float32)
+        self.h5_file.attrs.create('horizontalUncertainty', -1.0 , dtype=numpy.float32)
         self.h5_file.attrs.create('verticalUncertainty', -1.0 , dtype=numpy.float32)
         self.h5_file.attrs.create('timeUncertainty', -1.0 , dtype=numpy.float32)
         self.h5_file.attrs.create('minDatasetCurrentSpeed', 0 , dtype=numpy.float32)
@@ -112,11 +112,11 @@ class S111File:
 
         # String types
         dt = h5py.special_dtype(vlen=str)
-        self.h5_file.attrs.create('productSpecification', 'S-111_v0.1.12' , dtype=dt)
+        self.h5_file.attrs.create('productSpecification', 'S-111_0.1.12' , dtype=dt)
         self.h5_file.attrs.create('dateTimeOfIssue', '' , dtype=dt)
         self.h5_file.attrs.create('nameRegion', '' , dtype=dt)
         self.h5_file.attrs.create('nameSubregion', '' , dtype=dt)
-        self.h5_file.attrs.create('horizDatumReference', 'EPSG' , dtype=dt)
+        self.h5_file.attrs.create('horizontalDatumReference', 'EPSG' , dtype=dt)
         self.h5_file.attrs.create('dateTimeOfFirstRecord', '' , dtype=dt)
         self.h5_file.attrs.create('dateTimeOfLastRecord', '' , dtype=dt)
         self.h5_file.attrs.create('methodCurrentsProduct', '' , dtype=dt)
@@ -163,24 +163,29 @@ class S111File:
             min_lat = numpy.nanmin(model_index.var_y)
 
         num_nodes = num_points_lon * num_points_lat
-                        
-        self.h5_file.attrs.modify('gridSpacingLongitudinal', cellsize_x) 
-        self.h5_file.attrs.modify('gridSpacingLatitudinal', cellsize_y) 
-        self.h5_file.attrs.modify('horizDatumValue', 4326) 
-        self.h5_file.attrs.modify('numPointsLongitudinal', num_points_lon)
-        self.h5_file.attrs.modify('numPointsLatitudinal', num_points_lat)
-        self.h5_file.attrs.modify('minGridPointLongitudinal', min_lon)
-        self.h5_file.attrs.modify('minGridPointLatitudinal', min_lat)
-        self.h5_file.attrs.modify('numberOfNodes', num_nodes)
-        self.h5_file.attrs.modify('surfaceCurrentDepth', 4.5)
-        self.h5_file.attrs.modify('gridOriginLongitude', min_lon)
-        self.h5_file.attrs.modify('gridOriginLatitude', min_lat)
-        self.h5_file.attrs.modify('gridLandMaskValue', FILLVALUE)
+
         self.h5_file.attrs.modify('dataCodingFormat', 2)
+        self.h5_file.attrs.modify('gridLandMaskValue', FILLVALUE)
+        self.h5_file.attrs.modify('horizDatumValue', 4326) 
+        self.h5_file.attrs.modify('surfaceCurrentDepth', - 4.5)
+        self.h5_file.attrs.modify('verticalDatum', 2)
         self.h5_file.attrs.modify('depthTypeIndex', 2)
         self.h5_file.attrs.modify('typeOfCurrentData', 6)
         
-        region = numpy.string_("US_East_Coast")
+        if self.h5_file.attrs['dataCodingFormat'] == 2:
+            self.h5_file.attrs.modify('gridOriginLongitude', min_lon)
+            self.h5_file.attrs.modify('gridOriginLatitude', min_lat)
+            self.h5_file.attrs.modify('gridSpacingLongitudinal', cellsize_x) 
+            self.h5_file.attrs.modify('gridSpacingLatitudinal', cellsize_y)
+            self.h5_file.attrs.modify('numPointsLongitudinal', num_points_lon)
+            self.h5_file.attrs.modify('numPointsLatitudinal', num_points_lat) 
+            self.h5_file.attrs.__delitem__('numberOfNodes')
+            self.h5_file.attrs.__delitem__('numberOfStations')
+
+        if self.h5_file.attrs['dataCodingFormat'] != 2:
+            self.h5_file.attrs.modify('numberOfNodes', num_nodes)
+
+        region = numpy.string_('US_East_Coast')
         subRegion = numpy.string_('Chesapeake_Bay')
         methodCurrentProduct = numpy.string_('ROMS_Hydrodynamic_Model')
         
@@ -232,17 +237,12 @@ class S111File:
             new_group.attrs.create('Title', group_title.encode())
     
             self.h5_file.attrs.modify('dateTimeOfLastRecord', time_str.encode())
-            firstTime = datetime.datetime.strptime((self.h5_file.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
-            lastTime = datetime.datetime.strptime((self.h5_file.attrs['dateTimeOfLastRecord']),"%Y%m%dT%H%M%SZ")
-            interval = lastTime - firstTime
-            timeInterval=  interval.total_seconds()
-            self.h5_file.attrs.modify('timeRecordInterval', timeInterval)
 
         min_speed = numpy.nanmin(reg_grid_speed)
         max_speed = numpy.nanmax(reg_grid_speed)
         min_speed = numpy.round(min_speed,2)
         max_speed = numpy.round(max_speed,2)
-        
+
         directions = reg_grid_direction.filled(FILLVALUE)
         speeds = reg_grid_speed.filled(FILLVALUE)
         
@@ -254,34 +254,44 @@ class S111File:
         new_group.attrs.create('DateTime', time_str.encode())
         
         if len(self.h5_file.items()) == 1:
-            # Create the compound datatype for Group F attributes
-            DIM0 = 2
+            # Create the compound datatype for Group F
+            DIM2 = 2
             DATASET = "surfaceCurrent"
 
-            dtype = numpy.dtype([("0", h5py.special_dtype(vlen=str)), 
-                              ("1", h5py.special_dtype(vlen=str)),
-                              ("2", h5py.special_dtype(vlen=str)),
-                              ("3", h5py.special_dtype(vlen=str)),
-                              ("4", h5py.special_dtype(vlen=str)),
-                              ("5", h5py.special_dtype(vlen=str))])
+            dtype = numpy.dtype([("code", h5py.special_dtype(vlen=str)),
+                              ("name", h5py.special_dtype(vlen=str)),
+                              ("uom.name", h5py.special_dtype(vlen=str)),
+                              ("fillValue", h5py.special_dtype(vlen=str)),
+                              ("dataType", h5py.special_dtype(vlen=str)),
+                              ("lower", h5py.special_dtype(vlen=str)),
+                              ("upper", h5py.special_dtype(vlen=str)),
+                              ("closure", h5py.special_dtype(vlen=str))])
+
+            fdata = numpy.zeros((DIM2,), dtype=dtype)
+            fdata['code'][0] = "surfaceCurrentSpeed"
+            fdata['name'][0] = "Surface current speed"
+            fdata['uom.name'][0] = "knots"
+            fdata['fillValue'][0] = str(spd_dataset.fillvalue)
+            fdata['dataType'][0] = H5T_CLASS_T[h5py.h5t.FLOAT]
+            fdata['lower'][0] = min_speed
+            fdata['upper'][0] = max_speed
+            fdata['closure'][0] = "geSemilInterval"
             
-            fdata = numpy.zeros((DIM0,), dtype=dtype)
-            fdata['0'][0] = "surfaceCurrentSpeed"
-            fdata['1'][0] = "Surface current speed"
-            fdata['2'][0] = "knots"
-            fdata['3'][0] = str(spd_dataset.fillvalue)
-            fdata['4'][0] = str(spd_dataset.chunks)
-            fdata['5'][0] = H5T_CLASS_T[h5py.h5t.FLOAT]
-            fdata['0'][1] = "surfaceCurrentDirection"
-            fdata['1'][1] = "Surface current direction"
-            fdata['2'][1] = "degrees"
-            fdata['3'][1] = str(dir_dataset.fillvalue)
-            fdata['4'][1] = str(dir_dataset.chunks)
-            fdata['5'][1] = H5T_CLASS_T[h5py.h5t.FLOAT]
+            fdata['code'][1] = "surfaceCurrentDirection"
+            fdata['name'][1] = "Surface current direction"
+            fdata['uom.name'][1] = "degrees"
+            fdata['fillValue'][1] = str(dir_dataset.fillvalue)
+            fdata['dataType'][1] = H5T_CLASS_T[h5py.h5t.FLOAT]
+            fdata['lower'][1] = 0.0
+            fdata['upper'][1] = 359.9
+            fdata['closure'][1] = "closedInterval"
 
             groupF = self.h5_file.create_group("Group F")
-            dset = groupF.create_dataset(DATASET,(DIM0,), dtype = dtype)
+            dset = groupF.create_dataset(DATASET,(DIM2,), dtype = dtype)
             dset[...] = fdata
+
+            dset.attrs.create("chunking", str(spd_dataset.chunks), dtype=h5py.special_dtype(vlen=str))
+
             # Update attributes
             self.h5_file.attrs.modify('minDatasetCurrentSpeed', min_speed)
             self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
@@ -296,6 +306,14 @@ class S111File:
                 self.h5_file.attrs.modify('minDatasetCurrentSpeed', min_speed)
             if max_speed > prior_max_speed:
                 self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
+
+        if len(self.h5_file.items()) == 3:
+            # Time record interval is the same through out the forecast.
+            firstTime = datetime.datetime.strptime((self.h5_file.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
+            lastTime = datetime.datetime.strptime((self.h5_file.attrs['dateTimeOfLastRecord']),"%Y%m%dT%H%M%SZ")
+            interval = lastTime - firstTime
+            timeInterval =  interval.total_seconds()
+            self.h5_file.attrs.modify('timeRecordInterval', timeInterval)
 
 def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime):
     """Convert ROMS model output to regular grid in S111 format.
