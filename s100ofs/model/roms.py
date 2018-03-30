@@ -288,7 +288,7 @@ class ROMSIndexFile:
         self.var_subgrid_y_min = self.nc_file.createVariable('subgrid_y_min', 'i4', (self.DIMNAME_SUBGRID,))
         self.var_subgrid_y_max = self.nc_file.createVariable('subgrid_y_max', 'i4', (self.DIMNAME_SUBGRID,))
     
-    def init_nc(self, roms_file, target_cellsize_meters, shoreline_shp=None, subset_grid_shp=None):
+    def init_nc(self, roms_file, target_cellsize_meters, ofs_model, shoreline_shp=None, subset_grid_shp=None):
         """Initialize NetCDF dimensions/variables/attributes.
 
         Args:
@@ -336,7 +336,7 @@ class ROMSIndexFile:
         if shoreline_shp is not None:
             land = self.init_shoreline_mask(reg_grid, shoreline_shp)
 
-        self.nc_file.model = "CBOFS"
+        self.nc_file.model = str.upper(ofs_model)
         self.nc_file.format = "netCDF-4"
 
         print (len(reg_grid.y_coords),len(reg_grid.x_coords))

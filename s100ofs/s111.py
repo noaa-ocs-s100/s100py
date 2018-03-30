@@ -127,13 +127,9 @@ class S111File:
         self.h5_file.attrs.create('depthTypeIndex', 0 , dtype=numpy.int32)
         self.h5_file.attrs.create('verticalDatum', 0 , dtype=numpy.int32)
 
-    def update_attributes(self, model_index, subgrid_index=None):
+    def update_attributes(self, model_index, ofs_model, subgrid_index=None):
         """Update HDF5 attributes based on grid properties.
         
-        *********************
-        TODO: MOVE REGION/SUBREGION/CURRENTPRODUCT VALUES OUT OF THIS FUNCTION
-        *********************
-
         Args:
             model_index: `ROMSIndexFile` instance representing model index and
                 coefficients file.
@@ -171,6 +167,8 @@ class S111File:
         self.h5_file.attrs.modify('verticalDatum', 2)
         self.h5_file.attrs.modify('depthTypeIndex', 2)
         self.h5_file.attrs.modify('typeOfCurrentData', 6)
+        methodCurrentProduct = numpy.string_('ROMS_Hydrodynamic_Model')
+        self.h5_file.attrs.modify('methodCurrentsProduct', methodCurrentProduct)
         
         if self.h5_file.attrs['dataCodingFormat'] == 2:
             self.h5_file.attrs.modify('gridOriginLongitude', min_lon)
@@ -185,13 +183,34 @@ class S111File:
         if self.h5_file.attrs['dataCodingFormat'] != 2:
             self.h5_file.attrs.modify('numberOfNodes', num_nodes)
 
-        region = numpy.string_('US_East_Coast')
-        subRegion = numpy.string_('Chesapeake_Bay')
-        methodCurrentProduct = numpy.string_('ROMS_Hydrodynamic_Model')
-        
-        self.h5_file.attrs.modify('nameRegion', region)
-        self.h5_file.attrs.modify('nameSubregion', subRegion)
-        self.h5_file.attrs.modify('methodCurrentsProduct', methodCurrentProduct)
+        if ofs_model == "cbofs":
+            region = numpy.string_('US_East_Coast')
+            subRegion = numpy.string_('Chesapeake_Bay')
+            
+            self.h5_file.attrs.modify('nameRegion', region)
+            self.h5_file.attrs.modify('nameSubregion', subRegion)
+            
+        elif ofs_model == "dbofs":
+            region = numpy.string_('US_East_Coast')
+            subRegion = numpy.string_('Delaware_Bay')
+
+            self.h5_file.attrs.modify('nameRegion', region)
+            self.h5_file.attrs.modify('nameSubregion', subRegion)
+
+        elif ofs_model == "tbofs":
+            region = numpy.string_('US_Gulf_of_Mexico')
+            subRegion = numpy.string_('Tampa_Bay')
+
+            self.h5_file.attrs.modify('nameRegion', region)
+            self.h5_file.attrs.modify('nameSubregion', subRegion)
+
+        elif ofs_model == "gomofs":
+            region = numpy.string_('US_East_Coast')
+            subRegion = numpy.string_('Gulf_of_Maine')
+
+            self.h5_file.attrs.modify('nameRegion', region)
+            self.h5_file.attrs.modify('nameSubregion', subRegion)
+
 
     def add_data(self, time_value, reg_grid_speed, reg_grid_direction, cycletime):
         """Add data to the S111 file.
@@ -307,6 +326,7 @@ class S111File:
             if max_speed > prior_max_speed:
                 self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
+
         if len(self.h5_file.items()) == 3:
             # Time record interval is the same through out the forecast.
             firstTime = datetime.datetime.strptime((self.h5_file.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
@@ -315,7 +335,7 @@ class S111File:
             timeInterval =  interval.total_seconds()
             self.h5_file.attrs.modify('timeRecordInterval', timeInterval)
 
-def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime):
+def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model):
     """Convert ROMS model output to regular grid in S111 format.
 
     If the supplied ROMS index NetCDF contains information identifying
@@ -344,7 +364,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime):
     # Path format/prefix for output S111 files. Forecast initialization (reference).
     if s111_path_prefix.endswith("/"):
         file_issuance = cycletime.strftime("%Y%m%dT%HZ")
-        s111_path_prefix += ("{}{}".format("US_S111_CBOFS_TYP2_", file_issuance))
+        s111_path_prefix += ("{}{}_{}".format("US_S111_TYP2_", str.upper(ofs_model), file_issuance))
     with roms.ROMSIndexFile(roms_index_path) as roms_index:
         if roms_index.dim_subgrid is not None and roms_index.var_subgrid_id is not None:
             # Output to subgrids
@@ -353,7 +373,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime):
                 for i in range(roms_index.dim_subgrid.size):
                     s111_file = S111File("{}_subgrid_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_id[i]), clobber=True)
                     stack.enter_context(s111_file)
-                    s111_file.update_attributes(roms_index, i)
+                    s111_file.update_attributes(roms_index, ofs_model, i)
                     s111_files.append(s111_file)
                 roms_files = []
                 times = []
@@ -384,7 +404,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime):
         else:
             # Output to default grid (no subgrids)
             with S111File("{}.h5".format(s111_path_prefix), clobber=True) as s111_file:
-                s111_file.update_attributes(roms_index)
+                s111_file.update_attributes(roms_index, ofs_model)
                 for roms_output_path in roms_output_paths:
                     with roms.ROMSOutputFile(roms_output_path) as roms_file:
                         # Convert gregorian timestamp to datetime timestamp
