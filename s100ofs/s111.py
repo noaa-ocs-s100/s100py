@@ -162,7 +162,7 @@ class S111File:
 
         self.h5_file.attrs.modify('dataCodingFormat', 2)
         self.h5_file.attrs.modify('gridLandMaskValue', FILLVALUE)
-        self.h5_file.attrs.modify('horizDatumValue', 4326) 
+        self.h5_file.attrs.modify('horizontalDatumValue', 4326) 
         self.h5_file.attrs.modify('surfaceCurrentDepth', - 4.5)
         self.h5_file.attrs.modify('verticalDatum', 2)
         self.h5_file.attrs.modify('depthTypeIndex', 2)
@@ -364,7 +364,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
     # Path format/prefix for output S111 files. Forecast initialization (reference).
     if s111_path_prefix.endswith("/"):
         file_issuance = cycletime.strftime("%Y%m%dT%HZ")
-        s111_path_prefix += ("{}{}_{}".format("US_S111_TYP2_", str.upper(ofs_model), file_issuance))
+        s111_path_prefix += ("US_S111_TYP2_{}_{}".format(str.upper(ofs_model), file_issuance))
     with roms.ROMSIndexFile(roms_index_path) as roms_index:
         if roms_index.dim_subgrid is not None and roms_index.var_subgrid_id is not None:
             # Output to subgrids
