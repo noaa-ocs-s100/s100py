@@ -323,23 +323,23 @@ class ROMSIndexFile:
         # (if applicable)
         if subset_grid_shp is None:
             reg_grid = self.init_xy(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters)
-            self.nc_file.gridOriginLongitude = reg_grid.x_min
-            self.nc_file.gridOriginLatitude = reg_grid.y_min
         else:
             reg_grid = self.init_xy_with_subsets(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters, subset_grid_shp)
-            self.nc_file.gridOriginLongitude = reg_grid.x_min
-            self.nc_file.gridOriginLatitude = reg_grid.y_min
 
-        # Create NetCDF variables
-        self.create_index_coefficient_vars()
+        self.nc_file.gridOriginLongitude = reg_grid.x_min
+        self.nc_file.gridOriginLatitude = reg_grid.y_min
 
+        land = None
         if shoreline_shp is not None:
             land = self.init_shoreline_mask(reg_grid, shoreline_shp)
 
         self.nc_file.model = str.upper(ofs_model)
         self.nc_file.format = "netCDF-4"
 
-        print (len(reg_grid.y_coords),len(reg_grid.x_coords))
+        print ("Full grid resolution (y,x): ({},{})".format(len(reg_grid.y_coords),len(reg_grid.x_coords)))
+
+        # Create NetCDF variables
+        self.create_index_coefficient_vars()
 
         # Calculate the indexes/coefficients - can take many hours
         self.compute_indexes_coefficients(roms_file, land)
