@@ -293,7 +293,7 @@ class S111File:
             fdata['fillValue'][0] = str(spd_dataset.fillvalue)
             fdata['dataType'][0] = H5T_CLASS_T[h5py.h5t.FLOAT]
             fdata['lower'][0] = min_speed
-            fdata['upper'][0] = max_speed
+            fdata['upper'][0] = ""
             fdata['closure'][0] = "geSemilInterval"
             
             fdata['code'][1] = "surfaceCurrentDirection"
@@ -305,7 +305,7 @@ class S111File:
             fdata['upper'][1] = 359.9
             fdata['closure'][1] = "closedInterval"
 
-            groupF = self.h5_file.create_group("Group F")
+            groupF = self.h5_file.create_group("Group_F")
             dset = groupF.create_dataset(DATASET,(DIM2,), dtype = dtype)
             dset[...] = fdata
 
