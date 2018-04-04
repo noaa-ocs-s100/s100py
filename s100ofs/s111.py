@@ -92,6 +92,8 @@ class S111File:
         self.h5_file.attrs.create('numPointsLongitudinal', 0 , dtype=numpy.int32)
         self.h5_file.attrs.create('numPointsLatitudinal', 0 , dtype=numpy.int32)
         self.h5_file.attrs.create('numberOfNodes', 0 , dtype=numpy.int32)
+        self.h5_file.attrs.create('minGridPointLongitudinal', 0 , dtype=numpy.int32)
+        self.h5_file.attrs.create('minGridPointLatitudinal', 0 , dtype=numpy.int32)
        
         # Real types
         self.h5_file.attrs.create('surfaceCurrentDepth', 0 , dtype=numpy.float32)
@@ -99,8 +101,6 @@ class S111File:
         self.h5_file.attrs.create('gridOriginLatitude', 0 , dtype=numpy.float32)
         self.h5_file.attrs.create('gridSpacingLongitudinal', 0 , dtype=numpy.float32)
         self.h5_file.attrs.create('gridSpacingLatitudinal', 0 , dtype=numpy.float32)
-        self.h5_file.attrs.create('minGridPointLongitudinal', 0 , dtype=numpy.float32)
-        self.h5_file.attrs.create('minGridPointLatitudinal', 0 , dtype=numpy.float32)
         self.h5_file.attrs.create('gridLandMaskValue', 0 , dtype=numpy.float32)
         self.h5_file.attrs.create('speedUncertainty', -1.0 , dtype=numpy.float32)
         self.h5_file.attrs.create('directionUncertainty', -1.0 , dtype=numpy.float32)
@@ -112,7 +112,7 @@ class S111File:
 
         # String types
         dt = h5py.special_dtype(vlen=str)
-        self.h5_file.attrs.create('productSpecification', 'S-111_0.1.12' , dtype=dt)
+        self.h5_file.attrs.create('productSpecification', 'S-111.0.1.12' , dtype=dt)
         self.h5_file.attrs.create('dateTimeOfIssue', '' , dtype=dt)
         self.h5_file.attrs.create('nameRegion', '' , dtype=dt)
         self.h5_file.attrs.create('nameSubregion', '' , dtype=dt)
@@ -165,7 +165,7 @@ class S111File:
         self.h5_file.attrs.modify('horizontalDatumValue', 4326) 
         self.h5_file.attrs.modify('surfaceCurrentDepth', - 4.5)
         self.h5_file.attrs.modify('verticalDatum', 2)
-        self.h5_file.attrs.modify('depthTypeIndex', 2)
+        self.h5_file.attrs.modify('depthTypeIndex', 3)
         self.h5_file.attrs.modify('typeOfCurrentData', 6)
         methodCurrentProduct = numpy.string_('ROMS_Hydrodynamic_Model')
         self.h5_file.attrs.modify('methodCurrentsProduct', methodCurrentProduct)
@@ -326,7 +326,6 @@ class S111File:
             if max_speed > prior_max_speed:
                 self.h5_file.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
-
         if len(self.h5_file.items()) == 3:
             # Time record interval is the same through out the forecast.
             firstTime = datetime.datetime.strptime((self.h5_file.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
@@ -334,6 +333,7 @@ class S111File:
             interval = lastTime - firstTime
             timeInterval =  interval.total_seconds()
             self.h5_file.attrs.modify('timeRecordInterval', timeInterval)
+
 
 def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model):
     """Convert ROMS model output to regular grid in S111 format.
