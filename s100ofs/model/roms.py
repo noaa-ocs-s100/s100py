@@ -336,7 +336,7 @@ class ROMSIndexFile:
         self.nc_file.model = str.upper(ofs_model)
         self.nc_file.format = "netCDF-4"
 
-        print ("Full grid resolution (y,x): ({},{})".format(len(reg_grid.y_coords),len(reg_grid.x_coords)))
+        print ("Full grid dimensions (y,x): ({},{})".format(len(reg_grid.y_coords),len(reg_grid.x_coords)))
 
         # Create NetCDF variables
         self.create_index_coefficient_vars()
