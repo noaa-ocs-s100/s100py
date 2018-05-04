@@ -84,15 +84,13 @@ class S111File:
     def add_structure_and_metadata(self):
         """Add S100/S111 structure and empty global metadata attributes to HDF5 file."""
 
-        # AddCarrier Metadata
-        
+        # Add root group carrier metadata
         # String types
         self.h5_file.attrs.create('productSpecification', 'INT.IHO.S-111.1.0.0' , dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('issueTime', '' , dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('issueDate', '' , dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('epoch', '' , dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('geographicIdentifier', '' , dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('dataCodingFormat', 0 , dtype=numpy.int32)
         self.h5_file.attrs.create('metadata', '' , dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('metaFeatures', '' , dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('horizontalDatumReference', 'EPSG' , dtype=h5py.special_dtype(vlen=str))
@@ -104,12 +102,12 @@ class S111File:
         # Real types
         self.h5_file.attrs.create('surfaceCurrentDepth', 0 , dtype=numpy.float32)
 
-        # create structure, feature group, intial feature type container, first feature instance, first group
+        # Create s111 structure, feature group, feature type container, and inital feature instance
         self.groupF = self.h5_file.create_group("Group_F")
         self.feature = self.h5_file.create_group("SurfaceCurrent")
         self.feature_instance = self.feature.create_group("SurfaceCurrent.01")
 
-        # Add feature container group metadata
+        # Add feature container metadata
         # Integer types
         self.feature.attrs.create('dimension', 0 , dtype=numpy.int32)
         self.feature.attrs.create('numInstances', 0 , dtype=numpy.int32)
@@ -130,8 +128,7 @@ class S111File:
         self.feature.attrs.create('methodCurrentsProduct', '' , dtype=h5py.special_dtype(vlen=str))
 
         # Add feature instance metadata
-
-        # string types
+        # String types
         self.feature_instance.attrs.create('startSequence', '' , dtype=h5py.special_dtype(vlen=str))
         self.feature_instance.attrs.create('dateTimeOfFirstRecord', '' , dtype=h5py.special_dtype(vlen=str))
         self.feature_instance.attrs.create('dateTimeOfLastRecord', '' , dtype=h5py.special_dtype(vlen=str))
@@ -183,42 +180,13 @@ class S111File:
 
         num_nodes = num_points_lon * num_points_lat
 
-        #Update root level metadata
-
+        # Update carrier metadata
         self.h5_file.attrs.modify('horizontalDatumValue', 4326) 
-        self.h5_file.attrs.modify('dataCodingFormat', 2)
         self.h5_file.attrs.modify('verticalDatum', 2)
         self.h5_file.attrs.modify('depthTypeIndex', 3)
         self.h5_file.attrs.modify('surfaceCurrentDepth', - 4.5)
-
-        # Update feature container group metadata
-        self.feature.attrs.modify('dataCodingFormat', 2 )
-        self.feature.attrs.modify('interpolationType', 10 )
-        self.feature.attrs.modify('typeOfCurrentData', 6)
-        self.feature.attrs.modify('commonPointRule', 1)
-        self.feature.attrs.modify('dimension', 2)
-        methodCurrentProduct = numpy.string_('ROMS_Hydrodynamic_Model_Forecasts')
-        self.feature.attrs.modify('methodCurrentsProduct', methodCurrentProduct)
         epoch = numpy.string_('G1762')
         self.h5_file.attrs.modify('epoch', epoch)
-        #self.h5_file.attrs.modify('gridLandMaskValue', FILLVALUE)
-        sequence_dtype = numpy.dtype([('sequenceType', numpy.int32),
-                        ('scanDirection', h5py.special_dtype(vlen=str))])
-
-        sequence = numpy.zeros((1,), dtype=sequence_dtype)
-        sequence['sequenceType'] = 1
-        sequence['scanDirection'] = "longitude,latiude"
-        self.feature.attrs.create('sequenceRule', sequence, dtype=sequence_dtype)
-        
-        if self.h5_file.attrs['dataCodingFormat'] == 2:
-            self.feature_instance.attrs.modify('gridOriginLongitude', min_lon)
-            self.feature_instance.attrs.modify('gridOriginLatitude', min_lat)
-            self.feature_instance.attrs.modify('gridSpacingLongitudinal', cellsize_x)
-            self.feature_instance.attrs.modify('gridSpacingLatitudinal', cellsize_y)
-            self.feature_instance.attrs.modify('numPointsLongitudinal', num_points_lon)
-            self.feature_instance.attrs.modify('numPointsLatitudinal', num_points_lat)
-            startSequence = numpy.string_('0,0')
-            self.feature_instance.attrs.modify('startSequence', startSequence)
 
         if ofs_model == "cbofs":
             region = numpy.string_('Chesapeake_Bay')
@@ -236,7 +204,35 @@ class S111File:
             region = numpy.string_('Gulf_of_Maine')
             self.h5_file.attrs.modify('geographicIdentifier', region)
 
-        # Feature Instance Group Compound Attributes
+        # Update feature container metadata
+        self.feature.attrs.modify('dataCodingFormat', 2 )
+        self.feature.attrs.modify('interpolationType', 10 )
+        self.feature.attrs.modify('typeOfCurrentData', 6)
+        self.feature.attrs.modify('commonPointRule', 1)
+        self.feature.attrs.modify('dimension', 2)
+        methodCurrentProduct = numpy.string_('ROMS_Hydrodynamic_Model_Forecasts')
+        self.feature.attrs.modify('methodCurrentsProduct', methodCurrentProduct)
+
+        sequence_dtype = numpy.dtype([('sequenceType', numpy.int32),
+                        ('scanDirection', h5py.special_dtype(vlen=str))])
+
+        sequence = numpy.zeros((1,), dtype=sequence_dtype)
+        sequence['sequenceType'] = 1
+        sequence['scanDirection'] = "longitude,latiude"
+        self.feature.attrs.create('sequenceRule', sequence, dtype=sequence_dtype)
+        
+        # Update feature instance metadata
+        if self.feature.attrs['dataCodingFormat'] == 2:
+            self.feature_instance.attrs.modify('gridOriginLongitude', min_lon)
+            self.feature_instance.attrs.modify('gridOriginLatitude', min_lat)
+            self.feature_instance.attrs.modify('gridSpacingLongitudinal', cellsize_x)
+            self.feature_instance.attrs.modify('gridSpacingLatitudinal', cellsize_y)
+            self.feature_instance.attrs.modify('numPointsLongitudinal', num_points_lon)
+            self.feature_instance.attrs.modify('numPointsLatitudinal', num_points_lat)
+            startSequence = numpy.string_('0,0')
+            self.feature_instance.attrs.modify('startSequence', startSequence)
+
+        # Add compound attributes to root and feature instance metadata
         if len(self.feature_instance) == 0:
             bounds_dtype = numpy.dtype([('westBoundLongitude', numpy.float32),
                                     ('eastBoundLongitude', numpy.float32),
@@ -268,10 +264,9 @@ class S111File:
                 converting from u/v components.
         """
 
-        time_str = time_value.strftime("%Y%m%dT%H%M%SZ")
-
+        # Add datasets to group_f and feature container once
         if len(self.groupF) == 0:
-        # Create the compound datatype for Group F
+            # Add group_f compound dataset
             dtype = numpy.dtype([("code", h5py.special_dtype(vlen=str)),
                               ("name", h5py.special_dtype(vlen=str)),
                               ("uom.name", h5py.special_dtype(vlen=str)),
@@ -300,30 +295,35 @@ class S111File:
             fdata['upper'][1] = 359.9
             fdata['closure'][1] = "closedInterval"
 
-            self.dsetF = self.groupF.create_dataset("surfaceCurrent",(2,), dtype = dtype)
-            self.dsetF[...] = fdata
+            self.groupF_dset = self.groupF.create_dataset("surfaceCurrent",(2,), dtype = dtype)
+            self.groupF_dset[...] = fdata
 
-            # Add Group F feature code
+            # Add group_f feature code dataset
             fcdata = numpy.zeros((1,), dtype=h5py.special_dtype(vlen=str))
             fcdata[0] = "SurfaceCurrent"
             featureCode = self.groupF.create_dataset("featureCode",(1,), dtype = h5py.special_dtype(vlen=str))
             featureCode[...] = fcdata
 
-            # Add Feature Container Dataset
+            # Add feature container dataset
             axisNames = numpy.zeros((2,), dtype=h5py.special_dtype(vlen=str))
             axisNames[0] = "longitude"
             axisNames[1] = "latitude"
             axis_dset = self.feature.create_dataset("axisNames",(2,), dtype = h5py.special_dtype(vlen=str))
             axis_dset[...] = axisNames
 
-        all_h5_objs = []
-        self.feature_instance.visit(all_h5_objs.append)
-        all_groups   = [ obj for obj in all_h5_objs if isinstance(self.feature_instance[obj],h5py.Group) ]
+        # Create a list of all feature instance objects and groups
+        feature_instance_objs = []
+        self.feature_instance.visit(feature_instance_objs.append)
+        feature_instance_groups   = [ obj for obj in feature_instance_objs if isinstance(self.feature_instance[obj],h5py.Group) ]
 
-        if len(all_groups) == 0:
+        # Convert time value to string
+        time_str = time_value.strftime("%Y%m%dT%H%M%SZ")
+
+        if len(feature_instance_groups) == 0:
             new_group = self.feature_instance.create_group('Group_001')
             print("Creating", "Group_001", "dataset.")
 
+            # Time attributes updated once
             issuanceTime = cycletime.strftime("%H%M%SZ")
             issuanceDate = cycletime.strftime("%Y%m%d")
             self.h5_file.attrs.modify('issueTime', issuanceTime.encode())
@@ -332,25 +332,11 @@ class S111File:
             self.feature_instance.attrs.modify('dateTimeOfFirstRecord', time_str.encode())
             self.feature_instance.attrs.modify('dateTimeOfLastRecord', time_str.encode())
 
-            # Feature Instance Compound Datasets
-            #cellGeom_dtype = numpy.dtype([('axisName', h5py.special_dtype(vlen=str)),
-            #                          ('gridOrigin', numpy.float32),
-            #                          ('gridSpacing', numpy.float32),
-            #                          ('numPoints', numpy.int32)])
-
-            #cellGeom = numpy.zeros((1,), dtype=cellGeom_dtype)
-            #cellGeom['axisName'] = ""
-            #cellGeom['gridOrigin'] = 0
-            #cellGeom['gridSpacing'] = 0
-            #cellGeom['numPoints'] = 0
-            #cellGeom_dset = self.feature_instance.create_dataset('cellGeometry', (1,), dtype=cellGeom_dtype)
-            #cellGeom_dset[...] = cellGeom
-
         else:
-            num_grps = len(all_groups)
-            new_grps = num_grps + 1
-            new_group = self.feature_instance.create_group('Group_{}'.format(str(new_grps).zfill(3)))
-            print("Creating", "Group_{}".format(str(new_grps).zfill(3)), "dataset.")
+            num_grps = len(feature_instance_groups)
+            new_grp = num_grps + 1
+            new_group = self.feature_instance.create_group('Group_{}'.format(str(new_grp).zfill(3)))
+            print("Creating", "Group_{}".format(str(new_grp).zfill(3)), "dataset.")
             self.feature_instance.attrs.modify('dateTimeOfLastRecord', time_str.encode())
 
         # Update attributes from datasets added
@@ -367,18 +353,18 @@ class S111File:
         self.feature_instance.attrs.modify('numberOfTimes', len(self.feature_instance))
         self.feature_instance.attrs.modify('numGRP', len(self.feature_instance))
 
-        # Write data to empty HDF5 datasets
+        # Write data to empty feature instance group
         values_dtype = numpy.dtype([("SurfaceCurrentSpeed", numpy.float32),
                   ("SurfaceCurrentDirection", numpy.float32)])
 
         values = numpy.zeros((directions.shape), dtype=values_dtype)
         values['SurfaceCurrentSpeed'] = speeds
         values['SurfaceCurrentDirection'] = directions
-        values_dset = new_group.create_dataset('values', directions.shape, dtype=values_dtype, chunks=True, compression="gzip") #fillvalue=FILLVALUE,
+        values_dset = new_group.create_dataset('values', directions.shape, dtype=values_dtype, chunks=True, compression="gzip", compression_opts=9) 
         values_dset[...] = values
 
-        #Update GroupF attributes
-        self.dsetF.attrs.create("chunking", str(values_dset.chunks), dtype=h5py.special_dtype(vlen=str))
+        # Update group_f attributes
+        self.groupF_dset.attrs.create("chunking", str(values_dset.chunks), dtype=h5py.special_dtype(vlen=str))
 
         if len(self.feature_instance) == 2:
             # Time record interval is the same through out the forecast.
@@ -391,6 +377,7 @@ class S111File:
             self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
         else:
+            # Update min and max speed attributes each time data is added 
             prior_min_speed = self.feature.attrs['minDatasetCurrentSpeed']
             prior_max_speed = self.feature.attrs['maxDatasetCurrentSpeed']
             if min_speed < prior_min_speed:
@@ -433,7 +420,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
         if not s111_path_prefix.endswith("/"):
             s111_path_prefix += "/"
         file_issuance = cycletime.strftime("%Y%m%dT%HZ")
-        s111_path_prefix += ("US_S111_TYP2_{}_{}".format(str.upper(ofs_model), file_issuance))
+        s111_path_prefix += ("S111.1.0.0_US_{}_TYP2_{}".format(str.upper(ofs_model), file_issuance))
     with roms.ROMSIndexFile(roms_index_path) as roms_index:
         if roms_index.dim_subgrid is not None and roms_index.var_subgrid_id is not None:
             # Output to subgrids
@@ -479,6 +466,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
                         # Convert gregorian timestamp to datetime timestamp
                         time_val = netCDF4.num2date(roms_file.nc_file.variables['ocean_time'][:], roms_file.nc_file.variables['ocean_time'].units)[0]
                         
+                        # Call roms method and convert and interpolate u/v to regular grid
                         reg_grid_u, reg_grid_v = roms_file.uvToRegularGrid(roms_index)
                         
                         # Convert currents at regular grid points from u/v to speed
