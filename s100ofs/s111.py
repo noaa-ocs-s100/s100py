@@ -427,10 +427,10 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
                     times.append(time_val)
                 
                 for i, roms_file in enumerate(roms_files):
-                    reg_grid_u, reg_grid_v = roms_file.uvToRegularGrid(roms_index)
+                    reg_grid_u, reg_grid_v = roms_file.uv_to_regular_grid(roms_index)
                     # Convert currents at regular grid points from u/v to speed
                     # and direction
-                    directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v)
+                    directions, speeds = roms.uv_to_speed_direction(reg_grid_u, reg_grid_v)
                     directions = ma.masked_array(directions, roms_index.var_xi1.mask)
                     speeds = ma.masked_array(speeds, roms_index.var_xi1.mask)
                     
@@ -452,11 +452,11 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
                         time_val = netCDF4.num2date(roms_file.nc_file.variables['ocean_time'][:], roms_file.nc_file.variables['ocean_time'].units)[0]
                         
                         # Call roms method and convert and interpolate u/v to regular grid
-                        reg_grid_u, reg_grid_v = roms_file.uvToRegularGrid(roms_index)
+                        reg_grid_u, reg_grid_v = roms_file.uv_to_regular_grid(roms_index)
                         
                         # Convert currents at regular grid points from u/v to speed
                         # and direction
-                        directions, speeds = roms.convertUVToSpeedDirection(reg_grid_u, reg_grid_v)
+                        directions, speeds = roms.uv_to_speed_direction(reg_grid_u, reg_grid_v)
                         directions = ma.masked_array(directions, roms_index.var_xi1.mask)
                         speeds = ma.masked_array(speeds, roms_index.var_xi1.mask)
                         

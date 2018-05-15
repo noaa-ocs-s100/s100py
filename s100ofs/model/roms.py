@@ -7,10 +7,9 @@ framework which uses an irregular, curvilinear horizontal grid and a sigma
 functionality allowing ROMS output to be interpolated to a regular, orthogonal
 lat/lon horizontal grid at a given depth-below-surface.
 """
-import datetime
+
 import math
 import os
-import sys
 
 import gdal
 import json
@@ -29,6 +28,7 @@ EARTH_RADIUS_METERS = 6371000
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
+
 
 class RegularGrid:
     """Encapsulate information describing a regular lat-lon grid.
@@ -124,13 +124,14 @@ class RegularGrid:
         target_cellsize_dd = target_cellsize_meters/meters_per_degree
         
         num_cells_x = int(round(grid_width/target_cellsize_dd))
-        cellsize_x =  grid_width/num_cells_x
+        cellsize_x = grid_width/num_cells_x
 
         num_cells_y = int(round(grid_height/target_cellsize_dd))
         cellsize_y = grid_height/num_cells_y
         
         return cellsize_x, cellsize_y
-    
+
+
 class ROMSIndexFile:
     """Store information about an index file used during interpolation.
     
@@ -224,19 +225,19 @@ class ROMSIndexFile:
         self.var_y = self.nc_file.variables[self.DIMNAME_Y][:]
         self.var_x = self.nc_file.variables[self.DIMNAME_X][:]
 
-        self.var_xi1 = self.nc_file.variables['xi1'][:,:]
-        self.var_eta1 = self.nc_file.variables['eta1'][:,:]
-        self.var_w1 = self.nc_file.variables['w1'][:,:]
-        self.var_xi2 = self.nc_file.variables['xi2'][:,:]
-        self.var_eta2 = self.nc_file.variables['eta2'][:,:]
-        self.var_w2 = self.nc_file.variables['w2'][:,:]
-        self.var_xi3 = self.nc_file.variables['xi3'][:,:]
-        self.var_eta3 = self.nc_file.variables['eta3'][:,:]
-        self.var_w3 = self.nc_file.variables['w3'][:,:]
-        self.var_xi4 = self.nc_file.variables['xi4'][:,:]
-        self.var_eta4 = self.nc_file.variables['eta4'][:,:]
-        self.var_w4 = self.nc_file.variables['w4'][:,:]
-        self.var_wsum = self.nc_file.variables['wsum'][:,:]
+        self.var_xi1 = self.nc_file.variables['xi1'][:, :]
+        self.var_eta1 = self.nc_file.variables['eta1'][:, :]
+        self.var_w1 = self.nc_file.variables['w1'][:, :]
+        self.var_xi2 = self.nc_file.variables['xi2'][:, :]
+        self.var_eta2 = self.nc_file.variables['eta2'][:, :]
+        self.var_w2 = self.nc_file.variables['w2'][:, :]
+        self.var_xi3 = self.nc_file.variables['xi3'][:, :]
+        self.var_eta3 = self.nc_file.variables['eta3'][:, :]
+        self.var_w3 = self.nc_file.variables['w3'][:, :]
+        self.var_xi4 = self.nc_file.variables['xi4'][:, :]
+        self.var_eta4 = self.nc_file.variables['eta4'][:, :]
+        self.var_w4 = self.nc_file.variables['w4'][:, :]
+        self.var_wsum = self.nc_file.variables['wsum'][:, :]
     
     def create_dims_coordvars(self, num_y, num_x):
         """Create NetCDF dimensions and coordinate variables.
@@ -518,21 +519,20 @@ class ROMSIndexFile:
 
         # Create a memory layer to rasterize from.
         driver = ogr.GetDriverByName('Memory')
-        memds=driver.CreateDataSource('tmpmemds')
-        lyr=memds.CreateLayer('land', geom_type=ogr.wkbPolygon)
+        memds = driver.CreateDataSource('tmpmemds')
+        lyr = memds.CreateLayer('land', geom_type=ogr.wkbPolygon)
         feat = ogr.Feature(lyr.GetLayerDefn())
         feat.SetGeometry(intersection)
         lyr.CreateFeature(feat)
 
         # Create raster
-        pixelWidth = reg_grid.cellsize_x
-        pixelHeight = reg_grid.cellsize_y
+        pixel_width = reg_grid.cellsize_x
+        pixel_height = reg_grid.cellsize_y
         cols = len(reg_grid.y_coords)
         rows = len(reg_grid.x_coords)
         target_ds = gdal.GetDriverByName('GTiff').Create("land.tif", rows, cols, 1, gdal.GDT_Float32)
-        target_ds.SetGeoTransform((reg_grid.x_min, pixelWidth, 0, reg_grid.y_min, 0,  pixelHeight))
+        target_ds.SetGeoTransform((reg_grid.x_min, pixel_width, 0, reg_grid.y_min, 0,  pixel_height))
         band = target_ds.GetRasterBand(1)
-        NoData_value = 1
         band.SetNoDataValue(1)
         band.FlushCache()
 
@@ -590,7 +590,7 @@ class ROMSIndexFile:
                 x0 = self.var_x[x]
                 y0 = self.var_y[y]
                 found_cell = False
-                if land[y,x] != 1:
+                if land[y, x] != 1:
                     continue
                 for xi1 in range(roms_file.num_xi-1):
                     if found_cell:
@@ -602,45 +602,46 @@ class ROMSIndexFile:
                         eta3 = eta1 + 1
                         xi4 = xi1
                         eta4 = eta1 + 1
-                        if (roms_file.var_mask_rho[eta1,xi1] == 1
-                                and roms_file.var_mask_rho[eta2,xi2] == 1
-                                and roms_file.var_mask_rho[eta3,xi3] == 1
-                                and roms_file.var_mask_rho[eta4,xi4] == 1):
-                            x1 = roms_file.var_lon_rho[eta1,xi1]
-                            y1 = roms_file.var_lat_rho[eta1,xi1]
-                            x2 = roms_file.var_lon_rho[eta2,xi2]
-                            y2 = roms_file.var_lat_rho[eta2,xi2]
-                            x3 = roms_file.var_lon_rho[eta3,xi3]
-                            y3 = roms_file.var_lat_rho[eta3,xi3]
-                            x4 = roms_file.var_lon_rho[eta4,xi4]
-                            y4 = roms_file.var_lat_rho[eta4,xi4]
-                            s1=0.5*((x1-x0)*(y2-y1)-(x2-x1)*(y1-y0))
-                            s2=0.5*((x2-x0)*(y3-y2)-(x3-x2)*(y2-y0))
-                            s3=0.5*((x3-x0)*(y4-y3)-(x4-x3)*(y3-y0))
-                            s4=0.5*((x4-x0)*(y1-y4)-(x1-x4)*(y4-y0))
-                            if all([s > 0 for s in [s1,s2,s3,s4]]):
-                                #Inverse-distance weight with the power of 1 - (1/numpy.sqrt((x1-x0)**2+(y1-y0)**2))
-                                #Inverse-distance weight with the power of 2 - (1/((x1-x0)**2+(y1-y0)**2))
+                        if (roms_file.var_mask_rho[eta1, xi1] == 1
+                                and roms_file.var_mask_rho[eta2, xi2] == 1
+                                and roms_file.var_mask_rho[eta3, xi3] == 1
+                                and roms_file.var_mask_rho[eta4, xi4] == 1):
+                            x1 = roms_file.var_lon_rho[eta1, xi1]
+                            y1 = roms_file.var_lat_rho[eta1, xi1]
+                            x2 = roms_file.var_lon_rho[eta2, xi2]
+                            y2 = roms_file.var_lat_rho[eta2, xi2]
+                            x3 = roms_file.var_lon_rho[eta3, xi3]
+                            y3 = roms_file.var_lat_rho[eta3, xi3]
+                            x4 = roms_file.var_lon_rho[eta4, xi4]
+                            y4 = roms_file.var_lat_rho[eta4, xi4]
+                            s1 = 0.5*((x1-x0)*(y2-y1)-(x2-x1)*(y1-y0))
+                            s2 = 0.5*((x2-x0)*(y3-y2)-(x3-x2)*(y2-y0))
+                            s3 = 0.5*((x3-x0)*(y4-y3)-(x4-x3)*(y3-y0))
+                            s4 = 0.5*((x4-x0)*(y1-y4)-(x1-x4)*(y4-y0))
+                            if all([s > 0 for s in [s1, s2, s3, s4]]):
+                                # Inverse-distance weight with the power of 1 - (1/numpy.sqrt((x1-x0)**2+(y1-y0)**2))
+                                # Inverse-distance weight with the power of 2 - (1/((x1-x0)**2+(y1-y0)**2))
                                 w1 = (1/((x1-x0)**2+(y1-y0)**2))
                                 w2 = (1/((x2-x0)**2+(y2-y0)**2))
                                 w3 = (1/((x3-x0)**2+(y3-y0)**2))
                                 w4 = (1/((x4-x0)**2+(y4-y0)**2))
-                                wsum = w1 + w2 + w3 +w4
-                                self.var_xi1[y,x] = xi1
-                                self.var_eta1[y,x] = eta1
-                                self.var_w1[y,x] = w1
-                                self.var_xi2[y,x] = xi2
-                                self.var_eta2[y,x] = eta2
-                                self.var_w2[y,x] = w2
-                                self.var_xi3[y,x] = xi3
-                                self.var_eta3[y,x] = eta3
-                                self.var_w3[y,x] = w3
-                                self.var_xi4[y,x] = xi4
-                                self.var_eta4[y,x] = eta4
-                                self.var_w4[y,x] = w4
-                                self.var_wsum[y,x] = wsum
+                                wsum = w1 + w2 + w3 + w4
+                                self.var_xi1[y, x] = xi1
+                                self.var_eta1[y, x] = eta1
+                                self.var_w1[y, x] = w1
+                                self.var_xi2[y, x] = xi2
+                                self.var_eta2[y, x] = eta2
+                                self.var_w2[y, x] = w2
+                                self.var_xi3[y, x] = xi3
+                                self.var_eta3[y, x] = eta3
+                                self.var_w3[y, x] = w3
+                                self.var_xi4[y, x] = xi4
+                                self.var_eta4[y, x] = eta4
+                                self.var_w4[y, x] = w4
+                                self.var_wsum[y, x] = wsum
                                 found_cell = True
                                 break
+
 
 class ROMSOutputFile:
     """Read/process data from a ROMS model output file.
@@ -694,16 +695,16 @@ class ROMSOutputFile:
         variables e.g. ang_rho[eta,xi] all correspond with the same grid cell
         for a given [eta,xi] coordinate.
         """
-        self.var_ang_rho = self.nc_file.variables['angle'][1:,1:]
-        self.var_lat_rho = self.nc_file.variables['lat_rho'][1:,1:]
-        self.var_lon_rho = self.nc_file.variables['lon_rho'][1:,1:]
-        self.var_u = self.nc_file.variables['u'][0,:,1:,:]
-        self.var_v = self.nc_file.variables['v'][0,:,:,1:]
-        self.var_mask_u = self.nc_file.variables['mask_u'][1:,:]
-        self.var_mask_v = self.nc_file.variables['mask_v'][:,1:]
-        self.var_mask_rho = self.nc_file.variables['mask_rho'][1:,1:]
-        self.var_zeta = self.nc_file.variables['zeta'][0,1:,1:]
-        self.var_h = self.nc_file.variables['h'][1:,1:]
+        self.var_ang_rho = self.nc_file.variables['angle'][1:, 1:]
+        self.var_lat_rho = self.nc_file.variables['lat_rho'][1:, 1:]
+        self.var_lon_rho = self.nc_file.variables['lon_rho'][1:, 1:]
+        self.var_u = self.nc_file.variables['u'][0, :, 1:, :]
+        self.var_v = self.nc_file.variables['v'][0, :, :, 1:]
+        self.var_mask_u = self.nc_file.variables['mask_u'][1:, :]
+        self.var_mask_v = self.nc_file.variables['mask_v'][:, 1:]
+        self.var_mask_rho = self.nc_file.variables['mask_rho'][1:, 1:]
+        self.var_zeta = self.nc_file.variables['zeta'][0, 1:, 1:]
+        self.var_h = self.nc_file.variables['h'][1:, 1:]
         self.var_s_rho = self.nc_file.variables['s_rho'][:]
         self.var_hc = self.nc_file.variables['hc'][:]
         self.var_cs_r = self.nc_file.variables['Cs_r'][:]
@@ -712,26 +713,27 @@ class ROMSOutputFile:
         self.num_xi = self.var_h.shape[1]
         self.num_sigma = self.var_s_rho.shape[0]
 
-    def uvToRegularGrid(self, model_index):
+    def uv_to_regular_grid(self, model_index):
         """Interpolate u/v to regular grid"""
         # Extract the variables from the NetCDF
 
         # Call vertical function and return u and v at target depth
-        u_depth, v_depth = vertInterp(self.var_u, self.var_v, self.var_s_rho, self.var_mask_rho, self.var_zeta, self.var_h, self.var_hc, self.var_cs_r, self.var_vtransform, self.num_eta, self.num_xi, self.num_sigma)
+        u_depth, v_depth = vertical_interpolation(self.var_u, self.var_v, self.var_s_rho, self.var_mask_rho, self.var_mask_u, self.var_mask_v, self.var_zeta, self.var_h, self.var_hc, self.var_cs_r, self.var_vtransform, self.num_eta, self.num_xi, self.num_sigma)
         
         # Call masked arrays function and return masked arrays
-        water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho = maskLand(u_depth, v_depth, self.var_ang_rho, self.var_lat_rho, self.var_lon_rho, self.var_mask_u, self.var_mask_v, self.var_mask_rho)
+        water_u, water_v, water_ang_rho, water_lat_rho, water_lon_rho = mask_land(u_depth, v_depth, self.var_ang_rho, self.var_lat_rho, self.var_lon_rho, self.var_mask_u, self.var_mask_v, self.var_mask_rho)
 
         # Call average to rho function u and v scalar values to rho
-        u_rho, v_rho = averageUVToRho(water_u, water_v)
+        u_rho, v_rho = average_uv2rho(water_u, water_v)
         
         # Call rotate function and return rotated u and v vectors
-        rot_urho, rot_vrho = rotateUV2D(u_rho, v_rho, water_ang_rho)
+        rot_u_rho, rot_v_rho = rotate_uv2d(u_rho, v_rho, water_ang_rho)
         
         # Call create regular grid function 
-        return interpolateUVToRegularGrid(water_lat_rho, water_lon_rho, rot_urho, rot_vrho, model_index)
+        return interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, model_index)
 
-def convertUVToSpeedDirection(reg_grid_u, reg_grid_v):
+
+def uv_to_speed_direction(reg_grid_u, reg_grid_v):
     """Convert u and v averaged/rotated vectors to speed/direction.
 
     Input u/v values are assumed to be in meters/sec. Output speed values will
@@ -743,45 +745,46 @@ def convertUVToSpeedDirection(reg_grid_u, reg_grid_v):
         reg_grid_v: `numpy.ma.masked_array` containing v values interpolated to
             the regular grid.
     """
-    directions = numpy.empty((reg_grid_u.shape[0],reg_grid_u.shape[1]), dtype=numpy.float32)
-    speeds = numpy.empty((reg_grid_u.shape[0],reg_grid_u.shape[1]), dtype=numpy.float32)
+    directions = numpy.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
+    speeds = numpy.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
     for y in range(reg_grid_u.shape[0]):
         for x in range(reg_grid_u.shape[1]):
-            if reg_grid_u.mask[y,x]:
+            if reg_grid_u.mask[y, x]:
                 continue
             try:
-                u_ms = reg_grid_u[y,x]
-                v_ms = reg_grid_v[y,x]
+                u_ms = reg_grid_u[y, x]
+                v_ms = reg_grid_v[y, x]
 
-                #Convert from meters per second to knots
+                # Convert from meters per second to knots
                 u_knot = u_ms * MS2KNOTS
                 v_knot = v_ms * MS2KNOTS
 
-                currentSpeed = math.sqrt(math.pow(u_knot, 2) + math.pow(v_knot, 2))
-                currentDirectionRadians = math.atan2(v_knot, u_knot)
-                currentDirectionDegrees = math.degrees(currentDirectionRadians)
-                currentDirectionNorth = 90.0 - currentDirectionDegrees
+                current_speed = math.sqrt(math.pow(u_knot, 2) + math.pow(v_knot, 2))
+                current_direction_radians = math.atan2(v_knot, u_knot)
+                current_direction_degrees = math.degrees(current_direction_radians)
+                current_direction_north = 90.0 - current_direction_degrees
             except OverflowError as e:
-                print("OverflowError convering uv to speed/dir at y,x: {},{}".format(y,x))
-                print("reg_grid_u.mask[y,x]: {}".format(reg_grid_u.mask[y,x]))
-                print("reg_grid_v.mask[y,x]: {}".format(reg_grid_v.mask[y,x]))
+                print("OverflowError covering uv to speed/dir at y,x: {},{}".format(y, x))
+                print("reg_grid_u.mask[y,x]: {}".format(reg_grid_u.mask[y, x]))
+                print("reg_grid_v.mask[y,x]: {}".format(reg_grid_v.mask[y, x]))
                 print("u_ms: {}, v_ms: {}".format(u_ms, v_ms))
                 print("u_knot: {}, v_knot: {}".format(u_ms, v_ms))
                 raise e
 
-            #The direction must always be positive.
-            if currentDirectionNorth < 0.0:
-                currentDirectionNorth += 360.0
+            # The direction must always be positive.
+            if current_direction_north < 0.0:
+                current_direction_north += 360.0
 
-            directions[y,x] = currentDirectionNorth
-            speeds[y,x] = currentSpeed
+            directions[y, x] = current_direction_north
+            speeds[y, x] = current_speed
 
     directions = numpy.ma.masked_array(directions, reg_grid_u.mask)
     speeds = numpy.ma.masked_array(speeds, reg_grid_u.mask)
 
     return directions, speeds
 
-def rotateUV2D(u_rho, v_rho, water_ang_rho):
+
+def rotate_uv2d(u_rho, v_rho, water_ang_rho):
     """Rotate vectors by geometric angle.
 
     Args:
@@ -790,18 +793,19 @@ def rotateUV2D(u_rho, v_rho, water_ang_rho):
         water_ang_rho: `numpy.ma.masked_array` containing angle-of-rotation
             values for rho points.
     """
-    angsin = numpy.sin(water_ang_rho)
-    angcos = numpy.cos(water_ang_rho)
-    rot_urho = u_rho*angcos - v_rho*angsin
-    rot_vrho = u_rho*angsin + v_rho*angcos
+    ang_sin = numpy.sin(water_ang_rho)
+    ang_cos = numpy.cos(water_ang_rho)
+    rot_u_rho = u_rho*ang_cos - v_rho*ang_sin
+    rot_v_rho = u_rho*ang_sin + v_rho*ang_cos
 
-    return (rot_urho, rot_vrho)
-        
-def interpolateUVToRegularGrid(water_lat_rho, water_lon_rho, rot_urho, rot_vrho, model_index):
+    return rot_u_rho, rot_v_rho
+
+
+def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, model_index):
     """Create a regular grid using masked latitude and longitude variables.
 
     Interpolate averaged, rotated, u/v variables to the regular grid by using
-    the NetCDF Indexes and Coeffiecients File to obtain weighted coefficents
+    the NetCDF Indexes and Coefficients File to obtain weighted coefficents
     and eta/xi dimension indices to be used for Inverse Distance Weighting
     Interpolation.
 
@@ -820,59 +824,60 @@ def interpolateUVToRegularGrid(water_lat_rho, water_lon_rho, rot_urho, rot_vrho,
             be extracted to perform interpolation.
     """
     # Create masked empty regular grid for variable u
-    ugrid = numpy.ma.empty(shape=[model_index.dim_y.size,model_index.dim_x.size])
+    ugrid = numpy.ma.empty(shape=[model_index.dim_y.size, model_index.dim_x.size])
         
     # For each regular grid cell, read the corresponding xi1/eta1/w1,
     # xi2/eta2/w2, xi3/eta3/w3, and xi4/eta4/w4 values
     for y in range(model_index.dim_y.size):
         for x in range(model_index.dim_x.size):
-            if not model_index.var_xi1.mask[y,x]:
-                xi1 = model_index.var_xi1[y,x]
-                eta1 = model_index.var_eta1[y,x]
-                xi2 = model_index.var_xi2[y,x]
-                eta2 = model_index.var_eta2[y,x]
-                xi3 = model_index.var_xi3[y,x]
-                eta3 = model_index.var_eta3[y,x]
-                xi4 = model_index.var_xi4[y,x]
-                eta4 = model_index.var_eta4[y,x]
-                u1 = rot_urho[eta1,xi1]
-                u2 = rot_urho[eta2,xi2]
-                u3 = rot_urho[eta3,xi3]
-                u4 = rot_urho[eta4,xi4]
-                # Use Inverse Distance Weigting algorithm to interpolate u to the regular grid
-                ugrid[y,x] = ((((model_index.var_w1[y,x]) * u1) + ((model_index.var_w2[y,x]) * u2) + ((model_index.var_w3[y,x]) * u3) + ((model_index.var_w4[y,x])  * u4)) / model_index.var_wsum[y,x])
+            if not model_index.var_xi1.mask[y, x]:
+                xi1 = model_index.var_xi1[y, x]
+                eta1 = model_index.var_eta1[y, x]
+                xi2 = model_index.var_xi2[y, x]
+                eta2 = model_index.var_eta2[y, x]
+                xi3 = model_index.var_xi3[y, x]
+                eta3 = model_index.var_eta3[y, x]
+                xi4 = model_index.var_xi4[y, x]
+                eta4 = model_index.var_eta4[y, x]
+                u1 = rot_u_rho[eta1, xi1]
+                u2 = rot_u_rho[eta2, xi2]
+                u3 = rot_u_rho[eta3, xi3]
+                u4 = rot_u_rho[eta4, xi4]
+                # Use Inverse Distance Weighting algorithm to interpolate u to the regular grid
+                ugrid[y, x] = ((((model_index.var_w1[y, x]) * u1) + ((model_index.var_w2[y, x]) * u2) + ((model_index.var_w3[y, x]) * u3) + ((model_index.var_w4[y, x]) * u4)) / model_index.var_wsum[y, x])
     
     # Create masked empty regular grid for variable v        
-    vgrid = numpy.ma.empty(shape=[model_index.dim_y.size,model_index.dim_x.size])
+    vgrid = numpy.ma.empty(shape=[model_index.dim_y.size, model_index.dim_x.size])
 
     # For each regular grid cell, read the corresponding xi1/eta1/w1,
     # xi2/eta2/w2, xi3/eta3/w3, and xi4/eta4/w4 values
     for y in range(model_index.var_xi1.shape[0]):
         for x in range(model_index.var_xi1.shape[1]):
-            if not model_index.var_xi1.mask[y,x]:
-                xi1 = model_index.var_xi1[y,x]
-                eta1 = model_index.var_eta1[y,x]
-                xi2 = model_index.var_xi2[y,x]
-                eta2 = model_index.var_eta2[y,x]
-                xi3 = model_index.var_xi3[y,x]
-                eta3 = model_index.var_eta3[y,x]
-                xi4 = model_index.var_xi4[y,x]
-                eta4 = model_index.var_eta4[y,x]
-                v1 = rot_vrho[eta1,xi1]
-                v2 = rot_vrho[eta2,xi2]
-                v3 = rot_vrho[eta3,xi3]
-                v4 = rot_vrho[eta4,xi4]
-                # Use Inverse Distance Weigting algorithm to interpolate v to
+            if not model_index.var_xi1.mask[y, x]:
+                xi1 = model_index.var_xi1[y, x]
+                eta1 = model_index.var_eta1[y, x]
+                xi2 = model_index.var_xi2[y, x]
+                eta2 = model_index.var_eta2[y, x]
+                xi3 = model_index.var_xi3[y, x]
+                eta3 = model_index.var_eta3[y, x]
+                xi4 = model_index.var_xi4[y, x]
+                eta4 = model_index.var_eta4[y, x]
+                v1 = rot_v_rho[eta1, xi1]
+                v2 = rot_v_rho[eta2, xi2]
+                v3 = rot_v_rho[eta3, xi3]
+                v4 = rot_v_rho[eta4, xi4]
+                # Use Inverse Distance Weighting algorithm to interpolate v to
                 # the regular grid
-                vgrid[y,x] = ((((model_index.var_w1[y,x]) * v1) + ((model_index.var_w2[y,x]) * v2) + ((model_index.var_w3[y,x]) * v3) + ((model_index.var_w4[y,x])  * v4)) / model_index.var_wsum[y,x])
+                vgrid[y, x] = ((((model_index.var_w1[y, x]) * v1) + ((model_index.var_w2[y, x]) * v2) + ((model_index.var_w3[y, x]) * v3) + ((model_index.var_w4[y, x]) * v4)) / model_index.var_wsum[y, x])
 
     # Apply mask from index file
     ugrid = numpy.ma.masked_array(ugrid, model_index.var_xi1.mask)
     vgrid = numpy.ma.masked_array(vgrid, model_index.var_xi1.mask)
 
-    return (ugrid, vgrid)
+    return ugrid, vgrid
 
-def averageUVToRho(water_u, water_v):
+
+def average_uv2rho(water_u, water_v):
     """Average u and v scalars to rho.
 
     U values at rho [eta,xi] are calculated by averaging u[eta,xi] with
@@ -901,20 +906,21 @@ def averageUVToRho(water_u, water_v):
     
     for eta in range(num_eta):
         for xi in range(num_xi-1):
-            u_rho[eta,xi] = (water_u[eta,xi] + water_u[eta,xi+1])/2
-        u_rho[eta,num_xi-1] = water_u[eta,num_xi-1]
+            u_rho[eta, xi] = (water_u[eta, xi] + water_u[eta, xi+1])/2
+        u_rho[eta, num_xi-1] = water_u[eta, num_xi-1]
         
     # Average v values
     v_rho = numpy.ndarray([num_eta, num_xi])
     
     for xi in range(num_xi):
         for eta in range(num_eta-1):
-            v_rho[eta,xi] = (water_v[eta,xi] + water_v[eta+1,xi])/2
-        v_rho[num_eta-1,xi] = water_v[num_eta-1,xi]
+            v_rho[eta, xi] = (water_v[eta, xi] + water_v[eta+1, xi])/2
+        v_rho[num_eta-1, xi] = water_v[num_eta-1, xi]
 
     return u_rho, v_rho
 
-def maskLand(u_depth, v_depth, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho):
+
+def mask_land(u_depth, v_depth, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho):
     """Create masked arrays for specified variables to mask land values.
 
     Args:
@@ -939,9 +945,10 @@ def maskLand(u_depth, v_depth, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_r
     water_lat_rho = ma.masked_array(lat_rho, numpy.logical_not(mask_rho))
     water_lon_rho = ma.masked_array(lon_rho, numpy.logical_not(mask_rho))  
            
-    return water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho
+    return water_u, water_v, water_ang_rho, water_lat_rho, water_lon_rho
 
-def vertInterp(u, v, s_rho, mask_rho, zeta, h, hc, cs_r, vtransform, num_eta, num_xi, num_sigma):
+
+def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, cs_r, vtransform, num_eta, num_xi, num_sigma):
     """Vertically interpolate variables to target depth.
 
     Args:
@@ -954,78 +961,86 @@ def vertInterp(u, v, s_rho, mask_rho, zeta, h, hc, cs_r, vtransform, num_eta, nu
         cs_r: `numpy.ndarray` containing s-coordinate stretching curves at rho points.
     """
     zeta = ma.masked_array(zeta, numpy.logical_not(mask_rho))
-    z = numpy.ma.empty(shape=[num_eta,num_xi, num_sigma])
+    z = numpy.ma.empty(shape=[num_eta, num_xi, num_sigma])
 
     if vtransform == 1:
         # Roms vertical transformation equation 1
         for k in range(num_sigma):
-            S = ((hc * s_rho[k]) + (h - hc) * cs_r[k])
-            z[:, :, k] = S + zeta * (1 + S/h)
+            s = ((hc * s_rho[k]) + (h - hc) * cs_r[k])
+            z[:, :, k] = s + zeta * (1 + s/h)
 
     else:
         # Roms vertical transformation equation 2 GOMOFS Only
         for k in range(num_sigma):
-            S = ((hc * s_rho[k]) + (h*cs_r[k]))/(h + hc)
-            z[:, :, k] = zeta + ([zeta + h]*S)
+            s = ((hc * s_rho[k]) + (h*cs_r[k]))/(h + hc)
+            z[:, :, k] = zeta + ([zeta + h]*s)
 
     # For areas shallower than 9m the target depth is half the total depth
     # For areas deeper than 9m the target depth is 4.5m from zeta
     total_depth = h + zeta
-    target_depth = zeta - numpy.minimum(9,total_depth)/2
+    target_depth = zeta - numpy.minimum(9, total_depth)/2
 
     # For every rho point store z level index values and depth values, 
     # above and below the target depth in a masked array
-    z_level = numpy.ma.empty(shape=[num_eta,num_xi, 4])
+    z_level = numpy.ma.empty(shape=[num_eta, num_xi, 4])
 
     for eta in range(num_eta):
         for xi in range(num_xi):
-          if zeta.mask[eta,xi] != True:
-              # Finds the closest values above and below the target depth
-              depth1 = (z[eta, xi, :])[(z[eta, xi, :]) >= (target_depth[eta, xi])].min()
-              depth2 = (z[eta, xi, :])[(z[eta, xi, :]) <= (target_depth[eta, xi])].max()
-            # Identifies the z levels and the depths above and below the target
-              zmin = min(enumerate(z[eta, xi, :]), key=lambda x: abs(x[1]-depth1))
-              zmax = min(enumerate(z[eta, xi, :]), key=lambda x: abs(x[1]-depth2))
-              # Store each variable in the z_level masked array
-              z_level[eta, xi, 0] = zmin[0]# z level 1
-              z_level[eta, xi, 1] = zmax[0]# z level 2
-              z_level[eta, xi, 2] = zmin[1]# z level 1 depth value
-              z_level[eta, xi, 3] = zmax[1]# z level 2 depth value
+            if not zeta.mask[eta, xi]:
+                # Finds the closest values above and below the target depth
+                depth1 = (z[eta, xi, :])[(z[eta, xi, :]) >= (target_depth[eta, xi])].min()
+                depth2 = (z[eta, xi, :])[(z[eta, xi, :]) <= (target_depth[eta, xi])].max()
+                # Identifies the z levels and the depths above and below the target
+                zmin = min(enumerate(z[eta, xi, :]), key=lambda x: abs(x[1]-depth1))
+                zmax = min(enumerate(z[eta, xi, :]), key=lambda x: abs(x[1]-depth2))
+                # Store each variable in the z_level masked array
+                z_level[eta, xi, 0] = zmin[0]  # z level 1
+                z_level[eta, xi, 1] = zmax[0]  # z level 2
+                z_level[eta, xi, 2] = zmin[1]  # z level 1 depth value
+                z_level[eta, xi, 3] = zmax[1]  # z level 2 depth value
 
-    u_depth = numpy.ma.empty(shape=[num_eta,num_xi])
+    u_depth = numpy.ma.empty(shape=[num_eta, num_xi])
 
     for eta in range(num_eta):
         for xi in range(num_xi):
-          if zeta.mask[eta,xi] != True:
-              z1 = z_level[eta, xi, 2] # z level 1 depth value
-              z2 = z_level[eta, xi, 3] # z level 2 depth value
-              u_zmin = int(z_level[eta, xi, 0])# u sigma level corresponding to z level 1
-              u_zmax = int(z_level[eta, xi, 1])# u sigma level corresponding to z level 2
-              u1 = u[u_zmin, eta, xi]# u sigma level 1
-              u2 = u[u_zmax, eta, xi]# u sigma level 2
-              td1 = target_depth[eta, xi]
-              # Using linear interpolation calculate u at target depth
-              u_interp = u2 - ((u2-u1)*((z2 - td1)/(z2-z1)))
-              # Store inerpolated u values in a masked array
-              u_depth[eta, xi] = u_interp
-              u_depth = numpy.nan_to_num(u_depth, FILLVALUE)
+            if not zeta.mask[eta, xi]:
+                if mask_u[eta, xi] != 0:
+                    z1 = z_level[eta, xi, 2]  # z level 1 depth value
+                    z2 = z_level[eta, xi, 3]  # z level 2 depth value
+                    u_zmin = int(z_level[eta, xi, 0])  # u sigma level corresponding to z level 1
+                    u_zmax = int(z_level[eta, xi, 1])  # u sigma level corresponding to z level 2
+                    u1 = u[u_zmin, eta, xi]  # u sigma level 1
+                    u2 = u[u_zmax, eta, xi]  # u sigma level 2
+                    td1 = target_depth[eta, xi]
+                    if u1 == u2:
+                        u_interp = u1
+                    else:
+                        # Using linear interpolation calculate u at target depth
+                        u_interp = u2 - ((u2 - u1) * ((z2 - td1) / (z2 - z1)))
+                    # Store interpolated u values in a masked array
+                    u_depth[eta, xi] = u_interp
+                    u_depth = numpy.nan_to_num(u_depth, FILLVALUE)
 
     v_depth = numpy.ma.empty(shape=[num_eta, num_xi])
 
     for eta in range(num_eta):
         for xi in range(num_xi):
-          if zeta.mask[eta,xi] != True:
-              z1 = z_level[eta, xi, 2] # z level 1 value
-              z2 = z_level[eta, xi, 3] # z level 2 value
-              v_zmin = int(z_level[eta, xi, 0])# v sigma level corresponding to z level 1
-              v_zmax = int(z_level[eta, xi, 1])# v sigma level corresponding to z level 2
-              v1 = v[v_zmin, eta, xi]# v sigma level 1
-              v2 = v[v_zmax, eta, xi]# v sigma level 2
-              d1 = target_depth[eta, xi]
-              # Using linear interpolation calculate v at target depth
-              v_interp = v2 - ((v2-v1)*((z2 - d1)/(z2-z1)))
-              # Store inerpolated v values in a masked array
-              v_depth[eta, xi] = v_interp
-              v_depth = numpy.nan_to_num(v_depth, FILLVALUE)
+            if not zeta.mask[eta, xi]:
+                if mask_v[eta, xi] != 0:
+                    z1 = z_level[eta, xi, 2]  # z level 1 value
+                    z2 = z_level[eta, xi, 3]  # z level 2 value
+                    v_zmin = int(z_level[eta, xi, 0])  # v sigma level corresponding to z level 1
+                    v_zmax = int(z_level[eta, xi, 1])  # v sigma level corresponding to z level 2
+                    v1 = v[v_zmin, eta, xi]  # v sigma level 1
+                    v2 = v[v_zmax, eta, xi]  # v sigma level 2
+                    td1 = target_depth[eta, xi]
+                    if v1 == v2:
+                        v_interp = v1
+                    else:
+                        # Using linear interpolation calculate u at target depth
+                        v_interp = v2 - ((v2 - v1) * ((z2 - td1) / (z2 - z1)))
+                    # Store interpolated v values in a masked array
+                    v_depth[eta, xi] = v_interp
+                    v_depth = numpy.nan_to_num(v_depth, FILLVALUE)
 
     return u_depth, v_depth
