@@ -16,7 +16,7 @@ import numpy.ma as ma
 from .model import roms
 
 # Default fill value for NetCDF variables
-FILLVALUE=-9999.0
+FILLVALUE = -9999.0
 
 # Dict lookup for HDF5 data type class names
 # See https://github.com/h5py/h5py/blob/master/h5py/api_types_hdf5.pxd#L509
@@ -86,77 +86,77 @@ class S111File:
 
         # Add root group carrier metadata
         # String types
-        self.h5_file.attrs.create('productSpecification', 'INT.IHO.S-111.1.0.0' , dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('issueTime', '' , dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('issueDate', '' , dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('epoch', '' , dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('geographicIdentifier', '' , dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('metadata', '' , dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('metaFeatures', '' , dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('horizontalDatumReference', 'EPSG' , dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('productSpecification', '', dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('issueTime', '', dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('issueDate', '', dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('epoch', '', dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('geographicIdentifier', '', dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('metadata', '', dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('metaFeatures', '', dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('horizontalDatumReference', '', dtype=h5py.special_dtype(vlen=str))
         # Integer types
-        self.h5_file.attrs.create('horizontalDatumValue', 0 , dtype=numpy.int32) 
+        self.h5_file.attrs.create('horizontalDatumValue', 0, dtype=numpy.int32)
         # Enumeration types
-        #self.h5_file.attrs.create('verticalDatum', 0 , dtype=numpy.int32)
-        self.h5_file.attrs.create('depthTypeIndex', 0 , dtype=numpy.int32)
+        #self.h5_file.attrs.create('verticalDatum', 0, dtype=numpy.int32)
+        self.h5_file.attrs.create('depthTypeIndex', 0, dtype=numpy.int32)
         # Real types
-        self.h5_file.attrs.create('surfaceCurrentDepth', 0 , dtype=numpy.float32)
-        self.h5_file.attrs.create('westBoundLongitude', 0 , dtype=numpy.float32)
-        self.h5_file.attrs.create('eastBoundLongitude', 0 , dtype=numpy.float32)
-        self.h5_file.attrs.create('southBoundLatitude', 0 , dtype=numpy.float32)
-        self.h5_file.attrs.create('northBoundLatitude', 0 , dtype=numpy.float32)
+        self.h5_file.attrs.create('surfaceCurrentDepth', 0, dtype=numpy.float32)
+        self.h5_file.attrs.create('westBoundLongitude', 0, dtype=numpy.float32)
+        self.h5_file.attrs.create('eastBoundLongitude', 0, dtype=numpy.float32)
+        self.h5_file.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
+        self.h5_file.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
 
-        # Create s111 structure, feature group, feature type container, and inital feature instance
+        # Create s111 structure, feature group, feature type container, and initial feature instance
         self.groupF = self.h5_file.create_group("Group_F")
         self.feature = self.h5_file.create_group("SurfaceCurrent")
         self.feature_instance = self.feature.create_group("SurfaceCurrent.01")
 
         # Add feature container metadata
         # Integer types
-        self.feature.attrs.create('dimension', 0 , dtype=numpy.int32)
-        self.feature.attrs.create('numInstances', 0 , dtype=numpy.int32)
+        self.feature.attrs.create('dimension', 0, dtype=numpy.int32)
+        self.feature.attrs.create('numInstances', 0, dtype=numpy.int32)
         # Real types
-        self.feature.attrs.create('horizontalPositionUncertainty', -1.0 , dtype=numpy.float32)
-        self.feature.attrs.create('verticalUncertainty', -1.0 , dtype=numpy.float32)
-        self.feature.attrs.create('timeUncertainty', -1.0 , dtype=numpy.float32)
-        self.feature.attrs.create('speedUncertainty', -1.0 , dtype=numpy.float32)
-        self.feature.attrs.create('directionUncertainty', -1.0 , dtype=numpy.float32)
-        self.feature.attrs.create('minDatasetCurrentSpeed', 0 , dtype=numpy.float32)
-        self.feature.attrs.create('maxDatasetCurrentSpeed', 0 , dtype=numpy.float32)
+        self.feature.attrs.create('horizontalPositionUncertainty', -1.0, dtype=numpy.float32)
+        self.feature.attrs.create('verticalUncertainty', -1.0, dtype=numpy.float32)
+        self.feature.attrs.create('timeUncertainty', -1.0, dtype=numpy.float32)
+        self.feature.attrs.create('speedUncertainty', -1.0, dtype=numpy.float32)
+        self.feature.attrs.create('directionUncertainty', -1.0, dtype=numpy.float32)
+        self.feature.attrs.create('minDatasetCurrentSpeed', 0, dtype=numpy.float32)
+        self.feature.attrs.create('maxDatasetCurrentSpeed', 0, dtype=numpy.float32)
         # Enumeration types
-        self.feature.attrs.create('dataCodingFormat', 0 , dtype=numpy.int32)
-        self.feature.attrs.create('commonPointRule', 0 , dtype=numpy.int32)
-        self.feature.attrs.create('interpolationType', 0 , dtype=numpy.int32)
-        self.feature.attrs.create('typeOfCurrentData', 0 , dtype=numpy.int32)
+        self.feature.attrs.create('dataCodingFormat', 0, dtype=numpy.int32)
+        self.feature.attrs.create('commonPointRule', 0, dtype=numpy.int32)
+        self.feature.attrs.create('interpolationType', 0, dtype=numpy.int32)
+        self.feature.attrs.create('typeOfCurrentData', 0, dtype=numpy.int32)
         self.feature.attrs.create('sequenceRule.type', 0, dtype=numpy.int32)
         # String types
-        self.feature.attrs.create('methodCurrentsProduct', '' , dtype=h5py.special_dtype(vlen=str))
+        self.feature.attrs.create('methodCurrentsProduct', '', dtype=h5py.special_dtype(vlen=str))
         self.feature.attrs.create('sequenceRule.scanDirection', "", dtype=h5py.special_dtype(vlen=str))
 
         # Add feature instance metadata
         # String types
-        self.feature_instance.attrs.create('startSequence', '' , dtype=h5py.special_dtype(vlen=str))
-        self.feature_instance.attrs.create('dateTimeOfFirstRecord', '' , dtype=h5py.special_dtype(vlen=str))
-        self.feature_instance.attrs.create('dateTimeOfLastRecord', '' , dtype=h5py.special_dtype(vlen=str))
+        self.feature_instance.attrs.create('startSequence', '', dtype=h5py.special_dtype(vlen=str))
+        self.feature_instance.attrs.create('dateTimeOfFirstRecord', '', dtype=h5py.special_dtype(vlen=str))
+        self.feature_instance.attrs.create('dateTimeOfLastRecord', '', dtype=h5py.special_dtype(vlen=str))
         # Integer types
-        self.feature_instance.attrs.create('numPointsLongitudinal', 0 , dtype=numpy.int32)
-        self.feature_instance.attrs.create('numPointsLatitudinal', 0 , dtype=numpy.int32)
-        self.feature_instance.attrs.create('timeRecordInterval', 0 , dtype=numpy.int32)
-        self.feature_instance.attrs.create('numberOfTimes', 0 , dtype=numpy.int32)
-        self.feature_instance.attrs.create('numGRP', 0 , dtype=numpy.int32)
-        self.feature_instance.attrs.create('minGridPointLongitudinal', 0 , dtype=numpy.int32)
-        self.feature_instance.attrs.create('minGridPointLatitudinal', 0 , dtype=numpy.int32)
+        self.feature_instance.attrs.create('numPointsLongitudinal', 0, dtype=numpy.int32)
+        self.feature_instance.attrs.create('numPointsLatitudinal', 0, dtype=numpy.int32)
+        self.feature_instance.attrs.create('timeRecordInterval', 0, dtype=numpy.int32)
+        self.feature_instance.attrs.create('numberOfTimes', 0, dtype=numpy.int32)
+        self.feature_instance.attrs.create('numGRP', 0, dtype=numpy.int32)
+        self.feature_instance.attrs.create('minGridPointLongitudinal', 0, dtype=numpy.int32)
+        self.feature_instance.attrs.create('minGridPointLatitudinal', 0, dtype=numpy.int32)
         # Real types
-        self.feature_instance.attrs.create('gridOriginLongitude', 0 , dtype=numpy.float32)
-        self.feature_instance.attrs.create('gridOriginLatitude', 0 , dtype=numpy.float32)
-        self.feature_instance.attrs.create('gridSpacingLongitudinal', 0 , dtype=numpy.float32)
-        self.feature_instance.attrs.create('gridSpacingLatitudinal', 0 , dtype=numpy.float32)
-        self.feature_instance.attrs.create('westBoundLongitude', 0 , dtype=numpy.float32)
-        self.feature_instance.attrs.create('eastBoundLongitude', 0 , dtype=numpy.float32)
-        self.feature_instance.attrs.create('southBoundLatitude', 0 , dtype=numpy.float32)
-        self.feature_instance.attrs.create('northBoundLatitude', 0 , dtype=numpy.float32)
+        self.feature_instance.attrs.create('gridOriginLongitude', 0, dtype=numpy.float32)
+        self.feature_instance.attrs.create('gridOriginLatitude', 0, dtype=numpy.float32)
+        self.feature_instance.attrs.create('gridSpacingLongitudinal', 0, dtype=numpy.float32)
+        self.feature_instance.attrs.create('gridSpacingLatitudinal', 0, dtype=numpy.float32)
+        self.feature_instance.attrs.create('westBoundLongitude', 0, dtype=numpy.float32)
+        self.feature_instance.attrs.create('eastBoundLongitude', 0, dtype=numpy.float32)
+        self.feature_instance.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
+        self.feature_instance.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
 
-    def update_attributes(self, model_index, ofs_model, subgrid_index=None):
+    def update_attributes(self, model_index, s111_info, subgrid_index=None):
         """Update HDF5 attributes based on grid properties.
         
         Args:
@@ -191,43 +191,28 @@ class S111File:
         num_nodes = num_points_lon * num_points_lat
 
         # Update carrier metadata
-        self.h5_file.attrs.modify('horizontalDatumValue', 4326) 
+        self.h5_file.attrs.modify('geographicIdentifier', s111_info[0])
+        self.h5_file.attrs.modify('productSpecification', s111_info[1])
+        self.h5_file.attrs.modify('epoch', s111_info[3])
+        self.h5_file.attrs.modify('horizontalDatumReference', s111_info[4])
+        self.h5_file.attrs.modify('horizontalDatumValue', s111_info[5])
         #self.h5_file.attrs.modify('verticalDatum', 2)
         self.h5_file.attrs.modify('depthTypeIndex', 2)
         self.h5_file.attrs.modify('surfaceCurrentDepth', - 4.5)
-        epoch = numpy.string_('G1762')
-        self.h5_file.attrs.modify('epoch', epoch)
-        self.h5_file.attrs.create('westBoundLongitude', min_lon)
-        self.h5_file.attrs.create('eastBoundLongitude', max_lon)
-        self.h5_file.attrs.create('southBoundLatitude', min_lat)
-        self.h5_file.attrs.create('northBoundLatitude', max_lat)
-
-        if ofs_model == "cbofs":
-            region = numpy.string_('Chesapeake_Bay')
-            self.h5_file.attrs.modify('geographicIdentifier', region)
-            
-        elif ofs_model == "dbofs":
-            region = numpy.string_('Delaware_Bay')
-            self.h5_file.attrs.modify('geographicIdentifier', region)
-
-        elif ofs_model == "tbofs":
-            region = numpy.string_('Tampa_Bay')
-            self.h5_file.attrs.modify('geographicIdentifier', region)
-
-        elif ofs_model == "gomofs":
-            region = numpy.string_('Gulf_of_Maine')
-            self.h5_file.attrs.modify('geographicIdentifier', region)
+        self.h5_file.attrs.modify('westBoundLongitude', min_lon)
+        self.h5_file.attrs.modify('eastBoundLongitude', max_lon)
+        self.h5_file.attrs.modify('southBoundLatitude', min_lat)
+        self.h5_file.attrs.modify('northBoundLatitude', max_lat)
 
         # Update feature container metadata
-        self.feature.attrs.modify('dataCodingFormat', 2 )
-        self.feature.attrs.modify('interpolationType', 10 )
+        self.feature.attrs.modify('dataCodingFormat', 2)
+        self.feature.attrs.modify('interpolationType', 10)
         self.feature.attrs.modify('typeOfCurrentData', 6)
         self.feature.attrs.modify('commonPointRule', 1)
         self.feature.attrs.modify('dimension', 2)
-        self.feature.attrs.modify('sequenceRule.type', 1 )
-        methodCurrentProduct = numpy.string_('ROMS_Hydrodynamic_Model_Forecasts')
-        self.feature.attrs.modify('methodCurrentsProduct', methodCurrentProduct)
-        scanDirection = numpy.string_('longitude,latitude')
+        self.feature.attrs.modify('sequenceRule.type', 1)
+        self.feature.attrs.modify('methodCurrentsProduct', s111_info[2])
+        scanDirection = numpy.string_('latitude,longitude')
         self.feature.attrs.modify('sequenceRule.scanDirection', scanDirection)
 
         # Update feature instance metadata
@@ -238,8 +223,8 @@ class S111File:
             self.feature_instance.attrs.modify('gridSpacingLatitudinal', cellsize_y)
             self.feature_instance.attrs.modify('numPointsLongitudinal', num_points_lon)
             self.feature_instance.attrs.modify('numPointsLatitudinal', num_points_lat)
-            startSequence = numpy.string_('0,0')
-            self.feature_instance.attrs.modify('startSequence', startSequence)
+            start_sequence = numpy.string_('0,0')
+            self.feature_instance.attrs.modify('startSequence', start_sequence)
             self.feature_instance.attrs.modify('westBoundLongitude', min_lon)
             self.feature_instance.attrs.modify('eastBoundLongitude', max_lon)
             self.feature_instance.attrs.modify('southBoundLatitude', min_lat)
@@ -293,26 +278,26 @@ class S111File:
             fdata['upper'][1] = 359.9
             fdata['closure'][1] = "closedInterval"
 
-            self.groupF_dset = self.groupF.create_dataset("SurfaceCurrent",(2,), dtype = dtype)
+            self.groupF_dset = self.groupF.create_dataset("SurfaceCurrent", (2,), dtype=dtype)
             self.groupF_dset[...] = fdata
 
             # Add group_f feature code dataset
-            fcdata = numpy.zeros((1,), dtype=h5py.special_dtype(vlen=str))
-            fcdata[0] = "SurfaceCurrent"
-            featureCode = self.groupF.create_dataset("featureCode",(1,), dtype = h5py.special_dtype(vlen=str))
-            featureCode[...] = fcdata
+            fc_data = numpy.zeros((1,), dtype=h5py.special_dtype(vlen=str))
+            fc_data[0] = "SurfaceCurrent"
+            feature_code = self.groupF.create_dataset("featureCode", (1,), dtype=h5py.special_dtype(vlen=str))
+            feature_code[...] = fc_data
 
             # Add feature container dataset
-            axisNames = numpy.zeros((2,), dtype=h5py.special_dtype(vlen=str))
-            axisNames[0] = "longitude"
-            axisNames[1] = "latitude"
-            axis_dset = self.feature.create_dataset("axisNames",(2,), dtype = h5py.special_dtype(vlen=str))
-            axis_dset[...] = axisNames
+            axis_names = numpy.zeros((2,), dtype=h5py.special_dtype(vlen=str))
+            axis_names[0] = "longitude"
+            axis_names[1] = "latitude"
+            axis_dset = self.feature.create_dataset("axisNames", (2,), dtype=h5py.special_dtype(vlen=str))
+            axis_dset[...] = axis_names
 
         # Create a list of all feature instance objects and groups
         feature_instance_objs = []
         self.feature_instance.visit(feature_instance_objs.append)
-        feature_instance_groups   = [ obj for obj in feature_instance_objs if isinstance(self.feature_instance[obj],h5py.Group) ]
+        feature_instance_groups = [obj for obj in feature_instance_objs if isinstance(self.feature_instance[obj], h5py.Group)]
 
         # Convert time value to string
         time_str = time_value.strftime("%Y%m%dT%H%M%SZ")
@@ -322,10 +307,10 @@ class S111File:
             print("Creating", "Group_001", "dataset.")
 
             # Time attributes updated once
-            issuanceTime = cycletime.strftime("%H%M%SZ")
-            issuanceDate = cycletime.strftime("%Y%m%d")
-            self.h5_file.attrs.modify('issueTime', issuanceTime.encode())
-            self.h5_file.attrs.modify('issueDate', issuanceDate.encode())
+            issuance_time = cycletime.strftime("%H%M%SZ")
+            issuance_date = cycletime.strftime("%Y%m%d")
+            self.h5_file.attrs.modify('issueTime', issuance_time.encode())
+            self.h5_file.attrs.modify('issueDate', issuance_date.encode())
             self.feature.attrs.modify('numInstances', len(self.feature_instance))
             self.feature_instance.attrs.modify('dateTimeOfFirstRecord', time_str.encode())
             self.feature_instance.attrs.modify('dateTimeOfLastRecord', time_str.encode())
@@ -340,13 +325,13 @@ class S111File:
         # Update attributes from datasets added
         min_speed = numpy.nanmin(reg_grid_speed)
         max_speed = numpy.nanmax(reg_grid_speed)
-        min_speed = numpy.round(min_speed,2)
-        max_speed = numpy.round(max_speed,2)
+        min_speed = numpy.round(min_speed, 2)
+        max_speed = numpy.round(max_speed, 2)
 
         directions = reg_grid_direction.filled(FILLVALUE)
         speeds = reg_grid_speed.filled(FILLVALUE)
-        directions = numpy.round(directions,1)
-        speeds = numpy.round(speeds,2)
+        directions = numpy.round(directions, 1)
+        speeds = numpy.round(speeds, 2)
 
         # Update attributes from datasets added
         new_group.attrs.create('timePoint', time_str.encode())
@@ -360,7 +345,7 @@ class S111File:
         values = numpy.zeros((directions.shape), dtype=values_dtype)
         values['SurfaceCurrentSpeed'] = speeds
         values['SurfaceCurrentDirection'] = directions
-        values_dset = new_group.create_dataset('values', directions.shape, dtype=values_dtype, chunks=True, compression="gzip", compression_opts=9) 
+        values_dset = new_group.create_dataset('values', directions.shape, dtype=values_dtype, chunks=True, compression="gzip", compression_opts=9,)# fillvalue = (-9999., -9999.)) 
         values_dset[...] = values
 
         # Update group_f attributes
@@ -368,11 +353,11 @@ class S111File:
 
         if len(self.feature_instance) == 2:
             # Time record interval is the same through out the forecast.
-            firstTime = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
-            lastTime = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfLastRecord']),"%Y%m%dT%H%M%SZ")
-            interval = lastTime - firstTime
-            timeInterval =  interval.total_seconds()
-            self.feature_instance.attrs.modify('timeRecordInterval', timeInterval)
+            first_time = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
+            last_time = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfLastRecord']),"%Y%m%dT%H%M%SZ")
+            interval = last_time - first_time
+            time_interval = interval.total_seconds()
+            self.feature_instance.attrs.modify('timeRecordInterval', time_interval)
             self.feature.attrs.modify('minDatasetCurrentSpeed', min_speed)
             self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
@@ -386,7 +371,7 @@ class S111File:
                 self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
 
-def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model):
+def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model, s111_info):
     """Convert ROMS model output to regular grid in S111 format.
 
     If the supplied ROMS index NetCDF contains information identifying
@@ -420,7 +405,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
         if not s111_path_prefix.endswith("/"):
             s111_path_prefix += "/"
         file_issuance = cycletime.strftime("%Y%m%dT%HZ")
-        s111_path_prefix += ("S111US_{}_{}_F2".format(file_issuance,str.upper(ofs_model)))
+        s111_path_prefix += ("S111US_{}_{}_TYP2".format(file_issuance, str.upper(ofs_model)))
     with roms.ROMSIndexFile(roms_index_path) as roms_index:
         if roms_index.dim_subgrid is not None and roms_index.var_subgrid_id is not None:
             # Output to subgrids
@@ -429,7 +414,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
                 for i in range(roms_index.dim_subgrid.size):
                     s111_file = S111File("{}_SUBGRID_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_id[i]), clobber=True)
                     stack.enter_context(s111_file)
-                    s111_file.update_attributes(roms_index, ofs_model, i)
+                    s111_file.update_attributes(roms_index, s111_info, i)
                     s111_files.append(s111_file)
                 roms_files = []
                 times = []
@@ -460,7 +445,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
         else:
             # Output to default grid (no subgrids)
             with S111File("{}.h5".format(s111_path_prefix), clobber=True) as s111_file:
-                s111_file.update_attributes(roms_index, ofs_model)
+                s111_file.update_attributes(roms_index, s111_info)
                 for roms_output_path in roms_output_paths:
                     with roms.ROMSOutputFile(roms_output_path) as roms_file:
                         # Convert gregorian timestamp to datetime timestamp
