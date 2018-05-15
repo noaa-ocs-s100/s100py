@@ -25,10 +25,10 @@ from shapely.geometry import Polygon, Point, MultiPolygon, shape
 MS2KNOTS = 1.943844
 
 # Approximate radius of the Earth spheroid, in meters.
-EARTH_RADIUS_METERS=6371000
+EARTH_RADIUS_METERS = 6371000
 
 # Default fill value for NetCDF variables
-FILLVALUE=-9999.0
+FILLVALUE = -9999.0
 
 class RegularGrid:
     """Encapsulate information describing a regular lat-lon grid.
@@ -707,6 +707,7 @@ class ROMSOutputFile:
         self.var_s_rho = self.nc_file.variables['s_rho'][:]
         self.var_hc = self.nc_file.variables['hc'][:]
         self.var_cs_r = self.nc_file.variables['Cs_r'][:]
+        self.var_vtransform = self.nc_file.variables['Vtransform'][:]
         self.num_eta = self.var_h.shape[0]
         self.num_xi = self.var_h.shape[1]
         self.num_sigma = self.var_s_rho.shape[0]
@@ -716,7 +717,7 @@ class ROMSOutputFile:
         # Extract the variables from the NetCDF
 
         # Call vertical function and return u and v at target depth
-        u_depth, v_depth = vertInterp(self.var_u, self.var_v, self.var_s_rho, self.var_zeta, self.var_h, self.var_hc, self.var_cs_r, self.num_eta, self.num_xi, self.num_sigma)
+        u_depth, v_depth = vertInterp(self.var_u, self.var_v, self.var_s_rho, self.var_mask_rho, self.var_zeta, self.var_h, self.var_hc, self.var_cs_r, self.var_vtransform, self.num_eta, self.num_xi, self.num_sigma)
         
         # Call masked arrays function and return masked arrays
         water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho = maskLand(u_depth, v_depth, self.var_ang_rho, self.var_lat_rho, self.var_lon_rho, self.var_mask_u, self.var_mask_v, self.var_mask_rho)
@@ -940,7 +941,7 @@ def maskLand(u_depth, v_depth, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_r
            
     return water_u,water_v,water_ang_rho,water_lat_rho,water_lon_rho
 
-def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
+def vertInterp(u, v, s_rho, mask_rho, zeta, h, hc, cs_r, vtransform, num_eta, num_xi, num_sigma):
     """Vertically interpolate variables to target depth.
 
     Args:
@@ -952,13 +953,20 @@ def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
         hc: `numpy.ndarray` containing s-coordinate parameter, critical depth".
         cs_r: `numpy.ndarray` containing s-coordinate stretching curves at rho points.
     """
+    zeta = ma.masked_array(zeta, numpy.logical_not(mask_rho))
+    z = numpy.ma.empty(shape=[num_eta,num_xi, num_sigma])
 
-    z = numpy.ma.empty(shape=[num_eta,num_xi, 20])
+    if vtransform == 1:
+        # Roms vertical transformation equation 1
+        for k in range(num_sigma):
+            S = ((hc * s_rho[k]) + (h - hc) * cs_r[k])
+            z[:, :, k] = S + zeta * (1 + S/h)
 
-    # Roms vertical transformation equation 1
-    for k in range (num_sigma):
-        S = ((hc * s_rho[k]) + (h - hc) * cs_r[k])
-        z[:,:,k] = S + zeta * (1 + S/h)
+    else:
+        # Roms vertical transformation equation 2 GOMOFS Only
+        for k in range(num_sigma):
+            S = ((hc * s_rho[k]) + (h*cs_r[k]))/(h + hc)
+            z[:, :, k] = zeta + ([zeta + h]*S)
 
     # For areas shallower than 9m the target depth is half the total depth
     # For areas deeper than 9m the target depth is 4.5m from zeta
@@ -969,55 +977,55 @@ def vertInterp(u, v, s_rho, zeta, h, hc, cs_r, num_eta, num_xi, num_sigma):
     # above and below the target depth in a masked array
     z_level = numpy.ma.empty(shape=[num_eta,num_xi, 4])
 
-    for eta in range (num_eta):
+    for eta in range(num_eta):
         for xi in range(num_xi):
           if zeta.mask[eta,xi] != True:
               # Finds the closest values above and below the target depth
-              depth1= (z[eta,xi,:])[(z[eta,xi,:]) >= (target_depth[eta,xi])].min()
-              depth2 = (z[eta,xi,:])[(z[eta,xi,:]) <= (target_depth[eta,xi])].max()
+              depth1 = (z[eta, xi, :])[(z[eta, xi, :]) >= (target_depth[eta, xi])].min()
+              depth2 = (z[eta, xi, :])[(z[eta, xi, :]) <= (target_depth[eta, xi])].max()
             # Identifies the z levels and the depths above and below the target
-              zmin = min(enumerate(z[eta,xi,:]), key=lambda x: abs(x[1]-depth1))
-              zmax = min(enumerate(z[eta,xi,:]), key=lambda x: abs(x[1]-depth2))
+              zmin = min(enumerate(z[eta, xi, :]), key=lambda x: abs(x[1]-depth1))
+              zmax = min(enumerate(z[eta, xi, :]), key=lambda x: abs(x[1]-depth2))
               # Store each variable in the z_level masked array
-              z_level[eta,xi,0]= zmin[0]# z level 1
-              z_level[eta,xi,1]= zmax[0]# z level 2
-              z_level[eta,xi,2]= zmin[1]# z level 1 depth value
-              z_level[eta,xi,3]= zmax[1]# z level 2 depth value
+              z_level[eta, xi, 0] = zmin[0]# z level 1
+              z_level[eta, xi, 1] = zmax[0]# z level 2
+              z_level[eta, xi, 2] = zmin[1]# z level 1 depth value
+              z_level[eta, xi, 3] = zmax[1]# z level 2 depth value
 
     u_depth = numpy.ma.empty(shape=[num_eta,num_xi])
 
-    for eta in range (num_eta):
+    for eta in range(num_eta):
         for xi in range(num_xi):
           if zeta.mask[eta,xi] != True:
-              z1 = z_level[eta,xi,2] # z level 1 depth value
-              z2 = z_level[eta,xi,3] # z level 2 depth value
-              u_zmin = int(z_level[eta,xi,0])# u sigma level corresponding to z level 1
-              u_zmax = int(z_level[eta,xi,1])# u sigma level corresponding to z level 2
-              u1 = u[u_zmin,eta,xi]# u sigma level 1
-              u2 = u[u_zmax,eta,xi]# u sigma level 2
-              td1 = target_depth[eta,xi]
+              z1 = z_level[eta, xi, 2] # z level 1 depth value
+              z2 = z_level[eta, xi, 3] # z level 2 depth value
+              u_zmin = int(z_level[eta, xi, 0])# u sigma level corresponding to z level 1
+              u_zmax = int(z_level[eta, xi, 1])# u sigma level corresponding to z level 2
+              u1 = u[u_zmin, eta, xi]# u sigma level 1
+              u2 = u[u_zmax, eta, xi]# u sigma level 2
+              td1 = target_depth[eta, xi]
               # Using linear interpolation calculate u at target depth
-              u_interp= u2 - ((u2-u1)*((z2 - td1)/(z2-z1)))
+              u_interp = u2 - ((u2-u1)*((z2 - td1)/(z2-z1)))
               # Store inerpolated u values in a masked array
-              u_depth[eta,xi] = u_interp
-              u_depth = numpy.nan_to_num(u_depth,FILLVALUE)
+              u_depth[eta, xi] = u_interp
+              u_depth = numpy.nan_to_num(u_depth, FILLVALUE)
 
-    v_depth = numpy.ma.empty(shape=[num_eta,num_xi])
+    v_depth = numpy.ma.empty(shape=[num_eta, num_xi])
 
-    for eta in range (num_eta):
+    for eta in range(num_eta):
         for xi in range(num_xi):
           if zeta.mask[eta,xi] != True:
-              z1 = z_level[eta,xi,2] # z level 1 value
-              z2 = z_level[eta,xi,3] # z level 2 value
-              v_zmin = int(z_level[eta,xi,0])# v sigma level corresponding to z level 1
-              v_zmax = int(z_level[eta,xi,1])# v sigma level corresponding to z level 2
-              v1 = v[v_zmin,eta,xi]# v sigma level 1
-              v2 = v[v_zmax,eta,xi]# v sigma level 2
-              d1 = target_depth[eta,xi]
+              z1 = z_level[eta, xi, 2] # z level 1 value
+              z2 = z_level[eta, xi, 3] # z level 2 value
+              v_zmin = int(z_level[eta, xi, 0])# v sigma level corresponding to z level 1
+              v_zmax = int(z_level[eta, xi, 1])# v sigma level corresponding to z level 2
+              v1 = v[v_zmin, eta, xi]# v sigma level 1
+              v2 = v[v_zmax, eta, xi]# v sigma level 2
+              d1 = target_depth[eta, xi]
               # Using linear interpolation calculate v at target depth
-              v_interp= v2 - ((v2-v1)*((z2 - d1)/(z2-z1)))
+              v_interp = v2 - ((v2-v1)*((z2 - d1)/(z2-z1)))
               # Store inerpolated v values in a masked array
-              v_depth[eta,xi] = v_interp
-              v_depth = numpy.nan_to_num(v_depth,FILLVALUE)
+              v_depth[eta, xi] = v_interp
+              v_depth = numpy.nan_to_num(v_depth, FILLVALUE)
 
     return u_depth, v_depth
