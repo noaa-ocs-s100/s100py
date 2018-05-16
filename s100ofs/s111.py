@@ -35,6 +35,7 @@ H5T_CLASS_T = {
     h5py.h5t.ARRAY: "H5T_ARRAY"
 }
 
+
 class S111File:
     """Create and manage S-111 files.
 
@@ -47,6 +48,7 @@ class S111File:
     Attributes:
         path: Path (relative or absolute) to the file.
     """
+
     def __init__(self, path, clobber=False):
         """Initializes S111File object and opens h5 file at specified path.
 
@@ -97,7 +99,7 @@ class S111File:
         # Integer types
         self.h5_file.attrs.create('horizontalDatumValue', 0, dtype=numpy.int32)
         # Enumeration types
-        #self.h5_file.attrs.create('verticalDatum', 0, dtype=numpy.int32)
+        # self.h5_file.attrs.create('verticalDatum', 0, dtype=numpy.int32)
         self.h5_file.attrs.create('depthTypeIndex', 0, dtype=numpy.int32)
         # Real types
         self.h5_file.attrs.create('surfaceCurrentDepth', 0, dtype=numpy.float32)
@@ -165,6 +167,7 @@ class S111File:
             subgrid_index: (Optional, default None) Index of subgrid, if any,
                 that this S111File represents. Corresponds with index into
                 subgrid dimension of model index file.
+            s111_info: Target model and s111 metadata.
         """
 
         # Width between first two cells, grid spacing is uniform
@@ -173,9 +176,12 @@ class S111File:
 
         if subgrid_index is not None:
             if subgrid_index < 0 or subgrid_index >= model_index.dim_subgrid.size:
-                raise Exception("Subgrid index [{}] out of model index subgrid dimension range [0-{}]".format(subgrid_index, model_index.dim_subgrid.size-1))
-            num_points_lon = 1 + model_index.var_subgrid_x_max[subgrid_index] - model_index.var_subgrid_x_min[subgrid_index]
-            num_points_lat = 1 + model_index.var_subgrid_y_max[subgrid_index] - model_index.var_subgrid_y_min[subgrid_index]
+                raise Exception(
+                    "Subgrid index [{}] out of model index subgrid dimension range [0-{}]".format(subgrid_index, model_index.dim_subgrid.size - 1))
+            num_points_lon = 1 + model_index.var_subgrid_x_max[subgrid_index] - model_index.var_subgrid_x_min[
+                subgrid_index]
+            num_points_lat = 1 + model_index.var_subgrid_y_max[subgrid_index] - model_index.var_subgrid_y_min[
+                subgrid_index]
             min_lon = model_index.var_x[model_index.var_subgrid_x_min[subgrid_index]]
             min_lat = model_index.var_y[model_index.var_subgrid_y_min[subgrid_index]]
             max_lon = model_index.var_x[model_index.var_subgrid_x_max[subgrid_index]]
@@ -196,7 +202,7 @@ class S111File:
         self.h5_file.attrs.modify('epoch', s111_info[3])
         self.h5_file.attrs.modify('horizontalDatumReference', s111_info[4])
         self.h5_file.attrs.modify('horizontalDatumValue', s111_info[5])
-        #self.h5_file.attrs.modify('verticalDatum', 2)
+        # self.h5_file.attrs.modify('verticalDatum', 2)
         self.h5_file.attrs.modify('depthTypeIndex', 2)
         self.h5_file.attrs.modify('surfaceCurrentDepth', - 4.5)
         self.h5_file.attrs.modify('westBoundLongitude', min_lon)
@@ -212,8 +218,8 @@ class S111File:
         self.feature.attrs.modify('dimension', 2)
         self.feature.attrs.modify('sequenceRule.type', 1)
         self.feature.attrs.modify('methodCurrentsProduct', s111_info[2])
-        scanDirection = numpy.string_('latitude,longitude')
-        self.feature.attrs.modify('sequenceRule.scanDirection', scanDirection)
+        scan_direction = numpy.string_('latitude,longitude')
+        self.feature.attrs.modify('sequenceRule.scanDirection', scan_direction)
 
         # Update feature instance metadata
         if self.feature.attrs['dataCodingFormat'] == 2:
@@ -245,19 +251,20 @@ class S111File:
             reg_grid_direction: `numpy.ma.masked_array` representing current
                 direction data after interpolating to a regular grid and
                 converting from u/v components.
+            cycletime: `datetime.datetime` representing model cycle time.
         """
 
         # Add datasets to group_f and feature container once
         if len(self.groupF) == 0:
             # Add group_f compound dataset
             dtype = numpy.dtype([("code", h5py.special_dtype(vlen=str)),
-                              ("name", h5py.special_dtype(vlen=str)),
-                              ("uom.name", h5py.special_dtype(vlen=str)),
-                              ("fillValue", h5py.special_dtype(vlen=str)),
-                              ("dataType", h5py.special_dtype(vlen=str)),
-                              ("lower", h5py.special_dtype(vlen=str)),
-                              ("upper", h5py.special_dtype(vlen=str)),
-                              ("closure", h5py.special_dtype(vlen=str))])
+                                 ("name", h5py.special_dtype(vlen=str)),
+                                 ("uom.name", h5py.special_dtype(vlen=str)),
+                                 ("fillValue", h5py.special_dtype(vlen=str)),
+                                 ("dataType", h5py.special_dtype(vlen=str)),
+                                 ("lower", h5py.special_dtype(vlen=str)),
+                                 ("upper", h5py.special_dtype(vlen=str)),
+                                 ("closure", h5py.special_dtype(vlen=str))])
 
             fdata = numpy.zeros((2,), dtype=dtype)
             fdata['code'][0] = "surfaceCurrentSpeed"
@@ -297,7 +304,8 @@ class S111File:
         # Create a list of all feature instance objects and groups
         feature_instance_objs = []
         self.feature_instance.visit(feature_instance_objs.append)
-        feature_instance_groups = [obj for obj in feature_instance_objs if isinstance(self.feature_instance[obj], h5py.Group)]
+        feature_instance_groups = [obj for obj in feature_instance_objs if
+                                   isinstance(self.feature_instance[obj], h5py.Group)]
 
         # Convert time value to string
         time_str = time_value.strftime("%Y%m%dT%H%M%SZ")
@@ -340,12 +348,13 @@ class S111File:
 
         # Write data to empty feature instance group
         values_dtype = numpy.dtype([("SurfaceCurrentSpeed", numpy.float32),
-                  ("SurfaceCurrentDirection", numpy.float32)])
+                                    ("SurfaceCurrentDirection", numpy.float32)])
 
-        values = numpy.zeros((directions.shape), dtype=values_dtype)
+        values = numpy.zeros(directions.shape, dtype=values_dtype)
         values['SurfaceCurrentSpeed'] = speeds
         values['SurfaceCurrentDirection'] = directions
-        values_dset = new_group.create_dataset('values', directions.shape, dtype=values_dtype, chunks=True, compression="gzip", compression_opts=9,)# fillvalue = (-9999., -9999.)) 
+        values_dset = new_group.create_dataset('values', directions.shape, dtype=values_dtype, chunks=True,
+                                               compression="gzip", compression_opts=9)
         values_dset[...] = values
 
         # Update group_f attributes
@@ -353,8 +362,10 @@ class S111File:
 
         if len(self.feature_instance) == 2:
             # Time record interval is the same through out the forecast.
-            first_time = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfFirstRecord']),"%Y%m%dT%H%M%SZ")
-            last_time = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfLastRecord']),"%Y%m%dT%H%M%SZ")
+            first_time = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfFirstRecord']),
+                                                    "%Y%m%dT%H%M%SZ")
+            last_time = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfLastRecord']),
+                                                   "%Y%m%dT%H%M%SZ")
             interval = last_time - first_time
             time_interval = interval.total_seconds()
             self.feature_instance.attrs.modify('timeRecordInterval', time_interval)
@@ -371,7 +382,7 @@ class S111File:
                 self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
 
-def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model, s111_info):
+def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model, s111_info):
     """Convert ROMS model output to regular grid in S111 format.
 
     If the supplied ROMS index NetCDF contains information identifying
@@ -399,6 +410,7 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
         cycletime: `datetime.datetime` instance representing target cycle time
             of model forecast(s) being processed.
         ofs_model: Model identifier (e.g. "cbofs").
+        s111_info: Target model and s111 metadata.
     """
     # Path format/prefix for output S111 files. Forecast initialization (reference).
     if os.path.isdir(s111_path_prefix):
@@ -412,7 +424,8 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
             with contextlib.ExitStack() as stack:
                 s111_files = []
                 for i in range(roms_index.dim_subgrid.size):
-                    s111_file = S111File("{}_SUBGRID_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_id[i]), clobber=True)
+                    s111_file = S111File("{}_SUBGRID_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_id[i]),
+                                         clobber=True)
                     stack.enter_context(s111_file)
                     s111_file.update_attributes(roms_index, s111_info, i)
                     s111_files.append(s111_file)
@@ -423,9 +436,10 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
                     stack.enter_context(roms_file)
                     roms_files.append(roms_file)
                     # Convert gregorian timestamp to datetime timestamp
-                    time_val = netCDF4.num2date(roms_file.nc_file.variables['ocean_time'][:], roms_file.nc_file.variables['ocean_time'].units)[0]
+                    time_val = netCDF4.num2date(roms_file.nc_file.variables['ocean_time'][:],
+                                                roms_file.nc_file.variables['ocean_time'].units)[0]
                     times.append(time_val)
-                
+
                 for i, roms_file in enumerate(roms_files):
                     reg_grid_u, reg_grid_v = roms_file.uv_to_regular_grid(roms_index)
                     # Convert currents at regular grid points from u/v to speed
@@ -433,14 +447,14 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
                     directions, speeds = roms.uv_to_speed_direction(reg_grid_u, reg_grid_v)
                     directions = ma.masked_array(directions, roms_index.var_xi1.mask)
                     speeds = ma.masked_array(speeds, roms_index.var_xi1.mask)
-                    
+
                     for subgrid_index, s111_file in enumerate(s111_files):
                         x_min = roms_index.var_subgrid_x_min[subgrid_index]
                         x_max = roms_index.var_subgrid_x_max[subgrid_index]
                         y_min = roms_index.var_subgrid_y_min[subgrid_index]
                         y_max = roms_index.var_subgrid_y_max[subgrid_index]
-                        subgrid_speed = speeds[y_min:y_max+1, x_min:x_max+1]
-                        subgrid_direction = directions[y_min:y_max+1, x_min:x_max+1]
+                        subgrid_speed = speeds[y_min:y_max + 1, x_min:x_max + 1]
+                        subgrid_direction = directions[y_min:y_max + 1, x_min:x_max + 1]
                         s111_file.add_data(times[i], subgrid_speed, subgrid_direction, cycletime)
         else:
             # Output to default grid (no subgrids)
@@ -449,16 +463,16 @@ def romsToS111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, 
                 for roms_output_path in roms_output_paths:
                     with roms.ROMSOutputFile(roms_output_path) as roms_file:
                         # Convert gregorian timestamp to datetime timestamp
-                        time_val = netCDF4.num2date(roms_file.nc_file.variables['ocean_time'][:], roms_file.nc_file.variables['ocean_time'].units)[0]
-                        
+                        time_val = netCDF4.num2date(roms_file.nc_file.variables['ocean_time'][:],
+                                                    roms_file.nc_file.variables['ocean_time'].units)[0]
+
                         # Call roms method and convert and interpolate u/v to regular grid
                         reg_grid_u, reg_grid_v = roms_file.uv_to_regular_grid(roms_index)
-                        
+
                         # Convert currents at regular grid points from u/v to speed
                         # and direction
                         directions, speeds = roms.uv_to_speed_direction(reg_grid_u, reg_grid_v)
                         directions = ma.masked_array(directions, roms_index.var_xi1.mask)
                         speeds = ma.masked_array(speeds, roms_index.var_xi1.mask)
-                        
-                        s111_file.add_data(time_val, speeds, directions, cycletime)
 
+                        s111_file.add_data(time_val, speeds, directions, cycletime)
