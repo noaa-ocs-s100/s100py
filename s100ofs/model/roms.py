@@ -283,7 +283,7 @@ class ROMSIndexFile:
             num_subgrids: Number of subgrids.
         """
         self.dim_subgrid = self.nc_file.createDimension(self.DIMNAME_SUBGRID, num_subgrids)
-        self.var_subgrid_id = self.nc_file.createVariable('subgrid_id', 'i4', (self.DIMNAME_SUBGRID,),fill_value=FILLVALUE)
+        self.var_subgrid_id = self.nc_file.createVariable('subgrid_id', 'i4', (self.DIMNAME_SUBGRID,), fill_value=FILLVALUE)
         self.var_subgrid_x_min = self.nc_file.createVariable('subgrid_x_min', 'i4', (self.DIMNAME_SUBGRID,))
         self.var_subgrid_x_max = self.nc_file.createVariable('subgrid_x_max', 'i4', (self.DIMNAME_SUBGRID,))
         self.var_subgrid_y_min = self.nc_file.createVariable('subgrid_y_min', 'i4', (self.DIMNAME_SUBGRID,))
@@ -311,6 +311,7 @@ class ROMSIndexFile:
                 tiles. Shapefile is assumed to be in the WGS84 projection. If
                 None, the index file will be created assuming no subsets are
                 desired and the extent of the model will be used instead.
+            ofs_model: The target model identifier.
         """
         # Calculate extent of valid (water) points
         water_lat_rho = ma.masked_array(roms_file.var_lat_rho, numpy.logical_not(roms_file.var_mask_rho))
@@ -337,7 +338,7 @@ class ROMSIndexFile:
         self.nc_file.model = str.upper(ofs_model)
         self.nc_file.format = "netCDF-4"
 
-        print ("Full grid dimensions (y,x): ({},{})".format(len(reg_grid.y_coords),len(reg_grid.x_coords)))
+        print ("Full grid dimensions (y,x): ({},{})".format(len(reg_grid.y_coords), len(reg_grid.x_coords)))
 
         # Create NetCDF variables
         self.create_index_coefficient_vars()
@@ -475,7 +476,9 @@ class ROMSIndexFile:
                         if xi > subgrid_x_max:
                             subgrid_x_max = xi
             if subgrid_x_min >= subgrid_x_max or subgrid_y_min >= subgrid_y_max:
-                raise Exception("Error calculating subgrid index ranges for subgrid [{} - fid {}]:\nx_min: {}, x_max: {}, y_min: {}, y_max: {}".format(subgrid_index, fid, subgrid_x_min, subgrid_x_max, subgrid_y_min, subgrid_y_max))
+                raise Exception(
+                    "Error calculating subgrid index ranges for subgrid [{} - fid {}]:\nx_min: {}, x_max: {}, y_min: {}, y_max: {}".format(
+                        subgrid_index, fid, subgrid_x_min, subgrid_x_max, subgrid_y_min, subgrid_y_max))
             self.var_subgrid_x_min[subgrid_index] = subgrid_x_min
             self.var_subgrid_x_max[subgrid_index] = subgrid_x_max
             self.var_subgrid_y_min[subgrid_index] = subgrid_y_min
@@ -718,10 +721,16 @@ class ROMSOutputFile:
         # Extract the variables from the NetCDF
 
         # Call vertical function and return u and v at target depth
-        u_depth, v_depth = vertical_interpolation(self.var_u, self.var_v, self.var_s_rho, self.var_mask_rho, self.var_mask_u, self.var_mask_v, self.var_zeta, self.var_h, self.var_hc, self.var_cs_r, self.var_vtransform, self.num_eta, self.num_xi, self.num_sigma)
-        
+        u_depth, v_depth = vertical_interpolation(self.var_u, self.var_v, self.var_s_rho, self.var_mask_rho,
+                                                  self.var_mask_u, self.var_mask_v, self.var_zeta, self.var_h,
+                                                  self.var_hc, self.var_cs_r, self.var_vtransform, self.num_eta,
+                                                  self.num_xi, self.num_sigma)
+
         # Call masked arrays function and return masked arrays
-        water_u, water_v, water_ang_rho, water_lat_rho, water_lon_rho = mask_land(u_depth, v_depth, self.var_ang_rho, self.var_lat_rho, self.var_lon_rho, self.var_mask_u, self.var_mask_v, self.var_mask_rho)
+        water_u, water_v, water_ang_rho, water_lat_rho, water_lon_rho = mask_land(u_depth, v_depth, self.var_ang_rho,
+                                                                                  self.var_lat_rho, self.var_lon_rho,
+                                                                                  self.var_mask_u, self.var_mask_v,
+                                                                                  self.var_mask_rho)
 
         # Call average to rho function u and v scalar values to rho
         u_rho, v_rho = average_uv2rho(water_u, water_v)
@@ -810,14 +819,10 @@ def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, model_index):
     Interpolation.
 
     Args:
-        water_lat_rho: `numpy.ma.masked_array` containing latitude of rho
-            points with NoData/land values masked out.
-        water_lon_rho: `numpy.ma.masked_array` containing longitude of rho
-            points with NoData/land values masked out.
-        rot_urho: `numpy.ma.masked_array` containing u values averaged to rho
+        rot_u_rho: `numpy.ma.masked_array` containing u values averaged to rho
             points and angle-of-rotation applied, with NoData/land values
             masked out.
-        rot_urho: `numpy.ma.masked_array` containing v values averaged to rho
+        rot_v_rho: `numpy.ma.masked_array` containing v values averaged to rho
             points and angle-of-rotation applied, with NoData/land values
             masked out.
         model_index: `ROMSIndexFile` from which index values/coefficients will
@@ -844,7 +849,9 @@ def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, model_index):
                 u3 = rot_u_rho[eta3, xi3]
                 u4 = rot_u_rho[eta4, xi4]
                 # Use Inverse Distance Weighting algorithm to interpolate u to the regular grid
-                ugrid[y, x] = ((((model_index.var_w1[y, x]) * u1) + ((model_index.var_w2[y, x]) * u2) + ((model_index.var_w3[y, x]) * u3) + ((model_index.var_w4[y, x]) * u4)) / model_index.var_wsum[y, x])
+                ugrid[y, x] = ((((model_index.var_w1[y, x]) * u1) + ((model_index.var_w2[y, x]) * u2) + (
+                            (model_index.var_w3[y, x]) * u3) + ((model_index.var_w4[y, x]) * u4)) /
+                               model_index.var_wsum[y, x])
     
     # Create masked empty regular grid for variable v        
     vgrid = numpy.ma.empty(shape=[model_index.dim_y.size, model_index.dim_x.size])
@@ -868,7 +875,9 @@ def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, model_index):
                 v4 = rot_v_rho[eta4, xi4]
                 # Use Inverse Distance Weighting algorithm to interpolate v to
                 # the regular grid
-                vgrid[y, x] = ((((model_index.var_w1[y, x]) * v1) + ((model_index.var_w2[y, x]) * v2) + ((model_index.var_w3[y, x]) * v3) + ((model_index.var_w4[y, x]) * v4)) / model_index.var_wsum[y, x])
+                vgrid[y, x] = ((((model_index.var_w1[y, x]) * v1) + ((model_index.var_w2[y, x]) * v2) + (
+                            (model_index.var_w3[y, x]) * v3) + ((model_index.var_w4[y, x]) * v4)) /
+                               model_index.var_wsum[y, x])
 
     # Apply mask from index file
     ugrid = numpy.ma.masked_array(ugrid, model_index.var_xi1.mask)
@@ -959,6 +968,13 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
         h: `numpy.ndarray` containing bathymetry at rho points.
         hc: `numpy.ndarray` containing s-coordinate parameter, critical depth".
         cs_r: `numpy.ndarray` containing s-coordinate stretching curves at rho points.
+        mask_u: `numpy.ndarray` containing mask values for u points.
+        mask_v: `numpy.ndarray` containing mask values for v points.
+        mask_rho: `numpy.ndarray` containing mask values for rho points.
+        vtransform: vertical terrain-following transformation equation.
+        num_eta: eta dimensions.
+        num_xi: xi dimensions.
+        num_sigma: sigma dimensions.
     """
     zeta = ma.masked_array(zeta, numpy.logical_not(mask_rho))
     z = numpy.ma.empty(shape=[num_eta, num_xi, num_sigma])
