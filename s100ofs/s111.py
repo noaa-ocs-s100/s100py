@@ -77,7 +77,6 @@ class S111File:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.h5_file.flush()
         self.h5_file.close()
 
     def close(self):
@@ -381,6 +380,8 @@ class S111File:
             if max_speed > prior_max_speed:
                 self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
+        self.h5_file.flush()
+
 
 def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model, s111_info):
     """Convert ROMS model output to regular grid in S111 format.
@@ -449,13 +450,18 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                     speeds = ma.masked_array(speeds, roms_index.var_xi1.mask)
 
                     for subgrid_index, s111_file in enumerate(s111_files):
-                        x_min = roms_index.var_subgrid_x_min[subgrid_index]
-                        x_max = roms_index.var_subgrid_x_max[subgrid_index]
-                        y_min = roms_index.var_subgrid_y_min[subgrid_index]
-                        y_max = roms_index.var_subgrid_y_max[subgrid_index]
-                        subgrid_speed = speeds[y_min:y_max + 1, x_min:x_max + 1]
-                        subgrid_direction = directions[y_min:y_max + 1, x_min:x_max + 1]
-                        s111_file.add_data(times[i], subgrid_speed, subgrid_direction, cycletime)
+                        if os.path.isfile(s111_file.path):
+                            x_min = roms_index.var_subgrid_x_min[subgrid_index]
+                            x_max = roms_index.var_subgrid_x_max[subgrid_index]
+                            y_min = roms_index.var_subgrid_y_min[subgrid_index]
+                            y_max = roms_index.var_subgrid_y_max[subgrid_index]
+                            subgrid_speed = speeds[y_min:y_max + 1, x_min:x_max + 1]
+                            subgrid_direction = directions[y_min:y_max + 1, x_min:x_max + 1]
+                            if ma.count(subgrid_speed) >= 20:
+                                s111_file.add_data(times[i], subgrid_speed, subgrid_direction, cycletime)
+                            else:
+                                s111_file.close()
+                                os.remove("{}".format(s111_file.path))
         else:
             # Output to default grid (no subgrids)
             with S111File("{}.h5".format(s111_path_prefix), clobber=True) as s111_file:

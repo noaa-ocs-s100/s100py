@@ -262,19 +262,19 @@ class ROMSIndexFile:
 
     def create_index_coefficient_vars(self):
         """Create index/coefficient NetCDF variables."""
-        self.var_xi1 = self.nc_file.createVariable('xi1', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_eta1 = self.nc_file.createVariable('eta1', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_w1 = self.nc_file.createVariable('w1', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_xi2 = self.nc_file.createVariable('xi2', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_eta2 = self.nc_file.createVariable('eta2', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_w2 = self.nc_file.createVariable('w2', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_xi3 = self.nc_file.createVariable('xi3', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_eta3 = self.nc_file.createVariable('eta3', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_w3 = self.nc_file.createVariable('w3', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_xi4 = self.nc_file.createVariable('xi4', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_eta4 = self.nc_file.createVariable('eta4', 'i4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_w4 = self.nc_file.createVariable('w4', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
-        self.var_wsum = self.nc_file.createVariable('wsum', 'f4', (self.DIMNAME_Y,self.DIMNAME_X),fill_value=FILLVALUE)
+        self.var_xi1 = self.nc_file.createVariable('xi1', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_eta1 = self.nc_file.createVariable('eta1', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_w1 = self.nc_file.createVariable('w1', 'f4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_xi2 = self.nc_file.createVariable('xi2', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_eta2 = self.nc_file.createVariable('eta2', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_w2 = self.nc_file.createVariable('w2', 'f4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_xi3 = self.nc_file.createVariable('xi3', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_eta3 = self.nc_file.createVariable('eta3', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_w3 = self.nc_file.createVariable('w3', 'f4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_xi4 = self.nc_file.createVariable('xi4', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_eta4 = self.nc_file.createVariable('eta4', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_w4 = self.nc_file.createVariable('w4', 'f4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_wsum = self.nc_file.createVariable('wsum', 'f4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
 
     def create_subgrid_dims_vars(self, num_subgrids):
         """Create subgrid-related NetCDF dimensions/variables.
@@ -476,9 +476,7 @@ class ROMSIndexFile:
                         if xi > subgrid_x_max:
                             subgrid_x_max = xi
             if subgrid_x_min >= subgrid_x_max or subgrid_y_min >= subgrid_y_max:
-                raise Exception(
-                    "Error calculating subgrid index ranges for subgrid [{} - fid {}]:\nx_min: {}, x_max: {}, y_min: {}, y_max: {}".format(
-                        subgrid_index, fid, subgrid_x_min, subgrid_x_max, subgrid_y_min, subgrid_y_max))
+                raise Exception("Error calculating subgrid index ranges for subgrid [{} - fid {}]:x_min: {}, x_max: {}, y_min: {}, y_max: {}".format(subgrid_index, fid, subgrid_x_min, subgrid_x_max, subgrid_y_min, subgrid_y_max))
             self.var_subgrid_x_min[subgrid_index] = subgrid_x_min
             self.var_subgrid_x_max[subgrid_index] = subgrid_x_max
             self.var_subgrid_y_min[subgrid_index] = subgrid_y_min
