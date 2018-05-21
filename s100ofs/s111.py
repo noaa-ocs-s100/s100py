@@ -98,7 +98,6 @@ class S111File:
         # Integer types
         self.h5_file.attrs.create('horizontalDatumValue', 0, dtype=numpy.int32)
         # Enumeration types
-        # self.h5_file.attrs.create('verticalDatum', 0, dtype=numpy.int32)
         self.h5_file.attrs.create('depthTypeIndex', 0, dtype=numpy.int32)
         # Real types
         self.h5_file.attrs.create('surfaceCurrentDepth', 0, dtype=numpy.float32)
@@ -201,7 +200,6 @@ class S111File:
         self.h5_file.attrs.modify('epoch', s111_info[3])
         self.h5_file.attrs.modify('horizontalDatumReference', s111_info[4])
         self.h5_file.attrs.modify('horizontalDatumValue', s111_info[5])
-        # self.h5_file.attrs.modify('verticalDatum', 2)
         self.h5_file.attrs.modify('depthTypeIndex', 2)
         self.h5_file.attrs.modify('surfaceCurrentDepth', - 4.5)
         self.h5_file.attrs.modify('westBoundLongitude', min_lon)
@@ -213,7 +211,7 @@ class S111File:
         self.feature.attrs.modify('dataCodingFormat', 2)
         self.feature.attrs.modify('interpolationType', 10)
         self.feature.attrs.modify('typeOfCurrentData', 6)
-        self.feature.attrs.modify('commonPointRule', 1)
+        self.feature.attrs.modify('commonPointRule', 3)
         self.feature.attrs.modify('dimension', 2)
         self.feature.attrs.modify('sequenceRule.type', 1)
         self.feature.attrs.modify('methodCurrentsProduct', s111_info[2])
