@@ -19,6 +19,7 @@ import numpy.ma as ma
 import osr
 import ogr
 from shapely.geometry import Polygon, Point, MultiPolygon, shape
+from scipy import interpolate
 
 # Conversion factor for meters/sec to knots
 MS2KNOTS = 1.943844
@@ -752,8 +753,8 @@ def uv_to_speed_direction(reg_grid_u, reg_grid_v):
         reg_grid_v: `numpy.ma.masked_array` containing v values interpolated to
             the regular grid.
     """
-    directions = numpy.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
-    speeds = numpy.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
+    direction = numpy.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
+    speed = numpy.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
     for y in range(reg_grid_u.shape[0]):
         for x in range(reg_grid_u.shape[1]):
             if reg_grid_u.mask[y, x]:
@@ -775,20 +776,17 @@ def uv_to_speed_direction(reg_grid_u, reg_grid_v):
                 print("reg_grid_u.mask[y,x]: {}".format(reg_grid_u.mask[y, x]))
                 print("reg_grid_v.mask[y,x]: {}".format(reg_grid_v.mask[y, x]))
                 print("u_ms: {}, v_ms: {}".format(u_ms, v_ms))
-                print("u_knot: {}, v_knot: {}".format(u_ms, v_ms))
+                print("u_knot: {}, v_knot: {}".format(u_knot, v_knot))
                 raise e
 
             # The direction must always be positive.
             if current_direction_north < 0.0:
                 current_direction_north += 360.0
 
-            directions[y, x] = current_direction_north
-            speeds[y, x] = current_speed
+            direction[y, x] = current_direction_north
+            speed[y, x] = current_speed
 
-    directions = numpy.ma.masked_array(directions, reg_grid_u.mask)
-    speeds = numpy.ma.masked_array(speeds, reg_grid_u.mask)
-
-    return directions, speeds
+    return direction, speed
 
 
 def rotate_uv2d(u_rho, v_rho, water_ang_rho):
@@ -850,7 +848,7 @@ def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, model_index):
                 ugrid[y, x] = ((((model_index.var_w1[y, x]) * u1) + ((model_index.var_w2[y, x]) * u2) + (
                             (model_index.var_w3[y, x]) * u3) + ((model_index.var_w4[y, x]) * u4)) /
                                model_index.var_wsum[y, x])
-    
+
     # Create masked empty regular grid for variable v        
     vgrid = numpy.ma.empty(shape=[model_index.dim_y.size, model_index.dim_x.size])
 
@@ -878,10 +876,10 @@ def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, model_index):
                                model_index.var_wsum[y, x])
 
     # Apply mask from index file
-    ugrid = numpy.ma.masked_array(ugrid, model_index.var_xi1.mask)
-    vgrid = numpy.ma.masked_array(vgrid, model_index.var_xi1.mask)
+    reg_grid_u = numpy.ma.masked_array(ugrid, model_index.var_xi1.mask)
+    reg_grid_v = numpy.ma.masked_array(vgrid, model_index.var_xi1.mask)
 
-    return ugrid, vgrid
+    return reg_grid_u, reg_grid_v
 
 
 def average_uv2rho(water_u, water_v):
@@ -915,7 +913,7 @@ def average_uv2rho(water_u, water_v):
         for xi in range(num_xi-1):
             u_rho[eta, xi] = (water_u[eta, xi] + water_u[eta, xi+1])/2
         u_rho[eta, num_xi-1] = water_u[eta, num_xi-1]
-        
+
     # Average v values
     v_rho = numpy.ndarray([num_eta, num_xi])
     
@@ -950,8 +948,8 @@ def mask_land(u_depth, v_depth, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_
     water_v = water_v.filled(0)
     water_ang_rho = ma.masked_array(ang_rho, numpy.logical_not(mask_rho))
     water_lat_rho = ma.masked_array(lat_rho, numpy.logical_not(mask_rho))
-    water_lon_rho = ma.masked_array(lon_rho, numpy.logical_not(mask_rho))  
-           
+    water_lon_rho = ma.masked_array(lon_rho, numpy.logical_not(mask_rho))
+
     return water_u, water_v, water_ang_rho, water_lat_rho, water_lon_rho
 
 
@@ -974,87 +972,38 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
         num_xi: xi dimensions.
         num_sigma: sigma dimensions.
     """
+
     zeta = ma.masked_array(zeta, numpy.logical_not(mask_rho))
-    z = numpy.ma.empty(shape=[num_eta, num_xi, num_sigma])
+    z = numpy.ma.empty(shape=[num_sigma, num_eta, num_xi])
 
     if vtransform == 1:
         # Roms vertical transformation equation 1
         for k in range(num_sigma):
             s = ((hc * s_rho[k]) + (h - hc) * cs_r[k])
-            z[:, :, k] = s + zeta * (1 + s/h)
-
+            z[k, :, :] = s + zeta * (1 + s/h)
     else:
         # Roms vertical transformation equation 2 GOMOFS Only
         for k in range(num_sigma):
             s = ((hc * s_rho[k]) + (h*cs_r[k]))/(h + hc)
-            z[:, :, k] = zeta + ([zeta + h]*s)
+            z[k, :, :] = zeta + ([zeta + h]*s)
 
     # For areas shallower than 9m the target depth is half the total depth
     # For areas deeper than 9m the target depth is 4.5m from zeta
     total_depth = h + zeta
     target_depth = zeta - numpy.minimum(9, total_depth)/2
 
-    # For every rho point store z level index values and depth values, 
-    # above and below the target depth in a masked array
-    z_level = numpy.ma.empty(shape=[num_eta, num_xi, 4])
-
-    for eta in range(num_eta):
-        for xi in range(num_xi):
-            if not zeta.mask[eta, xi]:
-                # Finds the closest values above and below the target depth
-                depth1 = (z[eta, xi, :])[(z[eta, xi, :]) >= (target_depth[eta, xi])].min()
-                depth2 = (z[eta, xi, :])[(z[eta, xi, :]) <= (target_depth[eta, xi])].max()
-                # Identifies the z levels and the depths above and below the target
-                zmin = min(enumerate(z[eta, xi, :]), key=lambda x: abs(x[1]-depth1))
-                zmax = min(enumerate(z[eta, xi, :]), key=lambda x: abs(x[1]-depth2))
-                # Store each variable in the z_level masked array
-                z_level[eta, xi, 0] = zmin[0]  # z level 1
-                z_level[eta, xi, 1] = zmax[0]  # z level 2
-                z_level[eta, xi, 2] = zmin[1]  # z level 1 depth value
-                z_level[eta, xi, 3] = zmax[1]  # z level 2 depth value
-
     u_depth = numpy.ma.empty(shape=[num_eta, num_xi])
-
+    v_depth = numpy.ma.empty(shape=[num_eta, num_xi])
+    # Perform vertical linear interpolation on u/v values to target depth
     for eta in range(num_eta):
         for xi in range(num_xi):
             if not zeta.mask[eta, xi]:
                 if mask_u[eta, xi] != 0:
-                    z1 = z_level[eta, xi, 2]  # z level 1 depth value
-                    z2 = z_level[eta, xi, 3]  # z level 2 depth value
-                    u_zmin = int(z_level[eta, xi, 0])  # u sigma level corresponding to z level 1
-                    u_zmax = int(z_level[eta, xi, 1])  # u sigma level corresponding to z level 2
-                    u1 = u[u_zmin, eta, xi]  # u sigma level 1
-                    u2 = u[u_zmax, eta, xi]  # u sigma level 2
-                    td1 = target_depth[eta, xi]
-                    if u1 == u2:
-                        u_interp = u1
-                    else:
-                        # Using linear interpolation calculate u at target depth
-                        u_interp = u2 - ((u2 - u1) * ((z2 - td1) / (z2 - z1)))
-                    # Store interpolated u values in a masked array
-                    u_depth[eta, xi] = u_interp
-                    u_depth = numpy.nan_to_num(u_depth, FILLVALUE)
+                    u_depth_interp = interpolate.interp1d(z[:, eta, xi], u[:, eta, xi], fill_value='extrapolate')
+                    u_depth[eta, xi] = u_depth_interp(target_depth.data[eta, xi])
 
-    v_depth = numpy.ma.empty(shape=[num_eta, num_xi])
-
-    for eta in range(num_eta):
-        for xi in range(num_xi):
-            if not zeta.mask[eta, xi]:
                 if mask_v[eta, xi] != 0:
-                    z1 = z_level[eta, xi, 2]  # z level 1 value
-                    z2 = z_level[eta, xi, 3]  # z level 2 value
-                    v_zmin = int(z_level[eta, xi, 0])  # v sigma level corresponding to z level 1
-                    v_zmax = int(z_level[eta, xi, 1])  # v sigma level corresponding to z level 2
-                    v1 = v[v_zmin, eta, xi]  # v sigma level 1
-                    v2 = v[v_zmax, eta, xi]  # v sigma level 2
-                    td1 = target_depth[eta, xi]
-                    if v1 == v2:
-                        v_interp = v1
-                    else:
-                        # Using linear interpolation calculate u at target depth
-                        v_interp = v2 - ((v2 - v1) * ((z2 - td1) / (z2 - z1)))
-                    # Store interpolated v values in a masked array
-                    v_depth[eta, xi] = v_interp
-                    v_depth = numpy.nan_to_num(v_depth, FILLVALUE)
+                    v_depth_interp = interpolate.interp1d(z[:, eta, xi], v[:, eta, xi], fill_value='extrapolate')
+                    v_depth[eta, xi] = v_depth_interp(target_depth.data[eta, xi])
 
     return u_depth, v_depth
