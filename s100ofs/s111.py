@@ -80,6 +80,7 @@ class S111File:
         self.h5_file.close()
 
     def close(self):
+        self.h5_file.flush()
         self.h5_file.close()
 
     def add_structure_and_metadata(self):
@@ -216,7 +217,6 @@ class S111File:
         self.feature.attrs.modify('dimension', S111Metadata.dimension)
         self.feature.attrs.modify('sequenceRule.type', S111Metadata.sequenceRuleType)
         self.feature.attrs.modify('methodCurrentsProduct', ofs_product)
-        scan_direction = numpy.string_('latitude,longitude')
         self.feature.attrs.modify('sequenceRule.scanDirection', S111Metadata.sequenceRuleScanDirection)
 
         # Update feature instance metadata
@@ -315,18 +315,18 @@ class S111File:
             # Time attributes updated once
             issuance_time = cycletime.strftime("%H%M%SZ")
             issuance_date = cycletime.strftime("%Y%m%d")
-            self.h5_file.attrs.modify('issueTime', issuance_time.encode())
-            self.h5_file.attrs.modify('issueDate', issuance_date.encode())
+            self.h5_file.attrs.modify('issueTime', numpy.string_(issuance_time))
+            self.h5_file.attrs.modify('issueDate', numpy.string_(issuance_date))
             self.feature.attrs.modify('numInstances', len(self.feature_instance))
-            self.feature_instance.attrs.modify('dateTimeOfFirstRecord', time_str.encode())
-            self.feature_instance.attrs.modify('dateTimeOfLastRecord', time_str.encode())
+            self.feature_instance.attrs.modify('dateTimeOfFirstRecord', numpy.string_(time_str))
+            self.feature_instance.attrs.modify('dateTimeOfLastRecord', numpy.string_(time_str))
 
         else:
             num_grps = len(feature_instance_groups)
             new_grp = num_grps + 1
             new_group = self.feature_instance.create_group('Group_{}'.format(str(new_grp).zfill(3)))
             print("Creating", "Group_{}".format(str(new_grp).zfill(3)), "dataset.")
-            self.feature_instance.attrs.modify('dateTimeOfLastRecord', time_str.encode())
+            self.feature_instance.attrs.modify('dateTimeOfLastRecord', numpy.string_(time_str))
 
         # Update attributes from datasets added
         min_speed = numpy.nanmin(reg_grid_speed)
@@ -340,7 +340,7 @@ class S111File:
         direction = numpy.round(direction, decimals=1)
 
         # Update attributes from datasets added
-        new_group.attrs.create('timePoint', time_str.encode())
+        new_group.attrs.create('timePoint', numpy.string_(time_str), None, h5py.special_dtype(vlen=str))
         self.feature_instance.attrs.modify('numberOfTimes', len(self.feature_instance))
         self.feature_instance.attrs.modify('numGRP', len(self.feature_instance))
 
@@ -378,9 +378,6 @@ class S111File:
                 self.feature.attrs.modify('minDatasetCurrentSpeed', min_speed)
             if max_speed > prior_max_speed:
                 self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
-
-        self.h5_file.flush()
-
 
 class S111Metadata():
     """Contains s111 metadata to pass to s111File.
