@@ -166,7 +166,7 @@ class S111File:
             subgrid_index: (Optional, default None) Index of subgrid, if any,
                 that this S111File represents. Corresponds with index into
                 subgrid dimension of model index file.
-            ofs_region: Geographic indentifier metadata.
+            ofs_region: Geographic identifier metadata.
             ofs_product: Model description and type of forecast metadata.
         """
 
@@ -379,6 +379,7 @@ class S111File:
             if max_speed > prior_max_speed:
                 self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
+
 class S111Metadata():
     """Contains s111 metadata to pass to s111File.
 
@@ -443,7 +444,7 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
         cycletime: `datetime.datetime` instance representing target cycle time
             of model forecast(s) being processed.
         ofs_model: Model identifier (e.g. "cbofs").
-        ofs_region: Geographic indentifier metadata.
+        ofs_region: Geographic identifier metadata.
         ofs_product: Model description and type of forecast metadata.
     """
     # Path format/prefix for output S111 files. Forecast initialization (reference).
