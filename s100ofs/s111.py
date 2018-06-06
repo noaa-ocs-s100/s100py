@@ -324,8 +324,8 @@ class S111File:
         else:
             num_grps = len(feature_instance_groups)
             new_grp = num_grps + 1
-            new_group = self.feature_instance.create_group('Group_{}'.format(str(new_grp).zfill(3)))
-            print("Creating", "Group_{}".format(str(new_grp).zfill(3)), "dataset.")
+            new_group = self.feature_instance.create_group('Group_{:03d}'.format(new_grp))
+            print("Creating", "Group_{:03d}".format(new_grp), "dataset.")
             self.feature_instance.attrs.modify('dateTimeOfLastRecord', numpy.string_(time_str))
 
         # Update attributes from datasets added
