@@ -715,21 +715,21 @@ class ROMSOutputFile:
         self.num_xi = self.var_h.shape[1]
         self.num_sigma = self.var_s_rho.shape[0]
 
-    def uv_to_regular_grid(self, model_index):
+    def uv_to_regular_grid(self, model_index, target_depth):
         """Interpolate u/v to regular grid"""
         # Extract the variables from the NetCDF
 
         # Call vertical function and return u and v at target depth
-        u_depth, v_depth = vertical_interpolation(self.var_u, self.var_v, self.var_s_rho, self.var_mask_rho,
-                                                  self.var_mask_u, self.var_mask_v, self.var_zeta, self.var_h,
-                                                  self.var_hc, self.var_cs_r, self.var_vtransform, self.num_eta,
-                                                  self.num_xi, self.num_sigma)
-
+        u_target_depth, v_target_depth = vertical_interpolation(self.var_u, self.var_v, self.var_s_rho,
+                                                                self.var_mask_rho, self.var_mask_u, self.var_mask_v,
+                                                                self.var_zeta, self.var_h, self.var_hc, self.var_cs_r,
+                                                                self.var_vtransform, self.num_eta, self.num_xi,
+                                                                self.num_sigma, target_depth)
         # Call masked arrays function and return masked arrays
-        water_u, water_v, water_ang_rho, water_lat_rho, water_lon_rho = mask_land(u_depth, v_depth, self.var_ang_rho,
-                                                                                  self.var_lat_rho, self.var_lon_rho,
-                                                                                  self.var_mask_u, self.var_mask_v,
-                                                                                  self.var_mask_rho)
+        water_u, water_v, water_ang_rho, water_lat_rho, water_lon_rho = mask_land(u_target_depth, v_target_depth,
+                                                                                  self.var_ang_rho, self.var_lat_rho,
+                                                                                  self.var_lon_rho, self.var_mask_u,
+                                                                                  self.var_mask_v, self.var_mask_rho)
 
         # Call average to rho function u and v scalar values to rho
         u_rho, v_rho = average_uv2rho(water_u, water_v)
@@ -925,13 +925,13 @@ def average_uv2rho(water_u, water_v):
     return u_rho, v_rho
 
 
-def mask_land(u_depth, v_depth, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho):
+def mask_land(u_target_depth, v_target_depth, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_rho):
     """Create masked arrays for specified variables to mask land values.
 
     Args:
-        u_depth: `numpy.ndarray` containing u values for entire grid at
+        u_target_depth: `numpy.ndarray` containing u values for entire grid at
             specified depth.
-        v_depth: `numpy.ndarray` containing v values for entire grid at
+        v_target_depth: `numpy.ndarray` containing v values for entire grid at
             specified depth.
         ang_rho: `numpy.ndarray` containing angle-of-rotation values at
             rho points.
@@ -941,8 +941,8 @@ def mask_land(u_depth, v_depth, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_
         mask_v: `numpy.ndarray` containing mask values for v points.
         mask_rho: `numpy.ndarray` containing mask values for rho points.
     """
-    water_u = ma.masked_array(u_depth, numpy.logical_not(mask_u))
-    water_v = ma.masked_array(v_depth, numpy.logical_not(mask_v))
+    water_u = ma.masked_array(u_target_depth, numpy.logical_not(mask_u))
+    water_v = ma.masked_array(v_target_depth, numpy.logical_not(mask_v))
     # u/v masked values need to be set to 0 for averaging 
     water_u = water_u.filled(0)
     water_v = water_v.filled(0)
@@ -953,7 +953,7 @@ def mask_land(u_depth, v_depth, ang_rho, lat_rho, lon_rho, mask_u, mask_v, mask_
     return water_u, water_v, water_ang_rho, water_lat_rho, water_lon_rho
 
 
-def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, cs_r, vtransform, num_eta, num_xi, num_sigma):
+def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, cs_r, vtransform, num_eta, num_xi, num_sigma, target_depth):
     """Vertically interpolate variables to target depth.
 
     Args:
@@ -971,9 +971,12 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
         num_eta: eta dimensions.
         num_xi: xi dimensions.
         num_sigma: sigma dimensions.
+        target_depth: The water current at a specified target depth below the sea
+            surface in meters, default target depth is 4.5 meters, target interpolation
+            depth must be greater or equal to 0.
     """
-
     zeta = ma.masked_array(zeta, numpy.logical_not(mask_rho))
+    total_depth = h + zeta
     z = numpy.ma.empty(shape=[num_sigma, num_eta, num_xi])
 
     if vtransform == 1:
@@ -987,23 +990,26 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
             s = ((hc * s_rho[k]) + (h*cs_r[k]))/(h + hc)
             z[k, :, :] = zeta + ([zeta + h]*s)
 
-    # For areas shallower than 9m the target depth is half the total depth
-    # For areas deeper than 9m the target depth is 4.5m from zeta
-    total_depth = h + zeta
-    target_depth = zeta - numpy.minimum(9, total_depth)/2
+    if target_depth < 0:
+        raise Exception("Target depth must be positive")
+    if target_depth > numpy.nanmax(total_depth):
+        raise Exception("Target depth exceeds total depth")
 
-    u_depth = numpy.ma.empty(shape=[num_eta, num_xi])
-    v_depth = numpy.ma.empty(shape=[num_eta, num_xi])
+    # For areas shallower than the target depth, depth is half the total depth
+    interp_depth = zeta - numpy.minimum(target_depth*2, total_depth)/2
+
+    u_target_depth = numpy.ma.empty(shape=[num_eta, num_xi])
+    v_target_depth = numpy.ma.empty(shape=[num_eta, num_xi])
     # Perform vertical linear interpolation on u/v values to target depth
     for eta in range(num_eta):
         for xi in range(num_xi):
             if not zeta.mask[eta, xi]:
                 if mask_u[eta, xi] != 0:
-                    u_depth_interp = interpolate.interp1d(z[:, eta, xi], u[:, eta, xi], fill_value='extrapolate')
-                    u_depth[eta, xi] = u_depth_interp(target_depth.data[eta, xi])
+                    u_interp_depth = interpolate.interp1d(z[:, eta, xi], u[:, eta, xi], fill_value='extrapolate')
+                    u_target_depth[eta, xi] = u_interp_depth(interp_depth.data[eta, xi])
 
                 if mask_v[eta, xi] != 0:
-                    v_depth_interp = interpolate.interp1d(z[:, eta, xi], v[:, eta, xi], fill_value='extrapolate')
-                    v_depth[eta, xi] = v_depth_interp(target_depth.data[eta, xi])
+                    v_interp_depth = interpolate.interp1d(z[:, eta, xi], v[:, eta, xi], fill_value='extrapolate')
+                    v_target_depth[eta, xi] = v_interp_depth(interp_depth.data[eta, xi])
 
-    return u_depth, v_depth
+    return u_target_depth, v_target_depth
