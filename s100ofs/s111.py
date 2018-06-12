@@ -17,6 +17,8 @@ from .model import roms
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
+# Default depth in meters
+DEFAULT_TARGET_DEPTH = 4.5
 
 # Dict lookup for HDF5 data type class names
 # See https://github.com/h5py/h5py/blob/master/h5py/api_types_hdf5.pxd#L509
@@ -157,7 +159,7 @@ class S111File:
         self.feature_instance.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
 
-    def update_attributes(self, model_index, ofs_product, ofs_region, subgrid_index=None):
+    def update_attributes(self, model_index, ofs_product, ofs_region, target_depth, subgrid_index=None,):
         """Update HDF5 attributes based on grid properties.
         
         Args:
@@ -168,6 +170,9 @@ class S111File:
                 subgrid dimension of model index file.
             ofs_region: Geographic identifier metadata.
             ofs_product: Model description and type of forecast metadata.
+            target_depth: The water current at a specified target depth below
+                the sea surface in meters, default target depth is 4.5 meters,
+                target interpolation depth must be greater or equal to 0.
         """
 
         # Width between first two cells, grid spacing is uniform
@@ -176,8 +181,7 @@ class S111File:
 
         if subgrid_index is not None:
             if subgrid_index < 0 or subgrid_index >= model_index.dim_subgrid.size:
-                raise Exception(
-                    "Subgrid index [{}] out of model index subgrid dimension range [0-{}]".format(subgrid_index, model_index.dim_subgrid.size - 1))
+                raise Exception("Subgrid index [{}] out of model index subgrid dimension range [0-{}]".format(subgrid_index, model_index.dim_subgrid.size - 1))
             num_points_lon = 1 + model_index.var_subgrid_x_max[subgrid_index] - model_index.var_subgrid_x_min[
                 subgrid_index]
             num_points_lat = 1 + model_index.var_subgrid_y_max[subgrid_index] - model_index.var_subgrid_y_min[
@@ -203,7 +207,7 @@ class S111File:
         self.h5_file.attrs.modify('horizontalDatumReference', S111Metadata.horizontalDatumReference)
         self.h5_file.attrs.modify('horizontalDatumValue', S111Metadata.horizontalDatumValue)
         self.h5_file.attrs.modify('depthTypeIndex', S111Metadata.depthTypeIndex)
-        self.h5_file.attrs.modify('surfaceCurrentDepth', - 4.5)
+        self.h5_file.attrs.modify('surfaceCurrentDepth', target_depth)
         self.h5_file.attrs.modify('westBoundLongitude', min_lon)
         self.h5_file.attrs.modify('eastBoundLongitude', max_lon)
         self.h5_file.attrs.modify('southBoundLatitude', min_lat)
@@ -416,7 +420,7 @@ class S111Metadata():
     sequenceRuleScanDirection = numpy.string_('latitude,longitude')
 
 
-def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model, ofs_product, ofs_region):
+def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model, ofs_product, ofs_region, target_depth = None):
     """Convert ROMS model output to regular grid in S111 format.
 
     If the supplied ROMS index NetCDF contains information identifying
@@ -446,6 +450,9 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
         ofs_model: Model identifier (e.g. "cbofs").
         ofs_region: Geographic identifier metadata.
         ofs_product: Model description and type of forecast metadata.
+        target_depth: The water current at a specified target depth below
+            the sea surface in meters, default target depth is 4.5 meters,
+            target interpolation depth must be greater or equal to 0.
     """
     # Path format/prefix for output S111 files. Forecast initialization (reference).
     if os.path.isdir(s111_path_prefix):
@@ -453,6 +460,8 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
             s111_path_prefix += "/"
         file_issuance = cycletime.strftime("%Y%m%dT%HZ")
         s111_path_prefix += ("S111US_{}_{}_TYP2".format(file_issuance, str.upper(ofs_model)))
+    if target_depth is None:
+        target_depth = DEFAULT_TARGET_DEPTH
     with roms.ROMSIndexFile(roms_index_path) as roms_index:
         if roms_index.dim_subgrid is not None and roms_index.var_subgrid_id is not None:
             # Output to subgrids
@@ -462,7 +471,7 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                     s111_file = S111File("{}_SUBGRID_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_id[i]),
                                          clobber=True)
                     stack.enter_context(s111_file)
-                    s111_file.update_attributes(roms_index, ofs_product, ofs_region, i)
+                    s111_file.update_attributes(roms_index, ofs_product, ofs_region, target_depth, i)
                     s111_files.append(s111_file)
 
                 for roms_output_path in roms_output_paths:
@@ -470,7 +479,7 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                         # Convert gregorian timestamp to datetime timestamp
                         time_val = netCDF4.num2date(roms_file.nc_file.variables['ocean_time'][:],
                                                     roms_file.nc_file.variables['ocean_time'].units)[0]
-                        reg_grid_u, reg_grid_v = roms_file.uv_to_regular_grid(roms_index)
+                        reg_grid_u, reg_grid_v = roms_file.uv_to_regular_grid(roms_index, target_depth)
                         # Convert currents at regular grid points from u/v to speed
                         # and direction
                         direction, speed = roms.uv_to_speed_direction(reg_grid_u, reg_grid_v)
@@ -493,7 +502,7 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
         else:
             # Output to default grid (no subgrids)
             with S111File("{}.h5".format(s111_path_prefix), clobber=True) as s111_file:
-                s111_file.update_attributes(roms_index, ofs_product, ofs_region)
+                s111_file.update_attributes(roms_index, ofs_product, ofs_region, target_depth)
                 for roms_output_path in roms_output_paths:
                     with roms.ROMSOutputFile(roms_output_path) as roms_file:
                         # Convert gregorian timestamp to datetime timestamp
@@ -501,7 +510,7 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                                                     roms_file.nc_file.variables['ocean_time'].units)[0]
 
                         # Call roms method and convert and interpolate u/v to regular grid
-                        reg_grid_u, reg_grid_v = roms_file.uv_to_regular_grid(roms_index)
+                        reg_grid_u, reg_grid_v = roms_file.uv_to_regular_grid(roms_index, target_depth)
 
                         # Convert currents at regular grid points from u/v to speed
                         # and direction
