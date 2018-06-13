@@ -159,7 +159,7 @@ class S111File:
         self.feature_instance.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
 
-    def update_attributes(self, model_index, ofs_product, ofs_region, target_depth, subgrid_index=None,):
+    def update_attributes(self, model_index, ofs_info, target_depth, subgrid_index=None,):
         """Update HDF5 attributes based on grid properties.
         
         Args:
@@ -168,8 +168,7 @@ class S111File:
             subgrid_index: (Optional, default None) Index of subgrid, if any,
                 that this S111File represents. Corresponds with index into
                 subgrid dimension of model index file.
-            ofs_region: Geographic identifier metadata.
-            ofs_product: Model description and type of forecast metadata.
+            ofs_info: OFS specific metadata.
             target_depth: The water current at a specified target depth below
                 the sea surface in meters, default target depth is 4.5 meters,
                 target interpolation depth must be greater or equal to 0.
@@ -198,10 +197,20 @@ class S111File:
             max_lon = numpy.nanmax(model_index.var_x)
             max_lat = numpy.nanmax(model_index.var_y)
 
+        # X/Y coordinates are located at the center of each grid cell
+        # Adjust X/Y coordinates to the lower left/upper right corner for compliance
+        # with S111 product specification by adding/subtracting 1/2 pixel
+        # size from min/max X/Y coordinates
+
+        min_lon -= cellsize_x / 2
+        min_lat -= cellsize_y / 2
+        max_lon += cellsize_x / 2
+        max_lat += cellsize_y / 2
+
         num_nodes = num_points_lon * num_points_lat
 
         # Update carrier metadata
-        self.h5_file.attrs.modify('geographicIdentifier', ofs_region)
+        self.h5_file.attrs.modify('geographicIdentifier', ofs_info["region"])
         self.h5_file.attrs.modify('productSpecification', S111Metadata.productSpecification)
         self.h5_file.attrs.modify('epoch', S111Metadata.epoch)
         self.h5_file.attrs.modify('horizontalDatumReference', S111Metadata.horizontalDatumReference)
@@ -220,7 +229,7 @@ class S111File:
         self.feature.attrs.modify('commonPointRule', S111Metadata.commonPointRule)
         self.feature.attrs.modify('dimension', S111Metadata.dimension)
         self.feature.attrs.modify('sequenceRule.type', S111Metadata.sequenceRuleType)
-        self.feature.attrs.modify('methodCurrentsProduct', ofs_product)
+        self.feature.attrs.modify('methodCurrentsProduct', ofs_info["current_product_method"])
         self.feature.attrs.modify('sequenceRule.scanDirection', S111Metadata.sequenceRuleScanDirection)
 
         # Update feature instance metadata
@@ -420,7 +429,7 @@ class S111Metadata():
     sequenceRuleScanDirection = numpy.string_('latitude,longitude')
 
 
-def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model, ofs_product, ofs_region, target_depth = None):
+def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model, MODELS, target_depth=None):
     """Convert ROMS model output to regular grid in S111 format.
 
     If the supplied ROMS index NetCDF contains information identifying
@@ -448,11 +457,13 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
         cycletime: `datetime.datetime` instance representing target cycle time
             of model forecast(s) being processed.
         ofs_model: Model identifier (e.g. "cbofs").
-        ofs_region: Geographic identifier metadata.
-        ofs_product: Model description and type of forecast metadata.
+        MODELS: OFS specific metadata.
         target_depth: The water current at a specified target depth below
             the sea surface in meters, default target depth is 4.5 meters,
             target interpolation depth must be greater or equal to 0.
+
+    Returns:
+        List of paths to HDF5 files created.
     """
     # Path format/prefix for output S111 files. Forecast initialization (reference).
     if os.path.isdir(s111_path_prefix):
@@ -460,8 +471,14 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
             s111_path_prefix += "/"
         file_issuance = cycletime.strftime("%Y%m%dT%HZ")
         s111_path_prefix += ("S111US_{}_{}_TYP2".format(file_issuance, str.upper(ofs_model)))
+
     if target_depth is None:
         target_depth = DEFAULT_TARGET_DEPTH
+
+    ofs_info = MODELS[ofs_model]
+
+    s111_file_paths = []
+
     with roms.ROMSIndexFile(roms_index_path) as roms_index:
         if roms_index.dim_subgrid is not None and roms_index.var_subgrid_id is not None:
             # Output to subgrids
@@ -470,8 +487,9 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                 for i in range(roms_index.dim_subgrid.size):
                     s111_file = S111File("{}_SUBGRID_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_id[i]),
                                          clobber=True)
+                    s111_file_paths.append(s111_file.path)
                     stack.enter_context(s111_file)
-                    s111_file.update_attributes(roms_index, ofs_product, ofs_region, target_depth, i)
+                    s111_file.update_attributes(roms_index, ofs_info, target_depth, i)
                     s111_files.append(s111_file)
 
                 for roms_output_path in roms_output_paths:
@@ -502,7 +520,8 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
         else:
             # Output to default grid (no subgrids)
             with S111File("{}.h5".format(s111_path_prefix), clobber=True) as s111_file:
-                s111_file.update_attributes(roms_index, ofs_product, ofs_region, target_depth)
+                s111_file_paths.append(s111_file.path)
+                s111_file.update_attributes(roms_index, ofs_info, target_depth)
                 for roms_output_path in roms_output_paths:
                     with roms.ROMSOutputFile(roms_output_path) as roms_file:
                         # Convert gregorian timestamp to datetime timestamp
@@ -519,3 +538,4 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                         speed = ma.masked_array(speed, roms_index.var_xi1.mask)
 
                         s111_file.add_data(time_val, speed, direction, cycletime)
+    return s111_file_paths

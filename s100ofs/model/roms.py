@@ -411,6 +411,16 @@ class ROMSIndexFile:
         ofs_poly = ogr.Geometry(ogr.wkbPolygon)
         ofs_poly.AddGeometry(ring)
 
+        # Get the EPSG value from the import shapefile and transform to WGS84
+        spatialRef = layer.GetSpatialRef()
+        shpSRS = spatialRef.GetAttrValue("AUTHORITY", 1)
+        source = osr.SpatialReference()
+        source.ImportFromEPSG(int(shpSRS))
+        target = osr.SpatialReference()
+        target.ImportFromEPSG(4326)
+        transform = osr.CoordinateTransformation(source, target)
+        ofs_poly.Transform(transform)
+
         # Find the intersection between 160k grid and ocean model grid extent
         subset_polys = {}
         fids = []
@@ -513,6 +523,16 @@ class ROMSIndexFile:
         # Create polygon
         ofs_poly = ogr.Geometry(ogr.wkbPolygon)
         ofs_poly.AddGeometry(ring)
+
+        # Get the EPSG value from the import shapefile and transform to WGS84
+        spatialRef = layer.GetSpatialRef()
+        shpSRS = spatialRef.GetAttrValue("AUTHORITY", 1)
+        source = osr.SpatialReference()
+        source.ImportFromEPSG(int(shpSRS))
+        target = osr.SpatialReference()
+        target.ImportFromEPSG(4326)
+        transform = osr.CoordinateTransformation(source, target)
+        ofs_poly.Transform(transform)
 
         # Find the intersection between shoreline shapefile and ocean model grid extent
         for feature in layer:
