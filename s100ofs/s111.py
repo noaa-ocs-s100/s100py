@@ -159,7 +159,7 @@ class S111File:
         self.feature_instance.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
 
-    def update_attributes(self, model_index, ofs_info, target_depth, subgrid_index=None,):
+    def update_attributes(self, model_index, ofs_metadata, target_depth, subgrid_index=None):
         """Update HDF5 attributes based on grid properties.
         
         Args:
@@ -168,7 +168,9 @@ class S111File:
             subgrid_index: (Optional, default None) Index of subgrid, if any,
                 that this S111File represents. Corresponds with index into
                 subgrid dimension of model index file.
-            ofs_info: OFS specific metadata.
+            ofs_metadata: `S111Metadata` instance describing metadata for geographic
+                identifier and description of current meter type, forecast method,
+                or model.
             target_depth: The water current at a specified target depth below
                 the sea surface in meters, default target depth is 4.5 meters,
                 target interpolation depth must be greater or equal to 0.
@@ -210,12 +212,12 @@ class S111File:
         num_nodes = num_points_lon * num_points_lat
 
         # Update carrier metadata
-        self.h5_file.attrs.modify('geographicIdentifier', ofs_info["region"])
-        self.h5_file.attrs.modify('productSpecification', S111Metadata.productSpecification)
-        self.h5_file.attrs.modify('epoch', S111Metadata.epoch)
-        self.h5_file.attrs.modify('horizontalDatumReference', S111Metadata.horizontalDatumReference)
-        self.h5_file.attrs.modify('horizontalDatumValue', S111Metadata.horizontalDatumValue)
-        self.h5_file.attrs.modify('depthTypeIndex', S111Metadata.depthTypeIndex)
+        self.h5_file.attrs.modify('geographicIdentifier', ofs_metadata.region)
+        self.h5_file.attrs.modify('productSpecification', S111Metadata.PRODUCT_SPECIFICATION)
+        self.h5_file.attrs.modify('epoch', S111Metadata.EPOCH)
+        self.h5_file.attrs.modify('horizontalDatumReference', S111Metadata.HORIZONTAL_DATUM_REFERENCE)
+        self.h5_file.attrs.modify('horizontalDatumValue', S111Metadata.HORIZONTAL_DATUM_VALUE)
+        self.h5_file.attrs.modify('depthTypeIndex', S111Metadata.DEPTH_TYPE_INDEX)
         self.h5_file.attrs.modify('surfaceCurrentDepth', target_depth)
         self.h5_file.attrs.modify('westBoundLongitude', min_lon)
         self.h5_file.attrs.modify('eastBoundLongitude', max_lon)
@@ -223,25 +225,24 @@ class S111File:
         self.h5_file.attrs.modify('northBoundLatitude', max_lat)
 
         # Update feature container metadata
-        self.feature.attrs.modify('dataCodingFormat', S111Metadata.dataCodingFormat)
-        self.feature.attrs.modify('interpolationType', S111Metadata.interpolationType)
-        self.feature.attrs.modify('typeOfCurrentData', S111Metadata.typeOfCurrentData)
-        self.feature.attrs.modify('commonPointRule', S111Metadata.commonPointRule)
-        self.feature.attrs.modify('dimension', S111Metadata.dimension)
-        self.feature.attrs.modify('sequenceRule.type', S111Metadata.sequenceRuleType)
-        self.feature.attrs.modify('methodCurrentsProduct', ofs_info["current_product_method"])
-        self.feature.attrs.modify('sequenceRule.scanDirection', S111Metadata.sequenceRuleScanDirection)
+        self.feature.attrs.modify('dataCodingFormat', S111Metadata.DATA_CODING_FORMAT)
+        self.feature.attrs.modify('interpolationType', S111Metadata.INTERPOLATION_TYPE)
+        self.feature.attrs.modify('typeOfCurrentData', S111Metadata.TYPE_OF_CURRENT_DATA)
+        self.feature.attrs.modify('commonPointRule', S111Metadata.COMMON_POINT_RULE)
+        self.feature.attrs.modify('dimension', S111Metadata.DIMENSION)
+        self.feature.attrs.modify('sequenceRule.type', S111Metadata.SEQUENCE_RULE_TYPE)
+        self.feature.attrs.modify('methodCurrentsProduct', ofs_metadata.product)
+        self.feature.attrs.modify('sequenceRule.scanDirection', S111Metadata.SEQUENCE_RULE_SCAN_DIRECTION)
 
         # Update feature instance metadata
-        if self.feature.attrs['dataCodingFormat'] == S111Metadata.dataCodingFormat:
+        if self.feature.attrs['dataCodingFormat'] == S111Metadata.DATA_CODING_FORMAT:
             self.feature_instance.attrs.modify('gridOriginLongitude', min_lon)
             self.feature_instance.attrs.modify('gridOriginLatitude', min_lat)
             self.feature_instance.attrs.modify('gridSpacingLongitudinal', cellsize_x)
             self.feature_instance.attrs.modify('gridSpacingLatitudinal', cellsize_y)
             self.feature_instance.attrs.modify('numPointsLongitudinal', num_points_lon)
             self.feature_instance.attrs.modify('numPointsLatitudinal', num_points_lat)
-            start_sequence = numpy.string_('0,0')
-            self.feature_instance.attrs.modify('startSequence', start_sequence)
+            self.feature_instance.attrs.modify('startSequence', S111Metadata.START_SEQUENCE)
             self.feature_instance.attrs.modify('westBoundLongitude', min_lon)
             self.feature_instance.attrs.modify('eastBoundLongitude', max_lon)
             self.feature_instance.attrs.modify('southBoundLatitude', min_lat)
@@ -393,43 +394,50 @@ class S111File:
                 self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
 
-class S111Metadata():
+class S111Metadata:
     """Contains s111 metadata to pass to s111File.
 
-    product_specification: The product specification used to create this dataset.
-    epoch: Code denoting the epoch of the geodetic datum used by the CRS.
-    horizontal_datum_reference: Reference to the register from which the horizontal datum value is taken.
-    horizontal_datum_value: Horizontal Datum of the entire dataset.
-    dataCodingFormat: Time series at fixed stations, regularly gridded arrays, ungeorectified gridded arrays,
-                      moving platform
-    depthTypeIndex:
-    typeOfCurrentData: Historical, real-time, astronomical , hybrid, hindcast, forecast.
-    metaFeatures: Name of metafeatures file.
-    metadata: Name of XML metadata file.
-    interpolationType: Interpolation method recommended for evaluation of the S100_GridCoverage.
-    commonPointRule: The procedure used for evaluating geometric objects that overlap or lie fall on boundaries.
-    dimension: The dimension of the feature instance
-    sequenceRule_type: Method to assign values from the sequence of values to the grid coordinates (e.g. "linear")
-    sequenceRule_scan_direction: axisNames, comma-separated (e.g. "latitude,longitude")
+    PRODUCT_SPECIFICATION: The product specification used to create this dataset.
+    EPOCH: Code denoting the epoch of the geodetic datum used by the CRS.
+    HORIZONTAL_DATUM_REFERENCE: Reference to the register from which the horizontal datum value is taken.
+    HORIZONTAL_DATUM_VALUE: Horizontal Datum of the entire dataset.
+    DATA_CODING_FORMAT: 1:Time series at fixed stations, 2:Regularly gridded arrays, 3:Ungeorectified
+        gridded arrays, 4:Time series for one moving platform.
+    DEPTH_TYPE_INDEX: 1:Layer average, 2:Sea surface, 3:Vertical datum, 4:Sea bottom.
+    TYPE_OF_CURRENT_DATA: 1:Historical, 2:Real-time, 3:Astronomical , 4:Hybrid, 5:Hydrodynamic model hindcast,
+        6:Hydrodyanmic Model forecast.
+    METAFEATURES: Name of metafeatures file.
+    METADATA: Name of XML metadata file.
+    INTERPOLATION_TYPE: Interpolation method recommended for evaluation of the S100_GridCoverage.
+    COMMON_POINT_RULE: The procedure used for evaluating geometric objects that overlap or lie fall on boundaries.
+    DIMENSION: The dimension of the feature instance.
+    SEQUENCE_RULE_TYPE: Method to assign values from the sequence of values to the grid coordinates (e.g. "linear").
+    SEQUENCE_RULE_SCAN_DIRECTION: AxisNames, comma-separated (e.g. "latitude,longitude").
+    START_SEQUENCE: Starting location of the scan.
 
     """
-    productSpecification = numpy.string_('INT.IHO.S-111.1.0.0')
-    epoch = numpy.string_('G1762')
-    horizontalDatumReference = numpy.string_('EPSG')
-    horizontalDatumValue = 4326
-    dataCodingFormat = 2
-    depthTypeIndex = 2
-    typeOfCurrentData = 6
-    metaFeatures = None
-    metadata = None
-    interpolationType = 10
-    commonPointRule = 3
-    dimension = 2
-    sequenceRuleType = 1
-    sequenceRuleScanDirection = numpy.string_('latitude,longitude')
+    PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-111.1.0.0')
+    EPOCH = numpy.string_('G1762')
+    HORIZONTAL_DATUM_REFERENCE = numpy.string_('EPSG')
+    HORIZONTAL_DATUM_VALUE = 4326
+    DATA_CODING_FORMAT = 2
+    DEPTH_TYPE_INDEX = 2
+    TYPE_OF_CURRENT_DATA = 6
+    METAFEATURES = None
+    METADATA = None
+    INTERPOLATION_TYPE = 10
+    COMMON_POINT_RULE = 3
+    DIMENSION = 2
+    SEQUENCE_RULE_TYPE = 1
+    SEQUENCE_RULE_SCAN_DIRECTION = numpy.string_('latitude,longitude')
+    START_SEQUENCE = numpy.string_('0,0')
+
+    def __init__(self, region, product):
+        self.region = numpy.string_(region)
+        self.product = numpy.string_(product)
 
 
-def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model, MODELS, target_depth=None):
+def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime, ofs_model, ofs_metadata, target_depth=None):
     """Convert ROMS model output to regular grid in S111 format.
 
     If the supplied ROMS index NetCDF contains information identifying
@@ -457,7 +465,9 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
         cycletime: `datetime.datetime` instance representing target cycle time
             of model forecast(s) being processed.
         ofs_model: Model identifier (e.g. "cbofs").
-        MODELS: OFS specific metadata.
+        ofs_metadata: `S111Metadata` instance describing metadata for geographic
+            identifier and description of current meter type, forecast method,
+            or model.
         target_depth: The water current at a specified target depth below
             the sea surface in meters, default target depth is 4.5 meters,
             target interpolation depth must be greater or equal to 0.
@@ -475,8 +485,6 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
     if target_depth is None:
         target_depth = DEFAULT_TARGET_DEPTH
 
-    ofs_info = MODELS[ofs_model]
-
     s111_file_paths = []
 
     with roms.ROMSIndexFile(roms_index_path) as roms_index:
@@ -489,7 +497,7 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                                          clobber=True)
                     s111_file_paths.append(s111_file.path)
                     stack.enter_context(s111_file)
-                    s111_file.update_attributes(roms_index, ofs_info, target_depth, i)
+                    s111_file.update_attributes(roms_index, ofs_metadata, target_depth, i)
                     s111_files.append(s111_file)
 
                 for roms_output_path in roms_output_paths:
@@ -517,11 +525,12 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                                 else:
                                     s111_file.close()
                                     os.remove("{}".format(s111_file.path))
+                                    s111_file_paths.remove(s111_file.path)
         else:
             # Output to default grid (no subgrids)
             with S111File("{}.h5".format(s111_path_prefix), clobber=True) as s111_file:
                 s111_file_paths.append(s111_file.path)
-                s111_file.update_attributes(roms_index, ofs_info, target_depth)
+                s111_file.update_attributes(roms_index, ofs_metadata, target_depth)
                 for roms_output_path in roms_output_paths:
                     with roms.ROMSOutputFile(roms_output_path) as roms_file:
                         # Convert gregorian timestamp to datetime timestamp
@@ -538,4 +547,5 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                         speed = ma.masked_array(speed, roms_index.var_xi1.mask)
 
                         s111_file.add_data(time_val, speed, direction, cycletime)
+
     return s111_file_paths
