@@ -209,6 +209,11 @@ class S111File:
         max_lon += cellsize_x / 2
         max_lat += cellsize_y / 2
 
+        min_lon = numpy.round(min_lon, 7)
+        min_lat = numpy.round(min_lat, 7)
+        max_lon = numpy.round(max_lon, 7)
+        max_lat = numpy.round(max_lon, 7)
+
         num_nodes = num_points_lon * num_points_lat
 
         # Update carrier metadata
