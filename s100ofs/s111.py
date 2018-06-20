@@ -70,6 +70,11 @@ class S111File:
         if not os.path.exists(self.path) or clobber:
             # File doesn't exist, open in create (write) mode and add metadata
             self.h5_file = h5py.File(self.path, "w")
+            # Create s111 structure, feature group, feature type container, and initial feature instance
+            self.groupF = self.h5_file.create_group("Group_F")
+            self.feature = self.h5_file.create_group("SurfaceCurrent")
+            self.feature_instance = self.feature.create_group("SurfaceCurrent.01")
+            # Add s111 structure and metadata
             self.add_structure_and_metadata()
         else:
             # File already exists, open in append mode
@@ -108,11 +113,6 @@ class S111File:
         self.h5_file.attrs.create('eastBoundLongitude', 0, dtype=numpy.float32)
         self.h5_file.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
         self.h5_file.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
-
-        # Create s111 structure, feature group, feature type container, and initial feature instance
-        self.groupF = self.h5_file.create_group("Group_F")
-        self.feature = self.h5_file.create_group("SurfaceCurrent")
-        self.feature_instance = self.feature.create_group("SurfaceCurrent.01")
 
         # Add feature container metadata
         # Integer types
