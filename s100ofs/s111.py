@@ -455,7 +455,7 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
 
     Args:
         roms_index_path: Path to ROMS index NetCDF file containing
-            precalculated grid and interpolation information.
+            precalculated grid and mask information.
         roms_output_paths: List of paths to one or more NetCDF output files
             from a ROMS-based modeling system. Files should be provided in
             ascending chronological order, as this order will be maintained
@@ -514,8 +514,8 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                         # Convert currents at regular grid points from u/v to speed
                         # and direction
                         direction, speed = roms.uv_to_speed_direction(reg_grid_u, reg_grid_v)
-                        direction = ma.masked_array(direction, roms_index.var_xi1.mask)
-                        speed = ma.masked_array(speed, roms_index.var_xi1.mask)
+                        direction = ma.masked_array(direction, roms_index.var_mask.mask)
+                        speed = ma.masked_array(speed, roms_index.var_mask.mask)
 
                         for subgrid_index, s111_file in enumerate(s111_files):
                             if os.path.isfile(s111_file.path):
@@ -548,9 +548,10 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
                         # Convert currents at regular grid points from u/v to speed
                         # and direction
                         direction, speed = roms.uv_to_speed_direction(reg_grid_u, reg_grid_v)
-                        direction = ma.masked_array(direction, roms_index.var_xi1.mask)
-                        speed = ma.masked_array(speed, roms_index.var_xi1.mask)
+                        direction = ma.masked_array(direction, roms_index.var_mask.mask)
+                        speed = ma.masked_array(speed, roms_index.var_mask.mask)
 
                         s111_file.add_data(time_val, speed, direction, cycletime)
 
     return s111_file_paths
+

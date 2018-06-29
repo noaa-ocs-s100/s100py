@@ -20,6 +20,7 @@ import osr
 import ogr
 from shapely.geometry import Polygon, Point, MultiPolygon, shape
 from scipy import interpolate
+import datetime
 
 # Conversion factor for meters/sec to knots
 MS2KNOTS = 1.943844
@@ -144,19 +145,7 @@ class ROMSIndexFile:
         dim_y: Handle to y dimension.
         var_x: Handle to x coordinate variable (longitudes).
         var_y: Handle to y coordinate variable (latitudes).
-        var_xi1: Handle to xi1 variable (xi index of point 1).
-        var_eta1: Handle to eta1 variable (eta index of point 1).
-        var_w1: Handle to w1 variable (weight coefficient of point 1).
-        var_xi2: Handle to xi2 variable (xi index of point 2).
-        var_eta2: Handle to eta2 variable (eta index of point 2).
-        var_w2: Handle to w2 variable (weight coefficient of point 2).
-        var_xi3: Handle to xi3 variable (xi index of point 3).
-        var_eta3: Handle to eta3 variable (eta index of point 3).
-        var_w3: Handle to w3 variable (weight coefficient of point 3).
-        var_xi4: Handle to xi4 variable (xi index of point 4).
-        var_eta4: Handle to eta4 variable (eta index of point 4).
-        var_w1: Handle to w4 variable (weight coefficient of point 4).
-        var_wsum: Handle to wsum variable (sum of weight coefficients 1-4).
+        var_mask: Handle to master_mask variable.
     """
 
     DIMNAME_X = 'x'
@@ -225,21 +214,8 @@ class ROMSIndexFile:
 
         self.var_y = self.nc_file.variables[self.DIMNAME_Y][:]
         self.var_x = self.nc_file.variables[self.DIMNAME_X][:]
+        self.var_mask = self.nc_file.variables['mask'][:, :]
 
-        self.var_xi1 = self.nc_file.variables['xi1'][:, :]
-        self.var_eta1 = self.nc_file.variables['eta1'][:, :]
-        self.var_w1 = self.nc_file.variables['w1'][:, :]
-        self.var_xi2 = self.nc_file.variables['xi2'][:, :]
-        self.var_eta2 = self.nc_file.variables['eta2'][:, :]
-        self.var_w2 = self.nc_file.variables['w2'][:, :]
-        self.var_xi3 = self.nc_file.variables['xi3'][:, :]
-        self.var_eta3 = self.nc_file.variables['eta3'][:, :]
-        self.var_w3 = self.nc_file.variables['w3'][:, :]
-        self.var_xi4 = self.nc_file.variables['xi4'][:, :]
-        self.var_eta4 = self.nc_file.variables['eta4'][:, :]
-        self.var_w4 = self.nc_file.variables['w4'][:, :]
-        self.var_wsum = self.nc_file.variables['wsum'][:, :]
-    
     def create_dims_coordvars(self, num_y, num_x):
         """Create NetCDF dimensions and coordinate variables.
 
@@ -252,30 +228,20 @@ class ROMSIndexFile:
         
         # Create coordinate variables with same name as dimensions
         self.var_y = self.nc_file.createVariable(self.DIMNAME_Y, 'f4', (self.DIMNAME_Y,), fill_value=FILLVALUE)
-        self.var_y.long_name = "latitude of regular grid point"
+        self.var_y.long_name = "latitude of regular grid point at cell center"
         self.var_y.units = "degree_north"
         self.var_y.standard_name = "latitude"
 
         self.var_x = self.nc_file.createVariable(self.DIMNAME_X, 'f4', (self.DIMNAME_X,), fill_value=FILLVALUE)
-        self.var_x.long_name = "longitude of regular grid point"
+        self.var_x.long_name = "longitude of regular grid point at cell center"
         self.var_x.units = "degree_east"
         self.var_x.standard_name = "longitude"
 
-    def create_index_coefficient_vars(self):
-        """Create index/coefficient NetCDF variables."""
-        self.var_xi1 = self.nc_file.createVariable('xi1', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_eta1 = self.nc_file.createVariable('eta1', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_w1 = self.nc_file.createVariable('w1', 'f4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_xi2 = self.nc_file.createVariable('xi2', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_eta2 = self.nc_file.createVariable('eta2', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_w2 = self.nc_file.createVariable('w2', 'f4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_xi3 = self.nc_file.createVariable('xi3', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_eta3 = self.nc_file.createVariable('eta3', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_w3 = self.nc_file.createVariable('w3', 'f4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_xi4 = self.nc_file.createVariable('xi4', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_eta4 = self.nc_file.createVariable('eta4', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_w4 = self.nc_file.createVariable('w4', 'f4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
-        self.var_wsum = self.nc_file.createVariable('wsum', 'f4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_mask = self.nc_file.createVariable('mask', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
+        self.var_mask.long_name = "regular grid point mask"
+        self.var_mask.flag_values = 1, 255;
+        self.var_mask.flag_meanings = "land, water";
+
 
     def create_subgrid_dims_vars(self, num_subgrids):
         """Create subgrid-related NetCDF dimensions/variables.
@@ -332,20 +298,17 @@ class ROMSIndexFile:
         self.nc_file.gridOriginLongitude = reg_grid.x_min
         self.nc_file.gridOriginLatitude = reg_grid.y_min
 
-        land = None
+        land_mask = None
         if shoreline_shp is not None:
-            land = self.init_shoreline_mask(reg_grid, shoreline_shp)
+            land_mask = self.init_shoreline_mask(reg_grid, shoreline_shp)
 
         self.nc_file.model = str.upper(ofs_model)
         self.nc_file.format = "netCDF-4"
 
         print ("Full grid dimensions (y,x): ({},{})".format(len(reg_grid.y_coords), len(reg_grid.x_coords)))
 
-        # Create NetCDF variables
-        self.create_index_coefficient_vars()
-
-        # Calculate the indexes/coefficients - can take many hours
-        self.compute_indexes_coefficients(roms_file, land)
+        # Calculate the mask
+        self.compute_mask(roms_file, reg_grid, land_mask)
 
     def init_xy(self, lon_min, lat_min, lon_max, lat_max, target_cellsize_meters):
         """Create & initialize x/y dimensions/coordinate vars.
@@ -421,7 +384,7 @@ class ROMSIndexFile:
         transform = osr.CoordinateTransformation(source, target)
         ofs_poly.Transform(transform)
 
-        # Find the intersection between 160k grid and ocean model grid extent
+        # Find the intersection between grid polygon and ocean model grid extent
         subset_polys = {}
         fids = []
         fid = 0
@@ -464,6 +427,7 @@ class ROMSIndexFile:
         # Create subgrid dimension/variables
         self.create_subgrid_dims_vars(len(subset_polys))
 
+        print ("start", datetime.datetime.now().time())
         # Calculate subgrid mask ranges, populate subgrid ID
         for subgrid_index, fid in enumerate(fids):
             self.var_subgrid_id[subgrid_index] = fid
@@ -492,6 +456,7 @@ class ROMSIndexFile:
             self.var_subgrid_x_max[subgrid_index] = subgrid_x_max
             self.var_subgrid_y_min[subgrid_index] = subgrid_y_min
             self.var_subgrid_y_max[subgrid_index] = subgrid_y_max
+        print ("end", datetime.datetime.now().time())
 
         return full_reg_grid
 
@@ -542,7 +507,7 @@ class ROMSIndexFile:
         # Create a memory layer to rasterize from.
         driver = ogr.GetDriverByName('Memory')
         memds = driver.CreateDataSource('tmpmemds')
-        lyr = memds.CreateLayer('land', geom_type=ogr.wkbPolygon)
+        lyr = memds.CreateLayer('land_mask', geom_type=ogr.wkbPolygon)
         feat = ogr.Feature(lyr.GetLayerDefn())
         feat.SetGeometry(intersection)
         lyr.CreateFeature(feat)
@@ -552,7 +517,7 @@ class ROMSIndexFile:
         pixel_height = reg_grid.cellsize_y
         cols = len(reg_grid.y_coords)
         rows = len(reg_grid.x_coords)
-        target_ds = gdal.GetDriverByName('GTiff').Create("land.tif", rows, cols, 1, gdal.GDT_Float32)
+        target_ds = gdal.GetDriverByName('GTiff').Create("land_mask.tif", rows, cols, 1, gdal.GDT_Float32)
         target_ds.SetGeoTransform((reg_grid.x_min, pixel_width, 0, reg_grid.y_min, 0,  pixel_height))
         band = target_ds.GetRasterBand(1)
         band.SetNoDataValue(1)
@@ -565,104 +530,113 @@ class ROMSIndexFile:
         target_ds = None
 
         # Store as numpy array, land = 255, water = 1
-        land = gdal.Open("land.tif").ReadAsArray()
+        land_mask = gdal.Open("land_mask.tif").ReadAsArray()
 
-        return land
+        return land_mask
 
-    def compute_indexes_coefficients(self, roms_file, land):
-        """Compute index/coefficient variables and store in NetCDF file.
-        
-        For every regular grid point x0,y0 which falls inside four valid
-        irregular grid points, store (eta1,xi), (eta2,xi2), (eta3,xi3),
-        (eta4,xi4) and (w1,w2,w3,w4). The eta and xi values represent the
-        ROMS y and x coordinate indices while the w values represent the
-        corresponding coefficients for each of the four associated points
-        from the original (irregular) grid. The w coefficients are calculated
-        using an inverse-distance weight formula.
+    def compute_mask(self, roms_file, reg_grid, land_mask):
+        """Create model domain mask.
 
-        These values are stored in the output index file for use when
-        regridding actual model output to the regular grid. As long as the
-        regular grid remains the same, these values will not change, thus the
-        index file only needs to be generated once per model and kept on the
-        data processing system in perpetuity.
+        For every irregular grid point create a polygon from four valid
+        grid points, searching counter clockwise (eta1,xi1), (eta2,xi2), (eta3,xi3),
+        (eta4,xi4). Rasterize the polygon to create grid domain mask.
 
-        To determine which four irregular grid points (rho points), if any, a
-        regular grid point falls betwen, the area of four triangles (created by
-        connecting the regular grid point with each pair of adjacent irregular
-        grid cells) is computed using determinants. If all four triangle areas
-        are greater than 0, the regular grid point (x0,y0) is located inside
-        the irregular grid cell enclosed by (eta1,xi1), (eta2,xi2), (eta3,xi3),
-        (eta4,xi4).
-
-        If a regular grid point does not fall within the area enclosed by any
-        four valid irregular grid points, the location is specified as missing
-        by assigning the preconfigured fill value (e.g. -9999.0) for each of
-        the index and weight coefficient values. Otherwise, the proper eta, xi,
-        and w coefficient values are determined and stored accordingly.
 
         Args:
             roms_file: `ROMSOutputFile` instance containing irregular grid
-                structure to be used to compute index/coefficient values.
-            land: 2D numpy array, matching the dimensions of this index file,
+                structure and variables.
+            reg_grid: `RegularGrid` instance describing the regular grid for
+                which the mask will be created.
+            land_mask: 2D numpy array, matching the dimensions of this index file,
                 containing a value of 1 for water areas and a value of 255 for
-                land areas.
+                land_mask areas.
         """
+        # Create shapefile with OGR
+        driver = ogr.GetDriverByName('Esri Shapefile')
+        ds = driver.CreateDataSource('grid_cell_mask.shp')
+        layer = ds.CreateLayer('', None, ogr.wkbMultiPolygon)
+        layer.CreateField(ogr.FieldDefn('id', ogr.OFTInteger))
+
+        # Add spatial reference to polygon
+        spatialRef = osr.SpatialReference()
+        spatialRef.ImportFromEPSG(4326)
+        spatialRef.MorphToESRI()
+        file = open('grid_cell_mask.prj', 'w')
+        file.write(spatialRef.ExportToWkt())
+        file.close()
+
+        # Create shapefile containing polygons for each irregular grid cell
+        # using four valid irregular grid points, searching counter
+        # clockwise(eta1, xi), (eta2, xi2), (eta3, xi3),(eta4, xi4)
+        print ("start", datetime.datetime.now().time())
+        for xi1 in range(roms_file.num_xi - 1):
+            for eta1 in range(roms_file.num_eta - 1):
+                xi2 = xi1 + 1
+                eta2 = eta1
+                xi3 = xi1 + 1
+                eta3 = eta1 + 1
+                xi4 = xi1
+                eta4 = eta1 + 1
+
+                # Search valid points
+                valid_points = []
+                for (eta, xi) in ((eta1, xi1), (eta2, xi2), (eta3, xi3), (eta4, xi4)):
+                    if roms_file.var_mask_rho[eta, xi] == 1:
+                        valid_points.append((eta, xi))
+                if len(valid_points) < 3:
+                    continue
+                ring = ogr.Geometry(ogr.wkbLinearRing)
+                for (eta, xi) in valid_points:
+                    ring.AddPoint(roms_file.var_lon_rho[eta, xi], roms_file.var_lat_rho[eta, xi])
+                (eta, xi) = valid_points[0]
+                ring.AddPoint(roms_file.var_lon_rho[eta, xi], roms_file.var_lat_rho[eta, xi])
+
+                # Create polygon
+                geom = ogr.Geometry(ogr.wkbPolygon)
+                geom.AddGeometry(ring)
+                feat = ogr.Feature(layer.GetLayerDefn())
+                feat.SetField('id', xi1)
+                feat.SetGeometry(geom)
+                layer.CreateFeature(feat)
+        print ("end", datetime.datetime.now().time())
+
+        # Rasterize grid cell polygons
+        pixel_width = reg_grid.cellsize_x
+        pixel_height = reg_grid.cellsize_y
+        cols = len(reg_grid.y_coords)
+        rows = len(reg_grid.x_coords)
+        target_ds = gdal.GetDriverByName('GTiff').Create("grid_cell_mask.tif", rows, cols, 1, gdal.GDT_Byte)
+        target_ds.SetGeoTransform((reg_grid.x_min, pixel_width, 0, reg_grid.y_min, 0, pixel_height))
+        band = target_ds.GetRasterBand(1)
+        band.SetNoDataValue(1)
+        band.FlushCache()
+
+        gdal.RasterizeLayer(target_ds, [1], layer, None, None)
+        target_dsSRS = osr.SpatialReference()
+        target_dsSRS.ImportFromEPSG(4326)
+        target_ds.SetProjection(target_dsSRS.ExportToWkt())
+
+        # Save and close everything
+        target_ds = None
+        feat = geom = None
+        ds = layer = feat = geom = None
+
+        # Store as numpy array, # value of 1.0 for invalid areas and
+        # a value of 255 for valid areas.
+        grid_cell_mask = gdal.Open("grid_cell_mask.tif").ReadAsArray()
+
+        # Use land mask and grid cell mask to create master mask and
+        # write to index file
+        print ("start_xy", datetime.datetime.now().time())
         for y in range(self.dim_y.size):
             for x in range(self.dim_x.size):
-                x0 = self.var_x[x]
-                y0 = self.var_y[y]
-                found_cell = False
-                if land[y, x] != 1:
+                if land_mask[y, x] != 1:
                     continue
-                for xi1 in range(roms_file.num_xi-1):
-                    if found_cell:
-                        break
-                    for eta1 in range(roms_file.num_eta-1):
-                        xi2 = xi1 + 1
-                        eta2 = eta1
-                        xi3 = xi1 + 1
-                        eta3 = eta1 + 1
-                        xi4 = xi1
-                        eta4 = eta1 + 1
-                        if (roms_file.var_mask_rho[eta1, xi1] == 1
-                                and roms_file.var_mask_rho[eta2, xi2] == 1
-                                and roms_file.var_mask_rho[eta3, xi3] == 1
-                                and roms_file.var_mask_rho[eta4, xi4] == 1):
-                            x1 = roms_file.var_lon_rho[eta1, xi1]
-                            y1 = roms_file.var_lat_rho[eta1, xi1]
-                            x2 = roms_file.var_lon_rho[eta2, xi2]
-                            y2 = roms_file.var_lat_rho[eta2, xi2]
-                            x3 = roms_file.var_lon_rho[eta3, xi3]
-                            y3 = roms_file.var_lat_rho[eta3, xi3]
-                            x4 = roms_file.var_lon_rho[eta4, xi4]
-                            y4 = roms_file.var_lat_rho[eta4, xi4]
-                            s1 = 0.5*((x1-x0)*(y2-y1)-(x2-x1)*(y1-y0))
-                            s2 = 0.5*((x2-x0)*(y3-y2)-(x3-x2)*(y2-y0))
-                            s3 = 0.5*((x3-x0)*(y4-y3)-(x4-x3)*(y3-y0))
-                            s4 = 0.5*((x4-x0)*(y1-y4)-(x1-x4)*(y4-y0))
-                            if all([s > 0 for s in [s1, s2, s3, s4]]):
-                                # Inverse-distance weight with the power of 1 - (1/numpy.sqrt((x1-x0)**2+(y1-y0)**2))
-                                # Inverse-distance weight with the power of 2 - (1/((x1-x0)**2+(y1-y0)**2))
-                                w1 = (1/((x1-x0)**2+(y1-y0)**2))
-                                w2 = (1/((x2-x0)**2+(y2-y0)**2))
-                                w3 = (1/((x3-x0)**2+(y3-y0)**2))
-                                w4 = (1/((x4-x0)**2+(y4-y0)**2))
-                                wsum = w1 + w2 + w3 + w4
-                                self.var_xi1[y, x] = xi1
-                                self.var_eta1[y, x] = eta1
-                                self.var_w1[y, x] = w1
-                                self.var_xi2[y, x] = xi2
-                                self.var_eta2[y, x] = eta2
-                                self.var_w2[y, x] = w2
-                                self.var_xi3[y, x] = xi3
-                                self.var_eta3[y, x] = eta3
-                                self.var_w3[y, x] = w3
-                                self.var_xi4[y, x] = xi4
-                                self.var_eta4[y, x] = eta4
-                                self.var_w4[y, x] = w4
-                                self.var_wsum[y, x] = wsum
-                                found_cell = True
-                                break
+                if grid_cell_mask[y, x] != 1:
+                    self.var_mask[y, x] = 1
+                else:
+                    self.var_mask[y, x] = FILLVALUE
+        print ("end_xy", datetime.datetime.now().time())
 
 
 class ROMSOutputFile:
@@ -758,7 +732,7 @@ class ROMSOutputFile:
         rot_u_rho, rot_v_rho = rotate_uv2d(u_rho, v_rho, water_ang_rho)
         
         # Call create regular grid function 
-        return interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, model_index)
+        return interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho, model_index)
 
 
 def uv_to_speed_direction(reg_grid_u, reg_grid_v):
@@ -777,8 +751,6 @@ def uv_to_speed_direction(reg_grid_u, reg_grid_v):
     speed = numpy.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
     for y in range(reg_grid_u.shape[0]):
         for x in range(reg_grid_u.shape[1]):
-            if reg_grid_u.mask[y, x]:
-                continue
             try:
                 u_ms = reg_grid_u[y, x]
                 v_ms = reg_grid_v[y, x]
@@ -826,13 +798,11 @@ def rotate_uv2d(u_rho, v_rho, water_ang_rho):
     return rot_u_rho, rot_v_rho
 
 
-def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, model_index):
+def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho, model_index):
     """Create a regular grid using masked latitude and longitude variables.
 
-    Interpolate averaged, rotated, u/v variables to the regular grid by using
-    the NetCDF Indexes and Coefficients File to obtain weighted coefficents
-    and eta/xi dimension indices to be used for Inverse Distance Weighting
-    Interpolation.
+    Interpolate averaged, rotated, u/v variables to the regular grid using
+    Inverse Distance Weighted Interpolation.
 
     Args:
         rot_u_rho: `numpy.ma.masked_array` containing u values averaged to rho
@@ -841,63 +811,46 @@ def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, model_index):
         rot_v_rho: `numpy.ma.masked_array` containing v values averaged to rho
             points and angle-of-rotation applied, with NoData/land values
             masked out.
+        water_lat_rho: `numpy.ndarray` containing masked latitude values of rho
+            points.
+        water_lon_rho: `numpy.ndarray` containing masked longitude values of rho
+            points.
         model_index: `ROMSIndexFile` from which index values/coefficients will
             be extracted to perform interpolation.
     """
-    # Create masked empty regular grid for variable u
-    ugrid = numpy.ma.empty(shape=[model_index.dim_y.size, model_index.dim_x.size])
-        
-    # For each regular grid cell, read the corresponding xi1/eta1/w1,
-    # xi2/eta2/w2, xi3/eta3/w3, and xi4/eta4/w4 values
-    for y in range(model_index.dim_y.size):
-        for x in range(model_index.dim_x.size):
-            if not model_index.var_xi1.mask[y, x]:
-                xi1 = model_index.var_xi1[y, x]
-                eta1 = model_index.var_eta1[y, x]
-                xi2 = model_index.var_xi2[y, x]
-                eta2 = model_index.var_eta2[y, x]
-                xi3 = model_index.var_xi3[y, x]
-                eta3 = model_index.var_eta3[y, x]
-                xi4 = model_index.var_xi4[y, x]
-                eta4 = model_index.var_eta4[y, x]
-                u1 = rot_u_rho[eta1, xi1]
-                u2 = rot_u_rho[eta2, xi2]
-                u3 = rot_u_rho[eta3, xi3]
-                u4 = rot_u_rho[eta4, xi4]
-                # Use Inverse Distance Weighting algorithm to interpolate u to the regular grid
-                ugrid[y, x] = ((((model_index.var_w1[y, x]) * u1) + ((model_index.var_w2[y, x]) * u2) + (
-                            (model_index.var_w3[y, x]) * u3) + ((model_index.var_w4[y, x]) * u4)) /
-                               model_index.var_wsum[y, x])
+    # Flatten and compress variables
+    rot_u_rho = ma.compressed(rot_u_rho)
+    rot_v_rho = ma.compressed(rot_v_rho)
+    water_lat_rho = ma.compressed(water_lat_rho)
+    water_lon_rho = ma.compressed(water_lon_rho)
 
-    # Create masked empty regular grid for variable v        
-    vgrid = numpy.ma.empty(shape=[model_index.dim_y.size, model_index.dim_x.size])
+    # Create an ogr object containing irregular points eta,xi,u,v and write to memory
+    srs = osr.SpatialReference()
+    srs.SetWellKnownGeogCS("WGS84")
+    ds = gdal.GetDriverByName('Memory').Create('', 0, 0, 0, gdal.GDT_Unknown)
+    layer = ds.CreateLayer("irregular_points", srs=srs, geom_type=ogr.wkbPoint)
+    layer.CreateField(ogr.FieldDefn("u", ogr.OFTReal))
+    layer.CreateField(ogr.FieldDefn("v", ogr.OFTReal))
 
-    # For each regular grid cell, read the corresponding xi1/eta1/w1,
-    # xi2/eta2/w2, xi3/eta3/w3, and xi4/eta4/w4 values
-    for y in range(model_index.var_xi1.shape[0]):
-        for x in range(model_index.var_xi1.shape[1]):
-            if not model_index.var_xi1.mask[y, x]:
-                xi1 = model_index.var_xi1[y, x]
-                eta1 = model_index.var_eta1[y, x]
-                xi2 = model_index.var_xi2[y, x]
-                eta2 = model_index.var_eta2[y, x]
-                xi3 = model_index.var_xi3[y, x]
-                eta3 = model_index.var_eta3[y, x]
-                xi4 = model_index.var_xi4[y, x]
-                eta4 = model_index.var_eta4[y, x]
-                v1 = rot_v_rho[eta1, xi1]
-                v2 = rot_v_rho[eta2, xi2]
-                v3 = rot_v_rho[eta3, xi3]
-                v4 = rot_v_rho[eta4, xi4]
-                # Use Inverse Distance Weighting algorithm to interpolate v to
-                # the regular grid
-                vgrid[y, x] = ((((model_index.var_w1[y, x]) * v1) + ((model_index.var_w2[y, x]) * v2) + (
-                            (model_index.var_w3[y, x]) * v3) + ((model_index.var_w4[y, x]) * v4)) /
-                               model_index.var_wsum[y, x])
+    for i in range(len(rot_v_rho)):
+        point = ogr.Geometry(ogr.wkbPoint)
+        point.AddPoint(water_lon_rho[i], water_lat_rho[i])
+        feature = ogr.Feature(layer.GetLayerDefn())
+        feature.SetGeometry(point)
+        feature.SetField("u", rot_u_rho[i])
+        feature.SetField("v", rot_v_rho[i])
+        layer.CreateFeature(feature)
 
-    # Apply mask from index file
-    reg_grid_u = numpy.ma.masked_array(ugrid, model_index.var_xi1.mask)
-    reg_grid_v = numpy.ma.masked_array(vgrid, model_index.var_xi1.mask)
+    # Using ogr object run gdal grid to interpolate irregular grid values to regular grid values
+    dst_u = gdal.Grid('u.tif', ds, format='MEM', width=model_index.dim_x.size, height=model_index.dim_y.size,
+                      algorithm="invdist:power=2.0:smoothing=0.0:radius1=0.04:radius2=0.04:angle=0.0:max_points=0:min_points=2:nodata=0.0",
+                      zfield="u")
+    dst_v = gdal.Grid('v.tif', ds, format='MEM', width=model_index.dim_x.size, height=model_index.dim_y.size,
+                      algorithm="invdist:power=2.0:smoothing=0.0:radius1=0.04:radius2=0.04:angle=0.0:max_points=0:min_points=2:nodata=0.0",
+                      zfield="v")
+
+    reg_grid_u = dst_u.ReadAsArray()
+    reg_grid_v = dst_v.ReadAsArray()
 
     return reg_grid_u, reg_grid_v
 
