@@ -216,7 +216,7 @@ class ROMSIndexFile:
         self.var_x = self.nc_file.variables[self.DIMNAME_X][:]
         self.var_mask = self.nc_file.variables['mask'][:, :]
 
-    def create_dims_coordvars(self, num_y, num_x):
+    def create_dims_coord_vars(self, num_y, num_x):
         """Create NetCDF dimensions and coordinate variables.
 
         Args:
@@ -239,9 +239,8 @@ class ROMSIndexFile:
 
         self.var_mask = self.nc_file.createVariable('mask', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
         self.var_mask.long_name = "regular grid point mask"
-        self.var_mask.flag_values = 1, 255;
-        self.var_mask.flag_meanings = "land, water";
-
+        self.var_mask.flag_values = 1, 255
+        self.var_mask.flag_meanings = "land, water"
 
     def create_subgrid_dims_vars(self, num_subgrids):
         """Create subgrid-related NetCDF dimensions/variables.
@@ -329,7 +328,7 @@ class ROMSIndexFile:
         
         # Create NetCDF dimensions & coordinate variables using dimension sizes
         # from regular grid
-        self.create_dims_coordvars(len(reg_grid.y_coords), len(reg_grid.x_coords))
+        self.create_dims_coord_vars(len(reg_grid.y_coords), len(reg_grid.x_coords))
         
         # Populate NetCDF coordinate variables using regular grid coordinates
         self.var_x[:] = reg_grid.x_coords[:]
@@ -406,6 +405,7 @@ class ROMSIndexFile:
         sp_x_min, sp_x_max, sp_y_min, sp_y_max = singlepolygon.GetEnvelope()
 
         cellsize_x, cellsize_y = RegularGrid.calc_cellsizes(sp_x_min, sp_y_min, sp_x_max, sp_y_max, target_cellsize_meters)
+
         # Combine identified subset grid polygons into single multipolygon to
         # calculate full extent of all combined subset grids
         multipolygon = ogr.Geometry(ogr.wkbMultiPolygon)
@@ -417,7 +417,7 @@ class ROMSIndexFile:
 
         # Create NetCDF dimensions & coordinate variables using dimension sizes
         # from regular grid
-        self.create_dims_coordvars(len(full_reg_grid.y_coords), len(full_reg_grid.x_coords))
+        self.create_dims_coord_vars(len(full_reg_grid.y_coords), len(full_reg_grid.x_coords))
         # Populate NetCDF coordinate variables using regular grid coordinates
         self.var_x[:] = full_reg_grid.x_coords[:]
         self.var_y[:] = full_reg_grid.y_coords[:]
@@ -426,37 +426,40 @@ class ROMSIndexFile:
 
         # Create subgrid dimension/variables
         self.create_subgrid_dims_vars(len(subset_polys))
-
-        print ("start", datetime.datetime.now().time())
         # Calculate subgrid mask ranges, populate subgrid ID
         for subgrid_index, fid in enumerate(fids):
             self.var_subgrid_id[subgrid_index] = fid
-            # Start with extreme values for min/max, then narrow down
-            subgrid_x_min = len(full_reg_grid.x_coords)
-            subgrid_x_max = 0
-            subgrid_y_min = len(full_reg_grid.y_coords)
-            subgrid_y_max = 0
             # Convert OGR geometry to shapely geometry
             subset_poly_shape = shape(json.loads(subset_polys[fid]))
-            for eta in range(len(self.var_y)):
-                for xi in range(len(self.var_x)):
-                    point = Point(self.var_x[xi], self.var_y[eta])
-                    if point.within(subset_poly_shape):
-                        if eta < subgrid_y_min:
-                            subgrid_y_min = eta
-                        if eta > subgrid_y_max:
-                            subgrid_y_max = eta
-                        if xi < subgrid_x_min:
-                            subgrid_x_min = xi
-                        if xi > subgrid_x_max:
-                            subgrid_x_max = xi
-            if subgrid_x_min >= subgrid_x_max or subgrid_y_min >= subgrid_y_max:
-                raise Exception("Error calculating subgrid index ranges for subgrid [{} - fid {}]:x_min: {}, x_max: {}, y_min: {}, y_max: {}".format(subgrid_index, fid, subgrid_x_min, subgrid_x_max, subgrid_y_min, subgrid_y_max))
+            min_x_coord = subset_poly_shape.bounds[0]
+            max_x_coord = subset_poly_shape.bounds[2]
+            min_y_coord = subset_poly_shape.bounds[1]
+            max_y_coord = subset_poly_shape.bounds[3]
+
+            subgrid_x_min = None
+            subgrid_x_max = None
+            subgrid_y_min = None
+            subgrid_y_max = None
+
+            for i, x in enumerate(self.var_x):
+                if x >= min_x_coord:
+                    subgrid_x_min = i
+                    break
+            count_x = round(((max_x_coord - min_x_coord) / full_reg_grid.cellsize_x))
+
+            for i, y in enumerate(self.var_y):
+                if y >= min_y_coord:
+                    subgrid_y_min = i
+                    break
+            count_y = round(((max_y_coord - min_y_coord) / full_reg_grid.cellsize_y))
+
+            subgrid_x_max = subgrid_x_min + count_x - 1
+            subgrid_y_max = subgrid_y_min + count_y - 1
+
             self.var_subgrid_x_min[subgrid_index] = subgrid_x_min
             self.var_subgrid_x_max[subgrid_index] = subgrid_x_max
             self.var_subgrid_y_min[subgrid_index] = subgrid_y_min
             self.var_subgrid_y_max[subgrid_index] = subgrid_y_max
-        print ("end", datetime.datetime.now().time())
 
         return full_reg_grid
 
@@ -568,7 +571,6 @@ class ROMSIndexFile:
         # Create shapefile containing polygons for each irregular grid cell
         # using four valid irregular grid points, searching counter
         # clockwise(eta1, xi), (eta2, xi2), (eta3, xi3),(eta4, xi4)
-        print ("start", datetime.datetime.now().time())
         for xi1 in range(roms_file.num_xi - 1):
             for eta1 in range(roms_file.num_eta - 1):
                 xi2 = xi1 + 1
@@ -598,7 +600,6 @@ class ROMSIndexFile:
                 feat.SetField('id', xi1)
                 feat.SetGeometry(geom)
                 layer.CreateFeature(feat)
-        print ("end", datetime.datetime.now().time())
 
         # Rasterize grid cell polygons
         pixel_width = reg_grid.cellsize_x
@@ -627,7 +628,6 @@ class ROMSIndexFile:
 
         # Use land mask and grid cell mask to create master mask and
         # write to index file
-        print ("start_xy", datetime.datetime.now().time())
         for y in range(self.dim_y.size):
             for x in range(self.dim_x.size):
                 if land_mask[y, x] != 1:
@@ -636,7 +636,6 @@ class ROMSIndexFile:
                     self.var_mask[y, x] = 1
                 else:
                     self.var_mask[y, x] = FILLVALUE
-        print ("end_xy", datetime.datetime.now().time())
 
 
 class ROMSOutputFile:
@@ -827,7 +826,7 @@ def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lo
     # Create an ogr object containing irregular points eta,xi,u,v and write to memory
     srs = osr.SpatialReference()
     srs.SetWellKnownGeogCS("WGS84")
-    ds = gdal.GetDriverByName('Memory').Create('', 0, 0, 0, gdal.GDT_Unknown)
+    ds = gdal.GetDriverByName('Memory').Create('', 0, 0, 0, gdal.GDT_Float32) #gdal.GDT_Unknown)
     layer = ds.CreateLayer("irregular_points", srs=srs, geom_type=ogr.wkbPoint)
     layer.CreateField(ogr.FieldDefn("u", ogr.OFTReal))
     layer.CreateField(ogr.FieldDefn("v", ogr.OFTReal))
@@ -841,13 +840,18 @@ def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lo
         feature.SetField("v", rot_v_rho[i])
         layer.CreateFeature(feature)
 
+    gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
+    #gdal.SetConfigOption("GDAL_CACHEMAX", "512")
+
     # Using ogr object run gdal grid to interpolate irregular grid values to regular grid values
+    print ("start_grid", datetime.datetime.now().time())
     dst_u = gdal.Grid('u.tif', ds, format='MEM', width=model_index.dim_x.size, height=model_index.dim_y.size,
                       algorithm="invdist:power=2.0:smoothing=0.0:radius1=0.04:radius2=0.04:angle=0.0:max_points=0:min_points=2:nodata=0.0",
                       zfield="u")
     dst_v = gdal.Grid('v.tif', ds, format='MEM', width=model_index.dim_x.size, height=model_index.dim_y.size,
                       algorithm="invdist:power=2.0:smoothing=0.0:radius1=0.04:radius2=0.04:angle=0.0:max_points=0:min_points=2:nodata=0.0",
                       zfield="v")
+    print ("end_grid", datetime.datetime.now().time())
 
     reg_grid_u = dst_u.ReadAsArray()
     reg_grid_v = dst_v.ReadAsArray()
@@ -971,6 +975,7 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
     # For areas shallower than the target depth, depth is half the total depth
     interp_depth = zeta - numpy.minimum(target_depth*2, total_depth)/2
 
+    print ("start_vert", datetime.datetime.now().time())
     u_target_depth = numpy.ma.empty(shape=[num_eta, num_xi])
     v_target_depth = numpy.ma.empty(shape=[num_eta, num_xi])
     # Perform vertical linear interpolation on u/v values to target depth
@@ -984,5 +989,6 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
                 if mask_v[eta, xi] != 0:
                     v_interp_depth = interpolate.interp1d(z[:, eta, xi], v[:, eta, xi], fill_value='extrapolate')
                     v_target_depth[eta, xi] = v_interp_depth(interp_depth.data[eta, xi])
+    print ("end_vert", datetime.datetime.now().time())
 
     return u_target_depth, v_target_depth
