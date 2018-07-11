@@ -20,7 +20,7 @@ import osr
 import ogr
 from shapely.geometry import Polygon, Point, MultiPolygon, shape
 from scipy import interpolate
-import datetime
+from scipy.interpolate import griddata
 
 # Conversion factor for meters/sec to knots
 MS2KNOTS = 1.943844
@@ -30,6 +30,12 @@ EARTH_RADIUS_METERS = 6371000
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
+
+# Default module for horizontal interpolation
+INTERP_METHOD_SCIPY = "scipy"
+
+# Alternative module for horizontal interpolation
+INTERP_METHOD_GDAL = "gdal"
 
 
 class RegularGrid:
@@ -463,8 +469,10 @@ class ROMSIndexFile:
 
         return full_reg_grid
 
-    def init_shoreline_mask(self, reg_grid, shoreline_shp):
-        """Use shoreline shapefile to mask out land at highest resolution.
+    @staticmethod
+    def init_shoreline_mask(reg_grid, shoreline_shp):
+        """Create a shoreline mask for the region of interest at the
+           target resolution.
         
         Args:
             reg_grid: `RegularGrid` instance describing the regular grid for
@@ -474,7 +482,7 @@ class ROMSIndexFile:
 
         Returns:
             2D numpy array, matching the dimensions of the given RegularGrid,
-            containing a value of 1 for water areas and a value of 255 for land
+            containing a value of 0 for water areas and a value of 255 for land
             areas.
         """
 
@@ -502,47 +510,55 @@ class ROMSIndexFile:
         transform = osr.CoordinateTransformation(source, target)
         ofs_poly.Transform(transform)
 
-        # Find the intersection between shoreline shapefile and ocean model grid extent
+        # Find the intersection between shoreline shapefile and ocean
+        # model grid extent
         for feature in layer:
             geom = feature.GetGeometryRef()
             intersection = ofs_poly.Intersection(geom)
 
-        # Create a memory layer to rasterize from.
+        # Create a regional ogr shoreline polygon layer
+        # write to memory
         driver = ogr.GetDriverByName('Memory')
         memds = driver.CreateDataSource('tmpmemds')
-        lyr = memds.CreateLayer('land_mask', geom_type=ogr.wkbPolygon)
+        dest_srs = ogr.osr.SpatialReference()
+        dest_srs.ImportFromEPSG(4326)
+        lyr = memds.CreateLayer('land_mask', dest_srs, geom_type=ogr.wkbPolygon)
         feat = ogr.Feature(lyr.GetLayerDefn())
         feat.SetGeometry(intersection)
         lyr.CreateFeature(feat)
 
-        # Create raster
+        # Rasterize the shoreline polygon layer and write to memory
         pixel_width = reg_grid.cellsize_x
         pixel_height = reg_grid.cellsize_y
         cols = len(reg_grid.y_coords)
         rows = len(reg_grid.x_coords)
-        target_ds = gdal.GetDriverByName('GTiff').Create("land_mask.tif", rows, cols, 1, gdal.GDT_Float32)
+        target_ds = gdal.GetDriverByName('MEM').Create("land_mask.tif", rows, cols, 1, gdal.GDT_Int32)
         target_ds.SetGeoTransform((reg_grid.x_min, pixel_width, 0, reg_grid.y_min, 0,  pixel_height))
+        target_dsSRS = osr.SpatialReference()
+        target_dsSRS.ImportFromEPSG(4326)
+        target_ds.SetProjection(target_dsSRS.ExportToWkt())
         band = target_ds.GetRasterBand(1)
         band.SetNoDataValue(1)
         band.FlushCache()
 
         gdal.RasterizeLayer(target_ds, [1], lyr, None, None)
-        target_dsSRS = osr.SpatialReference()
-        target_dsSRS.ImportFromEPSG(4326)
-        target_ds.SetProjection(target_dsSRS.ExportToWkt())
-        target_ds = None
 
-        # Store as numpy array, land = 255, water = 1
-        land_mask = gdal.Open("land_mask.tif").ReadAsArray()
+        # Store as a numpy array, land = 255, water = 0
+        target_band = target_ds.GetRasterBand(1)
+        land_mask = target_band.ReadAsArray(pixel_width, pixel_height, rows, cols).astype(numpy.int)
+
+        # Save and close everything
+        target_ds = None
+        layer = feat = geom = None
 
         return land_mask
 
     def compute_mask(self, roms_file, reg_grid, land_mask):
-        """Create model domain mask.
+        """Create model domain mask and write to index file.
 
         For every irregular grid point create a polygon from four valid
         grid points, searching counter clockwise (eta1,xi1), (eta2,xi2), (eta3,xi3),
-        (eta4,xi4). Rasterize the polygon to create grid domain mask.
+        (eta4,xi4). Rasterize the polygon to create a grid domain mask.
 
 
         Args:
@@ -557,7 +573,9 @@ class ROMSIndexFile:
         # Create shapefile with OGR
         driver = ogr.GetDriverByName('Esri Shapefile')
         ds = driver.CreateDataSource('grid_cell_mask.shp')
-        layer = ds.CreateLayer('', None, ogr.wkbMultiPolygon)
+        ds_srs = ogr.osr.SpatialReference()
+        ds_srs.ImportFromEPSG(4326)
+        layer = ds.CreateLayer('', ds_srs, ogr.wkbMultiPolygon)
         layer.CreateField(ogr.FieldDefn('id', ogr.OFTInteger))
 
         # Add spatial reference to polygon
@@ -601,38 +619,38 @@ class ROMSIndexFile:
                 feat.SetGeometry(geom)
                 layer.CreateFeature(feat)
 
-        # Rasterize grid cell polygons
+        # Rasterize the grid cell polygon layer and write to memory
         pixel_width = reg_grid.cellsize_x
         pixel_height = reg_grid.cellsize_y
         cols = len(reg_grid.y_coords)
         rows = len(reg_grid.x_coords)
-        target_ds = gdal.GetDriverByName('GTiff').Create("grid_cell_mask.tif", rows, cols, 1, gdal.GDT_Byte)
+        target_ds = gdal.GetDriverByName('MEM').Create("grid_cell_mask.tif", rows, cols, 1, gdal.GDT_Byte)
         target_ds.SetGeoTransform((reg_grid.x_min, pixel_width, 0, reg_grid.y_min, 0, pixel_height))
+        target_dsSRS = osr.SpatialReference()
+        target_dsSRS.ImportFromEPSG(4326)
+        target_ds.SetProjection(target_dsSRS.ExportToWkt())
         band = target_ds.GetRasterBand(1)
         band.SetNoDataValue(1)
         band.FlushCache()
 
         gdal.RasterizeLayer(target_ds, [1], layer, None, None)
-        target_dsSRS = osr.SpatialReference()
-        target_dsSRS.ImportFromEPSG(4326)
-        target_ds.SetProjection(target_dsSRS.ExportToWkt())
+
+        # Store as numpy array, valid areas = 255, invalid areas = 0
+        target_band = target_ds.GetRasterBand(1)
+        grid_cell_mask = target_band.ReadAsArray(pixel_width, pixel_height, rows, cols).astype(numpy.int)
 
         # Save and close everything
         target_ds = None
         feat = geom = None
         ds = layer = feat = geom = None
 
-        # Store as numpy array, # value of 1.0 for invalid areas and
-        # a value of 255 for valid areas.
-        grid_cell_mask = gdal.Open("grid_cell_mask.tif").ReadAsArray()
-
-        # Use land mask and grid cell mask to create master mask and
+        # Use land mask and grid cell mask to create master mask
         # write to index file
         for y in range(self.dim_y.size):
             for x in range(self.dim_x.size):
-                if land_mask[y, x] != 1:
+                if land_mask[y, x] != 0:
                     continue
-                if grid_cell_mask[y, x] != 1:
+                if grid_cell_mask[y, x] != 0:
                     self.var_mask[y, x] = 1
                 else:
                     self.var_mask[y, x] = FILLVALUE
@@ -708,7 +726,7 @@ class ROMSOutputFile:
         self.num_xi = self.var_h.shape[1]
         self.num_sigma = self.var_s_rho.shape[0]
 
-    def uv_to_regular_grid(self, model_index, target_depth):
+    def uv_to_regular_grid(self, model_index, target_depth, interp=INTERP_METHOD_SCIPY):
         """Interpolate u/v to regular grid"""
         # Extract the variables from the NetCDF
 
@@ -729,9 +747,12 @@ class ROMSOutputFile:
         
         # Call rotate function and return rotated u and v vectors
         rot_u_rho, rot_v_rho = rotate_uv2d(u_rho, v_rho, water_ang_rho)
-        
-        # Call create regular grid function 
-        return interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho, model_index)
+
+        # Call create regular grid function , default method scipy
+        if interp == INTERP_METHOD_SCIPY:
+            return scipy_interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho, model_index)
+        elif interp == INTERP_METHOD_GDAL:
+            return gdal_interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho, model_index)
 
 
 def uv_to_speed_direction(reg_grid_u, reg_grid_v):
@@ -750,25 +771,18 @@ def uv_to_speed_direction(reg_grid_u, reg_grid_v):
     speed = numpy.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
     for y in range(reg_grid_u.shape[0]):
         for x in range(reg_grid_u.shape[1]):
-            try:
-                u_ms = reg_grid_u[y, x]
-                v_ms = reg_grid_v[y, x]
 
-                # Convert from meters per second to knots
-                u_knot = u_ms * MS2KNOTS
-                v_knot = v_ms * MS2KNOTS
+            u_ms = reg_grid_u[y, x]
+            v_ms = reg_grid_v[y, x]
 
-                current_speed = math.sqrt(math.pow(u_knot, 2) + math.pow(v_knot, 2))
-                current_direction_radians = math.atan2(v_knot, u_knot)
-                current_direction_degrees = math.degrees(current_direction_radians)
-                current_direction_north = 90.0 - current_direction_degrees
-            except OverflowError as e:
-                print("OverflowError covering uv to speed/dir at y,x: {},{}".format(y, x))
-                print("reg_grid_u.mask[y,x]: {}".format(reg_grid_u.mask[y, x]))
-                print("reg_grid_v.mask[y,x]: {}".format(reg_grid_v.mask[y, x]))
-                print("u_ms: {}, v_ms: {}".format(u_ms, v_ms))
-                print("u_knot: {}, v_knot: {}".format(u_knot, v_knot))
-                raise e
+            # Convert from meters per second to knots
+            u_knot = u_ms * MS2KNOTS
+            v_knot = v_ms * MS2KNOTS
+
+            current_speed = math.sqrt(math.pow(u_knot, 2) + math.pow(v_knot, 2))
+            current_direction_radians = math.atan2(v_knot, u_knot)
+            current_direction_degrees = math.degrees(current_direction_radians)
+            current_direction_north = 90.0 - current_direction_degrees
 
             # The direction must always be positive.
             if current_direction_north < 0.0:
@@ -797,11 +811,46 @@ def rotate_uv2d(u_rho, v_rho, water_ang_rho):
     return rot_u_rho, rot_v_rho
 
 
-def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho, model_index):
+def scipy_interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho, model_index):
+    """Create a regular grid using masked latitude and longitude variables.
+
+       Interpolate averaged, rotated, u/v variables to the regular grid using
+       Linear Interpolation.
+
+       Args:
+           rot_u_rho: `numpy.ma.masked_array` containing u values averaged to rho
+               points and angle-of-rotation applied, with NoData/land values
+               masked out.
+           rot_v_rho: `numpy.ma.masked_array` containing v values averaged to rho
+               points and angle-of-rotation applied, with NoData/land values
+               masked out.
+           water_lat_rho: `numpy.ndarray` containing masked latitude values of rho
+               points.
+           water_lon_rho: `numpy.ndarray` containing masked longitude values of rho
+               points.
+           model_index: `ROMSIndexFile` from which index values/coefficients will
+               be extracted to perform interpolation.
+       """
+    # Flatten and compress variables
+    rot_u_rho = ma.compressed(rot_u_rho)
+    rot_v_rho = ma.compressed(rot_v_rho)
+    water_lat_rho = ma.compressed(water_lat_rho)
+    water_lon_rho = ma.compressed(water_lon_rho)
+
+    # Using scipy to interpolate irregular grid u/v at rho to a regular grid
+    x, y = numpy.meshgrid(model_index.var_x, model_index.var_y)
+    coords = numpy.column_stack((water_lon_rho, water_lat_rho))
+    reg_grid_u = griddata(coords, rot_u_rho, (x, y), method='linear', fill_value=FILLVALUE)
+    reg_grid_v = griddata(coords, rot_v_rho, (x, y), method='linear', fill_value=FILLVALUE)
+
+    return reg_grid_u, reg_grid_v
+
+
+def gdal_interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho, model_index):
     """Create a regular grid using masked latitude and longitude variables.
 
     Interpolate averaged, rotated, u/v variables to the regular grid using
-    Inverse Distance Weighted Interpolation.
+    Linear Interpolation.
 
     Args:
         rot_u_rho: `numpy.ma.masked_array` containing u values averaged to rho
@@ -823,10 +872,11 @@ def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lo
     water_lat_rho = ma.compressed(water_lat_rho)
     water_lon_rho = ma.compressed(water_lon_rho)
 
-    # Create an ogr object containing irregular points eta,xi,u,v and write to memory
+    # Create an ogr object containing irregular points eta,xi,u,v and write to
+    # memory
     srs = osr.SpatialReference()
     srs.SetWellKnownGeogCS("WGS84")
-    ds = gdal.GetDriverByName('Memory').Create('', 0, 0, 0, gdal.GDT_Float32) #gdal.GDT_Unknown)
+    ds = gdal.GetDriverByName('Memory').Create('', 0, 0, 0, gdal.GDT_Float32)
     layer = ds.CreateLayer("irregular_points", srs=srs, geom_type=ogr.wkbPoint)
     layer.CreateField(ogr.FieldDefn("u", ogr.OFTReal))
     layer.CreateField(ogr.FieldDefn("v", ogr.OFTReal))
@@ -840,18 +890,12 @@ def interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, water_lo
         feature.SetField("v", rot_v_rho[i])
         layer.CreateFeature(feature)
 
-    gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
-    #gdal.SetConfigOption("GDAL_CACHEMAX", "512")
-
-    # Using ogr object run gdal grid to interpolate irregular grid values to regular grid values
-    print ("start_grid", datetime.datetime.now().time())
+    # Input ogr object to gdal grid and interpolate irregular grid u/v
+    # at rho to a regular grid
     dst_u = gdal.Grid('u.tif', ds, format='MEM', width=model_index.dim_x.size, height=model_index.dim_y.size,
-                      algorithm="invdist:power=2.0:smoothing=0.0:radius1=0.04:radius2=0.04:angle=0.0:max_points=0:min_points=2:nodata=0.0",
-                      zfield="u")
+                      algorithm="linear:nodata=0.0", zfield="u")
     dst_v = gdal.Grid('v.tif', ds, format='MEM', width=model_index.dim_x.size, height=model_index.dim_y.size,
-                      algorithm="invdist:power=2.0:smoothing=0.0:radius1=0.04:radius2=0.04:angle=0.0:max_points=0:min_points=2:nodata=0.0",
-                      zfield="v")
-    print ("end_grid", datetime.datetime.now().time())
+                      algorithm="linear:nodata=0.0", zfield="v")
 
     reg_grid_u = dst_u.ReadAsArray()
     reg_grid_v = dst_v.ReadAsArray()
@@ -975,7 +1019,6 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
     # For areas shallower than the target depth, depth is half the total depth
     interp_depth = zeta - numpy.minimum(target_depth*2, total_depth)/2
 
-    print ("start_vert", datetime.datetime.now().time())
     u_target_depth = numpy.ma.empty(shape=[num_eta, num_xi])
     v_target_depth = numpy.ma.empty(shape=[num_eta, num_xi])
     # Perform vertical linear interpolation on u/v values to target depth
@@ -989,6 +1032,5 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
                 if mask_v[eta, xi] != 0:
                     v_interp_depth = interpolate.interp1d(z[:, eta, xi], v[:, eta, xi], fill_value='extrapolate')
                     v_target_depth[eta, xi] = v_interp_depth(interp_depth.data[eta, xi])
-    print ("end_vert", datetime.datetime.now().time())
 
     return u_target_depth, v_target_depth
