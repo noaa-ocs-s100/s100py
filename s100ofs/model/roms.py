@@ -200,7 +200,10 @@ class ROMSIndexFile:
             self.var_subgrid_id = self.nc_file.variables['subgrid_id'][:]
         except KeyError:
             self.var_subgrid_id = None
-
+        try:
+            self.var_subgrid_name = self.nc_file.variables['subgrid_name'][:]
+        except KeyError:
+            self.var_subgrid_name= None
         try:
             self.var_subgrid_x_min = self.nc_file.variables['subgrid_x_min'][:]
         except KeyError:
@@ -248,20 +251,25 @@ class ROMSIndexFile:
         self.var_mask.flag_values = 1, 255
         self.var_mask.flag_meanings = "land, water"
 
-    def create_subgrid_dims_vars(self, num_subgrids):
+    def create_subgrid_dims_vars(self, num_subgrids, subset_grid_field_name=None):
         """Create subgrid-related NetCDF dimensions/variables.
 
         Args:
             num_subgrids: Number of subgrids.
+            subset_grid_field_name: (Optional, default None) Shapefile field name
+                to be stored in the index file.
         """
         self.dim_subgrid = self.nc_file.createDimension(self.DIMNAME_SUBGRID, num_subgrids)
         self.var_subgrid_id = self.nc_file.createVariable('subgrid_id', 'i4', (self.DIMNAME_SUBGRID,), fill_value=FILLVALUE)
-        self.var_subgrid_x_min = self.nc_file.createVariable('subgrid_x_min', 'i4', (self.DIMNAME_SUBGRID,))
-        self.var_subgrid_x_max = self.nc_file.createVariable('subgrid_x_max', 'i4', (self.DIMNAME_SUBGRID,))
-        self.var_subgrid_y_min = self.nc_file.createVariable('subgrid_y_min', 'i4', (self.DIMNAME_SUBGRID,))
-        self.var_subgrid_y_max = self.nc_file.createVariable('subgrid_y_max', 'i4', (self.DIMNAME_SUBGRID,))
-    
-    def init_nc(self, roms_file, target_cellsize_meters, ofs_model, shoreline_shp=None, subset_grid_shp=None):
+        self.var_subgrid_x_min = self.nc_file.createVariable('subgrid_x_min', 'i4', (self.DIMNAME_SUBGRID,), fill_value=FILLVALUE)
+        self.var_subgrid_x_max = self.nc_file.createVariable('subgrid_x_max', 'i4', (self.DIMNAME_SUBGRID,), fill_value=FILLVALUE)
+        self.var_subgrid_y_min = self.nc_file.createVariable('subgrid_y_min', 'i4', (self.DIMNAME_SUBGRID,), fill_value=FILLVALUE)
+        self.var_subgrid_y_max = self.nc_file.createVariable('subgrid_y_max', 'i4', (self.DIMNAME_SUBGRID,), fill_value=FILLVALUE)
+
+        if subset_grid_field_name is not None:
+            self.var_subgrid_name = self.nc_file.createVariable('subgrid_name', 'S30', (self.DIMNAME_SUBGRID,), fill_value=FILLVALUE)
+
+    def init_nc(self, roms_file, target_cellsize_meters, ofs_model, shoreline_shp=None, subset_grid_shp=None, subset_grid_field_name=None):
         """Initialize NetCDF dimensions/variables/attributes.
 
         Args:
@@ -274,6 +282,7 @@ class ROMSIndexFile:
                 and since it will be adjusted in order to fit a whole number of
                 grid cells in the x and y directions within the calculated grid
                 extent.
+            ofs_model: The target model identifier.
             shoreline_shp: (Optional, default None) Path to a polygon shapefile
                 containing features identifying land areas. If specified,
                 a shoreline mask variable will be created/populated.
@@ -283,7 +292,9 @@ class ROMSIndexFile:
                 tiles. Shapefile is assumed to be in the WGS84 projection. If
                 None, the index file will be created assuming no subsets are
                 desired and the extent of the model will be used instead.
-            ofs_model: The target model identifier.
+            subset_grid_field_name: (Optional, default None) Shapefile
+                field name to be stored in the index file.
+
         """
         # Calculate extent of valid (water) points
         water_lat_rho = ma.masked_array(roms_file.var_lat_rho, numpy.logical_not(roms_file.var_mask_rho))
@@ -297,8 +308,10 @@ class ROMSIndexFile:
         # (if applicable)
         if subset_grid_shp is None:
             reg_grid = self.init_xy(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters)
-        else:
+        elif subset_grid_field_name is None:
             reg_grid = self.init_xy_with_subsets(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters, subset_grid_shp)
+        else:
+            reg_grid = self.init_xy_with_subsets(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters, subset_grid_shp, subset_grid_field_name)
 
         self.nc_file.gridOriginLongitude = reg_grid.x_min
         self.nc_file.gridOriginLatitude = reg_grid.y_min
@@ -344,7 +357,7 @@ class ROMSIndexFile:
 
         return reg_grid
 
-    def init_xy_with_subsets(self, lon_min, lat_min, lon_max, lat_max, target_cellsize_meters, subset_grid_shp):
+    def init_xy_with_subsets(self, lon_min, lat_min, lon_max, lat_max, target_cellsize_meters, subset_grid_shp, subset_grid_field_name=None):
         """Create & initialize x/y dimensions/coordinate vars and subset vars.
 
         Args:
@@ -356,6 +369,8 @@ class ROMSIndexFile:
                 calculated cell sizes will be approximations of this.
             subset_grid_shp: Path to subset grid polygon shapefile used to
                 define subgrid domains.
+            subset_grid_field_name: Optional, default None) Shapefile
+                field name to be stored in the index file.
 
         Raises: Exception when given subset grid shapefile does not exist or
             does not include any grid polygons intersecting with given extent.
@@ -392,13 +407,19 @@ class ROMSIndexFile:
         # Find the intersection between grid polygon and ocean model grid extent
         subset_polys = {}
         fids = []
+        fields = {}
         fid = 0
         for feature in layer:
             geom = feature.GetGeometryRef()
             intersection = ofs_poly.Intersection(geom)
             if intersection.ExportToWkt() != "GEOMETRYCOLLECTION EMPTY":
                 subset_polys[fid] = geom.ExportToJson()
-                fids.append(fid)
+                if subset_grid_field_name is not None:
+                    field_name = feature.GetField(str(subset_grid_field_name))
+                    fields.update({fid: field_name})
+                    fids.append(fid)
+                else:
+                    fids.append(fid)
             fid += 1
 
         if len(fids) == 0:
@@ -431,10 +452,13 @@ class ROMSIndexFile:
         self.nc_file.gridSpacingLatitude = full_reg_grid.cellsize_y
 
         # Create subgrid dimension/variables
-        self.create_subgrid_dims_vars(len(subset_polys))
+        self.create_subgrid_dims_vars(len(subset_polys), subset_grid_field_name)
         # Calculate subgrid mask ranges, populate subgrid ID
         for subgrid_index, fid in enumerate(fids):
             self.var_subgrid_id[subgrid_index] = fid
+            if subset_grid_field_name is not None:
+                self.var_subgrid_name[subgrid_index] = fields[fid]
+
             # Convert OGR geometry to shapely geometry
             subset_poly_shape = shape(json.loads(subset_polys[fid]))
             min_x_coord = subset_poly_shape.bounds[0]
@@ -532,7 +556,7 @@ class ROMSIndexFile:
         pixel_height = reg_grid.cellsize_y
         cols = len(reg_grid.y_coords)
         rows = len(reg_grid.x_coords)
-        target_ds = gdal.GetDriverByName('MEM').Create("land_mask.tif", rows, cols, 1, gdal.GDT_Int32)
+        target_ds = gdal.GetDriverByName('MEM').Create("land_mask.tif", rows, cols, 1, gdal.GDT_Byte)
         target_ds.SetGeoTransform((reg_grid.x_min, pixel_width, 0, reg_grid.y_min, 0,  pixel_height))
         target_dsSRS = osr.SpatialReference()
         target_dsSRS.ImportFromEPSG(4326)
@@ -559,7 +583,6 @@ class ROMSIndexFile:
         For every irregular grid point create a polygon from four valid
         grid points, searching counter clockwise (eta1,xi1), (eta2,xi2), (eta3,xi3),
         (eta4,xi4). Rasterize the polygon to create a grid domain mask.
-
 
         Args:
             roms_file: `ROMSOutputFile` instance containing irregular grid
@@ -842,7 +865,6 @@ def scipy_interpolate_uv_to_regular_grid(rot_u_rho, rot_v_rho, water_lat_rho, wa
     coords = numpy.column_stack((water_lon_rho, water_lat_rho))
     reg_grid_u = griddata(coords, rot_u_rho, (x, y), method='linear', fill_value=FILLVALUE)
     reg_grid_v = griddata(coords, rot_v_rho, (x, y), method='linear', fill_value=FILLVALUE)
-
     return reg_grid_u, reg_grid_v
 
 

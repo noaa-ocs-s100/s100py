@@ -498,8 +498,11 @@ def roms_to_s111(roms_index_path, roms_output_paths, s111_path_prefix, cycletime
             with contextlib.ExitStack() as stack:
                 s111_files = []
                 for i in range(roms_index.dim_subgrid.size):
-                    s111_file = S111File("{}_SUBGRID_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_id[i]),
-                                         clobber=True)
+                    if roms_index.var_subgrid_name is not None:
+                        s111_file = S111File("{}_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_name[i]), clobber=True)
+                    else:
+                        s111_file = S111File("{}_FID_{}.h5".format(s111_path_prefix, roms_index.var_subgrid_id[i]), clobber=True)
+
                     s111_file_paths.append(s111_file.path)
                     stack.enter_context(s111_file)
                     s111_file.update_attributes(roms_index, ofs_metadata, target_depth, i)
