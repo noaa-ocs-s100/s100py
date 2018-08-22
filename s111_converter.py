@@ -4,12 +4,16 @@
 S-111 is an IHO standard outlining formats for storing and sending surface
 water current data and metadata.
 """
-import h5py
 import gdal
 import osr
 import argparse
 from glob import glob
 import os
+
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    import h5py
 
 
 class S111Converter:
