@@ -6,13 +6,16 @@ water current data and metadata.
 import contextlib
 import datetime
 import os
-
-import h5py
-import netCDF4
 import numpy
 import numpy.ma as ma
 
 from .model import model
+
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    import h5py
+
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
@@ -480,6 +483,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
     Returns:
         List of paths to HDF5 files created.
     """
+
     # Path format/prefix for output S111 files. Forecast initialization (reference).
     if os.path.isdir(s111_path_prefix):
         if not s111_path_prefix.endswith("/"):
@@ -512,13 +516,17 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                 for model_file in model_files:
                     try:
                         model_file.open()
-                        # Convert gregorian timestamp to datetime timestamp
-                        time_val = netCDF4.num2date(model_file.nc_file.variables['ocean_time'][:],
-                                                    model_file.nc_file.variables['ocean_time'].units)[0]
+
+                        # Call model method and convert and interpolate u/v to regular grid
                         reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, target_depth)
+
+                        reg_grid_u = ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
+                        reg_grid_v = ma.masked_array(reg_grid_v,  model_index_file.var_mask.mask)
+
                         # Convert currents at regular grid points from u/v to speed
                         # and direction
                         direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
+
                         direction = ma.masked_array(direction, model_index_file.var_mask.mask)
                         speed = ma.masked_array(speed, model_index_file.var_mask.mask)
 
@@ -531,7 +539,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                                 subgrid_speed = speed[y_min:y_max + 1, x_min:x_max + 1]
                                 subgrid_direction = direction[y_min:y_max + 1, x_min:x_max + 1]
                                 if ma.count(subgrid_speed) >= 20:
-                                    s111_file.add_data(time_val, subgrid_speed, subgrid_direction, cycletime)
+                                    s111_file.add_data(model_file.time_val, subgrid_speed, subgrid_direction, cycletime)
                                 else:
                                     s111_file.close()
                                     os.remove("{}".format(s111_file.path))
@@ -546,20 +554,21 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                 for model_file in model_files:
                     try:
                         model_file.open()
-                        # Convert gregorian timestamp to datetime timestamp
-                        time_val = netCDF4.num2date(model_file.nc_file.variables['ocean_time'][:],
-                                                    model_file.nc_file.variables['ocean_time'].units)[0]
 
                         # Call model method and convert and interpolate u/v to regular grid
                         reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, target_depth)
 
+                        reg_grid_u = ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
+                        reg_grid_v = ma.masked_array(reg_grid_v,  model_index_file.var_mask.mask)
+
                         # Convert currents at regular grid points from u/v to speed
                         # and direction
                         direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
+
                         direction = ma.masked_array(direction, model_index_file.var_mask.mask)
                         speed = ma.masked_array(speed, model_index_file.var_mask.mask)
 
-                        s111_file.add_data(time_val, speed, direction, cycletime)
+                        s111_file.add_data(model_file.time_val, speed, direction, cycletime)
                     finally:
                         model_file.close()
     finally:

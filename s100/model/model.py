@@ -28,6 +28,12 @@ MS2KNOTS = 1.943844
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
 
+# Default module for horizontal interpolation
+INTERP_METHOD_SCIPY = "scipy"
+
+# Alternative module for horizontal interpolation
+INTERP_METHOD_GDAL = "gdal"
+
 
 class ModelIndexFile:
     """Store a regular grid numpy.array and mask for model of interest in a NetCDF file.
@@ -159,7 +165,7 @@ class ModelIndexFile:
 
         self.var_mask = self.nc_file.createVariable('mask', 'i4', (self.DIMNAME_Y, self.DIMNAME_X), fill_value=FILLVALUE)
         self.var_mask.long_name = "regular grid point mask"
-        self.var_mask.flag_values = 1, 255
+        self.var_mask.flag_values = -9999.0, 1
         self.var_mask.flag_meanings = "land, water"
 
     def create_subgrid_dims_vars(self, num_subgrids, subset_grid_field_name=None):
@@ -305,10 +311,10 @@ class ModelIndexFile:
         ofs_poly.AddGeometry(ring)
 
         # Get the EPSG value from the import shapefile and transform to WGS84
-        spatialRef = layer.GetSpatialRef()
-        shpSRS = spatialRef.GetAttrValue("AUTHORITY", 1)
+        spatial_ref = layer.GetSpatialRef()
+        shp_srs = spatial_ref.GetAttrValue("AUTHORITY", 1)
         source = osr.SpatialReference()
-        source.ImportFromEPSG(int(shpSRS))
+        source.ImportFromEPSG(int(shp_srs))
         target = osr.SpatialReference()
         target.ImportFromEPSG(4326)
         transform = osr.CoordinateTransformation(source, target)
@@ -337,9 +343,9 @@ class ModelIndexFile:
 
         # Use a single subset polygon to calculate x/y cell sizes. This ensures
         # that cells do not fall on the border between two grid polygons.
-        singlepolygon = ogr.Geometry(ogr.wkbMultiPolygon)
-        singlepolygon.AddGeometry(ogr.CreateGeometryFromJson(subset_polys[fids[0]]))
-        sp_x_min, sp_x_max, sp_y_min, sp_y_max = singlepolygon.GetEnvelope()
+        single_polygon = ogr.Geometry(ogr.wkbMultiPolygon)
+        single_polygon.AddGeometry(ogr.CreateGeometryFromJson(subset_polys[fids[0]]))
+        sp_x_min, sp_x_max, sp_y_min, sp_y_max = single_polygon.GetEnvelope()
 
         cellsize_x, cellsize_y = RegularGrid.calc_cellsizes(sp_x_min, sp_y_min, sp_x_max, sp_y_max, target_cellsize_meters)
 
@@ -435,10 +441,10 @@ class ModelIndexFile:
         ofs_poly.AddGeometry(ring)
 
         # Get the EPSG value from the import shapefile and transform to WGS84
-        spatialRef = layer.GetSpatialRef()
-        shpSRS = spatialRef.GetAttrValue("AUTHORITY", 1)
+        spatial_ref = layer.GetSpatialRef()
+        shp_srs = spatial_ref.GetAttrValue("AUTHORITY", 1)
         source = osr.SpatialReference()
-        source.ImportFromEPSG(int(shpSRS))
+        source.ImportFromEPSG(int(shp_srs))
         target = osr.SpatialReference()
         target.ImportFromEPSG(4326)
         transform = osr.CoordinateTransformation(source, target)
@@ -453,10 +459,10 @@ class ModelIndexFile:
         # Create a regional ogr shoreline polygon layer
         # write to memory
         driver = ogr.GetDriverByName('Memory')
-        memds = driver.CreateDataSource('tmpmemds')
+        mem_dset = driver.CreateDataSource('mem_dst')
         dest_srs = ogr.osr.SpatialReference()
         dest_srs.ImportFromEPSG(4326)
-        lyr = memds.CreateLayer('land_mask', dest_srs, geom_type=ogr.wkbPolygon)
+        lyr = mem_dset.CreateLayer('land_mask', dest_srs, geom_type=ogr.wkbPolygon)
         feat = ogr.Feature(lyr.GetLayerDefn())
         feat.SetGeometry(intersection)
         lyr.CreateFeature(feat)
@@ -466,19 +472,19 @@ class ModelIndexFile:
         pixel_height = reg_grid.cellsize_y
         cols = len(reg_grid.y_coords)
         rows = len(reg_grid.x_coords)
-        target_ds = gdal.GetDriverByName('MEM').Create("land_mask.tif", rows, cols, 1, gdal.GDT_Byte)
-        target_ds.SetGeoTransform((reg_grid.x_min, pixel_width, 0, reg_grid.y_min, 0,  pixel_height))
-        target_dsSRS = osr.SpatialReference()
-        target_dsSRS.ImportFromEPSG(4326)
-        target_ds.SetProjection(target_dsSRS.ExportToWkt())
-        band = target_ds.GetRasterBand(1)
-        band.SetNoDataValue(1)
+        target_dset = gdal.GetDriverByName('MEM').Create("land_mask.tif", rows, cols, 1, gdal.GDT_Byte)
+        target_dset.SetGeoTransform((reg_grid.x_min, pixel_width, 0, reg_grid.y_min, 0,  pixel_height))
+        target_dset_srs = osr.SpatialReference()
+        target_dset_srs.ImportFromEPSG(4326)
+        target_dset.SetProjection(target_dset_srs.ExportToWkt())
+        band = target_dset.GetRasterBand(1)
+        band.SetNoDataValue(FILLVALUE)
         band.FlushCache()
 
-        gdal.RasterizeLayer(target_ds, [1], lyr, None, None)
+        gdal.RasterizeLayer(target_dset, [1], lyr, burn_values=[2])
 
-        # Store as a numpy array, land = 255, water = 0
-        target_band = target_ds.GetRasterBand(1)
+        # Store as a numpy array, land = 2, invalid areas = 0
+        target_band = target_dset.GetRasterBand(1)
         land_mask = target_band.ReadAsArray(pixel_width, pixel_height, rows, cols).astype(numpy.int)
 
         return land_mask
@@ -509,19 +515,19 @@ class ModelIndexFile:
         pixel_height = reg_grid.cellsize_y
         cols = len(reg_grid.y_coords)
         rows = len(reg_grid.x_coords)
-        target_ds = gdal.GetDriverByName('MEM').Create("grid_cell_mask.tif", rows, cols, 1, gdal.GDT_Byte)
-        target_ds.SetGeoTransform((reg_grid.x_min, pixel_width, 0, reg_grid.y_min, 0, pixel_height))
-        target_dsSRS = osr.SpatialReference()
-        target_dsSRS.ImportFromEPSG(4326)
-        target_ds.SetProjection(target_dsSRS.ExportToWkt())
-        band = target_ds.GetRasterBand(1)
-        band.SetNoDataValue(1)
+        target_dset = gdal.GetDriverByName('MEM').Create("grid_cell_mask.tif", rows, cols, 1, gdal.GDT_Byte)
+        target_dset.SetGeoTransform((reg_grid.x_min, pixel_width, 0, reg_grid.y_min, 0, pixel_height))
+        target_dset_srs = osr.SpatialReference()
+        target_dset_srs.ImportFromEPSG(4326)
+        target_dset.SetProjection(target_dset_srs.ExportToWkt())
+        band = target_dset.GetRasterBand(1)
+        band.SetNoDataValue(FILLVALUE)
         band.FlushCache()
 
-        gdal.RasterizeLayer(target_ds, [1], layer, None, None)
+        gdal.RasterizeLayer(target_dset, [1], layer, burn_values=[1])
 
-        # Store as numpy array, valid areas = 255, invalid areas = 0
-        target_band = target_ds.GetRasterBand(1)
+        # Store as numpy array, valid areas = 1, invalid areas = 0
+        target_band = target_dset.GetRasterBand(1)
         grid_cell_mask = target_band.ReadAsArray(pixel_width, pixel_height, rows, cols).astype(numpy.int)
 
         return grid_cell_mask
@@ -531,19 +537,21 @@ class ModelIndexFile:
 
         Args:
             grid_cell_mask: 2D numpy array, matching the index file dimensions,
-                containing regular grid model domain mask values.
+                containing regular grid model domain mask values, a value of 1
+                for valid water, a value of 0 for invalid areas.
             land_mask: 2D numpy array, matching the index file dimensions,
-                containing regular grid masked values, a value of 1 for water areas
-                and a value of 255 for land areas.
+                containing regular grid masked values, a value of 0 for invalid
+                areas and a value of 2 for land.
         """
         # Use land mask and grid cell mask to create a master mask
-        # write to index file, a value of 1 for valid areas
-        # and FILLVALUE for invalid areas
+        # Value of 1 for valid areas, FILLVALUE for invalid areas
+
+        # Write mask to index file
         for y in range(self.dim_y.size):
             for x in range(self.dim_x.size):
                 if land_mask[y, x] != 0:
                     continue
-                if grid_cell_mask[y, x] != 0:
+                if grid_cell_mask[y, x] == 1:
                     self.var_mask[y, x] = 1
                 else:
                     self.var_mask[y, x] = FILLVALUE
@@ -606,11 +614,18 @@ def uv_to_speed_direction(reg_grid_u, reg_grid_v):
             the regular grid.
         reg_grid_v: `numpy.ma.masked_array` containing v values interpolated to
             the regular grid.
+
+    Returns:
+        Two tuple of speed and direction
     """
-    direction = numpy.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
-    speed = numpy.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
+    direction = numpy.ma.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
+    speed = numpy.ma.empty((reg_grid_u.shape[0], reg_grid_u.shape[1]), dtype=numpy.float32)
     for y in range(reg_grid_u.shape[0]):
         for x in range(reg_grid_u.shape[1]):
+            if reg_grid_u.mask[y, x]:
+                direction[y, x] = numpy.nan
+                speed[y, x] = numpy.nan
+                continue
 
             u_ms = reg_grid_u[y, x]
             v_ms = reg_grid_v[y, x]
@@ -655,8 +670,9 @@ def scipy_interpolate_uv_to_regular_grid(u, v, lat, lon, model_index):
     # Using scipy to interpolate irregular spaced u/v points to a regular grid
     x, y = numpy.meshgrid(model_index.var_x, model_index.var_y)
     coords = numpy.column_stack((lon, lat))
-    reg_grid_u = griddata(coords, u, (x, y), method='linear', fill_value=FILLVALUE)
-    reg_grid_v = griddata(coords, v, (x, y), method='linear', fill_value=FILLVALUE)
+    reg_grid_u = griddata(coords, u, (x, y), method='linear')
+    reg_grid_v = griddata(coords, v, (x, y), method='linear')
+
     return reg_grid_u, reg_grid_v
 
 
