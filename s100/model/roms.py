@@ -1,5 +1,5 @@
 """
-Utility classes and methods for working with ROMS ocean model output.
+Utility classes and methods for working with ROMS ocean model forecast guidance.
 
 The Regional Ocean Modeling System (ROMS) is a 3D hydrodynamic modeling
 framework which uses an irregular, curvilinear horizontal grid and a sigma
@@ -10,14 +10,12 @@ lat/lon horizontal grid at a given depth-below-surface.
 
 import numpy
 import numpy.ma as ma
+import netCDF4
 import osr
 import ogr
 from scipy import interpolate
 
 from s100.model import model
-
-# Conversion factor for meters/sec to knots
-MS2KNOTS = 1.943844
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
@@ -49,18 +47,18 @@ class ROMSIndexFile(model.ModelIndexFile):
         """
         # Create shapefile with OGR
         driver = ogr.GetDriverByName('Esri Shapefile')
-        ds = driver.CreateDataSource('grid_cell_mask.shp')
-        ds_srs = ogr.osr.SpatialReference()
-        ds_srs.ImportFromEPSG(4326)
-        layer = ds.CreateLayer('', ds_srs, ogr.wkbMultiPolygon)
+        dset = driver.CreateDataSource('grid_cell_mask.shp')
+        dset_srs = ogr.osr.SpatialReference()
+        dset_srs.ImportFromEPSG(4326)
+        layer = dset.CreateLayer('', dset_srs, ogr.wkbMultiPolygon)
         layer.CreateField(ogr.FieldDefn('id', ogr.OFTInteger))
 
         # Add spatial reference to polygon
-        spatialRef = osr.SpatialReference()
-        spatialRef.ImportFromEPSG(4326)
-        spatialRef.MorphToESRI()
+        spatial_ref = osr.SpatialReference()
+        spatial_ref.ImportFromEPSG(4326)
+        spatial_ref.MorphToESRI()
         file = open('grid_cell_mask.prj', 'w')
-        file.write(spatialRef.ExportToWkt())
+        file.write(spatial_ref.ExportToWkt())
         file.close()
 
         # Create shapefile containing polygons for each irregular grid cell
@@ -98,7 +96,7 @@ class ROMSIndexFile(model.ModelIndexFile):
 
         return self.rasterize_mask(reg_grid, layer)
 
-class ROMSOutputFile(model.ModelFile):
+class ROMSFile(model.ModelFile):
     """Read/process data from a ROMS NetCDF model file.
 
     Attributes:
@@ -109,9 +107,7 @@ class ROMSOutputFile(model.ModelFile):
 
         Args:
             path: Path of target NetCDF file.
-        
-        Raises:
-            Exception: Specified NetCDF file does not exist.
+
         """
         super().__init__(path)
         self.var_ang_rho = None
@@ -131,6 +127,7 @@ class ROMSOutputFile(model.ModelFile):
         self.num_eta = None
         self.num_xi = None
         self.num_sigma = None
+        self.time_val = None
 
     def get_valid_extent(self):
         """Masked model domain extent."""
@@ -172,6 +169,9 @@ class ROMSOutputFile(model.ModelFile):
         self.num_eta = self.var_h.shape[0]
         self.num_xi = self.var_h.shape[1]
         self.num_sigma = self.var_s_rho.shape[0]
+        # Convert gregorian timestamp to datetime timestamp
+        self.time_val = netCDF4.num2date(self.nc_file.variables['ocean_time'][:],
+                                    self.nc_file.variables['ocean_time'].units)[0]
 
 
     def uv_to_regular_grid(self, model_index, target_depth, interp=INTERP_METHOD_SCIPY):
