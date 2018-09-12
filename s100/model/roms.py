@@ -97,7 +97,7 @@ class ROMSIndexFile(model.ModelIndexFile):
         return self.rasterize_mask(reg_grid, layer)
 
 class ROMSFile(model.ModelFile):
-    """Read/process data from a ROMS NetCDF model file.
+    """Read/process data from a ROMS model NetCDF file.
 
     Attributes:
         path: Path (relative or absolute) of the file.
@@ -169,9 +169,9 @@ class ROMSFile(model.ModelFile):
         self.num_eta = self.var_h.shape[0]
         self.num_xi = self.var_h.shape[1]
         self.num_sigma = self.var_s_rho.shape[0]
-        # Convert gregorian timestamp to datetime timestamp
-        self.time_val = netCDF4.num2date(self.nc_file.variables['ocean_time'][:],
-                                    self.nc_file.variables['ocean_time'].units)[0]
+
+        # Convert gregorian timestamp to datetime object
+        self.time_val = netCDF4.num2date(self.nc_file.variables['ocean_time'][:], self.nc_file.variables['ocean_time'].units, calendar='proleptic_gregorian')[0]
 
 
     def uv_to_regular_grid(self, model_index, target_depth, interp=INTERP_METHOD_SCIPY):
@@ -192,13 +192,16 @@ class ROMSFile(model.ModelFile):
 
         rot_u_rho, rot_v_rho = rotate_uv2d(u_rho, v_rho, water_ang_rho)
 
-        u_compressed, v_compressed, lat_compressed, lon_compressed = compress_variables(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho)
+        u_compressed, v_compressed, lat_compressed, lon_compressed = compress_variables(rot_u_rho, rot_v_rho,
+                                                                                        water_lat_rho, water_lon_rho)
 
         # Scipy interpolation is default method, change method parameter to change interpolation method
         if interp == INTERP_METHOD_SCIPY:
-            return model.scipy_interpolate_uv_to_regular_grid(u_compressed, v_compressed, lat_compressed, lon_compressed, model_index)
+            return model.scipy_interpolate_uv_to_regular_grid(u_compressed, v_compressed, lat_compressed,
+                                                              lon_compressed, model_index)
         elif interp == INTERP_METHOD_GDAL:
-            return model.gdal_interpolate_uv_to_regular_grid(u_compressed, v_compressed, lat_compressed, lon_compressed, model_index)
+            return model.gdal_interpolate_uv_to_regular_grid(u_compressed, v_compressed, lat_compressed, lon_compressed,
+                                                             model_index)
 
 def compress_variables(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho):
     """Compress masked variables for interpolation.
@@ -327,7 +330,7 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
             depth must be greater or equal to 0.
     """
     zeta = ma.masked_array(zeta, numpy.logical_not(mask_rho))
-    total_depth = h + zeta
+    true_depth = h + zeta
     z = numpy.ma.empty(shape=[num_sigma, num_eta, num_xi])
 
     if vtransform == 1:
@@ -343,11 +346,11 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
 
     if target_depth < 0:
         raise Exception("Target depth must be positive")
-    if target_depth > numpy.nanmax(total_depth):
+    if target_depth > numpy.nanmax(true_depth):
         raise Exception("Target depth exceeds total depth")
 
     # For areas shallower than the target depth, depth is half the total depth
-    interp_depth = zeta - numpy.minimum(target_depth*2, total_depth)/2
+    interp_depth = zeta - numpy.minimum(target_depth*2, true_depth)/2
 
     u_target_depth = numpy.ma.empty(shape=[num_eta, num_xi])
     v_target_depth = numpy.ma.empty(shape=[num_eta, num_xi])
