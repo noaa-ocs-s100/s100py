@@ -291,7 +291,7 @@ class S111File:
             fdata['dataType'][0] = H5T_CLASS_T[h5py.h5t.FLOAT]
             fdata['lower'][0] = 0.0
             fdata['upper'][0] = ""
-            fdata['closure'][0] = "geSemilInterval"
+            fdata['closure'][0] = "geSemiInterval"
 
             fdata['code'][1] = "surfaceCurrentDirection"
             fdata['name'][1] = "Surface current direction"
