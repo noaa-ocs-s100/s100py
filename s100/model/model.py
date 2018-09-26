@@ -217,6 +217,10 @@ class ModelIndexFile:
         # Calculate extent of valid (water) points
         (lon_min, lon_max, lat_min, lat_max) = model_file.get_valid_extent()
 
+        # Determine vertical coordinate type
+        (vertical_coordinates) = model_file.get_vertical_coordinate_type()
+        self.nc_file.modelVerticalCoordinates = vertical_coordinates
+
         # Populate grid x/y coordinate variables and subset-related variables
         # (if applicable)
         if subset_grid_shp is None:
@@ -580,7 +584,7 @@ class ModelFile:
 
     def open(self):
         if os.path.exists(self.path):
-            self.nc_file = netCDF4.Dataset(self.path, "r", format="NETCDF3_Classic")
+            self.nc_file = netCDF4.Dataset(self.path, "r", format="NETCDF3_CLASSIC")
             self.init_handles()
         else:
             # File doesn't exist, raise error
@@ -589,10 +593,16 @@ class ModelFile:
     def close(self):
         self.nc_file.close()
 
+    def release_resources(self):
+        pass
+
     def get_valid_extent(self):
         pass
 
     def init_handles(self):
+        pass
+
+    def get_vertical_coordinate_type(self):
         pass
 
     def uv_to_regular_grid(self, model_index, target_depth, interp=None):

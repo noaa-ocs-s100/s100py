@@ -57,9 +57,9 @@ class ROMSIndexFile(model.ModelIndexFile):
         spatial_ref = osr.SpatialReference()
         spatial_ref.ImportFromEPSG(4326)
         spatial_ref.MorphToESRI()
-        file = open('grid_cell_mask.prj', 'w')
-        file.write(spatial_ref.ExportToWkt())
-        file.close()
+        mask_file = open('grid_cell_mask.prj', 'w')
+        mask_file.write(spatial_ref.ExportToWkt())
+        mask_file.close()
 
         # Create shapefile containing polygons for each irregular grid cell
         # using four valid irregular grid points, searching counter
@@ -129,6 +129,30 @@ class ROMSFile(model.ModelFile):
         self.num_sigma = None
         self.time_val = None
 
+    def close(self):
+        super().close()
+        self.release_resources()
+
+    def release_resources(self):
+        self.var_ang_rho = None
+        self.var_lat_rho = None
+        self.var_lon_rho = None
+        self.var_u = None
+        self.var_v = None
+        self.var_mask_u = None
+        self.var_mask_v = None
+        self.var_mask_rho = None
+        self.var_zeta = None
+        self.var_h = None
+        self.var_s_rho = None
+        self.var_hc = None
+        self.var_cs_r = None
+        self.var_vtransform = None
+        self.num_eta = None
+        self.num_xi = None
+        self.num_sigma = None
+        self.time_val = None
+
     def get_valid_extent(self):
         """Masked model domain extent."""
         water_lat_rho = ma.masked_array(self.var_lat_rho, numpy.logical_not(self.var_mask_rho))
@@ -173,6 +197,14 @@ class ROMSFile(model.ModelFile):
         # Convert gregorian timestamp to datetime object
         self.time_val = netCDF4.num2date(self.nc_file.variables['ocean_time'][:], self.nc_file.variables['ocean_time'].units, calendar='proleptic_gregorian')[0]
 
+    def get_vertical_coordinate_type(self):
+        """ROMS-based OFS vertical coordinate type"""
+
+        variables = self.nc_file.variables
+        vertical_coordinates = variables['s_rho'].getncattr('long_name')
+        print (vertical_coordinates)
+
+        return vertical_coordinates
 
     def uv_to_regular_grid(self, model_index, target_depth, interp=INTERP_METHOD_SCIPY):
         """Call grid processing functions and interpolate averaged, rotated u/v to a regular grid"""
