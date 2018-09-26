@@ -58,9 +58,9 @@ class FVCOMIndexFile(model.ModelIndexFile):
         spatial_ref = osr.SpatialReference()
         spatial_ref.ImportFromEPSG(4326)
         spatial_ref.MorphToESRI()
-        file = open('grid_cell_mask.prj', 'w')
-        file.write(spatial_ref.ExportToWkt())
-        file.close()
+        mask_file = open('grid_cell_mask.prj', 'w')
+        mask_file.write(spatial_ref.ExportToWkt())
+        mask_file.close()
 
         # Create shapefile containing polygons for each unstructured
         # triangle using three valid nodes surrounding each centroid
@@ -89,7 +89,6 @@ class FVCOMFile(model.ModelFile):
     Attributes:
         path: Path (relative or absolute) of the file.
     """
-
     def __init__(self, path, lon_offset = -360):
         """Initialize FVCOM file object and open file at specified path.
 
@@ -99,6 +98,29 @@ class FVCOMFile(model.ModelFile):
         """
         super().__init__(path)
         self.lon_offset = lon_offset
+        self.var_lat_nodal = None
+        self.var_lon_nodal = None
+        self.var_lat_centroid = None
+        self.var_lon_centroid = None
+        self.var_u = None
+        self.var_v = None
+        self.var_zeta = None
+        self.var_h = None
+        self.var_nv = None
+        self.var_siglay = None
+        self.num_siglay = None
+        self.var_siglev = None
+        self.num_siglev = None
+        self.num_nele = None
+        self.num_node = None
+        self.wet_cells = None
+        self.time_val = None
+
+    def close(self):
+        super().close()
+        self.release_resources()
+
+    def release_resources(self):
         self.var_lat_nodal = None
         self.var_lon_nodal = None
         self.var_lat_centroid = None
@@ -127,9 +149,7 @@ class FVCOMFile(model.ModelFile):
         return lon_min, lon_max, lat_min, lat_max
 
     def init_handles(self):
-        """Initialize handles to NetCDF variables.
-
-        """
+        """Initialize handles to NetCDF variables."""
         self.var_lat_nodal = self.nc_file.variables['lat'][:]
         self.var_lon_nodal = self.nc_file.variables['lon'][:] + self.lon_offset
         self.var_lat_nodal = self.var_lat_nodal.astype(numpy.float64)
@@ -144,12 +164,12 @@ class FVCOMFile(model.ModelFile):
         self.var_siglay = self.nc_file.variables['siglay'][:,:]
         self.var_siglev = self.nc_file.variables['siglev'][:,:]
         self.var_h = self.nc_file.variables['h'][:]
+        self.var_nv = self.nc_file.variables['nv'][:,:]
+        self.wet_cells = self.nc_file.variables['wet_cells'][0,:]
         self.num_node = self.var_h.shape[0]
         self.num_nele = self.var_u.shape[1]
         self.num_siglay = self.var_siglay.shape[0]
         self.num_siglev = self.var_siglev.shape[0]
-        self.wet_cells = self.nc_file.variables['wet_cells'][0,:]
-        self.var_nv = self.nc_file.variables['nv'][:,:]
 
         # Convert timestamp to datetime object
         self.time_val = netCDF4.num2date(self.nc_file.variables['time'][:],self.nc_file.variables['time'].units)[0]
@@ -161,13 +181,26 @@ class FVCOMFile(model.ModelFile):
             # round down
             self.time_val = datetime.datetime(self.time_val.year, self.time_val.month, self.time_val.day,self.time_val.hour, 0, 0)
 
+    def get_vertical_coordinate_type(self):
+        """Determine FVCOM-based OFS vertical sigma coordinate type"""
+
+        siglay_values = self.var_siglay[:,0]
+        vertical_coordinates = "uniform"
+        for i in range(self.var_siglay.shape[1]):
+            for s in range(self.var_siglay.shape[0]):
+                if self.var_siglay[s,i] != siglay_values[s]:
+                    vertical_coordinates = "generalized"
+                    break
+
+        return vertical_coordinates
+
     def uv_to_regular_grid(self, model_index, target_depth, interp=model.INTERP_METHOD_SCIPY):
         """Call grid processing functions and interpolate averaged, rotated u/v to a regular grid"""
 
-        h_centroid, zeta_centroid, siglay_centroid = horizontal_interpolation(self.var_zeta, self.var_h,
+        h_centroid, zeta_centroid, siglay_centroid = node_to_element(model_index, self.var_zeta, self.var_h,
                                                                               self.var_siglay, self.var_lon_nodal,
                                                                               self.var_lat_nodal, self.var_lon_centroid,
-                                                                              self.var_lat_centroid)
+                                                                              self.var_lat_centroid, self.num_nele, self.num_siglay)
 
         u_target_depth, v_target_depth = vertical_interpolation(self.var_u, self.var_v, h_centroid, zeta_centroid,
                                                                 siglay_centroid, self.num_nele, self.num_siglay,
@@ -224,31 +257,40 @@ def vertical_interpolation(u, v, h, zeta, siglay, num_nele, num_siglay, target_d
 
     return u_target_depth, v_target_depth
 
-def horizontal_interpolation(zeta, h, siglay, lon_node, lat_node, lon_centroid, lat_centroid):
+def node_to_element(model_index, zeta, h, siglay, lon_node, lat_node, lon_centroid, lat_centroid, num_nele, num_siglay):
     """Horizontally interpolate variables at nodes to elements(centroids).
 
     Args:
+        model_index: `ModelIndexFile` instance representing model index file.
         zeta: `numpy.ndarray` containing MSL free surface at nodal points in meters.
         h: `numpy.ndarray` containing bathymetry at nodal points.
         siglay: `3d numpy.ndarray` containing sigma layers (positive up).
         lon_node: `numpy.ndarray` containing nodal longitude.
         lat_node: `numpy.ndarray` containing nodal latitude.
-        lon_centroid: `numpy.ndarray` containing centroid longitude.
-        lat_centroid: `numpy.ndarray` containing centroid latitude.
+        lon_centroid: `numpy.ndarray` containing centroid(elements) longitude.
+        lat_centroid: `numpy.ndarray` containing centroid(elements) latitude.
+        num_nele: number of elements(centroids)
+        num_siglay: number of sigma layers
 
     """
+    print ("start", datetime.datetime.now())
 
-    num_sig = siglay.shape[0]
-    num_element  = lon_centroid.shape[0]
+    siglay_centroid = numpy.ma.empty(shape=[num_siglay, num_nele])
 
-    siglay_centroid = numpy.ma.empty(shape=[num_sig, num_element])
-    for i in range (num_sig):
-        coords = numpy.column_stack((lon_node, lat_node))
-        siglay_centroid[i,:] = interpolate.griddata(coords, siglay[i,:],(lon_centroid, lat_centroid), method='linear')
+    # Sigma vertical coordinate type
+    if model_index.nc_file.modelVerticalCoordinates == "generalized":
+        for i in range (num_siglay):
+            coords = numpy.column_stack((lon_node, lat_node))
+            siglay_centroid[i,:] = interpolate.griddata(coords, siglay[i,:],(lon_centroid, lat_centroid), method='linear')
+    else:
+        # uniform vertical coordinates
+        for k in range(num_nele):
+                siglay_centroid[:, k] = siglay[:, 0]
 
     coords = numpy.column_stack((lon_node, lat_node))
     h_centroid = interpolate.griddata(coords, h, (lon_centroid, lat_centroid), method='linear')
     zeta_centroid = interpolate.griddata(coords, zeta, (lon_centroid, lat_centroid), method='linear')
+
 
     return h_centroid, zeta_centroid, siglay_centroid
 
