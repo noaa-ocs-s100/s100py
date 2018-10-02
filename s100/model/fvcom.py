@@ -185,25 +185,45 @@ class FVCOMFile(model.ModelFile):
         """Determine FVCOM-based OFS vertical sigma coordinate type"""
 
         siglay_values = self.var_siglay[:,0]
-        vertical_coordinates = "uniform"
+        vertical_coordinates = "UNIFORM"
         for i in range(self.var_siglay.shape[1]):
             for s in range(self.var_siglay.shape[0]):
                 if self.var_siglay[s,i] != siglay_values[s]:
-                    vertical_coordinates = "generalized"
+                    vertical_coordinates = "GENERALIZED"
                     break
 
         return vertical_coordinates
 
+    def sigma_to_centroid(self, vertical_coordinates):
+        """Horizontally interpolate FVCOM-based OFS vertical sigma coordinate to centroid
+
+        Args:
+            vertical_coordinates: model vertical coordinate identifier.
+        """
+
+        siglay_centroid = numpy.ma.empty(shape=[self.num_siglay, self.num_nele])
+
+        # Sigma vertical coordinate type
+        # Generalized
+        if vertical_coordinates == "GENERALIZED":
+            for i in range (self.num_siglay):
+                coords = numpy.column_stack((self.var_lon_nodal, self.var_lat_nodal))
+                siglay_centroid[i,:] = interpolate.griddata(coords, self.var_siglay[i,:],(self.var_lon_centroid, self.var_lat_centroid), method='linear')
+        else:
+        # Uniform
+            for k in range(self.num_nele):
+                    siglay_centroid[:, k] = self.var_siglay[:, 0]
+
+        return siglay_centroid, self.var_lat_centroid, self.var_lon_centroid, self.num_nele, self.num_siglay
+
     def uv_to_regular_grid(self, model_index, target_depth, interp=model.INTERP_METHOD_SCIPY):
         """Call grid processing functions and interpolate averaged, rotated u/v to a regular grid"""
 
-        h_centroid, zeta_centroid, siglay_centroid = node_to_element(model_index, self.var_zeta, self.var_h,
-                                                                              self.var_siglay, self.var_lon_nodal,
-                                                                              self.var_lat_nodal, self.var_lon_centroid,
-                                                                              self.var_lat_centroid, self.num_nele, self.num_siglay)
+        h_centroid, zeta_centroid = node_to_centroid(self.var_zeta, self.var_h, self.var_lon_nodal, self.var_lat_nodal,
+                                                    self.var_lon_centroid, self.var_lat_centroid)
 
         u_target_depth, v_target_depth = vertical_interpolation(self.var_u, self.var_v, h_centroid, zeta_centroid,
-                                                                siglay_centroid, self.num_nele, self.num_siglay,
+                                                                model_index, self.num_nele, self.num_siglay,
                                                                 target_depth)
 
         # Scipy interpolation is default method, change method parameter to change interpolation method
@@ -214,15 +234,15 @@ class FVCOMFile(model.ModelFile):
             return model.gdal_interpolate_uv_to_regular_grid(u_target_depth, v_target_depth, self.var_lat_centroid,
                                                              self.var_lon_centroid, model_index)
 
-def vertical_interpolation(u, v, h, zeta, siglay, num_nele, num_siglay, target_depth):
+def vertical_interpolation(u, v, h, zeta, model_index, num_nele, num_siglay, target_depth):
     """Vertically interpolate variables to target depth.
 
     Args:
         u: `numpy.ndarray` containing u values for entire grid.
         v: `numpy.ndarray` containing v values for entire grid.
         zeta: `numpy.ndarray` containing MSL free surface at centroid points in meters.
+        model_index: `ModelIndexFile` instance representing model index file containing siglay.
         h: `numpy.ndarray` containing bathymetry at centroid points.
-        siglay: `numpy.ndarray` containing sigma layers (positive up) at centroid points.
         num_nele: number of elements(centroid).
         num_siglay: number of sigma layers.
         target_depth: The water current at a specified target depth below the sea
@@ -232,6 +252,7 @@ def vertical_interpolation(u, v, h, zeta, siglay, num_nele, num_siglay, target_d
     true_depth = zeta + h
 
     sigma_depth_layers = numpy.ma.empty(shape=[num_siglay, num_nele])
+    siglay = model_index.nc_file.variables['siglay_centroid'][:,:]
 
     for k in range(num_siglay):
         sigma_depth_layers[k, :] = siglay[k,:] * true_depth
@@ -257,40 +278,23 @@ def vertical_interpolation(u, v, h, zeta, siglay, num_nele, num_siglay, target_d
 
     return u_target_depth, v_target_depth
 
-def node_to_element(model_index, zeta, h, siglay, lon_node, lat_node, lon_centroid, lat_centroid, num_nele, num_siglay):
-    """Horizontally interpolate variables at nodes to elements(centroids).
+def node_to_centroid(zeta, h, lon_node, lat_node, lon_centroid, lat_centroid):
+    """Horizontally interpolate variables at nodes to centroids(elements).
 
     Args:
-        model_index: `ModelIndexFile` instance representing model index file.
         zeta: `numpy.ndarray` containing MSL free surface at nodal points in meters.
         h: `numpy.ndarray` containing bathymetry at nodal points.
-        siglay: `3d numpy.ndarray` containing sigma layers (positive up).
         lon_node: `numpy.ndarray` containing nodal longitude.
         lat_node: `numpy.ndarray` containing nodal latitude.
         lon_centroid: `numpy.ndarray` containing centroid(elements) longitude.
         lat_centroid: `numpy.ndarray` containing centroid(elements) latitude.
-        num_nele: number of elements(centroids)
-        num_siglay: number of sigma layers
-
     """
     print ("start", datetime.datetime.now())
-
-    siglay_centroid = numpy.ma.empty(shape=[num_siglay, num_nele])
-
-    # Sigma vertical coordinate type
-    if model_index.nc_file.modelVerticalCoordinates == "generalized":
-        for i in range (num_siglay):
-            coords = numpy.column_stack((lon_node, lat_node))
-            siglay_centroid[i,:] = interpolate.griddata(coords, siglay[i,:],(lon_centroid, lat_centroid), method='linear')
-    else:
-        # uniform vertical coordinates
-        for k in range(num_nele):
-                siglay_centroid[:, k] = siglay[:, 0]
 
     coords = numpy.column_stack((lon_node, lat_node))
     h_centroid = interpolate.griddata(coords, h, (lon_centroid, lat_centroid), method='linear')
     zeta_centroid = interpolate.griddata(coords, zeta, (lon_centroid, lat_centroid), method='linear')
 
 
-    return h_centroid, zeta_centroid, siglay_centroid
+    return h_centroid, zeta_centroid
 

@@ -151,7 +151,7 @@ class ModelIndexFile:
         """
         self.dim_y = self.nc_file.createDimension(self.DIMNAME_Y, num_y)
         self.dim_x = self.nc_file.createDimension(self.DIMNAME_X, num_x)
-        
+
         # Create coordinate variables with same name as dimensions
         self.var_y = self.nc_file.createVariable(self.DIMNAME_Y, 'f4', (self.DIMNAME_Y,), fill_value=FILLVALUE)
         self.var_y.long_name = "latitude of regular grid point at cell center"
@@ -186,8 +186,7 @@ class ModelIndexFile:
         if subset_grid_field_name is not None:
             self.var_subgrid_name = self.nc_file.createVariable('subgrid_name', 'S30', (self.DIMNAME_SUBGRID,), fill_value=FILLVALUE)
 
-    def init_nc(self, model_file, target_cellsize_meters, ofs_model, shoreline_shp=None, subset_grid_shp=None,
-                subset_grid_field_name=None):
+    def init_nc(self, model_file, target_cellsize_meters, ofs_model, model_type, shoreline_shp=None, subset_grid_shp=None,subset_grid_field_name=None):
         """Initialize NetCDF dimensions/variables/attributes.
 
         Args:
@@ -201,6 +200,7 @@ class ModelIndexFile:
                 grid cells in the x and y directions within the calculated grid
                 extent.
             ofs_model: The target model identifier.
+            model_type: The target model type.
             shoreline_shp: (Optional, default None) Path to a polygon shapefile
                 containing features identifying land areas. If specified,
                 a shoreline mask variable will be created/populated.
@@ -220,6 +220,32 @@ class ModelIndexFile:
         # Determine vertical coordinate type
         (vertical_coordinates) = model_file.get_vertical_coordinate_type()
         self.nc_file.modelVerticalCoordinates = vertical_coordinates
+
+        # For FVCOM models horizontally interpolate sigma values to the centroid
+        # Store in index file
+        if model_type == "fvcom":
+            (siglay_centroid, latc, lonc, num_nele, num_siglay) = model_file.sigma_to_centroid(vertical_coordinates)
+
+            dim_nele = self.nc_file.createDimension("nele", num_nele)
+            dim_siglay = self.nc_file.createDimension("siglay", num_siglay)
+
+            var_lonc = self.nc_file.createVariable('lon_centroid', 'f4', ('nele'), fill_value=-9999)
+            var_lonc.long_name = "longitude of unstructured centroid grid point"
+            var_lonc.units = "degree_east"
+            var_lonc.standard_name = "longitude"
+
+            var_latc = self.nc_file.createVariable('lat_centroid', 'f4', ('nele'), fill_value=-9999)
+            var_latc.long_name = "latitude of unstructured centroid grid point"
+            var_latc.units = "degree_north"
+            var_latc.standard_name = "latitude"
+
+            var_siglay_centroid = self.nc_file.createVariable('siglay_centroid', 'f4', ("siglay", "nele",), fill_value=FILLVALUE)
+            var_siglay_centroid.long_name = "sigma layer at unstructured grid point centroid"
+            var_siglay_centroid.coordinates = "lat_centroid lon_centroid"
+
+            var_siglay_centroid[:, :] = siglay_centroid
+            var_latc[:] = latc
+            var_lonc[:] = lonc
 
         # Populate grid x/y coordinate variables and subset-related variables
         # (if applicable)
