@@ -202,7 +202,6 @@ class ROMSFile(model.ModelFile):
 
         variables = self.nc_file.variables
         vertical_coordinates = variables['s_rho'].getncattr('long_name')
-        print (vertical_coordinates)
 
         return vertical_coordinates
 
