@@ -14,9 +14,7 @@ import datetime
 import netCDF4
 import osr
 import ogr
-import math
 from scipy import interpolate
-
 
 from s100.model import model
 
@@ -33,6 +31,62 @@ class FVCOMIndexFile(model.ModelIndexFile):
     """Store a regular grid mask based on FVCOM model grid properties in a NetCDF file."""
     def __init__(self, path):
         super().__init__(path)
+
+    def init_nc(self, model_file, target_cellsize_meters, ofs_model, model_type, shoreline_shp=None, subset_grid_shp=None, subset_grid_field_name=None):
+        """Initialize NetCDF dimensions/variables/attributes.
+
+        Args:
+            model_file: `ModelFile` instance containing model output used
+                to identify properties of original grid.
+            target_cellsize_meters: Target cell size of grid cells, in meters.
+                Actual calculated x/y grid cell sizes will vary slightly from
+                this value, since the regular grid uses lat/lon coordinates
+                (thus a cell's width/height in meters will vary by latitude),
+                and since it will be adjusted in order to fit a whole number of
+                grid cells in the x and y directions within the calculated grid
+                extent.
+            ofs_model: The target model identifier.
+            model_type: The target model type.
+            shoreline_shp: (Optional, default None) Path to a polygon shapefile
+                containing features identifying land areas. If specified,
+                a shoreline mask variable will be created/populated.
+            subset_grid_shp: (Optional, default None) Path to a polygon
+                shapefile containing orthogonal rectangles identifying areas
+                to be used to subset (chop up) the full regular grid into
+                tiles. Shapefile is assumed to be in the WGS84 projection. If
+                None, the index file will be created assuming no subsets are
+                desired and the extent of the model will be used instead.
+            subset_grid_field_name: (Optional, default None) Shapefile
+                field name to be stored in the index file.
+        """
+        super().init_nc(model_file, target_cellsize_meters, ofs_model, model_type, shoreline_shp, subset_grid_shp, subset_grid_field_name)
+        # Determine vertical coordinate type
+        (vertical_coordinates) = model_file.get_vertical_coordinate_type()
+        self.nc_file.modelVerticalCoordinates = vertical_coordinates
+
+        # For FVCOM models horizontally interpolate sigma values to the centroid
+        (siglay_centroid, latc, lonc, num_nele, num_siglay) = model_file.sigma_to_centroid(vertical_coordinates)
+
+        self.nc_file.createDimension("nele", num_nele)
+        self.nc_file.createDimension("siglay", num_siglay)
+
+        var_lonc = self.nc_file.createVariable('lon_centroid', 'f4', 'nele', fill_value=-9999)
+        var_lonc.long_name = "longitude of unstructured centroid point"
+        var_lonc.units = "degree_east"
+        var_lonc.standard_name = "longitude"
+
+        var_latc = self.nc_file.createVariable('lat_centroid', 'f4', 'nele', fill_value=-9999)
+        var_latc.long_name = "latitude of unstructured centroid point"
+        var_latc.units = "degree_north"
+        var_latc.standard_name = "latitude"
+
+        var_siglay_centroid = self.nc_file.createVariable('siglay_centroid', 'f4', ("siglay", "nele",),fill_value=FILLVALUE)
+        var_siglay_centroid.long_name = "sigma layer at unstructured centroid point"
+        var_siglay_centroid.coordinates = "lat_centroid lon_centroid"
+
+        var_siglay_centroid[:, :] = siglay_centroid
+        var_latc[:] = latc
+        var_lonc[:] = lonc
 
     def compute_grid_mask(self, model_file, reg_grid):
         """Create model domain mask and write to index file.
@@ -195,10 +249,10 @@ class FVCOMFile(model.ModelFile):
         return vertical_coordinates
 
     def sigma_to_centroid(self, vertical_coordinates):
-        """Horizontally interpolate FVCOM-based OFS vertical sigma coordinate to centroid
+        """Horizontally interpolate FVCOM-based OFS vertical sigma coordinates to centroid
 
         Args:
-            vertical_coordinates: model vertical coordinate identifier.
+            vertical_coordinates: model vertical coordinate type.
         """
 
         siglay_centroid = numpy.ma.empty(shape=[self.num_siglay, self.num_nele])
@@ -240,9 +294,9 @@ def vertical_interpolation(u, v, h, zeta, model_index, num_nele, num_siglay, tar
     Args:
         u: `numpy.ndarray` containing u values for entire grid.
         v: `numpy.ndarray` containing v values for entire grid.
+        h: `numpy.ndarray` containing bathymetry at centroid points.
         zeta: `numpy.ndarray` containing MSL free surface at centroid points in meters.
         model_index: `ModelIndexFile` instance representing model index file containing siglay.
-        h: `numpy.ndarray` containing bathymetry at centroid points.
         num_nele: number of elements(centroid).
         num_siglay: number of sigma layers.
         target_depth: The water current at a specified target depth below the sea
@@ -289,8 +343,6 @@ def node_to_centroid(zeta, h, lon_node, lat_node, lon_centroid, lat_centroid):
         lon_centroid: `numpy.ndarray` containing centroid(elements) longitude.
         lat_centroid: `numpy.ndarray` containing centroid(elements) latitude.
     """
-    print ("start", datetime.datetime.now())
-
     coords = numpy.column_stack((lon_node, lat_node))
     h_centroid = interpolate.griddata(coords, h, (lon_centroid, lat_centroid), method='linear')
     zeta_centroid = interpolate.griddata(coords, zeta, (lon_centroid, lat_centroid), method='linear')

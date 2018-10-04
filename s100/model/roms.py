@@ -197,14 +197,6 @@ class ROMSFile(model.ModelFile):
         # Convert gregorian timestamp to datetime object
         self.time_val = netCDF4.num2date(self.nc_file.variables['ocean_time'][:], self.nc_file.variables['ocean_time'].units, calendar='proleptic_gregorian')[0]
 
-    def get_vertical_coordinate_type(self):
-        """ROMS-based OFS vertical coordinate type"""
-
-        variables = self.nc_file.variables
-        vertical_coordinates = variables['s_rho'].getncattr('long_name')
-
-        return vertical_coordinates
-
     def uv_to_regular_grid(self, model_index, target_depth, interp=INTERP_METHOD_SCIPY):
         """Call grid processing functions and interpolate averaged, rotated u/v to a regular grid"""
 
