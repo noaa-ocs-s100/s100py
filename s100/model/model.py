@@ -217,35 +217,9 @@ class ModelIndexFile:
         # Calculate extent of valid (water) points
         (lon_min, lon_max, lat_min, lat_max) = model_file.get_valid_extent()
 
-        # Determine vertical coordinate type
-        (vertical_coordinates) = model_file.get_vertical_coordinate_type()
-        self.nc_file.modelVerticalCoordinates = vertical_coordinates
-
-        # For FVCOM models horizontally interpolate sigma values to the centroid
-        # Store in index file
-        if model_type == "fvcom":
-            (siglay_centroid, latc, lonc, num_nele, num_siglay) = model_file.sigma_to_centroid(vertical_coordinates)
-
-            dim_nele = self.nc_file.createDimension("nele", num_nele)
-            dim_siglay = self.nc_file.createDimension("siglay", num_siglay)
-
-            var_lonc = self.nc_file.createVariable('lon_centroid', 'f4', ('nele'), fill_value=-9999)
-            var_lonc.long_name = "longitude of unstructured centroid grid point"
-            var_lonc.units = "degree_east"
-            var_lonc.standard_name = "longitude"
-
-            var_latc = self.nc_file.createVariable('lat_centroid', 'f4', ('nele'), fill_value=-9999)
-            var_latc.long_name = "latitude of unstructured centroid grid point"
-            var_latc.units = "degree_north"
-            var_latc.standard_name = "latitude"
-
-            var_siglay_centroid = self.nc_file.createVariable('siglay_centroid', 'f4', ("siglay", "nele",), fill_value=FILLVALUE)
-            var_siglay_centroid.long_name = "sigma layer at unstructured grid point centroid"
-            var_siglay_centroid.coordinates = "lat_centroid lon_centroid"
-
-            var_siglay_centroid[:, :] = siglay_centroid
-            var_latc[:] = latc
-            var_lonc[:] = lonc
+        # Index file global attributes
+        self.nc_file.model = str.upper(ofs_model)
+        self.nc_file.format = "NetCDF-4"
 
         # Populate grid x/y coordinate variables and subset-related variables
         # (if applicable)
@@ -257,16 +231,13 @@ class ModelIndexFile:
         else:
             reg_grid = self.init_xy_with_subsets(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters,
                                                  subset_grid_shp, subset_grid_field_name)
-
+        # Index file global attributes
         self.nc_file.gridOriginLongitude = reg_grid.x_min
         self.nc_file.gridOriginLatitude = reg_grid.y_min
 
         land_mask = None
         if shoreline_shp is not None:
             land_mask = self.init_shoreline_mask(reg_grid, shoreline_shp)
-
-        self.nc_file.model = str.upper(ofs_model)
-        self.nc_file.format = "netCDF-4"
 
         print ("Full grid dimensions (y,x): ({},{})".format(len(reg_grid.y_coords), len(reg_grid.x_coords)))
 
