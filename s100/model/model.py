@@ -186,7 +186,7 @@ class ModelIndexFile:
         if subset_grid_field_name is not None:
             self.var_subgrid_name = self.nc_file.createVariable('subgrid_name', 'S30', (self.DIMNAME_SUBGRID,), fill_value=FILLVALUE)
 
-    def init_nc(self, model_file, target_cellsize_meters, ofs_model, model_type, shoreline_shp=None, subset_grid_shp=None,subset_grid_field_name=None):
+    def init_nc(self, model_file, target_cellsize_meters, ofs_model, model_type, shoreline_shp=None, subset_grid_shp=None, subset_grid_field_name=None):
         """Initialize NetCDF dimensions/variables/attributes.
 
         Args:
@@ -602,7 +602,7 @@ class ModelFile:
     def get_vertical_coordinate_type(self):
         pass
 
-    def uv_to_regular_grid(self, model_index, target_depth, interp=None):
+    def uv_to_regular_grid(self, model_index, time_index, target_depth, interp=None):
         """Execute functions to process model variables to a regular grid, model specific
            functions and interpolation method derived from modeling framework module of
            interest(i.e. roms, fvcom, etc.).

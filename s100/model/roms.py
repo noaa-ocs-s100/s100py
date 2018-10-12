@@ -62,8 +62,7 @@ class ROMSIndexFile(model.ModelIndexFile):
         mask_file.close()
 
         # Create shapefile containing polygons for each irregular grid cell
-        # using four valid irregular grid points, searching counter
-        # clockwise(eta1, xi), (eta2, xi2), (eta3, xi3),(eta4, xi4)
+        # searching counter clockwise(eta1, xi), (eta2, xi2), (eta3, xi3),(eta4, xi4)
         for xi1 in range(model_file.num_xi - 1):
             for eta1 in range(model_file.num_eta - 1):
                 xi2 = xi1 + 1
@@ -124,10 +123,12 @@ class ROMSFile(model.ModelFile):
         self.var_hc = None
         self.var_cs_r = None
         self.var_vtransform = None
+        self.var_time = None
         self.num_eta = None
         self.num_xi = None
         self.num_sigma = None
-        self.time_val = None
+        self.num_times = None
+        self.datetime_values = None
 
     def close(self):
         super().close()
@@ -148,10 +149,12 @@ class ROMSFile(model.ModelFile):
         self.var_hc = None
         self.var_cs_r = None
         self.var_vtransform = None
+        self.var_time = None
         self.num_eta = None
         self.num_xi = None
         self.num_sigma = None
-        self.time_val = None
+        self.num_times = None
+        self.datetime_values = None
 
     def get_valid_extent(self):
         """Masked model domain extent."""
@@ -179,12 +182,12 @@ class ROMSFile(model.ModelFile):
         self.var_ang_rho = self.nc_file.variables['angle'][1:, 1:]
         self.var_lat_rho = self.nc_file.variables['lat_rho'][1:, 1:]
         self.var_lon_rho = self.nc_file.variables['lon_rho'][1:, 1:]
-        self.var_u = self.nc_file.variables['u'][0, :, 1:, :]
-        self.var_v = self.nc_file.variables['v'][0, :, :, 1:]
+        self.var_u = self.nc_file.variables['u'][:, :, 1:, :]
+        self.var_v = self.nc_file.variables['v'][:, :, :, 1:]
         self.var_mask_u = self.nc_file.variables['mask_u'][1:, :]
         self.var_mask_v = self.nc_file.variables['mask_v'][:, 1:]
         self.var_mask_rho = self.nc_file.variables['mask_rho'][1:, 1:]
-        self.var_zeta = self.nc_file.variables['zeta'][0, 1:, 1:]
+        self.var_zeta = self.nc_file.variables['zeta'][:, 1:, 1:]
         self.var_h = self.nc_file.variables['h'][1:, 1:]
         self.var_s_rho = self.nc_file.variables['s_rho'][:]
         self.var_hc = self.nc_file.variables['hc'][:]
@@ -193,18 +196,22 @@ class ROMSFile(model.ModelFile):
         self.num_eta = self.var_h.shape[0]
         self.num_xi = self.var_h.shape[1]
         self.num_sigma = self.var_s_rho.shape[0]
+        self.num_times = self.var_u.shape[0]
 
         # Convert gregorian timestamp to datetime object
-        self.time_val = netCDF4.num2date(self.nc_file.variables['ocean_time'][:], self.nc_file.variables['ocean_time'].units, calendar='proleptic_gregorian')[0]
+        self.datetime_values = []
+        for time_index in range(self.num_times):
+            self.var_time = netCDF4.num2date(self.nc_file.variables['ocean_time'][:], self.nc_file.variables['ocean_time'].units, calendar='proleptic_gregorian')[time_index]
+            self.datetime_values.append(self.var_time)
 
-    def uv_to_regular_grid(self, model_index, target_depth, interp=INTERP_METHOD_SCIPY):
+    def uv_to_regular_grid(self, model_index, time_index, target_depth, interp=INTERP_METHOD_SCIPY):
         """Call grid processing functions and interpolate averaged, rotated u/v to a regular grid"""
 
         u_target_depth, v_target_depth = vertical_interpolation(self.var_u, self.var_v, self.var_s_rho,
                                                                 self.var_mask_rho, self.var_mask_u, self.var_mask_v,
                                                                 self.var_zeta, self.var_h, self.var_hc, self.var_cs_r,
                                                                 self.var_vtransform, self.num_eta, self.num_xi,
-                                                                self.num_sigma, target_depth)
+                                                                self.num_sigma, time_index, target_depth)
 
         water_u, water_v, water_ang_rho, water_lat_rho, water_lon_rho = mask_land(u_target_depth, v_target_depth,
                                                                                   self.var_ang_rho, self.var_lat_rho,
@@ -330,7 +337,7 @@ def mask_land(u_target_depth, v_target_depth, ang_rho, lat_rho, lon_rho, mask_u,
     return water_u, water_v, water_ang_rho, water_lat_rho, water_lon_rho
 
 
-def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, cs_r, vtransform, num_eta, num_xi, num_sigma, target_depth):
+def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, cs_r, vtransform, num_eta, num_xi, num_sigma, time_index, target_depth):
     """Vertically interpolate variables to target depth.
 
     Args:
@@ -344,15 +351,16 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
         mask_u: `numpy.ndarray` containing mask values for u points.
         mask_v: `numpy.ndarray` containing mask values for v points.
         mask_rho: `numpy.ndarray` containing mask values for rho points.
-        vtransform: vertical terrain-following transformation equation.
+        vtransform: Vertical terrain-following transformation equation.
         num_eta: eta dimensions.
         num_xi: xi dimensions.
-        num_sigma: sigma dimensions.
+        num_sigma: Number of sigma layers.
+        time_index: Single time index value.
         target_depth: The water current at a specified target depth below the sea
             surface in meters, default target depth is 4.5 meters, target interpolation
             depth must be greater or equal to 0.
     """
-    zeta = ma.masked_array(zeta, numpy.logical_not(mask_rho))
+    zeta = ma.masked_array(zeta[time_index,:,:], numpy.logical_not(mask_rho))
     true_depth = h + zeta
     z = numpy.ma.empty(shape=[num_sigma, num_eta, num_xi])
 
@@ -382,11 +390,11 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
         for xi in range(num_xi):
             if not zeta.mask[eta, xi]:
                 if mask_u[eta, xi] != 0:
-                    u_interp_depth = interpolate.interp1d(z[:, eta, xi], u[:, eta, xi], fill_value='extrapolate')
+                    u_interp_depth = interpolate.interp1d(z[:, eta, xi], u[time_index, :, eta, xi], fill_value='extrapolate')
                     u_target_depth[eta, xi] = u_interp_depth(interp_depth.data[eta, xi])
 
                 if mask_v[eta, xi] != 0:
-                    v_interp_depth = interpolate.interp1d(z[:, eta, xi], v[:, eta, xi], fill_value='extrapolate')
+                    v_interp_depth = interpolate.interp1d(z[:, eta, xi], v[time_index, :, eta, xi], fill_value='extrapolate')
                     v_target_depth[eta, xi] = v_interp_depth(interp_depth.data[eta, xi])
 
     return u_target_depth, v_target_depth

@@ -255,14 +255,14 @@ class S111File:
             self.feature_instance.attrs.modify('southBoundLatitude', min_lat)
             self.feature_instance.attrs.modify('northBoundLatitude', max_lat)
 
-    def add_data(self, time_value, reg_grid_speed, reg_grid_direction, cycletime):
+    def add_data(self, datetime_value, reg_grid_speed, reg_grid_direction, cycletime):
         """Add data to the S111 file.
         
         As data is added, new Groups will be added and relevant attributes will
         be updated.
 
         Args:
-            time_value: `datetime.datetime` instance representing valid time of
+            datetime_value: `datetime.datetime` instance representing valid time of
                 the nowcast/forecast data being added.
             reg_grid_speed: `numpy.ma.masked_array` representing current speed
                 data after interpolating to a regular grid and converting from
@@ -327,7 +327,7 @@ class S111File:
                                    isinstance(self.feature_instance[obj], h5py.Group)]
 
         # Convert time value to string
-        time_str = time_value.strftime('%Y%m%dT%H%M%SZ')
+        time_str = datetime_value.strftime("%Y%m%dT%H%M%SZ")
 
         if len(feature_instance_groups) == 0:
             new_group = self.feature_instance.create_group('Group_001')
@@ -517,34 +517,35 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                 for model_file in model_files:
                     try:
                         model_file.open()
+                        for time_index in range(len(model_file.datetime_values)):
+                            # Call model method and convert and interpolate u/v to regular grid
+                            reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, time_index, target_depth)
 
-                        # Call model method and convert and interpolate u/v to regular grid
-                        reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, target_depth)
+                            reg_grid_u = ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
+                            reg_grid_v = ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
 
-                        reg_grid_u = ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
-                        reg_grid_v = ma.masked_array(reg_grid_v,  model_index_file.var_mask.mask)
+                            # Convert currents at regular grid points from u/v to speed
+                            # and direction
+                            direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
 
-                        # Convert currents at regular grid points from u/v to speed
-                        # and direction
-                        direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
+                            direction = ma.masked_array(direction, model_index_file.var_mask.mask)
+                            speed = ma.masked_array(speed, model_index_file.var_mask.mask)
 
-                        direction = ma.masked_array(direction, model_index_file.var_mask.mask)
-                        speed = ma.masked_array(speed, model_index_file.var_mask.mask)
+                            for subgrid_index, s111_file in enumerate(s111_files):
+                                if os.path.isfile(s111_file.path):
+                                    x_min = model_index_file.var_subgrid_x_min[subgrid_index]
+                                    x_max = model_index_file.var_subgrid_x_max[subgrid_index]
+                                    y_min = model_index_file.var_subgrid_y_min[subgrid_index]
+                                    y_max = model_index_file.var_subgrid_y_max[subgrid_index]
+                                    subgrid_speed = speed[y_min:y_max + 1, x_min:x_max + 1]
+                                    subgrid_direction = direction[y_min:y_max + 1, x_min:x_max + 1]
+                                    if ma.count(subgrid_speed) >= 20:
+                                        s111_file.add_data(model_file.datetime_values[time_index], subgrid_speed, subgrid_direction, cycletime)
+                                    else:
+                                        s111_file.close()
+                                        os.remove("{}".format(s111_file.path))
+                                        s111_file_paths.remove(s111_file.path)
 
-                        for subgrid_index, s111_file in enumerate(s111_files):
-                            if os.path.isfile(s111_file.path):
-                                x_min = model_index_file.var_subgrid_x_min[subgrid_index]
-                                x_max = model_index_file.var_subgrid_x_max[subgrid_index]
-                                y_min = model_index_file.var_subgrid_y_min[subgrid_index]
-                                y_max = model_index_file.var_subgrid_y_max[subgrid_index]
-                                subgrid_speed = speed[y_min:y_max + 1, x_min:x_max + 1]
-                                subgrid_direction = direction[y_min:y_max + 1, x_min:x_max + 1]
-                                if ma.count(subgrid_speed) >= 20:
-                                    s111_file.add_data(model_file.time_val, subgrid_speed, subgrid_direction, cycletime)
-                                else:
-                                    s111_file.close()
-                                    os.remove("{}".format(s111_file.path))
-                                    s111_file_paths.remove(s111_file.path)
                     finally:
                         model_file.close()
         else:
@@ -555,21 +556,22 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                 for model_file in model_files:
                     try:
                         model_file.open()
+                        for time_index in range(len(model_file.datetime_values)):
 
-                        # Call model method and convert and interpolate u/v to regular grid
-                        reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, target_depth)
+                            # Call model method and convert and interpolate u/v to regular grid
+                            reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, time_index, target_depth)
 
-                        reg_grid_u = ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
-                        reg_grid_v = ma.masked_array(reg_grid_v,  model_index_file.var_mask.mask)
+                            reg_grid_u = ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
+                            reg_grid_v = ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
 
-                        # Convert currents at regular grid points from u/v to speed
-                        # and direction
-                        direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
+                            # Convert currents at regular grid points from u/v to speed
+                            # and direction
+                            direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
 
-                        direction = ma.masked_array(direction, model_index_file.var_mask.mask)
-                        speed = ma.masked_array(speed, model_index_file.var_mask.mask)
+                            direction = ma.masked_array(direction, model_index_file.var_mask.mask)
+                            speed = ma.masked_array(speed, model_index_file.var_mask.mask)
 
-                        s111_file.add_data(model_file.time_val, speed, direction, cycletime)
+                            s111_file.add_data(model_file.datetime_values[time_index], speed, direction, cycletime)
 
                     finally:
                         model_file.close()
