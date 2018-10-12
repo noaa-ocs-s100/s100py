@@ -355,7 +355,7 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
         num_eta: eta dimensions.
         num_xi: xi dimensions.
         num_sigma: Number of sigma layers.
-        time_index: Single time index value.
+        time_index: Single forecast time index value.
         target_depth: The water current at a specified target depth below the sea
             surface in meters, default target depth is 4.5 meters, target interpolation
             depth must be greater or equal to 0.

@@ -309,7 +309,7 @@ def vertical_interpolation(u, v, h, zeta, model_index, num_nele, num_siglay, tim
         model_index: `ModelIndexFile` instance representing model index file containing siglay.
         num_nele: Number of elements(centroid).
         num_siglay: Number of sigma layers.
-        time_index: Single time index value.
+        time_index: Single forecast time index value.
         target_depth: The water current at a specified target depth below the sea
             surface in meters, default target depth is 4.5 meters, target interpolation
             depth must be greater or equal to 0.
