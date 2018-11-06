@@ -469,6 +469,7 @@ class ModelIndexFile:
         lyr.CreateFeature(feat)
 
         # Rasterize the shoreline polygon layer and write to memory
+        # Optionally write to gdal.GetDriverByName('GTIFF') for output a GeoTIFF
         pixel_width = reg_grid.cellsize_x
         pixel_height = reg_grid.cellsize_y
         cols = len(reg_grid.y_coords)
@@ -512,6 +513,7 @@ class ModelIndexFile:
                         contains irregular or unstructured grid cell polygons.
                 """
         # Rasterize the grid cell polygon layer and write to memory
+        # Optionally write to gdal.GetDriverByName('GTIFF') for output a GeoTIFF
         pixel_width = reg_grid.cellsize_x
         pixel_height = reg_grid.cellsize_y
         cols = len(reg_grid.y_coords)

@@ -27,6 +27,7 @@ INTERP_METHOD_SCIPY = "scipy"
 # Alternative module for horizontal interpolation
 INTERP_METHOD_GDAL = "gdal"
 
+
 class FVCOMIndexFile(model.ModelIndexFile):
     """Store a regular grid mask based on FVCOM model grid properties in a NetCDF file."""
     def __init__(self, path):
@@ -80,7 +81,7 @@ class FVCOMIndexFile(model.ModelIndexFile):
         var_latc.units = "degree_north"
         var_latc.standard_name = "latitude"
 
-        var_siglay_centroid = self.nc_file.createVariable('siglay_centroid', 'f4', ("siglay", "nele",),fill_value=FILLVALUE)
+        var_siglay_centroid = self.nc_file.createVariable('siglay_centroid', 'f4', ("siglay", "nele",), fill_value=FILLVALUE)
         var_siglay_centroid.long_name = "sigma layer at unstructured centroid point"
         var_siglay_centroid.coordinates = "lat_centroid lon_centroid"
 
@@ -118,7 +119,7 @@ class FVCOMIndexFile(model.ModelIndexFile):
 
         # Create shapefile containing polygons for each unstructured
         # triangle using three valid nodes surrounding each centroid
-        for node in range(0,model_file.var_nv.shape[1]):
+        for node in range(0, model_file.var_nv.shape[1]):
             p1 = model_file.var_nv[0][node] - 1
             p2 = model_file.var_nv[1][node] - 1
             p3 = model_file.var_nv[2][node] - 1
@@ -137,13 +138,14 @@ class FVCOMIndexFile(model.ModelIndexFile):
 
         return self.rasterize_mask(reg_grid, layer)
 
+
 class FVCOMFile(model.ModelFile):
     """Read/process data from a FVCOM model NetCDF file.
 
     Attributes:
         path: Path (relative or absolute) of the file.
     """
-    def __init__(self, path, lon_offset = -360):
+    def __init__(self, path, lon_offset=-360):
         """Initialize FVCOM file object and open file at specified path.
 
         Args:
@@ -197,7 +199,6 @@ class FVCOMFile(model.ModelFile):
         self.num_times = None
         self.datetime_values = None
 
-
     def get_valid_extent(self):
         """Masked model domain extent."""
         lon_min = min(self.var_lon_centroid)
@@ -219,12 +220,12 @@ class FVCOMFile(model.ModelFile):
         self.var_lon_centroid = self.var_lon_centroid.astype(numpy.float64)
         self.var_u = self.nc_file.variables['u'][:, :, :]
         self.var_v = self.nc_file.variables['v'][:, :, :]
-        self.var_zeta = self.nc_file.variables['zeta'][:,:]
-        self.var_siglay = self.nc_file.variables['siglay'][:,:]
-        self.var_siglev = self.nc_file.variables['siglev'][:,:]
+        self.var_zeta = self.nc_file.variables['zeta'][:, :]
+        self.var_siglay = self.nc_file.variables['siglay'][:, :]
+        self.var_siglev = self.nc_file.variables['siglev'][:, :]
         self.var_h = self.nc_file.variables['h'][:]
-        self.var_nv = self.nc_file.variables['nv'][:,:]
-        self.var_wet_cells = self.nc_file.variables['wet_cells'][:,:]
+        self.var_nv = self.nc_file.variables['nv'][:, :]
+        self.var_wet_cells = self.nc_file.variables['wet_cells'][:, :]
         self.num_node = len(self.var_h)
         self.num_nele = len(self.var_lat_centroid)
         self.num_siglay = self.var_siglay.shape[0]
@@ -234,25 +235,29 @@ class FVCOMFile(model.ModelFile):
         # Convert timestamp to datetime object
         self.datetime_values = []
         for time_index in range(self.num_times):
-            self.var_time = netCDF4.num2date(self.nc_file.variables['time'][:],self.nc_file.variables['time'].units)[time_index]
+            self.var_time = netCDF4.num2date(self.nc_file.variables['time'][:], self.nc_file.variables['time'].units)[time_index]
 
             if self.var_time.minute >= 30:
                 # round up
-                adjusted_time = datetime.datetime(self.var_time.year, self.var_time.month, self.var_time.day,self.var_time.hour, 0, 0) + datetime.timedelta(hours=1)
+                adjusted_time = datetime.datetime(self.var_time.year, self.var_time.month, self.var_time.day, self.var_time.hour, 0, 0) + datetime.timedelta(hours=1)
             elif self.var_time.minute < 30:
                 # round down
                 adjusted_time = datetime.datetime(self.var_time.year, self.var_time.month, self.var_time.day, self.var_time.hour, 0, 0)
 
             self.datetime_values.append(adjusted_time)
 
+        # Determine if sigma values are positive up or down from netCDF metadata
+        if self.nc_file.variables['siglay'].positive == 'down':
+            self.var_siglay = self.var_siglay * -1
+
     def get_vertical_coordinate_type(self):
         """Determine FVCOM-based OFS vertical sigma coordinate type"""
 
-        siglay_values = self.var_siglay[:,0]
+        siglay_values = self.var_siglay[:, 0]
         vertical_coordinates = "UNIFORM"
         for i in range(self.var_siglay.shape[1]):
             for s in range(self.var_siglay.shape[0]):
-                if self.var_siglay[s,i] != siglay_values[s]:
+                if self.var_siglay[s, i] != siglay_values[s]:
                     vertical_coordinates = "GENERALIZED"
                     break
 
@@ -268,13 +273,12 @@ class FVCOMFile(model.ModelFile):
         siglay_centroid = numpy.ma.empty(shape=[self.num_siglay, self.num_nele])
 
         # Sigma vertical coordinate type
-        # Generalized
+        # Generalized or Uniform
         if vertical_coordinates == "GENERALIZED":
-            for i in range (self.num_siglay):
+            for i in range(self.num_siglay):
                 coords = numpy.column_stack((self.var_lon_nodal, self.var_lat_nodal))
-                siglay_centroid[i,:] = interpolate.griddata(coords, self.var_siglay[i,:],(self.var_lon_centroid, self.var_lat_centroid), method='linear')
+                siglay_centroid[i, :] = interpolate.griddata(coords, self.var_siglay[i, :], (self.var_lon_centroid, self.var_lat_centroid), method='linear')
         else:
-        # Uniform
             for k in range(self.num_nele):
                     siglay_centroid[:, k] = self.var_siglay[:, 0]
 
@@ -284,7 +288,7 @@ class FVCOMFile(model.ModelFile):
         """Call grid processing functions and interpolate u/v to a regular grid"""
 
         h_centroid, zeta_centroid = node_to_centroid(self.var_zeta, self.var_h, self.var_lon_nodal, self.var_lat_nodal,
-                                                    self.var_lon_centroid, self.var_lat_centroid, time_index)
+                                                     self.var_lon_centroid, self.var_lat_centroid, time_index)
 
         u_target_depth, v_target_depth = vertical_interpolation(self.var_u, self.var_v, h_centroid, zeta_centroid,
                                                                 model_index, self.num_nele, self.num_siglay, time_index,
@@ -297,6 +301,7 @@ class FVCOMFile(model.ModelFile):
         elif interp == model.INTERP_METHOD_GDAL:
             return model.gdal_interpolate_uv_to_regular_grid(u_target_depth, v_target_depth, self.var_lat_centroid,
                                                              self.var_lon_centroid, model_index)
+
 
 def vertical_interpolation(u, v, h, zeta, model_index, num_nele, num_siglay, time_index, target_depth):
     """Vertically interpolate variables to target depth.
@@ -317,10 +322,10 @@ def vertical_interpolation(u, v, h, zeta, model_index, num_nele, num_siglay, tim
     true_depth = zeta + h
 
     sigma_depth_layers = numpy.ma.empty(shape=[num_siglay, num_nele])
-    siglay = model_index.nc_file.variables['siglay_centroid'][:,:]
+    siglay = model_index.nc_file.variables['siglay_centroid'][:, :]
 
     for k in range(num_siglay):
-        sigma_depth_layers[k, :] = siglay[k,:] * true_depth
+        sigma_depth_layers[k, :] = siglay[k, :] * true_depth
 
     if target_depth < 0:
         raise Exception("Target depth must be positive")
@@ -335,13 +340,14 @@ def vertical_interpolation(u, v, h, zeta, model_index, num_nele, num_siglay, tim
 
     # Perform vertical linear interpolation on u/v values to target depth
     for nele in range(num_nele):
-        u_interp_depth = interpolate.interp1d(sigma_depth_layers[:, nele], u[time_index, :, nele],fill_value='extrapolate')
+        u_interp_depth = interpolate.interp1d(sigma_depth_layers[:, nele], u[time_index, :, nele], fill_value='extrapolate')
         u_target_depth[nele] = u_interp_depth(interp_depth.data[nele])
 
-        v_interp_depth = interpolate.interp1d(sigma_depth_layers[:, nele], v[time_index,:, nele], fill_value='extrapolate')
+        v_interp_depth = interpolate.interp1d(sigma_depth_layers[:, nele], v[time_index, :, nele], fill_value='extrapolate')
         v_target_depth[nele] = v_interp_depth(interp_depth.data[nele])
 
     return u_target_depth, v_target_depth
+
 
 def node_to_centroid(zeta, h, lon_node, lat_node, lon_centroid, lat_centroid, time_index):
     """Horizontally interpolate variables at nodes to centroids(elements).
@@ -357,8 +363,7 @@ def node_to_centroid(zeta, h, lon_node, lat_node, lon_centroid, lat_centroid, ti
     """
     coords = numpy.column_stack((lon_node, lat_node))
     h_centroid = interpolate.griddata(coords, h, (lon_centroid, lat_centroid), method='linear')
-    zeta_centroid = interpolate.griddata(coords, zeta[time_index,:], (lon_centroid, lat_centroid), method='linear')
-
+    zeta_centroid = interpolate.griddata(coords, zeta[time_index, :], (lon_centroid, lat_centroid), method='linear')
 
     return h_centroid, zeta_centroid
 

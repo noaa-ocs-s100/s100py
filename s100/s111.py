@@ -230,6 +230,7 @@ class S111File:
         self.h5_file.attrs.modify('southBoundLatitude', min_lat)
         self.h5_file.attrs.modify('northBoundLatitude', max_lat)
         self.h5_file.attrs.modify('metadata', S111Metadata.XML_REFERENCE)
+        self.h5_file.attrs.modify('metaFeatures', S111Metadata.XML_NONE)
 
         # Update feature container metadata
         self.feature.attrs.modify('dataCodingFormat', S111Metadata.DATA_CODING_FORMAT)
@@ -439,7 +440,8 @@ class S111Metadata:
     SEQUENCE_RULE_TYPE = 1
     SEQUENCE_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
-    XML_REFERENCE = numpy.string_('METADATA.XML')
+    XML_REFERENCE = numpy.string_('S-111 FC.XML')
+    XML_NONE = numpy.string_('none.xml')
 
     def __init__(self, region, product):
         self.region = numpy.string_(region)
