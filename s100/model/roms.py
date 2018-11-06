@@ -95,6 +95,7 @@ class ROMSIndexFile(model.ModelIndexFile):
 
         return self.rasterize_mask(reg_grid, layer)
 
+
 class ROMSFile(model.ModelFile):
     """Read/process data from a ROMS model NetCDF file.
 
@@ -204,6 +205,10 @@ class ROMSFile(model.ModelFile):
             self.var_time = netCDF4.num2date(self.nc_file.variables['ocean_time'][:], self.nc_file.variables['ocean_time'].units, calendar='proleptic_gregorian')[time_index]
             self.datetime_values.append(self.var_time)
 
+        # Determine if sigma values are positive up or down from netCDF metadata
+        if self.nc_file.variables['s_rho'].positive == 'down':
+            self.var_s_rho = self.var_s_rho * -1
+
     def uv_to_regular_grid(self, model_index, time_index, target_depth, interp=INTERP_METHOD_SCIPY):
         """Call grid processing functions and interpolate averaged, rotated u/v to a regular grid"""
 
@@ -233,6 +238,7 @@ class ROMSFile(model.ModelFile):
             return model.gdal_interpolate_uv_to_regular_grid(u_compressed, v_compressed, lat_compressed, lon_compressed,
                                                              model_index)
 
+
 def compress_variables(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho):
     """Compress masked variables for interpolation.
 
@@ -249,6 +255,7 @@ def compress_variables(rot_u_rho, rot_v_rho, water_lat_rho, water_lon_rho):
 
     return u_compressed, v_compressed, lat_compressed, lon_compressed
 
+
 def rotate_uv2d(u_rho, v_rho, water_ang_rho):
     """Rotate vectors by geometric angle.
 
@@ -264,6 +271,7 @@ def rotate_uv2d(u_rho, v_rho, water_ang_rho):
     rot_v_rho = u_rho*ang_sin + v_rho*ang_cos
 
     return rot_u_rho, rot_v_rho
+
 
 def average_uv2rho(water_u, water_v):
     """Average u and v scalars to rho.
@@ -360,7 +368,7 @@ def vertical_interpolation(u, v, s_rho, mask_rho, mask_u, mask_v, zeta, h, hc, c
             surface in meters, default target depth is 4.5 meters, target interpolation
             depth must be greater or equal to 0.
     """
-    zeta = ma.masked_array(zeta[time_index,:,:], numpy.logical_not(mask_rho))
+    zeta = ma.masked_array(zeta[time_index, :, :], numpy.logical_not(mask_rho))
     true_depth = h + zeta
     z = numpy.ma.empty(shape=[num_sigma, num_eta, num_xi])
 
