@@ -25,18 +25,18 @@ DEFAULT_TARGET_DEPTH = 4.5
 # Dict lookup for HDF5 data type class names
 # See https://github.com/h5py/h5py/blob/master/h5py/api_types_hdf5.pxd#L509
 H5T_CLASS_T = {
-    h5py.h5t.NO_CLASS: "H5T_NO_CLASS",
-    h5py.h5t.INTEGER: "H5T_INTEGER",
-    h5py.h5t.FLOAT: "H5T_FLOAT",
-    h5py.h5t.TIME: "H5T_TIME",
-    h5py.h5t.STRING: "H5T_STRING",
-    h5py.h5t.BITFIELD: "H5T_BITFIELD",
-    h5py.h5t.OPAQUE: "H5T_OPAQUE",
-    h5py.h5t.COMPOUND: "H5T_COMPOUND",
-    h5py.h5t.REFERENCE: "H5T_REFERENCE",
-    h5py.h5t.ENUM: "H5T_ENUM",
-    h5py.h5t.VLEN: "H5T_VLEN",
-    h5py.h5t.ARRAY: "H5T_ARRAY"
+    h5py.h5t.NO_CLASS: 'H5T_NO_CLASS',
+    h5py.h5t.INTEGER: 'H5T_INTEGER',
+    h5py.h5t.FLOAT: 'H5T_FLOAT',
+    h5py.h5t.TIME: 'H5T_TIME',
+    h5py.h5t.STRING: 'H5T_STRING',
+    h5py.h5t.BITFIELD: 'H5T_BITFIELD',
+    h5py.h5t.OPAQUE: 'H5T_OPAQUE',
+    h5py.h5t.COMPOUND: 'H5T_COMPOUND',
+    h5py.h5t.REFERENCE: 'H5T_REFERENCE',
+    h5py.h5t.ENUM: 'H5T_ENUM',
+    h5py.h5t.VLEN: 'H5T_VLEN',
+    h5py.h5t.ARRAY: 'H5T_ARRAY'
 }
 
 
@@ -124,8 +124,6 @@ class S111File:
         self.feature.attrs.create('horizontalPositionUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('verticalUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('timeUncertainty', -1.0, dtype=numpy.float32)
-        self.feature.attrs.create('speedUncertainty', -1.0, dtype=numpy.float32)
-        self.feature.attrs.create('directionUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('minDatasetCurrentSpeed', 0, dtype=numpy.float32)
         self.feature.attrs.create('maxDatasetCurrentSpeed', 0, dtype=numpy.float32)
         # Enumeration types
@@ -230,7 +228,6 @@ class S111File:
         self.h5_file.attrs.modify('southBoundLatitude', min_lat)
         self.h5_file.attrs.modify('northBoundLatitude', max_lat)
         self.h5_file.attrs.modify('metadata', S111Metadata.XML_REFERENCE)
-        self.h5_file.attrs.modify('metaFeatures', S111Metadata.XML_NONE)
 
         # Update feature container metadata
         self.feature.attrs.modify('dataCodingFormat', S111Metadata.DATA_CODING_FORMAT)
@@ -314,6 +311,16 @@ class S111File:
             feature_code = self.groupF.create_dataset('featureCode', (1,), dtype=h5py.special_dtype(vlen=str))
             feature_code[...] = fc_data
 
+            # Add group_instance uncertainty dataset
+            dtype2 = numpy.dtype([('name', h5py.special_dtype(vlen=str)), ('value', numpy.float32)])
+            u_data = numpy.zeros((2,), dtype2)
+            u_data['name'][0] = 'surfaceCurrentSpeedUncertainty'
+            u_data['name'][1] = 'surfaceCurrentDirectionUncertainty'
+            u_data['value'][0] = -1.0
+            u_data['value'][1] = -1.0
+            uncertainty_data = self.feature_instance.create_dataset('uncertainty', (2,), dtype2)
+            uncertainty_data[...] = u_data
+
             # Add feature container dataset
             axis_names = numpy.zeros((2,), dtype=h5py.special_dtype(vlen=str))
             axis_names[0] = 'longitude'
@@ -328,7 +335,7 @@ class S111File:
                                    isinstance(self.feature_instance[obj], h5py.Group)]
 
         # Convert time value to string
-        time_str = datetime_value.strftime("%Y%m%dT%H%M%SZ")
+        time_str = datetime_value.strftime('%Y%m%dT%H%M%SZ')
 
         if len(feature_instance_groups) == 0:
             new_group = self.feature_instance.create_group('Group_001')
@@ -367,8 +374,9 @@ class S111File:
         self.feature_instance.attrs.modify('numGRP', len(self.feature_instance))
 
         # Write data to empty feature instance group
-        values_dtype = numpy.dtype([('surfaceCurrentSpeed', numpy.float32),
-                                    ('surfaceCurrentDirection', numpy.float32)])
+
+        values_dtype = numpy.dtype([('SurfaceCurrentSpeed', numpy.float32),
+                                    ('SurfaceCurrentDirection', numpy.float32)])
 
         values = numpy.zeros(speed.shape, dtype=values_dtype)
         values['surfaceCurrentSpeed'] = speed
@@ -440,8 +448,7 @@ class S111Metadata:
     SEQUENCE_RULE_TYPE = 1
     SEQUENCE_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
-    XML_REFERENCE = numpy.string_('S-111 FC.XML')
-    XML_NONE = numpy.string_('none.xml')
+    XML_REFERENCE = numpy.string_('METADATA.XML')
 
     def __init__(self, region, product):
         self.region = numpy.string_(region)
