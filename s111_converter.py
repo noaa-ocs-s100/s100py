@@ -41,8 +41,8 @@ class S111Converter:
 
                 for idx in range(1, num_grp + 1):
                     values = feature_instance["Group_{:03d}/values".format(idx)]
-                    speed = values['SurfaceCurrentSpeed']
-                    direction = values['SurfaceCurrentDirection']
+                    speed = values['surfaceCurrentSpeed']
+                    direction = values['surfaceCurrentDirection']
                     datetime = feature_instance["Group_{:03d}".format(idx)].attrs['timePoint'][0:16]
 
                     # Set image size
