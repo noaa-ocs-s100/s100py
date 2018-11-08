@@ -374,9 +374,8 @@ class S111File:
         self.feature_instance.attrs.modify('numGRP', len(self.feature_instance))
 
         # Write data to empty feature instance group
-
-        values_dtype = numpy.dtype([('SurfaceCurrentSpeed', numpy.float32),
-                                    ('SurfaceCurrentDirection', numpy.float32)])
+        values_dtype = numpy.dtype([('surfaceCurrentSpeed', numpy.float32),
+                                    ('surfaceCurrentDirection', numpy.float32)])
 
         values = numpy.zeros(speed.shape, dtype=values_dtype)
         values['surfaceCurrentSpeed'] = speed
@@ -389,7 +388,7 @@ class S111File:
         self.groupF_dset.attrs.create('chunking', str(values_dset.chunks), dtype=h5py.special_dtype(vlen=str))
         self.feature_instance.attrs.modify('instanceChunking', numpy.string_(str(values_dset.chunks)))
 
-        if len(self.feature_instance) == 2:
+        if len(self.feature_instance) == 3:
             # Time record interval is the same through out the forecast.
             first_time = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfFirstRecord']),
                                                     '%Y%m%dT%H%M%SZ')
