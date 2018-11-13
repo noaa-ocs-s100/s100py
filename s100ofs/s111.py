@@ -210,7 +210,7 @@ class S111File:
         min_lon = numpy.round(min_lon, 7)
         min_lat = numpy.round(min_lat, 7)
         max_lon = numpy.round(max_lon, 7)
-        max_lat = numpy.round(max_lon, 7)
+        max_lat = numpy.round(max_lat, 7)
 
         num_nodes = num_points_lon * num_points_lat
         current_depth = target_depth * -1
