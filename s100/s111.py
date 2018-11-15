@@ -198,14 +198,6 @@ class S111File:
             max_lat = numpy.nanmax(model_index.var_y)
 
         # X/Y coordinates are located at the center of each grid cell
-        # Adjust X/Y coordinates to the lower left/upper right corner for compliance
-        # with S111 product specification by adding/subtracting 1/2 pixel
-        # size from min/max X/Y coordinates
-
-        min_lon -= cellsize_x / 2
-        min_lat -= cellsize_y / 2
-        max_lon += cellsize_x / 2
-        max_lat += cellsize_y / 2
 
         min_lon = numpy.round(min_lon, 7)
         min_lat = numpy.round(min_lat, 7)
