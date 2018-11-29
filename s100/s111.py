@@ -10,6 +10,7 @@ import numpy
 import numpy.ma as ma
 
 from .model import model
+from s100.xml_catalog import XMLCATALOG
 
 import warnings
 with warnings.catch_warnings():
@@ -131,10 +132,10 @@ class S111File:
         self.feature.attrs.create('commonPointRule', 0, dtype=numpy.int32)
         self.feature.attrs.create('interpolationType', 0, dtype=numpy.int32)
         self.feature.attrs.create('typeOfCurrentData', 0, dtype=numpy.int32)
-        self.feature.attrs.create('sequenceRule.type', 0, dtype=numpy.int32)
+        self.feature.attrs.create('sequencingRule.type', 0, dtype=numpy.int32)
         # String types
         self.feature.attrs.create('methodCurrentsProduct', '', dtype=h5py.special_dtype(vlen=str))
-        self.feature.attrs.create('sequenceRule.scanDirection', '', dtype=h5py.special_dtype(vlen=str))
+        self.feature.attrs.create('sequencingRule.scanDirection', '', dtype=h5py.special_dtype(vlen=str))
 
         # Add feature instance metadata
         # String types
@@ -198,7 +199,6 @@ class S111File:
             max_lat = numpy.nanmax(model_index.var_y)
 
         # X/Y coordinates are located at the center of each grid cell
-
         min_lon = numpy.round(min_lon, 7)
         min_lat = numpy.round(min_lat, 7)
         max_lon = numpy.round(max_lon, 7)
@@ -227,9 +227,9 @@ class S111File:
         self.feature.attrs.modify('typeOfCurrentData', S111Metadata.TYPE_OF_CURRENT_DATA)
         self.feature.attrs.modify('commonPointRule', S111Metadata.COMMON_POINT_RULE)
         self.feature.attrs.modify('dimension', S111Metadata.DIMENSION)
-        self.feature.attrs.modify('sequenceRule.type', S111Metadata.SEQUENCE_RULE_TYPE)
+        self.feature.attrs.modify('sequencingRule.type', S111Metadata.SEQUENCING_RULE_TYPE)
         self.feature.attrs.modify('methodCurrentsProduct', ofs_metadata.product)
-        self.feature.attrs.modify('sequenceRule.scanDirection', S111Metadata.SEQUENCE_RULE_SCAN_DIRECTION)
+        self.feature.attrs.modify('sequencingRule.scanDirection', S111Metadata.SEQUENCING_RULE_SCAN_DIRECTION)
 
         # Update feature instance metadata
         if self.feature.attrs['dataCodingFormat'] == S111Metadata.DATA_CODING_FORMAT:
@@ -414,13 +414,11 @@ class S111Metadata:
     DEPTH_TYPE_INDEX: 1:Layer average, 2:Sea surface, 3:Vertical datum, 4:Sea bottom.
     TYPE_OF_CURRENT_DATA: 1:Historical, 2:Real-time, 3:Astronomical , 4:Hybrid, 5:Hydrodynamic model hindcast,
         6:Hydrodynamic Model forecast.
-    METAFEATURES: Name of metafeatures file.
-    METADATA: Name of XML metadata file.
     INTERPOLATION_TYPE: Interpolation method recommended for evaluation of the S100_GridCoverage.
     COMMON_POINT_RULE: The procedure used for evaluating geometric objects that overlap or lie fall on boundaries.
     DIMENSION: The dimension of the feature instance.
-    SEQUENCE_RULE_TYPE: Method to assign values from the sequence of values to the grid coordinates (e.g. "linear").
-    SEQUENCE_RULE_SCAN_DIRECTION: AxisNames, comma-separated (e.g. "latitude,longitude").
+    SEQUENCING_RULE_TYPE: Method to assign values from the sequence of values to the grid coordinates (e.g. "linear").
+    SEQUENCING_RULE_SCAN_DIRECTION: AxisNames, comma-separated (e.g. "latitude,longitude").
     START_SEQUENCE: Starting location of the scan.
 
     """
@@ -431,13 +429,11 @@ class S111Metadata:
     DATA_CODING_FORMAT = 2
     DEPTH_TYPE_INDEX = 2
     TYPE_OF_CURRENT_DATA = 6
-    METAFEATURES = None
-    METADATA = None
     INTERPOLATION_TYPE = 10
     COMMON_POINT_RULE = 4
     DIMENSION = 2
-    SEQUENCE_RULE_TYPE = 1
-    SEQUENCE_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
+    SEQUENCING_RULE_TYPE = 1
+    SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
     XML_REFERENCE = numpy.string_('METADATA.XML')
 
