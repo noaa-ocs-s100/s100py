@@ -306,13 +306,13 @@ class S111File:
             feature_code[...] = fc_data
 
             # Add group_instance uncertainty dataset
-            dtype2 = numpy.dtype([('name', h5py.special_dtype(vlen=str)), ('value', numpy.float32)])
-            u_data = numpy.zeros((2,), dtype2)
+            u_dtype = numpy.dtype([('name', h5py.special_dtype(vlen=str)), ('value', numpy.float32)])
+            u_data = numpy.zeros((2,), u_dtype)
             u_data['name'][0] = 'surfaceCurrentSpeedUncertainty'
             u_data['name'][1] = 'surfaceCurrentDirectionUncertainty'
             u_data['value'][0] = -1.0
             u_data['value'][1] = -1.0
-            uncertainty_data = self.feature_instance.create_dataset('uncertainty', (2,), dtype2)
+            uncertainty_data = self.feature_instance.create_dataset('uncertainty', (2,), u_dtype)
             uncertainty_data[...] = u_data
 
             # Add feature container dataset
@@ -331,8 +331,15 @@ class S111File:
         # Convert time value to string
         time_str = datetime_value.strftime('%Y%m%dT%H%M%SZ')
 
+        # Update attributes from datasets added
+        min_speed = numpy.nanmin(reg_grid_speed)
+        max_speed = numpy.nanmax(reg_grid_speed)
+        min_speed = numpy.round(min_speed, decimals=2)
+        max_speed = numpy.round(max_speed, decimals=2)
+
         if len(feature_instance_groups) == 0:
-            new_group = self.feature_instance.create_group('Group_001')
+            self.feature.attrs.modify('numInstances', len(self.feature_instance))
+            feature_group = self.feature_instance.create_group('Group_001')
             print("Creating", "Group_001", "dataset.")
 
             # Time attributes updated once
@@ -340,22 +347,26 @@ class S111File:
             issuance_date = cycletime.strftime('%Y%m%d')
             self.h5_file.attrs.modify('issueTime', numpy.string_(issuance_time))
             self.h5_file.attrs.modify('issueDate', numpy.string_(issuance_date))
-            self.feature.attrs.modify('numInstances', len(self.feature_instance))
             self.feature_instance.attrs.modify('dateTimeOfFirstRecord', numpy.string_(time_str))
             self.feature_instance.attrs.modify('dateTimeOfLastRecord', numpy.string_(time_str))
 
+            self.feature.attrs.modify('minDatasetCurrentSpeed', min_speed)
+            self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
+
         else:
-            num_grps = len(feature_instance_groups)
-            new_grp = num_grps + 1
-            new_group = self.feature_instance.create_group('Group_{:03d}'.format(new_grp))
-            print("Creating", "Group_{:03d}".format(new_grp), "dataset.")
+            num_groups = len(feature_instance_groups)
+            new_group = num_groups + 1
+            feature_group = self.feature_instance.create_group('Group_{:03d}'.format(new_group))
+            print("Creating", "Group_{:03d}".format(new_group), "dataset.")
             self.feature_instance.attrs.modify('dateTimeOfLastRecord', numpy.string_(time_str))
 
-        # Update attributes from datasets added
-        min_speed = numpy.nanmin(reg_grid_speed)
-        max_speed = numpy.nanmax(reg_grid_speed)
-        min_speed = numpy.round(min_speed, decimals=2)
-        max_speed = numpy.round(max_speed, decimals=2)
+            # Update min and max speed attributes each time data is added
+            prior_min_speed = self.feature.attrs['minDatasetCurrentSpeed']
+            prior_max_speed = self.feature.attrs['maxDatasetCurrentSpeed']
+            if min_speed < prior_min_speed:
+                self.feature.attrs.modify('minDatasetCurrentSpeed', min_speed)
+            if max_speed > prior_max_speed:
+                self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
         speed = reg_grid_speed.filled(FILLVALUE)
         direction = reg_grid_direction.filled(FILLVALUE)
@@ -363,9 +374,7 @@ class S111File:
         direction = numpy.round(direction, decimals=1)
 
         # Update attributes from datasets added
-        new_group.attrs.create('timePoint', numpy.string_(time_str), None, h5py.special_dtype(vlen=str))
-        self.feature_instance.attrs.modify('numberOfTimes', len(self.feature_instance))
-        self.feature_instance.attrs.modify('numGRP', len(self.feature_instance))
+        feature_group.attrs.create('timePoint', numpy.string_(time_str), None, h5py.special_dtype(vlen=str))
 
         # Write data to empty feature instance group
         values_dtype = numpy.dtype([('surfaceCurrentSpeed', numpy.float32),
@@ -374,34 +383,43 @@ class S111File:
         values = numpy.zeros(speed.shape, dtype=values_dtype)
         values['surfaceCurrentSpeed'] = speed
         values['surfaceCurrentDirection'] = direction
-        values_dset = new_group.create_dataset('values', speed.shape, dtype=values_dtype, chunks=True,
-                                               compression='gzip', compression_opts=9)
+        values_dset = feature_group.create_dataset('values', speed.shape, dtype=values_dtype, chunks=True, compression='gzip', compression_opts=9)
         values_dset[...] = values
 
         # Update group_f attributes
         self.groupF_dset.attrs.create('chunking', str(values_dset.chunks), dtype=h5py.special_dtype(vlen=str))
         self.feature_instance.attrs.modify('instanceChunking', numpy.string_(str(values_dset.chunks)))
 
-        if len(self.feature_instance) == 3:
-            # Time record interval is the same through out the forecast.
-            first_time = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfFirstRecord']),
-                                                    '%Y%m%dT%H%M%SZ')
-            last_time = datetime.datetime.strptime((self.feature_instance.attrs['dateTimeOfLastRecord']),
-                                                   '%Y%m%dT%H%M%SZ')
-            interval = last_time - first_time
+        S111File.update_feature_instance_attributes(self)
+
+    def update_feature_instance_attributes(self):
+        """Update feature instance attributes.
+
+        Update dynamic feature instance attributes
+        from data added to the S111 file.
+
+        """
+
+        # Create a list of all feature instance groups
+        feature_instance_objects = []
+        self.feature_instance.visit(feature_instance_objects.append)
+        feature_instance_groups = [obj for obj in feature_instance_objects if
+                                   isinstance(self.feature_instance[obj], h5py.Group)]
+
+        # Time record interval is the same throughout the forecast.
+        if len(feature_instance_groups) == 2:
+            first_time = datetime.datetime.strptime(
+                (self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
+            second_time = datetime.datetime.strptime(
+                (self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_002'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
+
+            interval = second_time - first_time
             time_interval = interval.total_seconds()
             self.feature_instance.attrs.modify('timeRecordInterval', time_interval)
-            self.feature.attrs.modify('minDatasetCurrentSpeed', min_speed)
-            self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
-        else:
-            # Update min and max speed attributes each time data is added 
-            prior_min_speed = self.feature.attrs['minDatasetCurrentSpeed']
-            prior_max_speed = self.feature.attrs['maxDatasetCurrentSpeed']
-            if min_speed < prior_min_speed:
-                self.feature.attrs.modify('minDatasetCurrentSpeed', min_speed)
-            if max_speed > prior_max_speed:
-                self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
+        # Update attributes after all data has been added
+        self.feature_instance.attrs.modify('numberOfTimes', len(feature_instance_groups))
+        self.feature_instance.attrs.modify('numGRP', len(feature_instance_groups))
 
 
 class S111Metadata:
