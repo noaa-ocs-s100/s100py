@@ -545,8 +545,22 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                             # and direction
                             direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
 
+                            # Apply mask
                             direction = ma.masked_array(direction, model_index_file.var_mask.mask)
                             speed = ma.masked_array(speed, model_index_file.var_mask.mask)
+
+                            # If any valid data points fall outside of the scipy griddata convex hull
+                            # nan values will be used, if nan values are present
+                            # add nan values to the original mask
+                            if numpy.isnan(speed).any():
+
+                                nan_mask_speed = numpy.ma.masked_invalid(speed)
+                                nan_mask_direction = numpy.ma.masked_invalid(direction)
+                                speed_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_speed.mask)
+                                direction_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_direction.mask)
+
+                                speed = ma.masked_array(speed, speed_mask)
+                                direction = ma.masked_array(direction, direction_mask)
 
                             for subgrid_index, s111_file in enumerate(s111_files):
                                 if os.path.isfile(s111_file.path):
@@ -586,8 +600,21 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                             # and direction
                             direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
 
+                            # Apply mask
                             direction = ma.masked_array(direction, model_index_file.var_mask.mask)
                             speed = ma.masked_array(speed, model_index_file.var_mask.mask)
+
+                            # If any valid data points fall outside of the scipy griddata convex hull
+                            # nan values will be used, if nan values are present
+                            # add nan values to the original mask
+                            if numpy.isnan(speed).any():
+                                nan_mask_speed = numpy.ma.masked_invalid(speed)
+                                nan_mask_direction = numpy.ma.masked_invalid(direction)
+                                speed_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_speed.mask)
+                                direction_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_direction.mask)
+
+                                speed = ma.masked_array(speed, speed_mask)
+                                direction = ma.masked_array(direction, direction_mask)
 
                             s111_file.add_data(model_file.datetime_values[time_index], speed, direction, cycletime)
 
