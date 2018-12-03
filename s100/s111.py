@@ -10,7 +10,6 @@ import numpy
 import numpy.ma as ma
 
 from .model import model
-from s100.xml_catalog import XMLCATALOG
 
 import warnings
 with warnings.catch_warnings():
@@ -159,7 +158,7 @@ class S111File:
         self.feature_instance.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
 
-    def update_attributes(self, model_index, ofs_metadata, target_depth, subgrid_index=None):
+    def update_attributes(self, model_index, ofs_metadata, s111_filename, target_depth, subgrid_index=None):
         """Update HDF5 attributes based on grid properties.
         
         Args:
@@ -170,6 +169,7 @@ class S111File:
             ofs_metadata: `S111Metadata` instance describing metadata for geographic
                 identifier and description of current meter type, forecast method,
                 or model.
+            s111_filename: 'S111File' identifier.
             target_depth: The water current at a specified target depth below
                 the sea surface in meters, default target depth is 4.5 meters,
                 target interpolation depth must be greater or equal to 0.
@@ -207,6 +207,8 @@ class S111File:
         num_nodes = num_points_lon * num_points_lat
         current_depth = target_depth * -1
 
+        metadata_xml_reference = numpy.string_('MD_{}.XML'.format(s111_filename))
+
         # Update carrier metadata
         self.h5_file.attrs.modify('geographicIdentifier', ofs_metadata.region)
         self.h5_file.attrs.modify('productSpecification', S111Metadata.PRODUCT_SPECIFICATION)
@@ -219,7 +221,7 @@ class S111File:
         self.h5_file.attrs.modify('eastBoundLongitude', max_lon)
         self.h5_file.attrs.modify('southBoundLatitude', min_lat)
         self.h5_file.attrs.modify('northBoundLatitude', max_lat)
-        self.h5_file.attrs.modify('metadata', S111Metadata.XML_REFERENCE)
+        self.h5_file.attrs.modify('metadata', metadata_xml_reference)
 
         # Update feature container metadata
         self.feature.attrs.modify('dataCodingFormat', S111Metadata.DATA_CODING_FORMAT)
@@ -435,7 +437,6 @@ class S111Metadata:
     SEQUENCING_RULE_TYPE = 1
     SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
-    XML_REFERENCE = numpy.string_('METADATA.XML')
 
     def __init__(self, region, product):
         self.region = numpy.string_(region)
@@ -502,12 +503,14 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                 for i in range(model_index_file.dim_subgrid.size):
                     if model_index_file.var_subgrid_name is not None:
                         s111_file = S111File("{}_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_name[i]), clobber=True)
+                        s111_filename = ('S111US_{}_{}_TYP2_{}'.format(file_issuance, str.upper(ofs_model), model_index_file.var_subgrid_name[i]))
                     else:
                         s111_file = S111File("{}_FID_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_id[i]), clobber=True)
+                        s111_filename = ('S111US_{}_{}_TYP2_FID_{}'.format(file_issuance, str.upper(ofs_model), model_index_file.var_subgrid_id[i]))
 
                     s111_file_paths.append(s111_file.path)
                     stack.enter_context(s111_file)
-                    s111_file.update_attributes(model_index_file, ofs_metadata, target_depth, i)
+                    s111_file.update_attributes(model_index_file, ofs_metadata, s111_filename, target_depth, i)
                     s111_files.append(s111_file)
 
                 for model_file in model_files:
@@ -548,7 +551,8 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
             # Output to default grid (no subgrids)
             with S111File("{}.h5".format(s111_path_prefix), clobber=True) as s111_file:
                 s111_file_paths.append(s111_file.path)
-                s111_file.update_attributes(model_index_file, ofs_metadata, target_depth)
+                s111_filename = ('S111US_{}_{}_TYP2'.format(file_issuance, str.upper(ofs_model)))
+                s111_file.update_attributes(model_index_file, ofs_metadata, s111_filename, target_depth)
                 for model_file in model_files:
                     try:
                         model_file.open()
