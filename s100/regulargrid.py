@@ -1,5 +1,7 @@
 """
-Regular grid
+Utilities for representing and working with Regular Grids.
+
+Regular, orthogonal lat-lon grids are presently supported.
 """
 import math
 
@@ -9,6 +11,19 @@ EARTH_RADIUS_METERS = 6371000
 
 class RegularGrid:
     """Encapsulate information describing a regular lat-lon grid.
+
+    In this model, the grid extent (min/max x/y coordinates) represents its
+    outer envelope (corresponding with the outer edges of the outermost cells),
+    while the grid coordinates are defined at the center of each grid
+    cell, i.e. offset from the bottom-left corner of the cell by half the cell
+    width and half the cell height.
+
+    This representation of a regular grid was chosen in order to build
+    tesselations whose cell coordinates are evenly distributed within the
+    defined envelope. This is especially useful when several congruent regular
+    grids are to be defined adjacent to each other with shared edges, because
+    it allows the shared edges to be equidistant to neighboring points from
+    both grids while also allowing the points to be evenly spaced.
 
     Attributes:
         x_min: X-coordinate of the left edge of the bottom-left grid cell.
@@ -68,7 +83,7 @@ class RegularGrid:
 
     @staticmethod
     def calc_cellsizes(lon_min, lat_min, lon_max, lat_max, target_cellsize_meters):
-        """Calculate actual x/y cell sizes from an extent and target cell size.
+        """Calculate appropriate lat/lon cell sizes from target size in meters.
 
         Given a lat/lon extent and target cell size in meters, calculate actual
         x and y cell sizes (in decimal degrees) that approximate the target
