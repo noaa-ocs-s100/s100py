@@ -216,7 +216,7 @@ class S111File:
         num_nodes = num_points_lon * num_points_lat
         current_depth = target_depth * -1
 
-        metadata_xml_reference = numpy.string_('MD_{}.XML'.format(self.filename))
+        metadata_xml_reference = numpy.string_('MD_{}.XML'.format(os.path.splitext(self.filename)[0]))
 
         # Update carrier metadata
         self.h5_file.attrs.modify('geographicIdentifier', ofs_metadata.region)
