@@ -50,7 +50,8 @@ class S111File:
             ...
 
     Attributes:
-        path: Path (relative or absolute) to the file.
+        path: Path (relative or absolute) to the .h5 file, including filename.
+        filename: Name of the .h5 file.
         h5_file: Handle to the underlying `h5py.File` instance.
         feature: Handle to the underlying `h5py.Group` instance for the
             Feature.
