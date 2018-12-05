@@ -52,6 +52,17 @@ class S111File:
     Attributes:
         path: Path (relative or absolute) to the .h5 file, including filename.
         filename: Name of the .h5 file.
+        model_index: `ModelIndexFile` instance representing model index file.
+        metadata: `S111Metadata` instance describing metadata for geographic
+            identifier and description of current meter type, forecast method,
+            or model.
+        target_depth: Target depth below the sea surface, in meters, at which
+            surface currents are valid. Default target depth is 4.5 meters.
+            Must be greater than or equal to 0. For areas shallower than the
+            target depth, half the water column height is used instead.
+        subgrid_index: (Optional, default None) Index of subgrid, if any,
+            that this S111File represents. Corresponds with index into
+            subgrid dimension of model index file.
         h5_file: Handle to the underlying `h5py.File` instance.
         feature: Handle to the underlying `h5py.Group` instance for the
             Feature.
@@ -63,7 +74,7 @@ class S111File:
             metadata.
     """
 
-    def __init__(self, path, clobber=False):
+    def __init__(self, path, model_index, metadata, target_depth, subgrid_index=None, clobber=False):
         """Initializes S111File object and opens h5 file at specified path.
 
         If `path` has an extension other than ".h5", it is replaced with
@@ -72,6 +83,17 @@ class S111File:
         Args:
             path: Path of target hdf5 file. Must end in ".h5", otherwise its
                 extension will be replaced with ".h5".
+            model_index: `ModelIndexFile` instance representing model index file.
+            metadata: `S111Metadata` instance describing metadata for geographic
+                identifier and description of current meter type, forecast method,
+                or model.
+            target_depth: Target depth below the sea surface, in meters, at which
+                surface currents are valid. Default target depth is 4.5 meters.
+                Must be greater than or equal to 0. For areas shallower than the
+                target depth, half the water column height is used instead.
+            subgrid_index: (Optional, default None) Index of subgrid, if any,
+                that this S111File represents. Corresponds with index into
+                subgrid dimension of model index file.
             clobber: (Optional, default False) If True, existing h5 file at
                 specified path, if any, will be deleted and the new file will
                 be opened in write mode.
@@ -79,6 +101,10 @@ class S111File:
         prefix, extension = os.path.splitext(path)
         self.path = prefix + ".h5"
         self.filename = os.path.basename(self.path)
+        self.model_index = model_index
+        self.metadata = metadata
+        self.target_depth = target_depth
+        self.subgrid_index = subgrid_index
 
         if not os.path.exists(self.path) or clobber:
             # File doesn't exist, open in create (write) mode and add metadata
@@ -90,6 +116,7 @@ class S111File:
             self.groupF_dset = None
             # Add s111 structure and metadata
             self.add_structure_and_metadata()
+            self.update_attributes()
         else:
             # File already exists, open in append mode
             self.h5_file = h5py.File(self.path, "r+")
@@ -169,44 +196,31 @@ class S111File:
         self.feature_instance.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
 
-    def update_attributes(self, model_index, ofs_metadata, target_depth, subgrid_index=None):
-        """Update HDF5 attributes based on grid properties.
-        
-        Args:
-            model_index: `ModelIndexFile` instance representing model index file.
-            ofs_metadata: `S111Metadata` instance describing metadata for geographic
-                identifier and description of current meter type, forecast method,
-                or model.
-            target_depth: The water current at a specified target depth below
-                the sea surface in meters, default target depth is 4.5 meters,
-                target interpolation depth must be greater or equal to 0.
-            subgrid_index: (Optional, default None) Index of subgrid, if any,
-                that this S111File represents. Corresponds with index into
-                subgrid dimension of model index file.
-        """
+    def update_attributes(self):
+        """Update HDF5 attributes based on grid properties"""
 
         # Width between first two cells, grid spacing is uniform
-        cellsize_x = model_index.var_x[1] - model_index.var_x[0]
-        cellsize_y = model_index.var_y[1] - model_index.var_y[0]
+        cellsize_x = self.model_index.var_x[1] - self.model_index.var_x[0]
+        cellsize_y = self.model_index.var_y[1] - self.model_index.var_y[0]
 
-        if subgrid_index is not None:
-            if subgrid_index < 0 or subgrid_index >= model_index.dim_subgrid.size:
-                raise Exception("Subgrid index [{}] out of model index subgrid dimension range [0-{}]".format(subgrid_index, model_index.dim_subgrid.size - 1))
-            num_points_lon = 1 + model_index.var_subgrid_x_max[subgrid_index] - model_index.var_subgrid_x_min[
-                subgrid_index]
-            num_points_lat = 1 + model_index.var_subgrid_y_max[subgrid_index] - model_index.var_subgrid_y_min[
-                subgrid_index]
-            min_lon = model_index.var_x[model_index.var_subgrid_x_min[subgrid_index]]
-            min_lat = model_index.var_y[model_index.var_subgrid_y_min[subgrid_index]]
-            max_lon = model_index.var_x[model_index.var_subgrid_x_max[subgrid_index]]
-            max_lat = model_index.var_y[model_index.var_subgrid_y_max[subgrid_index]]
+        if self.subgrid_index is not None:
+            if self.subgrid_index < 0 or self.subgrid_index >= self.model_index.dim_subgrid.size:
+                raise Exception("Subgrid index [{}] out of model index subgrid dimension range [0-{}]".format(self.subgrid_index, self.model_index.dim_subgrid.size - 1))
+            num_points_lon = 1 + self.model_index.var_subgrid_x_max[self.subgrid_index] - self.model_index.var_subgrid_x_min[
+                self.subgrid_index]
+            num_points_lat = 1 + self.model_index.var_subgrid_y_max[self.subgrid_index] - self.model_index.var_subgrid_y_min[
+                self.subgrid_index]
+            min_lon = self.model_index.var_x[self.model_index.var_subgrid_x_min[self.subgrid_index]]
+            min_lat = self.model_index.var_y[self.model_index.var_subgrid_y_min[self.subgrid_index]]
+            max_lon = self.model_index.var_x[self.model_index.var_subgrid_x_max[self.subgrid_index]]
+            max_lat = self.model_index.var_y[self.model_index.var_subgrid_y_max[self.subgrid_index]]
         else:
-            num_points_lon = model_index.dim_x.size
-            num_points_lat = model_index.dim_y.size
-            min_lon = numpy.nanmin(model_index.var_x)
-            min_lat = numpy.nanmin(model_index.var_y)
-            max_lon = numpy.nanmax(model_index.var_x)
-            max_lat = numpy.nanmax(model_index.var_y)
+            num_points_lon = self.model_index.dim_x.size
+            num_points_lat = self.model_index.dim_y.size
+            min_lon = numpy.nanmin(self.model_index.var_x)
+            min_lat = numpy.nanmin(self.model_index.var_y)
+            max_lon = numpy.nanmax(self.model_index.var_x)
+            max_lat = numpy.nanmax(self.model_index.var_y)
 
         # X/Y coordinates are located at the center of each grid cell
         min_lon = numpy.round(min_lon, 7)
@@ -215,12 +229,12 @@ class S111File:
         max_lat = numpy.round(max_lat, 7)
 
         num_nodes = num_points_lon * num_points_lat
-        current_depth = target_depth * -1
+        current_depth = self.target_depth * -1
 
         metadata_xml_reference = numpy.string_('MD_{}.XML'.format(os.path.splitext(self.filename)[0]))
 
         # Update carrier metadata
-        self.h5_file.attrs.modify('geographicIdentifier', ofs_metadata.region)
+        self.h5_file.attrs.modify('geographicIdentifier', self.metadata.region)
         self.h5_file.attrs.modify('productSpecification', S111Metadata.PRODUCT_SPECIFICATION)
         self.h5_file.attrs.modify('epoch', S111Metadata.EPOCH)
         self.h5_file.attrs.modify('horizontalDatumReference', S111Metadata.HORIZONTAL_DATUM_REFERENCE)
@@ -240,7 +254,7 @@ class S111File:
         self.feature.attrs.modify('commonPointRule', S111Metadata.COMMON_POINT_RULE)
         self.feature.attrs.modify('dimension', S111Metadata.DIMENSION)
         self.feature.attrs.modify('sequencingRule.type', S111Metadata.SEQUENCING_RULE_TYPE)
-        self.feature.attrs.modify('methodCurrentsProduct', ofs_metadata.product)
+        self.feature.attrs.modify('methodCurrentsProduct', self.metadata.product)
         self.feature.attrs.modify('sequencingRule.scanDirection', S111Metadata.SEQUENCING_RULE_SCAN_DIRECTION)
 
         # Update feature instance metadata
@@ -530,13 +544,12 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                 s111_files = []
                 for i in range(model_index_file.dim_subgrid.size):
                     if model_index_file.var_subgrid_name is not None:
-                        s111_file = S111File("{}_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_name[i]), clobber=True)
+                        s111_file = S111File("{}_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_name[i]), model_index_file, ofs_metadata, target_depth, subgrid_index=i, clobber=True)
                     else:
-                        s111_file = S111File("{}_FID_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_id[i]), clobber=True)
+                        s111_file = S111File("{}_FID_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_id[i]), model_index_file, ofs_metadata, target_depth, subgrid_index=i, clobber=True)
 
                     s111_file_paths.append(s111_file.path)
                     stack.enter_context(s111_file)
-                    s111_file.update_attributes(model_index_file, ofs_metadata, target_depth, i)
                     s111_files.append(s111_file)
 
                 for model_file in model_files:
@@ -589,9 +602,8 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                         model_file.close()
         else:
             # Output to default grid (no subgrids)
-            with S111File("{}.h5".format(s111_path_prefix), clobber=True) as s111_file:
+            with S111File("{}.h5".format(s111_path_prefix), model_index_file, ofs_metadata, target_depth, clobber=True) as s111_file:
                 s111_file_paths.append(s111_file.path)
-                s111_file.update_attributes(model_index_file, ofs_metadata, target_depth)
                 for model_file in model_files:
                     try:
                         model_file.open()
