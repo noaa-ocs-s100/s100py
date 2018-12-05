@@ -544,9 +544,11 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                 s111_files = []
                 for i in range(model_index_file.dim_subgrid.size):
                     if model_index_file.var_subgrid_name is not None:
-                        s111_file = S111File("{}_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_name[i]), model_index_file, ofs_metadata, target_depth, subgrid_index=i, clobber=True)
+                        filename = "{}_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_name[i])
                     else:
-                        s111_file = S111File("{}_FID_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_id[i]), model_index_file, ofs_metadata, target_depth, subgrid_index=i, clobber=True)
+                        filename = "{}_FID_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_id[i])
+
+                    s111_file = S111File(filename, model_index_file, ofs_metadata, target_depth, subgrid_index=i, clobber=True)
 
                     s111_file_paths.append(s111_file.path)
                     stack.enter_context(s111_file)
