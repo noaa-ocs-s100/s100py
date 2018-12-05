@@ -51,6 +51,15 @@ class S111File:
 
     Attributes:
         path: Path (relative or absolute) to the file.
+        h5_file: Handle to the underlying `h5py.File` instance.
+        feature: Handle to the underlying `h5py.Group` instance for the
+            Feature.
+        feature_instance: Handle to the underlying `h5py.Group` instance for
+            the Feature Instance.
+        groupF: Handle to the underlying `h5py.Group` instance for Group_F
+            metadata.
+        groupF_dset: Handle to the underlying `h5py.Dataset` for Group_F 
+            metadata.
     """
 
     def __init__(self, path, clobber=False):
@@ -66,8 +75,9 @@ class S111File:
                 specified path, if any, will be deleted and the new file will
                 be opened in write mode.
         """
-        filepath, file_extension = os.path.splitext(path)
-        self.path = filepath + ".h5"
+        prefix, extension = os.path.splitext(path)
+        self.path = prefix + ".h5"
+        self.filename = os.path.basename(self.path)
 
         if not os.path.exists(self.path) or clobber:
             # File doesn't exist, open in create (write) mode and add metadata
@@ -158,21 +168,20 @@ class S111File:
         self.feature_instance.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
 
-    def update_attributes(self, model_index, ofs_metadata, s111_filename, target_depth, subgrid_index=None):
+    def update_attributes(self, model_index, ofs_metadata, target_depth, subgrid_index=None):
         """Update HDF5 attributes based on grid properties.
         
         Args:
             model_index: `ModelIndexFile` instance representing model index file.
-            subgrid_index: (Optional, default None) Index of subgrid, if any,
-                that this S111File represents. Corresponds with index into
-                subgrid dimension of model index file.
             ofs_metadata: `S111Metadata` instance describing metadata for geographic
                 identifier and description of current meter type, forecast method,
                 or model.
-            s111_filename: 'S111File' identifier.
             target_depth: The water current at a specified target depth below
                 the sea surface in meters, default target depth is 4.5 meters,
                 target interpolation depth must be greater or equal to 0.
+            subgrid_index: (Optional, default None) Index of subgrid, if any,
+                that this S111File represents. Corresponds with index into
+                subgrid dimension of model index file.
         """
 
         # Width between first two cells, grid spacing is uniform
@@ -207,7 +216,7 @@ class S111File:
         num_nodes = num_points_lon * num_points_lat
         current_depth = target_depth * -1
 
-        metadata_xml_reference = numpy.string_('MD_{}.XML'.format(s111_filename))
+        metadata_xml_reference = numpy.string_('MD_{}.XML'.format(self.filename))
 
         # Update carrier metadata
         self.h5_file.attrs.modify('geographicIdentifier', ofs_metadata.region)
@@ -521,14 +530,12 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                 for i in range(model_index_file.dim_subgrid.size):
                     if model_index_file.var_subgrid_name is not None:
                         s111_file = S111File("{}_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_name[i]), clobber=True)
-                        s111_filename = ('S111US_{}_{}_TYP2_{}'.format(file_issuance, str.upper(ofs_model), model_index_file.var_subgrid_name[i]))
                     else:
                         s111_file = S111File("{}_FID_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_id[i]), clobber=True)
-                        s111_filename = ('S111US_{}_{}_TYP2_FID_{}'.format(file_issuance, str.upper(ofs_model), model_index_file.var_subgrid_id[i]))
 
                     s111_file_paths.append(s111_file.path)
                     stack.enter_context(s111_file)
-                    s111_file.update_attributes(model_index_file, ofs_metadata, s111_filename, target_depth, i)
+                    s111_file.update_attributes(model_index_file, ofs_metadata, target_depth, i)
                     s111_files.append(s111_file)
 
                 for model_file in model_files:
@@ -583,8 +590,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
             # Output to default grid (no subgrids)
             with S111File("{}.h5".format(s111_path_prefix), clobber=True) as s111_file:
                 s111_file_paths.append(s111_file.path)
-                s111_filename = ('S111US_{}_{}_TYP2'.format(file_issuance, str.upper(ofs_model)))
-                s111_file.update_attributes(model_index_file, ofs_metadata, s111_filename, target_depth)
+                s111_file.update_attributes(model_index_file, ofs_metadata, target_depth)
                 for model_file in model_files:
                     try:
                         model_file.open()
