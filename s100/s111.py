@@ -56,10 +56,6 @@ class S111File:
         metadata: `S111Metadata` instance describing metadata for geographic
             identifier and description of current meter type, forecast method,
             or model.
-        target_depth: Target depth below the sea surface, in meters, at which
-            surface currents are valid. Default target depth is 4.5 meters.
-            Must be greater than or equal to 0. For areas shallower than the
-            target depth, half the water column height is used instead.
         subgrid_index: (Optional, default None) Index of subgrid, if any,
             that this S111File represents. Corresponds with index into
             subgrid dimension of model index file.
@@ -74,7 +70,7 @@ class S111File:
             metadata.
     """
 
-    def __init__(self, path, model_index, metadata, target_depth, subgrid_index=None, clobber=False):
+    def __init__(self, path, model_index, metadata, subgrid_index=None, clobber=False):
         """Initializes S111File object and opens h5 file at specified path.
 
         If `path` has an extension other than ".h5", it is replaced with
@@ -87,10 +83,6 @@ class S111File:
             metadata: `S111Metadata` instance describing metadata for geographic
                 identifier and description of current meter type, forecast method,
                 or model.
-            target_depth: Target depth below the sea surface, in meters, at which
-                surface currents are valid. Default target depth is 4.5 meters.
-                Must be greater than or equal to 0. For areas shallower than the
-                target depth, half the water column height is used instead.
             subgrid_index: (Optional, default None) Index of subgrid, if any,
                 that this S111File represents. Corresponds with index into
                 subgrid dimension of model index file.
@@ -103,20 +95,29 @@ class S111File:
         self.filename = os.path.basename(self.path)
         self.model_index = model_index
         self.metadata = metadata
-        self.target_depth = target_depth
         self.subgrid_index = subgrid_index
 
         if not os.path.exists(self.path) or clobber:
             # File doesn't exist, open in create (write) mode and add metadata
             self.h5_file = h5py.File(self.path, "w")
-            # Create s111 structure, feature group, feature type container, and initial feature instance
+
+            # Create s111 structure
             self.groupF = self.h5_file.create_group('Group_F')
             self.feature = self.h5_file.create_group('SurfaceCurrent')
             self.feature_instance = self.feature.create_group('SurfaceCurrent.01')
             self.groupF_dset = None
-            # Add s111 structure and metadata
-            self.add_structure_and_metadata()
-            self.update_attributes()
+
+            # Create s111 metadata structure
+            self.create_file_metadata()
+
+            # Add feature content
+            self.add_feature_codes_content()
+            self.add_feature_type_content()
+            self.add_feature_instance_content()
+
+            # Add metadata
+            self.add_file_metadata_content()
+
         else:
             # File already exists, open in append mode
             self.h5_file = h5py.File(self.path, "r+")
@@ -131,7 +132,7 @@ class S111File:
         self.h5_file.flush()
         self.h5_file.close()
 
-    def add_structure_and_metadata(self):
+    def create_file_metadata(self):
         """Add S100/S111 structure and empty global metadata attributes to HDF5 file."""
 
         # Add root group carrier metadata
@@ -196,8 +197,81 @@ class S111File:
         self.feature_instance.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
 
-    def update_attributes(self):
-        """Update HDF5 attributes based on grid properties"""
+    def add_feature_codes_content(self):
+        """Add feature codes.
+
+        This group specifies the S-100 feature to which the data applies.
+        The group has no attributes and consists of two components:
+        Feature name a dataset with name of the S-100 feature contained
+        in the data product and a reference to the name.
+        """
+
+        # Add a feature name compound dataset
+        dtype = numpy.dtype([('code', h5py.special_dtype(vlen=str)),
+                             ('name', h5py.special_dtype(vlen=str)),
+                             ('uom.name', h5py.special_dtype(vlen=str)),
+                             ('fillValue', h5py.special_dtype(vlen=str)),
+                             ('dataType', h5py.special_dtype(vlen=str)),
+                             ('lower', h5py.special_dtype(vlen=str)),
+                             ('upper', h5py.special_dtype(vlen=str)),
+                             ('closure', h5py.special_dtype(vlen=str))])
+
+        fdata = numpy.zeros((2,), dtype=dtype)
+        fdata['code'][0] = 'surfaceCurrentSpeed'
+        fdata['name'][0] = 'Surface current speed'
+        fdata['uom.name'][0] = 'knots'
+        fdata['fillValue'][0] = str(FILLVALUE)
+        fdata['dataType'][0] = H5T_CLASS_T[h5py.h5t.FLOAT]
+        fdata['lower'][0] = 0.0
+        fdata['upper'][0] = ''
+        fdata['closure'][0] = 'geSemiInterval'
+
+        fdata['code'][1] = 'surfaceCurrentDirection'
+        fdata['name'][1] = 'Surface current direction'
+        fdata['uom.name'][1] = 'arc-degrees'
+        fdata['fillValue'][1] = str(FILLVALUE)
+        fdata['dataType'][1] = H5T_CLASS_T[h5py.h5t.FLOAT]
+        fdata['lower'][1] = 0.0
+        fdata['upper'][1] = 360
+        fdata['closure'][1] = 'geLtInterval'
+
+        self.groupF_dset = self.groupF.create_dataset('SurfaceCurrent', (2,), dtype=dtype)
+        self.groupF_dset[...] = fdata
+
+        # Add a feature code dataset
+        fc_data = numpy.zeros((1,), dtype=h5py.special_dtype(vlen=str))
+        fc_data[0] = 'SurfaceCurrent'
+        feature_code = self.groupF.create_dataset('featureCode', (1,), dtype=h5py.special_dtype(vlen=str))
+        feature_code[...] = fc_data
+
+    def add_feature_type_content(self):
+        """Add feature type content to the S111 file."""
+
+        # Add horizontal and vertical axis names in feature type
+        axis_names = numpy.zeros((2,), dtype=h5py.special_dtype(vlen=str))
+        axis_names[0] = 'longitude'
+        axis_names[1] = 'latitude'
+        axis_dset = self.feature.create_dataset('axisNames', (2,), dtype=h5py.special_dtype(vlen=str))
+        axis_dset[...] = axis_names
+
+    def add_feature_instance_content(self):
+        """Add feature instance content to the S111 file."""
+
+        # Add feature instance uncertainty compound dataset
+        u_dtype = numpy.dtype([('name', h5py.special_dtype(vlen=str)), ('value', numpy.float32)])
+        u_data = numpy.zeros((2,), u_dtype)
+        u_data['name'][0] = 'surfaceCurrentSpeedUncertainty'
+        u_data['name'][1] = 'surfaceCurrentDirectionUncertainty'
+        u_data['value'][0] = -1.0
+        u_data['value'][1] = -1.0
+        uncertainty_data = self.feature_instance.create_dataset('uncertainty', (2,), u_dtype)
+        uncertainty_data[...] = u_data
+
+    def add_file_metadata_content(self):
+        """Update metadata.
+
+        Based on grid properties, s111 metadata, and ofs metadata.
+        """
 
         # Width between first two cells, grid spacing is uniform
         cellsize_x = self.model_index.var_x[1] - self.model_index.var_x[0]
@@ -205,11 +279,12 @@ class S111File:
 
         if self.subgrid_index is not None:
             if self.subgrid_index < 0 or self.subgrid_index >= self.model_index.dim_subgrid.size:
-                raise Exception("Subgrid index [{}] out of model index subgrid dimension range [0-{}]".format(self.subgrid_index, self.model_index.dim_subgrid.size - 1))
-            num_points_lon = 1 + self.model_index.var_subgrid_x_max[self.subgrid_index] - self.model_index.var_subgrid_x_min[
-                self.subgrid_index]
-            num_points_lat = 1 + self.model_index.var_subgrid_y_max[self.subgrid_index] - self.model_index.var_subgrid_y_min[
-                self.subgrid_index]
+                raise Exception(
+                    "Subgrid index [{}] out of model index subgrid dimension range [0-{}]".format(self.subgrid_index,
+                                                                                                  self.model_index.dim_subgrid.size - 1))
+
+            num_points_lon = 1 + self.model_index.var_subgrid_x_max[self.subgrid_index] - self.model_index.var_subgrid_x_min[self.subgrid_index]
+            num_points_lat = 1 + self.model_index.var_subgrid_y_max[self.subgrid_index] - self.model_index.var_subgrid_y_min[self.subgrid_index]
             min_lon = self.model_index.var_x[self.model_index.var_subgrid_x_min[self.subgrid_index]]
             min_lat = self.model_index.var_y[self.model_index.var_subgrid_y_min[self.subgrid_index]]
             max_lon = self.model_index.var_x[self.model_index.var_subgrid_x_max[self.subgrid_index]]
@@ -229,7 +304,6 @@ class S111File:
         max_lat = numpy.round(max_lat, 7)
 
         num_nodes = num_points_lon * num_points_lat
-        current_depth = self.target_depth * -1
 
         metadata_xml_reference = numpy.string_('MD_{}.XML'.format(os.path.splitext(self.filename)[0]))
 
@@ -240,7 +314,6 @@ class S111File:
         self.h5_file.attrs.modify('horizontalDatumReference', S111Metadata.HORIZONTAL_DATUM_REFERENCE)
         self.h5_file.attrs.modify('horizontalDatumValue', S111Metadata.HORIZONTAL_DATUM_VALUE)
         self.h5_file.attrs.modify('depthTypeIndex', S111Metadata.DEPTH_TYPE_INDEX)
-        self.h5_file.attrs.modify('surfaceCurrentDepth', current_depth)
         self.h5_file.attrs.modify('westBoundLongitude', min_lon)
         self.h5_file.attrs.modify('eastBoundLongitude', max_lon)
         self.h5_file.attrs.modify('southBoundLatitude', min_lat)
@@ -271,11 +344,10 @@ class S111File:
             self.feature_instance.attrs.modify('southBoundLatitude', min_lat)
             self.feature_instance.attrs.modify('northBoundLatitude', max_lat)
 
-    def add_data(self, datetime_value, reg_grid_speed, reg_grid_direction, cycletime):
+    def add_feature_instance_group_data(self, datetime_value, reg_grid_speed, reg_grid_direction, cycletime, target_depth):
         """Add data to the S111 file.
         
-        As data is added, new Groups will be added and relevant attributes will
-        be updated.
+        As data is added, new groups will be created and relevant attributes updated.
 
         Args:
             datetime_value: `datetime.datetime` instance representing valid time of
@@ -287,65 +359,11 @@ class S111File:
                 direction data after interpolating to a regular grid and
                 converting from u/v components.
             cycletime: `datetime.datetime` representing model cycle time.
+            target_depth: Target depth below the sea surface, in meters, at which
+                surface currents are valid. Default target depth is 4.5 meters.
+                Must be greater than or equal to 0. For areas shallower than the
+                target depth, half the water column height is used instead.
         """
-
-        # Add datasets to group_f and feature container once
-        if len(self.groupF) == 0:
-            # Add group_f compound dataset
-            dtype = numpy.dtype([('code', h5py.special_dtype(vlen=str)),
-                                 ('name', h5py.special_dtype(vlen=str)),
-                                 ('uom.name', h5py.special_dtype(vlen=str)),
-                                 ('fillValue', h5py.special_dtype(vlen=str)),
-                                 ('dataType', h5py.special_dtype(vlen=str)),
-                                 ('lower', h5py.special_dtype(vlen=str)),
-                                 ('upper', h5py.special_dtype(vlen=str)),
-                                 ('closure', h5py.special_dtype(vlen=str))])
-
-            fdata = numpy.zeros((2,), dtype=dtype)
-            fdata['code'][0] = 'surfaceCurrentSpeed'
-            fdata['name'][0] = 'Surface current speed'
-            fdata['uom.name'][0] = 'knots'
-            fdata['fillValue'][0] = str(FILLVALUE)
-            fdata['dataType'][0] = H5T_CLASS_T[h5py.h5t.FLOAT]
-            fdata['lower'][0] = 0.0
-            fdata['upper'][0] = ''
-            fdata['closure'][0] = 'geSemiInterval'
-
-            fdata['code'][1] = 'surfaceCurrentDirection'
-            fdata['name'][1] = 'Surface current direction'
-            fdata['uom.name'][1] = 'arc-degrees'
-            fdata['fillValue'][1] = str(FILLVALUE)
-            fdata['dataType'][1] = H5T_CLASS_T[h5py.h5t.FLOAT]
-            fdata['lower'][1] = 0.0
-            fdata['upper'][1] = 360
-            fdata['closure'][1] = 'geLtInterval'
-
-            self.groupF_dset = self.groupF.create_dataset('SurfaceCurrent', (2,), dtype=dtype)
-            self.groupF_dset[...] = fdata
-
-            # Add group_f feature code dataset
-            fc_data = numpy.zeros((1,), dtype=h5py.special_dtype(vlen=str))
-            fc_data[0] = 'SurfaceCurrent'
-            feature_code = self.groupF.create_dataset('featureCode', (1,), dtype=h5py.special_dtype(vlen=str))
-            feature_code[...] = fc_data
-
-            # Add group_instance uncertainty dataset
-            u_dtype = numpy.dtype([('name', h5py.special_dtype(vlen=str)), ('value', numpy.float32)])
-            u_data = numpy.zeros((2,), u_dtype)
-            u_data['name'][0] = 'surfaceCurrentSpeedUncertainty'
-            u_data['name'][1] = 'surfaceCurrentDirectionUncertainty'
-            u_data['value'][0] = -1.0
-            u_data['value'][1] = -1.0
-            uncertainty_data = self.feature_instance.create_dataset('uncertainty', (2,), u_dtype)
-            uncertainty_data[...] = u_data
-
-            # Add feature container dataset
-            axis_names = numpy.zeros((2,), dtype=h5py.special_dtype(vlen=str))
-            axis_names[0] = 'longitude'
-            axis_names[1] = 'latitude'
-            axis_dset = self.feature.create_dataset('axisNames', (2,), dtype=h5py.special_dtype(vlen=str))
-            axis_dset[...] = axis_names
-
         # Create a list of all feature instance objects and groups
         feature_instance_objs = []
         self.feature_instance.visit(feature_instance_objs.append)
@@ -414,10 +432,14 @@ class S111File:
         self.groupF_dset.attrs.create('chunking', str(values_dset.chunks), dtype=h5py.special_dtype(vlen=str))
         self.feature_instance.attrs.modify('instanceChunking', numpy.string_(str(values_dset.chunks)))
 
-        S111File.update_feature_instance_attributes(self)
+        # Update depth attribute
+        current_depth = target_depth * -1
+        self.h5_file.attrs.modify('surfaceCurrentDepth', current_depth)
 
-    def update_feature_instance_attributes(self):
-        """Update feature instance attributes.
+        S111File.update_file_metadata(self)
+
+    def update_file_metadata(self):
+        """Update file metadata.
 
         Update dynamic feature instance attributes
         from data added to the S111 file.
@@ -548,7 +570,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                     else:
                         filename = "{}_FID_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_id[i])
 
-                    s111_file = S111File(filename, model_index_file, ofs_metadata, target_depth, subgrid_index=i, clobber=True)
+                    s111_file = S111File(filename, model_index_file, ofs_metadata, subgrid_index=i, clobber=True)
 
                     s111_file_paths.append(s111_file.path)
                     stack.enter_context(s111_file)
@@ -594,7 +616,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                                     subgrid_speed = speed[y_min:y_max + 1, x_min:x_max + 1]
                                     subgrid_direction = direction[y_min:y_max + 1, x_min:x_max + 1]
                                     if ma.count(subgrid_speed) >= 20:
-                                        s111_file.add_data(model_file.datetime_values[time_index], subgrid_speed, subgrid_direction, cycletime)
+                                        s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], subgrid_speed, subgrid_direction, cycletime, target_depth)
                                     else:
                                         s111_file.close()
                                         os.remove("{}".format(s111_file.path))
@@ -604,7 +626,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                         model_file.close()
         else:
             # Output to default grid (no subgrids)
-            with S111File("{}.h5".format(s111_path_prefix), model_index_file, ofs_metadata, target_depth, clobber=True) as s111_file:
+            with S111File("{}.h5".format(s111_path_prefix), model_index_file, ofs_metadata, clobber=True) as s111_file:
                 s111_file_paths.append(s111_file.path)
                 for model_file in model_files:
                     try:
@@ -637,7 +659,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                                 speed = ma.masked_array(speed, speed_mask)
                                 direction = ma.masked_array(direction, direction_mask)
 
-                            s111_file.add_data(model_file.datetime_values[time_index], speed, direction, cycletime)
+                            s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed, direction, cycletime, target_depth)
 
                     finally:
                         model_file.close()
