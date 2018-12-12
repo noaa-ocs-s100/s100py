@@ -221,6 +221,13 @@ class ModelIndexFile:
         self.nc_file.model = str.upper(ofs_model)
         self.nc_file.format = "NetCDF-4"
 
+        shoreline_path, shoreline = os.path.split(shoreline_shp)
+        self.nc_file.shoreline = str(shoreline)
+
+        if subset_grid_shp is not None:
+            subgrid_path, subset_grid = os.path.split(subset_grid_shp)
+            self.nc_file.subset_grid = str(subset_grid)
+
         # Populate grid x/y coordinate variables and subset-related variables
         # (if applicable)
         if subset_grid_shp is None:
