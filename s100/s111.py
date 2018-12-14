@@ -514,12 +514,8 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
     subgrids, one S111 file will be generated for each subgrid. Otherwise, a
     single S111 file will be created for the entire domain.
 
-    Note: Only a single time per model file is currently supported. If a model
-    NetCDF includes more than one time/forecast, only the first will be
-    extracted.
-
     Args:
-        model_index_file: Path to model index NetCDF file containing
+        model_index_file:  Instance of `ModelIndexFile` (or a subclass) containing
             pre-calculated grid and mask information.
         model_files: List of `ModelFile` (or subclasses thereof) instances
             identifying NetCDF model files to be converted. Files should be
