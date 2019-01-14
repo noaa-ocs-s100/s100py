@@ -15,7 +15,7 @@ import osr
 import ogr
 from scipy import interpolate
 
-from s100.model import model
+from s100py.model import model
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
