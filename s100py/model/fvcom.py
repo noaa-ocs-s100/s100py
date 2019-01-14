@@ -16,7 +16,7 @@ import osr
 import ogr
 from scipy import interpolate
 
-from s100.model import model
+from s100py.model import model
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
@@ -132,7 +132,7 @@ class FVCOMIndexFile(model.ModelIndexFile):
             geom = ogr.Geometry(ogr.wkbPolygon)
             geom.AddGeometry(ring)
             feat = ogr.Feature(layer.GetLayerDefn())
-            feat.SetField('id', node)
+            feat.SetField('id', 1)
             feat.SetGeometry(geom)
             layer.CreateFeature(feat)
 
