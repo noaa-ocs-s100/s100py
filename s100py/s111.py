@@ -9,7 +9,7 @@ import os
 import numpy
 import numpy.ma as ma
 
-from .model import model
+from thyme.thyme.model import model
 
 import warnings
 with warnings.catch_warnings():
