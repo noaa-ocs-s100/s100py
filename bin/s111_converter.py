@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Convert S-111 compliant HDF5 File(s).
+"""Utility script for converting S-111 compliant HDF5 File(s) to other formats.
 
 S-111 is an IHO standard outlining formats for storing and sending surface
 water current data and metadata.
@@ -19,6 +19,7 @@ with warnings.catch_warnings():
 class S111Converter:
     """Convert S111 HDF5 File(s)."""
 
+    @staticmethod
     def toGeotiff(input_path, output_path):
         """Create a 2-Band GeoTIFF for every speed and direction compound dataset
            within each HDF5 file(s).
