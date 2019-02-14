@@ -7,15 +7,14 @@ import contextlib
 import datetime
 import os
 import numpy
-import numpy.ma as ma
-
-from thyme.thyme.model import model
-
+import numpy.ma
 import warnings
+
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=FutureWarning)
     import h5py
 
+from thyme.model import model
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
@@ -579,16 +578,16 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                             # Call model method and convert and interpolate u/v to regular grid
                             reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, time_index, target_depth)
 
-                            reg_grid_u = ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
-                            reg_grid_v = ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
+                            reg_grid_u = numpy.ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
+                            reg_grid_v = numpy.ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
 
                             # Convert currents at regular grid points from u/v to speed
                             # and direction
                             direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
 
                             # Apply mask
-                            direction = ma.masked_array(direction, model_index_file.var_mask.mask)
-                            speed = ma.masked_array(speed, model_index_file.var_mask.mask)
+                            direction = numpy.ma.masked_array(direction, model_index_file.var_mask.mask)
+                            speed = numpy.ma.masked_array(speed, model_index_file.var_mask.mask)
 
                             # If any valid data points fall outside of the scipy griddata convex hull
                             # nan values will be used, if nan values are present
@@ -600,8 +599,8 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                                 speed_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_speed.mask)
                                 direction_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_direction.mask)
 
-                                speed = ma.masked_array(speed, speed_mask)
-                                direction = ma.masked_array(direction, direction_mask)
+                                speed = numpy.ma.masked_array(speed, speed_mask)
+                                direction = numpy.ma.masked_array(direction, direction_mask)
 
                             for subgrid_index, s111_file in enumerate(s111_files):
                                 if os.path.isfile(s111_file.path):
@@ -611,7 +610,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                                     y_max = model_index_file.var_subgrid_y_max[subgrid_index]
                                     subgrid_speed = speed[y_min:y_max + 1, x_min:x_max + 1]
                                     subgrid_direction = direction[y_min:y_max + 1, x_min:x_max + 1]
-                                    if ma.count(subgrid_speed) >= 20:
+                                    if numpy.ma.count(subgrid_speed) >= 20:
                                         s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], subgrid_speed, subgrid_direction, cycletime, target_depth)
                                     else:
                                         s111_file.close()
@@ -632,16 +631,16 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                             # Call model method and convert and interpolate u/v to regular grid
                             reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, time_index, target_depth)
 
-                            reg_grid_u = ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
-                            reg_grid_v = ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
+                            reg_grid_u = numpy.ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
+                            reg_grid_v = numpy.ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
 
                             # Convert currents at regular grid points from u/v to speed
                             # and direction
                             direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
 
                             # Apply mask
-                            direction = ma.masked_array(direction, model_index_file.var_mask.mask)
-                            speed = ma.masked_array(speed, model_index_file.var_mask.mask)
+                            direction = numpy.ma.masked_array(direction, model_index_file.var_mask.mask)
+                            speed = numpy.ma.masked_array(speed, model_index_file.var_mask.mask)
 
                             # If any valid data points fall outside of the scipy griddata convex hull
                             # nan values will be used, if nan values are present
@@ -652,8 +651,8 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                                 speed_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_speed.mask)
                                 direction_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_direction.mask)
 
-                                speed = ma.masked_array(speed, speed_mask)
-                                direction = ma.masked_array(direction, direction_mask)
+                                speed = numpy.ma.masked_array(speed, speed_mask)
+                                direction = numpy.ma.masked_array(direction, direction_mask)
 
                             s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed, direction, cycletime, target_depth)
 
