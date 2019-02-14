@@ -10,20 +10,20 @@ with open(os.path.join(HERE, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setuptools.setup(
-    name="s100py",
-    version="0.1.0",
-    license="",
-    author="Erin Nagel, Jason Greenlaw",
-    author_email="erin.nagel@noaa.gov, jason.greenlaw@noaa.gov",
-    description="Convert Oceanographic Operational Forecast System Datasets into IHO S-100/S-111 Format",
+    name='s100py',
+    version='0.1.0',
+    license='',
+    author='Erin Nagel, Jason Greenlaw',
+    author_email='erin.nagel@noaa.gov, jason.greenlaw@noaa.gov',
+    description='Convert Oceanographic Operational Forecast System Datasets into IHO S-100/S-111 Format',
     long_description=long_description,
-    url="",
+    url='',
     packages=setuptools.find_packages(),
-    install_requires=["gdal", "h5py", "numpy", "thyme"],
+    install_requires=['gdal', 'h5py', 'numpy', 'thyme'],
     classifiers=[
-        "Programming Language :: Python :: 3",
+        'Programming Language :: Python :: 3',
         'Intended Audience :: Science/Research',
-        "License :: OSI Approved",
-        "Operating System :: OS Independent",
+        'License :: OSI Approved',
+        'Operating System :: OS Independent',
     ],
 )

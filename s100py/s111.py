@@ -11,13 +11,14 @@ import numpy.ma
 import warnings
 
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=FutureWarning)
+    warnings.filterwarnings('ignore', category=FutureWarning)
     import h5py
 
 from thyme.model import model
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
+
 # Default depth in meters
 DEFAULT_TARGET_DEPTH = 4.5
 
@@ -45,43 +46,48 @@ class S111File:
     This class implements the context manager pattern and should thus be used
     similar to the following:
 
-        with S111File("myfile.h5") as f:
+        with S111File('myfile.h5') as f:
             ...
+
+    If the file does not yet exist, it will be created. An existing file will
+    be opened in append mode unless ``clobber=True``, in which case it will be
+    overwritten.
 
     Attributes:
         path: Path (relative or absolute) to the .h5 file, including filename.
         filename: Name of the .h5 file.
-        model_index: `ModelIndexFile` instance representing model index file.
-        metadata: `S111Metadata` instance describing metadata for geographic
+        model_index: ``ModelIndexFile`` instance representing model index file.
+        metadata: ``S111Metadata`` instance describing metadata for geographic
             identifier and description of current meter type, forecast method,
             or model.
         subgrid_index: (Optional, default None) Index of subgrid, if any,
             that this S111File represents. Corresponds with index into
             subgrid dimension of model index file.
-        h5_file: Handle to the underlying `h5py.File` instance.
-        feature: Handle to the underlying `h5py.Group` instance for the
+        h5_file: Handle to the underlying ``h5py.File`` instance.
+        feature: Handle to the underlying ``h5py.Group`` instance for the
             Feature.
-        feature_instance: Handle to the underlying `h5py.Group` instance for
+        feature_instance: Handle to the underlying ``h5py.Group`` instance for
             the Feature Instance.
-        groupF: Handle to the underlying `h5py.Group` instance for Group_F
+        groupF: Handle to the underlying ``h5py.Group`` instance for Group_F
             metadata.
-        groupF_dset: Handle to the underlying `h5py.Dataset` for Group_F 
+        groupF_dset: Handle to the underlying ``h5py.Dataset`` for Group_F 
             metadata.
     """
 
     def __init__(self, path, model_index, metadata, subgrid_index=None, clobber=False):
         """Initializes S111File object and opens h5 file at specified path.
 
-        If `path` has an extension other than ".h5", it is replaced with
-        ".h5"
+        If ``path`` has an extension other than '.h5', it is replaced with
+        '.h5'
 
         Args:
-            path: Path of target hdf5 file. Must end in ".h5", otherwise its
-                extension will be replaced with ".h5".
-            model_index: `ModelIndexFile` instance representing model index file.
-            metadata: `S111Metadata` instance describing metadata for geographic
-                identifier and description of current meter type, forecast method,
-                or model.
+            path: Path of target hdf5 file. Must end in '.h5', otherwise its
+                extension will be replaced with '.h5'.
+            model_index: ``ModelIndexFile`` instance representing model index
+                file.
+            metadata: ``S111Metadata`` instance describing metadata for
+                geographic identifier and description of current meter type,
+                forecast method, or model.
             subgrid_index: (Optional, default None) Index of subgrid, if any,
                 that this S111File represents. Corresponds with index into
                 subgrid dimension of model index file.
@@ -90,7 +96,7 @@ class S111File:
                 be opened in write mode.
         """
         prefix, extension = os.path.splitext(path)
-        self.path = prefix + ".h5"
+        self.path = prefix + '.h5'
         self.filename = os.path.basename(self.path)
         self.model_index = model_index
         self.metadata = metadata
@@ -98,7 +104,7 @@ class S111File:
 
         if not os.path.exists(self.path) or clobber:
             # File doesn't exist, open in create (write) mode and add metadata
-            self.h5_file = h5py.File(self.path, "w")
+            self.h5_file = h5py.File(self.path, 'w')
 
             # Create s111 structure
             self.groupF = self.h5_file.create_group('Group_F')
@@ -119,7 +125,7 @@ class S111File:
 
         else:
             # File already exists, open in append mode
-            self.h5_file = h5py.File(self.path, "r+")
+            self.h5_file = h5py.File(self.path, 'r+')
 
     def __enter__(self):
         return self
@@ -133,7 +139,6 @@ class S111File:
 
     def create_file_metadata(self):
         """Add S100/S111 structure and empty global metadata attributes to HDF5 file."""
-
         # Add root group carrier metadata
         # String types
         self.h5_file.attrs.create('productSpecification', '', dtype=h5py.special_dtype(vlen=str))
@@ -204,7 +209,6 @@ class S111File:
         Feature name a dataset with name of the S-100 feature contained
         in the data product and a reference to the name.
         """
-
         # Add a feature name compound dataset
         dtype = numpy.dtype([('code', h5py.special_dtype(vlen=str)),
                              ('name', h5py.special_dtype(vlen=str)),
@@ -245,7 +249,6 @@ class S111File:
 
     def add_feature_type_content(self):
         """Add feature type content to the S111 file."""
-
         # Add horizontal and vertical axis names in feature type
         axis_names = numpy.zeros((2,), dtype=h5py.special_dtype(vlen=str))
         axis_names[0] = 'longitude'
@@ -255,7 +258,6 @@ class S111File:
 
     def add_feature_instance_content(self):
         """Add feature instance content to the S111 file."""
-
         # Add feature instance uncertainty compound dataset
         u_dtype = numpy.dtype([('name', h5py.special_dtype(vlen=str)), ('value', numpy.float32)])
         u_data = numpy.zeros((2,), u_dtype)
@@ -271,7 +273,6 @@ class S111File:
 
         Based on grid properties, s111 metadata, and ofs metadata.
         """
-
         # Width between first two cells, grid spacing is uniform
         cellsize_x = self.model_index.var_x[1] - self.model_index.var_x[0]
         cellsize_y = self.model_index.var_y[1] - self.model_index.var_y[0]
@@ -279,7 +280,7 @@ class S111File:
         if self.subgrid_index is not None:
             if self.subgrid_index < 0 or self.subgrid_index >= self.model_index.dim_subgrid.size:
                 raise Exception(
-                    "Subgrid index [{}] out of model index subgrid dimension range [0-{}]".format(self.subgrid_index,
+                    'Subgrid index [{}] out of model index subgrid dimension range [0-{}]'.format(self.subgrid_index,
                                                                                                   self.model_index.dim_subgrid.size - 1))
 
             num_points_lon = 1 + self.model_index.var_subgrid_x_max[self.subgrid_index] - self.model_index.var_subgrid_x_min[self.subgrid_index]
@@ -349,15 +350,15 @@ class S111File:
         As data is added, new groups will be created and relevant attributes updated.
 
         Args:
-            datetime_value: `datetime.datetime` instance representing valid time of
+            datetime_value: ``datetime.datetime`` instance representing valid time of
                 the nowcast/forecast data being added.
-            reg_grid_speed: `numpy.ma.masked_array` representing current speed
+            reg_grid_speed: ``numpy.ma.masked_array`` representing current speed
                 data after interpolating to a regular grid and converting from
                 u/v components.
-            reg_grid_direction: `numpy.ma.masked_array` representing current
+            reg_grid_direction: ``numpy.ma.masked_array`` representing current
                 direction data after interpolating to a regular grid and
                 converting from u/v components.
-            cycletime: `datetime.datetime` representing model cycle time.
+            cycletime: ``datetime.datetime`` representing model cycle time.
             target_depth: Target depth below the sea surface, in meters, at which
                 surface currents are valid. Default target depth is 4.5 meters.
                 Must be greater than or equal to 0. For areas shallower than the
@@ -381,7 +382,7 @@ class S111File:
         if len(feature_instance_groups) == 0:
             self.feature.attrs.modify('numInstances', len(self.feature_instance))
             feature_group = self.feature_instance.create_group('Group_001')
-            print("Creating", "Group_001", "dataset.")
+            print('Creating', 'Group_001', 'dataset.')
 
             # Time attributes updated once
             issuance_time = cycletime.strftime('%H%M%SZ')
@@ -398,7 +399,7 @@ class S111File:
             num_groups = len(feature_instance_groups)
             new_group = num_groups + 1
             feature_group = self.feature_instance.create_group('Group_{:03d}'.format(new_group))
-            print("Creating", "Group_{:03d}".format(new_group), "dataset.")
+            print('Creating', 'Group_{:03d}'.format(new_group), 'dataset.')
             self.feature_instance.attrs.modify('dateTimeOfLastRecord', numpy.string_(time_str))
 
             # Update min and max speed attributes each time data is added
@@ -444,7 +445,6 @@ class S111File:
         from data added to the S111 file.
 
         """
-
         # Create a list of all feature instance groups
         feature_instance_objects = []
         self.feature_instance.visit(feature_instance_objects.append)
@@ -514,9 +514,9 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
     single S111 file will be created for the entire domain.
 
     Args:
-        model_index_file:  Instance of `ModelIndexFile` (or a subclass) containing
-            pre-calculated grid and mask information.
-        model_files: List of `ModelFile` (or subclasses thereof) instances
+        model_index_file:  Instance of ``ModelIndexFile`` (or a subclass)
+            containing pre-calculated grid and mask information.
+        model_files: List of ``ModelFile`` (or subclasses thereof) instances
             identifying NetCDF model files to be converted. Files should be
             provided in ascending chronological order, as this order will be
             maintained when appending subsequent nowcasts/forecasts to each
@@ -527,12 +527,12 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
             generated file(s) will be placed at specified file path, but with a
             filename suffix appended based on the properties of the target
             output grid and the model file.
-        cycletime: `datetime.datetime` instance representing target cycle time
-            of model forecast(s) being processed.
+        cycletime: ``datetime.datetime`` instance representing target cycle
+            time of model forecast(s) being processed.
         ofs_model: Model identifier (e.g. "cbofs").
-        ofs_metadata: `S111Metadata` instance describing metadata for geographic
-            identifier and description of current meter type, forecast method,
-            or model.
+        ofs_metadata: ``S111Metadata`` instance describing metadata for
+            geographic identifier and description of current meter type,
+            forecast method, or model.
         target_depth: The water current at a specified target depth below
             the sea surface in meters, default target depth is 4.5 meters,
             target interpolation depth must be greater or equal to 0.
@@ -540,13 +540,12 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
     Returns:
         List of paths to HDF5 files created.
     """
-
     # Path format/prefix for output S111 files. Forecast initialization (reference).
     if os.path.isdir(s111_path_prefix):
-        if not s111_path_prefix.endswith("/"):
-            s111_path_prefix += "/"
+        if not s111_path_prefix.endswith('/'):
+            s111_path_prefix += '/'
         file_issuance = cycletime.strftime('%Y%m%dT%HZ')
-        s111_path_prefix += ("S111US_{}_{}_TYP2".format(file_issuance, str.upper(ofs_model)))
+        s111_path_prefix += ('S111US_{}_{}_TYP2'.format(file_issuance, str.upper(ofs_model)))
 
     if target_depth is None:
         target_depth = DEFAULT_TARGET_DEPTH
@@ -561,9 +560,9 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                 s111_files = []
                 for i in range(model_index_file.dim_subgrid.size):
                     if model_index_file.var_subgrid_name is not None:
-                        filename = "{}_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_name[i])
+                        filename = '{}_{}.h5'.format(s111_path_prefix, model_index_file.var_subgrid_name[i])
                     else:
-                        filename = "{}_FID_{}.h5".format(s111_path_prefix, model_index_file.var_subgrid_id[i])
+                        filename = '{}_FID_{}.h5'.format(s111_path_prefix, model_index_file.var_subgrid_id[i])
 
                     s111_file = S111File(filename, model_index_file, ofs_metadata, subgrid_index=i, clobber=True)
 
@@ -614,14 +613,14 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                                         s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], subgrid_speed, subgrid_direction, cycletime, target_depth)
                                     else:
                                         s111_file.close()
-                                        os.remove("{}".format(s111_file.path))
+                                        os.remove('{}'.format(s111_file.path))
                                         s111_file_paths.remove(s111_file.path)
 
                     finally:
                         model_file.close()
         else:
             # Output to default grid (no subgrids)
-            with S111File("{}.h5".format(s111_path_prefix), model_index_file, ofs_metadata, clobber=True) as s111_file:
+            with S111File('{}.h5'.format(s111_path_prefix), model_index_file, ofs_metadata, clobber=True) as s111_file:
                 s111_file_paths.append(s111_file.path)
                 for model_file in model_files:
                     try:
