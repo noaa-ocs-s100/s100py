@@ -7,7 +7,6 @@ import contextlib
 import datetime
 import os
 import numpy
-import numpy.ma
 import warnings
 
 with warnings.catch_warnings():
