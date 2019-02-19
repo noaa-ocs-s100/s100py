@@ -19,7 +19,7 @@ setuptools.setup(
     long_description=long_description,
     url='',
     packages=setuptools.find_packages(),
-    install_requires=['gdal', 'h5py', 'numpy', 'thyme'],
+    install_requires=['h5py', 'numpy', 'thyme'],
     classifiers=[
         'Programming Language :: Python :: 3',
         'Intended Audience :: Science/Research',
