@@ -205,7 +205,7 @@ class S111File:
 
         This group specifies the S-100 feature to which the data applies.
         The group has no attributes and consists of two components:
-        Feature name a dataset with name of the S-100 feature contained
+        Feature name, a dataset with the name of the S-100 feature contained
         in the data product and a reference to the name.
         """
         # Add a feature name compound dataset
@@ -482,7 +482,7 @@ class S111Metadata:
     COMMON_POINT_RULE: The procedure used for evaluating geometric objects that overlap or lie fall on boundaries.
     DIMENSION: The dimension of the feature instance.
     SEQUENCING_RULE_TYPE: Method to assign values from the sequence of values to the grid coordinates (e.g. "linear").
-    SEQUENCING_RULE_SCAN_DIRECTION: AxisNames, comma-separated (e.g. "latitude,longitude").
+    SEQUENCING_RULE_SCAN_DIRECTION: AxisNames, comma-separated (e.g. "longitude,latitude").
     START_SEQUENCE: Starting location of the scan.
 
     """
