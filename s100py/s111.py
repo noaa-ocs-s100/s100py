@@ -500,9 +500,10 @@ class S111Metadata:
     SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
 
-    def __init__(self, region, product):
+    def __init__(self, region, product, producer_code):
         self.region = numpy.string_(region)
         self.product = numpy.string_(product)
+        self.producer_code = producer_code
 
 
 def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, ofs_model, ofs_metadata, target_depth=None):
@@ -544,7 +545,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
         if not s111_path_prefix.endswith('/'):
             s111_path_prefix += '/'
         file_issuance = cycletime.strftime('%Y%m%dT%HZ')
-        s111_path_prefix += ('S111US_{}_{}_TYP2'.format(file_issuance, str.upper(ofs_model)))
+        s111_path_prefix += ('S111{}_{}_{}_TYP2'.format(ofs_metadata.producer_code, file_issuance, str.upper(ofs_model)))
 
     if target_depth is None:
         target_depth = DEFAULT_TARGET_DEPTH
