@@ -55,10 +55,11 @@ class S111File:
     Attributes:
         path: Path (relative or absolute) to the .h5 file, including filename.
         filename: Name of the .h5 file.
-        model_index: ``ModelIndexFile`` instance representing model index file.
-        metadata: ``S111Metadata`` instance describing metadata for geographic
+        ofs_metadata: ``S111Metadata`` instance describing metadata for geographic
             identifier and description of current meter type, forecast method,
             or model.
+        model_index: (Optional, default None) ``ModelIndexFile`` instance
+            representing model index file.
         subgrid_index: (Optional, default None) Index of subgrid, if any,
             that this S111File represents. Corresponds with index into
             subgrid dimension of model index file.
@@ -73,7 +74,7 @@ class S111File:
             metadata.
     """
 
-    def __init__(self, path, model_index, metadata, subgrid_index=None, clobber=False):
+    def __init__(self, path, ofs_metadata, model_index=None, subgrid_index=None, clobber=False):
         """Initializes S111File object and opens h5 file at specified path.
 
         If ``path`` has an extension other than '.h5', it is replaced with
@@ -82,11 +83,11 @@ class S111File:
         Args:
             path: Path of target hdf5 file. Must end in '.h5', otherwise its
                 extension will be replaced with '.h5'.
-            model_index: ``ModelIndexFile`` instance representing model index
-                file.
-            metadata: ``S111Metadata`` instance describing metadata for
+            ofs_metadata: ``S111Metadata`` instance describing metadata for
                 geographic identifier and description of current meter type,
                 forecast method, or model.
+            model_index: (Optional, default None) ``ModelIndexFile`` instance
+                representing model index file.
             subgrid_index: (Optional, default None) Index of subgrid, if any,
                 that this S111File represents. Corresponds with index into
                 subgrid dimension of model index file.
@@ -98,7 +99,7 @@ class S111File:
         self.path = prefix + '.h5'
         self.filename = os.path.basename(self.path)
         self.model_index = model_index
-        self.metadata = metadata
+        self.ofs_metadata = ofs_metadata
         self.subgrid_index = subgrid_index
 
         if not os.path.exists(self.path) or clobber:
@@ -173,32 +174,47 @@ class S111File:
         self.feature.attrs.create('commonPointRule', 0, dtype=numpy.int32)
         self.feature.attrs.create('interpolationType', 0, dtype=numpy.int32)
         self.feature.attrs.create('typeOfCurrentData', 0, dtype=numpy.int32)
-        self.feature.attrs.create('sequencingRule.type', 0, dtype=numpy.int32)
         # String types
         self.feature.attrs.create('methodCurrentsProduct', '', dtype=h5py.special_dtype(vlen=str))
-        self.feature.attrs.create('sequencingRule.scanDirection', '', dtype=h5py.special_dtype(vlen=str))
 
         # Add feature instance metadata
         # String types
-        self.feature_instance.attrs.create('startSequence', '', dtype=h5py.special_dtype(vlen=str))
         self.feature_instance.attrs.create('dateTimeOfFirstRecord', '', dtype=h5py.special_dtype(vlen=str))
         self.feature_instance.attrs.create('dateTimeOfLastRecord', '', dtype=h5py.special_dtype(vlen=str))
         self.feature_instance.attrs.create('instanceChunking', '', dtype=h5py.special_dtype(vlen=str))
         # Integer types
-        self.feature_instance.attrs.create('numPointsLongitudinal', 0, dtype=numpy.int32)
-        self.feature_instance.attrs.create('numPointsLatitudinal', 0, dtype=numpy.int32)
         self.feature_instance.attrs.create('timeRecordInterval', 0, dtype=numpy.int32)
         self.feature_instance.attrs.create('numberOfTimes', 0, dtype=numpy.int32)
         self.feature_instance.attrs.create('numGRP', 0, dtype=numpy.int32)
         # Real types
-        self.feature_instance.attrs.create('gridOriginLongitude', 0, dtype=numpy.float32)
-        self.feature_instance.attrs.create('gridOriginLatitude', 0, dtype=numpy.float32)
-        self.feature_instance.attrs.create('gridSpacingLongitudinal', 0, dtype=numpy.float32)
-        self.feature_instance.attrs.create('gridSpacingLatitudinal', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('westBoundLongitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('eastBoundLongitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
+
+        if self.ofs_metadata.data_coding_format == 2:
+            # Add feature container metadata
+            # String types
+            self.feature.attrs.create('sequencingRule.scanDirection', '', dtype=h5py.special_dtype(vlen=str))
+            # Enumeration types
+            self.feature.attrs.create('sequencingRule.type', 0, dtype=numpy.int32)
+
+            # Add feature instance metadata
+            # Integer types
+            self.feature_instance.attrs.create('numPointsLongitudinal', 0, dtype=numpy.int32)
+            self.feature_instance.attrs.create('numPointsLatitudinal', 0, dtype=numpy.int32)
+            # String types
+            self.feature_instance.attrs.create('startSequence', '', dtype=h5py.special_dtype(vlen=str))
+            # Real types
+            self.feature_instance.attrs.create('gridOriginLongitude', 0, dtype=numpy.float32)
+            self.feature_instance.attrs.create('gridOriginLatitude', 0, dtype=numpy.float32)
+            self.feature_instance.attrs.create('gridSpacingLongitudinal', 0, dtype=numpy.float32)
+            self.feature_instance.attrs.create('gridSpacingLatitudinal', 0, dtype=numpy.float32)
+
+        elif self.ofs_metadata.data_coding_format == 3:
+            # Add feature instance metadata
+            # Real types
+            self.feature_instance.attrs.create('numberOfNodes', 0, dtype=numpy.float32)
 
     def add_feature_codes_content(self):
         """Add feature codes.
@@ -272,78 +288,84 @@ class S111File:
 
         Based on grid properties, s111 metadata, and ofs metadata.
         """
-        # Width between first two cells, grid spacing is uniform
-        cellsize_x = self.model_index.var_x[1] - self.model_index.var_x[0]
-        cellsize_y = self.model_index.var_y[1] - self.model_index.var_y[0]
-
-        if self.subgrid_index is not None:
-            if self.subgrid_index < 0 or self.subgrid_index >= self.model_index.dim_subgrid.size:
-                raise Exception(
-                    'Subgrid index [{}] out of model index subgrid dimension range [0-{}]'.format(self.subgrid_index,
-                                                                                                  self.model_index.dim_subgrid.size - 1))
-
-            num_points_lon = 1 + self.model_index.var_subgrid_x_max[self.subgrid_index] - self.model_index.var_subgrid_x_min[self.subgrid_index]
-            num_points_lat = 1 + self.model_index.var_subgrid_y_max[self.subgrid_index] - self.model_index.var_subgrid_y_min[self.subgrid_index]
-            min_lon = self.model_index.var_x[self.model_index.var_subgrid_x_min[self.subgrid_index]]
-            min_lat = self.model_index.var_y[self.model_index.var_subgrid_y_min[self.subgrid_index]]
-            max_lon = self.model_index.var_x[self.model_index.var_subgrid_x_max[self.subgrid_index]]
-            max_lat = self.model_index.var_y[self.model_index.var_subgrid_y_max[self.subgrid_index]]
-        else:
-            num_points_lon = self.model_index.dim_x.size
-            num_points_lat = self.model_index.dim_y.size
-            min_lon = numpy.nanmin(self.model_index.var_x)
-            min_lat = numpy.nanmin(self.model_index.var_y)
-            max_lon = numpy.nanmax(self.model_index.var_x)
-            max_lat = numpy.nanmax(self.model_index.var_y)
-
-        # X/Y coordinates are located at the center of each grid cell
-        min_lon = numpy.round(min_lon, 7)
-        min_lat = numpy.round(min_lat, 7)
-        max_lon = numpy.round(max_lon, 7)
-        max_lat = numpy.round(max_lat, 7)
-
-        num_nodes = num_points_lon * num_points_lat
-
         metadata_xml_reference = numpy.string_('MD_{}.XML'.format(os.path.splitext(self.filename)[0]))
 
         # Update carrier metadata
-        self.h5_file.attrs.modify('geographicIdentifier', self.metadata.region)
+        self.h5_file.attrs.modify('geographicIdentifier', self.ofs_metadata.region)
         self.h5_file.attrs.modify('productSpecification', S111Metadata.PRODUCT_SPECIFICATION)
         self.h5_file.attrs.modify('epoch', S111Metadata.EPOCH)
         self.h5_file.attrs.modify('horizontalDatumReference', S111Metadata.HORIZONTAL_DATUM_REFERENCE)
         self.h5_file.attrs.modify('horizontalDatumValue', S111Metadata.HORIZONTAL_DATUM_VALUE)
         self.h5_file.attrs.modify('depthTypeIndex', S111Metadata.DEPTH_TYPE_INDEX)
-        self.h5_file.attrs.modify('westBoundLongitude', min_lon)
-        self.h5_file.attrs.modify('eastBoundLongitude', max_lon)
-        self.h5_file.attrs.modify('southBoundLatitude', min_lat)
-        self.h5_file.attrs.modify('northBoundLatitude', max_lat)
         self.h5_file.attrs.modify('metadata', metadata_xml_reference)
 
         # Update feature container metadata
-        self.feature.attrs.modify('dataCodingFormat', S111Metadata.DATA_CODING_FORMAT)
+        self.feature.attrs.modify('dataCodingFormat', self.ofs_metadata.data_coding_format)
         self.feature.attrs.modify('interpolationType', S111Metadata.INTERPOLATION_TYPE)
         self.feature.attrs.modify('typeOfCurrentData', S111Metadata.TYPE_OF_CURRENT_DATA)
         self.feature.attrs.modify('commonPointRule', S111Metadata.COMMON_POINT_RULE)
         self.feature.attrs.modify('dimension', S111Metadata.DIMENSION)
-        self.feature.attrs.modify('sequencingRule.type', S111Metadata.SEQUENCING_RULE_TYPE)
-        self.feature.attrs.modify('methodCurrentsProduct', self.metadata.product)
-        self.feature.attrs.modify('sequencingRule.scanDirection', S111Metadata.SEQUENCING_RULE_SCAN_DIRECTION)
+        self.feature.attrs.modify('methodCurrentsProduct', self.ofs_metadata.product)
 
         # Update feature instance metadata
-        if self.feature.attrs['dataCodingFormat'] == S111Metadata.DATA_CODING_FORMAT:
+        if self.ofs_metadata.data_coding_format == 2:
+            # Width between first two cells, grid spacing is uniform
+            cellsize_x = self.model_index.var_x[1] - self.model_index.var_x[0]
+            cellsize_y = self.model_index.var_y[1] - self.model_index.var_y[0]
+
+            if self.subgrid_index is not None:
+                if self.subgrid_index < 0 or self.subgrid_index >= self.model_index.dim_subgrid.size:
+                    raise Exception(
+                        'Subgrid index [{}] out of model index subgrid dimension range [0-{}]'.format(
+                            self.subgrid_index,
+                            self.model_index.dim_subgrid.size - 1))
+
+                num_points_lon = 1 + self.model_index.var_subgrid_x_max[self.subgrid_index] - self.model_index.var_subgrid_x_min[self.subgrid_index]
+                num_points_lat = 1 + self.model_index.var_subgrid_y_max[self.subgrid_index] - self.model_index.var_subgrid_y_min[self.subgrid_index]
+                min_lon = self.model_index.var_x[self.model_index.var_subgrid_x_min[self.subgrid_index]]
+                min_lat = self.model_index.var_y[self.model_index.var_subgrid_y_min[self.subgrid_index]]
+                max_lon = self.model_index.var_x[self.model_index.var_subgrid_x_max[self.subgrid_index]]
+                max_lat = self.model_index.var_y[self.model_index.var_subgrid_y_max[self.subgrid_index]]
+            else:
+                num_points_lon = self.model_index.dim_x.size
+                num_points_lat = self.model_index.dim_y.size
+                min_lon = numpy.nanmin(self.model_index.var_x)
+                min_lat = numpy.nanmin(self.model_index.var_y)
+                max_lon = numpy.nanmax(self.model_index.var_x)
+                max_lat = numpy.nanmax(self.model_index.var_y)
+
+            # X/Y coordinates are located at the center of each grid cell
+            min_lon = numpy.round(min_lon, 7)
+            max_lon = numpy.round(max_lon, 7)
+            min_lat = numpy.round(min_lat, 7)
+            max_lat = numpy.round(max_lat, 7)
+
+            # Update carrier metadata
+            self.h5_file.attrs.modify('westBoundLongitude', min_lon)
+            self.h5_file.attrs.modify('eastBoundLongitude', max_lon)
+            self.h5_file.attrs.modify('southBoundLatitude', min_lat)
+            self.h5_file.attrs.modify('northBoundLatitude', max_lat)
+
+            # Update feature container metadata
+            self.feature.attrs.modify('sequencingRule.scanDirection', S111Metadata.SEQUENCING_RULE_SCAN_DIRECTION)
+            self.feature.attrs.modify('sequencingRule.type', S111Metadata.SEQUENCING_RULE_TYPE)
+
+            # Update feature instance metadata
+            self.feature_instance.attrs.modify('startSequence', S111Metadata.START_SEQUENCE)
             self.feature_instance.attrs.modify('gridOriginLongitude', min_lon)
             self.feature_instance.attrs.modify('gridOriginLatitude', min_lat)
             self.feature_instance.attrs.modify('gridSpacingLongitudinal', cellsize_x)
             self.feature_instance.attrs.modify('gridSpacingLatitudinal', cellsize_y)
             self.feature_instance.attrs.modify('numPointsLongitudinal', num_points_lon)
             self.feature_instance.attrs.modify('numPointsLatitudinal', num_points_lat)
-            self.feature_instance.attrs.modify('startSequence', S111Metadata.START_SEQUENCE)
+
+            # Update feature instance metadata
             self.feature_instance.attrs.modify('westBoundLongitude', min_lon)
             self.feature_instance.attrs.modify('eastBoundLongitude', max_lon)
             self.feature_instance.attrs.modify('southBoundLatitude', min_lat)
             self.feature_instance.attrs.modify('northBoundLatitude', max_lat)
 
-    def add_feature_instance_group_data(self, datetime_value, reg_grid_speed, reg_grid_direction, cycletime, target_depth):
+    def add_feature_instance_group_data(self, datetime_value, speed, direction, cycletime, target_depth):
         """Add data to the S111 file.
         
         As data is added, new groups will be created and relevant attributes updated.
@@ -351,12 +373,10 @@ class S111File:
         Args:
             datetime_value: ``datetime.datetime`` instance representing valid time of
                 the nowcast/forecast data being added.
-            reg_grid_speed: ``numpy.ma.masked_array`` representing current speed
-                data after interpolating to a regular grid and converting from
-                u/v components.
-            reg_grid_direction: ``numpy.ma.masked_array`` representing current
-                direction data after interpolating to a regular grid and
-                converting from u/v components.
+            lat: ``numpy.ma.masked_array`` representing latitude.
+            lon: ``numpy.ma.masked_array`` representing longitude.
+            speed: ``numpy.ma.masked_array`` representing current speed.
+            direction: ``numpy.ma.masked_array`` representing current.
             cycletime: ``datetime.datetime`` representing model cycle time.
             target_depth: Target depth below the sea surface, in meters, at which
                 surface currents are valid. Default target depth is 4.5 meters.
@@ -373,8 +393,8 @@ class S111File:
         time_str = datetime_value.strftime('%Y%m%dT%H%M%SZ')
 
         # Update attributes from datasets added
-        min_speed = numpy.nanmin(reg_grid_speed)
-        max_speed = numpy.nanmax(reg_grid_speed)
+        min_speed = numpy.nanmin(speed)
+        max_speed = numpy.nanmax(speed)
         min_speed = numpy.round(min_speed, decimals=2)
         max_speed = numpy.round(max_speed, decimals=2)
 
@@ -396,6 +416,7 @@ class S111File:
 
         else:
             num_groups = len(feature_instance_groups)
+            # num_groups is 0-based
             new_group = num_groups + 1
             feature_group = self.feature_instance.create_group('Group_{:03d}'.format(new_group))
             print('Creating', 'Group_{:03d}'.format(new_group), 'dataset.')
@@ -409,22 +430,22 @@ class S111File:
             if max_speed > prior_max_speed:
                 self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
-        speed = reg_grid_speed.filled(FILLVALUE)
-        direction = reg_grid_direction.filled(FILLVALUE)
-        speed = numpy.round(speed, decimals=2)
-        direction = numpy.round(direction, decimals=1)
-
         # Update attributes from datasets added
         feature_group.attrs.create('timePoint', numpy.string_(time_str), None, h5py.special_dtype(vlen=str))
 
-        # Write data to empty feature instance group
-        values_dtype = numpy.dtype([('surfaceCurrentSpeed', numpy.float32),
-                                    ('surfaceCurrentDirection', numpy.float32)])
+        # Add speed and direction data to feature instance group compound dataset
+        values_dtype = numpy.dtype([('surfaceCurrentSpeed', numpy.float32), ('surfaceCurrentDirection', numpy.float32)])
+
+        speed = speed.filled(FILLVALUE)
+        direction = direction.filled(FILLVALUE)
+        speed = numpy.round(speed, decimals=2)
+        direction = numpy.round(direction, decimals=1)
 
         values = numpy.zeros(speed.shape, dtype=values_dtype)
         values['surfaceCurrentSpeed'] = speed
         values['surfaceCurrentDirection'] = direction
-        values_dset = feature_group.create_dataset('values', speed.shape, dtype=values_dtype, chunks=True, compression='gzip', compression_opts=9)
+        values_dset = feature_group.create_dataset('values', speed.shape, dtype=values_dtype, chunks=True,
+                                                   compression='gzip', compression_opts=9)
         values_dset[...] = values
 
         # Update group_f attributes
@@ -435,23 +456,8 @@ class S111File:
         current_depth = target_depth * -1
         self.h5_file.attrs.modify('surfaceCurrentDepth', current_depth)
 
-        S111File.update_file_metadata(self)
-
-    def update_file_metadata(self):
-        """Update file metadata.
-
-        Update dynamic feature instance attributes
-        from data added to the S111 file.
-
-        """
-        # Create a list of all feature instance groups
-        feature_instance_objects = []
-        self.feature_instance.visit(feature_instance_objects.append)
-        feature_instance_groups = [obj for obj in feature_instance_objects if
-                                   isinstance(self.feature_instance[obj], h5py.Group)]
-
         # Time record interval is the same throughout the forecast.
-        if len(feature_instance_groups) == 2:
+        if self.h5_file.__contains__('/SurfaceCurrent/SurfaceCurrent.01/Group_003'):
             first_time = datetime.datetime.strptime(
                 (self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
             second_time = datetime.datetime.strptime(
@@ -461,9 +467,56 @@ class S111File:
             time_interval = interval.total_seconds()
             self.feature_instance.attrs.modify('timeRecordInterval', time_interval)
 
-        # Update attributes after all data has been added
-        self.feature_instance.attrs.modify('numberOfTimes', len(feature_instance_groups))
-        self.feature_instance.attrs.modify('numGRP', len(feature_instance_groups))
+        # Update attributes after all the value groups have been added, 0-based
+        num_feature_instance_groups = len(feature_instance_groups) + 1
+        self.feature_instance.attrs.modify('numberOfTimes', num_feature_instance_groups)
+        self.feature_instance.attrs.modify('numGRP', num_feature_instance_groups)
+
+    def add_positioning(self, lon, lat):
+        """Add positioning data to the S111 file.
+
+        Args:
+            lat: ``numpy.ma.masked_array`` representing latitude.
+            lon: ``numpy.ma.masked_array`` representing longitude.
+        """
+
+        # Add longitude/latitude positioning
+        geometry_dtype = numpy.dtype([('longitude', numpy.float32), ('latitude', numpy.float32)])
+
+        # Create positioning group
+        feature_positioning = self.feature_instance.create_group('Positioning')
+
+        # Create lon/lat compound dataset
+        geometry = numpy.zeros(lon.shape, dtype=geometry_dtype)
+        geometry['longitude'] = lon
+        geometry['latitude'] = lat
+        geometry_dset = feature_positioning.create_dataset('geometryValues', lon.shape, dtype=geometry_dtype,
+                                                           chunks=True, compression='gzip', compression_opts=9)
+        geometry_dset[...] = geometry
+
+        # X/Y coordinates are located at the center of each grid cell
+        min_lon = numpy.nanmin(lon)
+        min_lat = numpy.nanmin(lat)
+        max_lon = numpy.nanmax(lon)
+        max_lat = numpy.nanmax(lat)
+
+        min_lon = numpy.round(min_lon, 7)
+        max_lon = numpy.round(max_lon, 7)
+        min_lat = numpy.round(min_lat, 7)
+        max_lat = numpy.round(max_lat, 7)
+
+        # Update carrier metadata
+        self.h5_file.attrs.modify('westBoundLongitude', min_lon)
+        self.h5_file.attrs.modify('eastBoundLongitude', max_lon)
+        self.h5_file.attrs.modify('southBoundLatitude', min_lat)
+        self.h5_file.attrs.modify('northBoundLatitude', max_lat)
+        # Update feature instance metadata
+        self.feature_instance.attrs.modify('westBoundLongitude', min_lon)
+        self.feature_instance.attrs.modify('eastBoundLongitude', max_lon)
+        self.feature_instance.attrs.modify('southBoundLatitude', min_lat)
+        self.feature_instance.attrs.modify('northBoundLatitude', max_lat)
+        num_nodes = int(lon.shape[0])
+        self.feature_instance.attrs.modify('numberOfNodes', num_nodes)
 
 
 class S111Metadata:
@@ -490,9 +543,8 @@ class S111Metadata:
     EPOCH = numpy.string_('G1762')
     HORIZONTAL_DATUM_REFERENCE = numpy.string_('EPSG')
     HORIZONTAL_DATUM_VALUE = 4326
-    DATA_CODING_FORMAT = 2
     DEPTH_TYPE_INDEX = 2
-    TYPE_OF_CURRENT_DATA = 6
+    TYPE_OF_CURRENT_DATA = 5
     INTERPOLATION_TYPE = 10
     COMMON_POINT_RULE = 4
     DIMENSION = 2
@@ -500,18 +552,19 @@ class S111Metadata:
     SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
 
-    def __init__(self, region, product, producer_code):
+    def __init__(self, region, product, producer_code, data_coding_format):
         self.region = numpy.string_(region)
         self.product = numpy.string_(product)
         self.producer_code = producer_code
+        self.data_coding_format = data_coding_format
 
 
 def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, ofs_model, ofs_metadata, target_depth=None):
     """Convert NetCDF model to regular grid in S111 format.
 
     If the supplied model index NetCDF contains information identifying
-    subgrids, one S111 file will be generated for each subgrid. Otherwise, a
-    single S111 file will be created for the entire domain.
+    subgrids, one S111 file will be generated for each subgrid. Otherwise,
+    a single S111 file will be created for the entire domain.
 
     Args:
         model_index_file:  Instance of ``ModelIndexFile`` (or a subclass)
@@ -545,121 +598,143 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
         if not s111_path_prefix.endswith('/'):
             s111_path_prefix += '/'
         file_issuance = cycletime.strftime('%Y%m%dT%HZ')
-        s111_path_prefix += ('S111{}_{}_{}_TYP2'.format(ofs_metadata.producer_code, file_issuance, str.upper(ofs_model)))
+        s111_path_prefix += ('S111{}_{}_{}_TYP{}'.format(ofs_metadata.producer_code, file_issuance, str.upper(ofs_model), ofs_metadata.data_coding_format))
 
     if target_depth is None:
         target_depth = DEFAULT_TARGET_DEPTH
 
     s111_file_paths = []
 
-    try:
-        model_index_file.open()
-        if model_index_file.dim_subgrid is not None and model_index_file.var_subgrid_id is not None:
-            # Output to subgrids
-            with contextlib.ExitStack() as stack:
-                s111_files = []
-                for i in range(model_index_file.dim_subgrid.size):
-                    if model_index_file.var_subgrid_name is not None:
-                        filename = '{}_{}.h5'.format(s111_path_prefix, model_index_file.var_subgrid_name[i])
-                    else:
-                        filename = '{}_FID_{}.h5'.format(s111_path_prefix, model_index_file.var_subgrid_id[i])
+    # Output to a regular grid
+    if ofs_metadata.data_coding_format == 2:
+        try:
+            model_index_file.open()
+            if model_index_file.dim_subgrid is not None and model_index_file.var_subgrid_id is not None:
+                # Output to subgrids
+                with contextlib.ExitStack() as stack:
+                    s111_files = []
+                    for i in range(model_index_file.dim_subgrid.size):
+                        if model_index_file.var_subgrid_name is not None:
+                            filename = '{}_{}.h5'.format(s111_path_prefix, model_index_file.var_subgrid_name[i])
+                        else:
+                            filename = '{}_FID_{}.h5'.format(s111_path_prefix, model_index_file.var_subgrid_id[i])
 
-                    s111_file = S111File(filename, model_index_file, ofs_metadata, subgrid_index=i, clobber=True)
+                        s111_file = S111File(filename, ofs_metadata, model_index_file, subgrid_index=i, clobber=True)
 
+                        s111_file_paths.append(s111_file.path)
+                        stack.enter_context(s111_file)
+                        s111_files.append(s111_file)
+
+                    for model_file in model_files:
+                        try:
+                            model_file.open()
+                            for time_index in range(len(model_file.datetime_values)):
+                                # Call model method and convert and interpolate u/v to regular grid
+                                reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, time_index, target_depth)
+
+                                reg_grid_u = numpy.ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
+                                reg_grid_v = numpy.ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
+
+                                # Convert currents at regular grid points from u/v to speed/direction
+                                direction, speed = model.regular_uv_to_speed_direction(reg_grid_u, reg_grid_v)
+
+                                # Apply mask
+                                direction = numpy.ma.masked_array(direction, model_index_file.var_mask.mask)
+                                speed = numpy.ma.masked_array(speed, model_index_file.var_mask.mask)
+
+                                # If any valid data points fall outside of the scipy griddata convex hull
+                                # nan values will be used, if nan values are present
+                                # add nan values to the original mask
+                                if numpy.isnan(speed).any():
+
+                                    nan_mask_speed = numpy.ma.masked_invalid(speed)
+                                    nan_mask_direction = numpy.ma.masked_invalid(direction)
+                                    speed_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_speed.mask)
+                                    direction_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_direction.mask)
+
+                                    speed = numpy.ma.masked_array(speed, speed_mask)
+                                    direction = numpy.ma.masked_array(direction, direction_mask)
+
+                                for subgrid_index, s111_file in enumerate(s111_files):
+                                    if os.path.isfile(s111_file.path):
+                                        x_min = model_index_file.var_subgrid_x_min[subgrid_index]
+                                        x_max = model_index_file.var_subgrid_x_max[subgrid_index]
+                                        y_min = model_index_file.var_subgrid_y_min[subgrid_index]
+                                        y_max = model_index_file.var_subgrid_y_max[subgrid_index]
+                                        subgrid_speed = speed[y_min:y_max + 1, x_min:x_max + 1]
+                                        subgrid_direction = direction[y_min:y_max + 1, x_min:x_max + 1]
+                                        if numpy.ma.count(subgrid_speed) >= 20:
+                                            s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], subgrid_speed, subgrid_direction, cycletime, target_depth)
+                                        else:
+                                            s111_file.close()
+                                            os.remove('{}'.format(s111_file.path))
+                                            s111_file_paths.remove(s111_file.path)
+
+                        finally:
+                            model_file.close()
+            else:
+                # Output to default grid (no subgrids)
+                with S111File('{}.h5'.format(s111_path_prefix), ofs_metadata, model_index_file, clobber=True) as s111_file:
                     s111_file_paths.append(s111_file.path)
-                    stack.enter_context(s111_file)
-                    s111_files.append(s111_file)
+                    for model_file in model_files:
+                        try:
+                            model_file.open()
+                            for time_index in range(len(model_file.datetime_values)):
 
-                for model_file in model_files:
-                    try:
-                        model_file.open()
-                        for time_index in range(len(model_file.datetime_values)):
-                            # Call model method and convert and interpolate u/v to regular grid
-                            reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, time_index, target_depth)
+                                # Call model method and convert and interpolate u/v to regular grid
+                                reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, time_index, target_depth)
 
-                            reg_grid_u = numpy.ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
-                            reg_grid_v = numpy.ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
+                                reg_grid_u = numpy.ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
+                                reg_grid_v = numpy.ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
 
-                            # Convert currents at regular grid points from u/v to speed
-                            # and direction
-                            direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
+                                # Convert currents at regular grid points from u/v to speed/direction
+                                direction, speed = model.regular_uv_to_speed_direction(reg_grid_u, reg_grid_v)
 
-                            # Apply mask
-                            direction = numpy.ma.masked_array(direction, model_index_file.var_mask.mask)
-                            speed = numpy.ma.masked_array(speed, model_index_file.var_mask.mask)
+                                # Apply mask
+                                direction = numpy.ma.masked_array(direction, model_index_file.var_mask.mask)
+                                speed = numpy.ma.masked_array(speed, model_index_file.var_mask.mask)
 
-                            # If any valid data points fall outside of the scipy griddata convex hull
-                            # nan values will be used, if nan values are present
-                            # add nan values to the original mask
-                            if numpy.isnan(speed).any():
+                                # If any valid data points fall outside of the scipy griddata convex hull
+                                # nan values will be used, if nan values are present
+                                # add nan values to the original mask
+                                if numpy.isnan(speed).any():
+                                    nan_mask_speed = numpy.ma.masked_invalid(speed)
+                                    nan_mask_direction = numpy.ma.masked_invalid(direction)
+                                    speed_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_speed.mask)
+                                    direction_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_direction.mask)
 
-                                nan_mask_speed = numpy.ma.masked_invalid(speed)
-                                nan_mask_direction = numpy.ma.masked_invalid(direction)
-                                speed_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_speed.mask)
-                                direction_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_direction.mask)
+                                    speed = numpy.ma.masked_array(speed, speed_mask)
+                                    direction = numpy.ma.masked_array(direction, direction_mask)
 
-                                speed = numpy.ma.masked_array(speed, speed_mask)
-                                direction = numpy.ma.masked_array(direction, direction_mask)
+                                s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed, direction, cycletime, target_depth)
 
-                            for subgrid_index, s111_file in enumerate(s111_files):
-                                if os.path.isfile(s111_file.path):
-                                    x_min = model_index_file.var_subgrid_x_min[subgrid_index]
-                                    x_max = model_index_file.var_subgrid_x_max[subgrid_index]
-                                    y_min = model_index_file.var_subgrid_y_min[subgrid_index]
-                                    y_max = model_index_file.var_subgrid_y_max[subgrid_index]
-                                    subgrid_speed = speed[y_min:y_max + 1, x_min:x_max + 1]
-                                    subgrid_direction = direction[y_min:y_max + 1, x_min:x_max + 1]
-                                    if numpy.ma.count(subgrid_speed) >= 20:
-                                        s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], subgrid_speed, subgrid_direction, cycletime, target_depth)
-                                    else:
-                                        s111_file.close()
-                                        os.remove('{}'.format(s111_file.path))
-                                        s111_file_paths.remove(s111_file.path)
+                        finally:
+                            model_file.close()
 
-                    finally:
-                        model_file.close()
-        else:
-            # Output to default grid (no subgrids)
-            with S111File('{}.h5'.format(s111_path_prefix), model_index_file, ofs_metadata, clobber=True) as s111_file:
-                s111_file_paths.append(s111_file.path)
-                for model_file in model_files:
-                    try:
-                        model_file.open()
-                        for time_index in range(len(model_file.datetime_values)):
+        finally:
+            model_index_file.close()
 
-                            # Call model method and convert and interpolate u/v to regular grid
-                            reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, time_index, target_depth)
+    # Output to ungeorectified grid
+    elif ofs_metadata.data_coding_format == 3:
+        with S111File('{}.h5'.format(s111_path_prefix), ofs_metadata, clobber=True) as s111_file:
+            s111_file_paths.append(s111_file.path)
 
-                            reg_grid_u = numpy.ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
-                            reg_grid_v = numpy.ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
+            for model_file in model_files:
+                try:
+                    model_file.open()
+                    for time_index in range(len(model_file.datetime_values)):
 
-                            # Convert currents at regular grid points from u/v to speed
-                            # and direction
-                            direction, speed = model.uv_to_speed_direction(reg_grid_u, reg_grid_v)
+                        # Call model method and optimize lat/lon and u/v
+                        u_compressed, v_compressed, lat_compressed, lon_compressed = model_file.optimize_ungeorectified_grid(time_index)
 
-                            # Apply mask
-                            direction = numpy.ma.masked_array(direction, model_index_file.var_mask.mask)
-                            speed = numpy.ma.masked_array(speed, model_index_file.var_mask.mask)
+                        # Convert currents at irregular grid points from u/v to speed/direction
+                        direction, speed = model.irregular_uv_to_speed_direction(u_compressed, v_compressed)
 
-                            # If any valid data points fall outside of the scipy griddata convex hull
-                            # nan values will be used, if nan values are present
-                            # add nan values to the original mask
-                            if numpy.isnan(speed).any():
-                                nan_mask_speed = numpy.ma.masked_invalid(speed)
-                                nan_mask_direction = numpy.ma.masked_invalid(direction)
-                                speed_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_speed.mask)
-                                direction_mask = numpy.ma.mask_or(model_index_file.var_mask.mask, nan_mask_direction.mask)
+                        s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed, direction, cycletime, target_depth)
 
-                                speed = numpy.ma.masked_array(speed, speed_mask)
-                                direction = numpy.ma.masked_array(direction, direction_mask)
-
-                            s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed, direction, cycletime, target_depth)
-
-                    finally:
-                        model_file.close()
-
-    finally:
-        model_index_file.close()
+                    s111_file.add_positioning(lon_compressed, lat_compressed)
+                finally:
+                    model_file.close()
 
     return s111_file_paths
 
