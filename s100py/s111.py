@@ -74,7 +74,7 @@ class S111File:
             metadata.
     """
 
-    def __init__(self, path, ofs_metadata, model_index=None, subgrid_index=None, clobber=False):
+    def __init__(self, path, ofs_metadata, data_coding_format, model_index=None, subgrid_index=None, clobber=False):
         """Initializes S111File object and opens h5 file at specified path.
 
         If ``path`` has an extension other than '.h5', it is replaced with
@@ -86,6 +86,8 @@ class S111File:
             ofs_metadata: ``S111Metadata`` instance describing metadata for
                 geographic identifier and description of current meter type,
                 forecast method, or model.
+            data_coding_format: 1:Time series at fixed stations, 2:Regularly gridded arrays,
+                3:Ungeorectified gridded arrays, 4:Time series for one moving platform.
             model_index: (Optional, default None) ``ModelIndexFile`` instance
                 representing model index file.
             subgrid_index: (Optional, default None) Index of subgrid, if any,
@@ -100,6 +102,7 @@ class S111File:
         self.filename = os.path.basename(self.path)
         self.model_index = model_index
         self.ofs_metadata = ofs_metadata
+        self.data_coding_format = data_coding_format
         self.subgrid_index = subgrid_index
 
         if not os.path.exists(self.path) or clobber:
@@ -192,7 +195,12 @@ class S111File:
         self.feature_instance.attrs.create('southBoundLatitude', 0, dtype=numpy.float32)
         self.feature_instance.attrs.create('northBoundLatitude', 0, dtype=numpy.float32)
 
-        if self.ofs_metadata.data_coding_format == 2:
+        if self.data_coding_format == 1:
+            # Add feature instance metadata
+            # Real types
+            self.feature_instance.attrs.create('numberOfStation', 0, dtype=numpy.float32)
+
+        elif self.data_coding_format == 2:
             # Add feature container metadata
             # String types
             self.feature.attrs.create('sequencingRule.scanDirection', '', dtype=h5py.special_dtype(vlen=str))
@@ -211,10 +219,13 @@ class S111File:
             self.feature_instance.attrs.create('gridSpacingLongitudinal', 0, dtype=numpy.float32)
             self.feature_instance.attrs.create('gridSpacingLatitudinal', 0, dtype=numpy.float32)
 
-        elif self.ofs_metadata.data_coding_format == 3:
+        elif self.data_coding_format == 3:
             # Add feature instance metadata
-            # Real types
-            self.feature_instance.attrs.create('numberOfNodes', 0, dtype=numpy.float32)
+            self.feature_instance.attrs.create('numberOfNodes', 0, dtype=numpy.int32)
+
+        elif self.data_coding_format == 4:
+            # Add feature instance metadata
+            self.feature_instance.attrs.create('numberOfStation', 0, dtype=numpy.int32)
 
     def add_feature_codes_content(self):
         """Add feature codes.
@@ -300,7 +311,7 @@ class S111File:
         self.h5_file.attrs.modify('metadata', metadata_xml_reference)
 
         # Update feature container metadata
-        self.feature.attrs.modify('dataCodingFormat', self.ofs_metadata.data_coding_format)
+        self.feature.attrs.modify('dataCodingFormat', self.data_coding_format)
         self.feature.attrs.modify('interpolationType', S111Metadata.INTERPOLATION_TYPE)
         self.feature.attrs.modify('typeOfCurrentData', S111Metadata.TYPE_OF_CURRENT_DATA)
         self.feature.attrs.modify('commonPointRule', S111Metadata.COMMON_POINT_RULE)
@@ -308,7 +319,7 @@ class S111File:
         self.feature.attrs.modify('methodCurrentsProduct', self.ofs_metadata.product)
 
         # Update feature instance metadata
-        if self.ofs_metadata.data_coding_format == 2:
+        if self.data_coding_format == 2:
             # Width between first two cells, grid spacing is uniform
             cellsize_x = self.model_index.var_x[1] - self.model_index.var_x[0]
             cellsize_y = self.model_index.var_y[1] - self.model_index.var_y[0]
@@ -515,8 +526,7 @@ class S111File:
         self.feature_instance.attrs.modify('eastBoundLongitude', max_lon)
         self.feature_instance.attrs.modify('southBoundLatitude', min_lat)
         self.feature_instance.attrs.modify('northBoundLatitude', max_lat)
-        num_nodes = int(lon.shape[0])
-        self.feature_instance.attrs.modify('numberOfNodes', num_nodes)
+        self.feature_instance.attrs.modify('numberOfNodes', lon.shape[0])
 
 
 class S111Metadata:
@@ -526,8 +536,6 @@ class S111Metadata:
     EPOCH: Code denoting the epoch of the geodetic datum used by the CRS.
     HORIZONTAL_DATUM_REFERENCE: Reference to the register from which the horizontal datum value is taken.
     HORIZONTAL_DATUM_VALUE: Horizontal Datum of the entire dataset.
-    DATA_CODING_FORMAT: 1:Time series at fixed stations, 2:Regularly gridded arrays, 3:Ungeorectified
-        gridded arrays, 4:Time series for one moving platform.
     DEPTH_TYPE_INDEX: 1:Layer average, 2:Sea surface, 3:Vertical datum, 4:Sea bottom.
     TYPE_OF_CURRENT_DATA: 1:Historical, 2:Real-time, 3:Astronomical , 4:Hybrid, 5:Hydrodynamic model hindcast,
         6:Hydrodynamic Model forecast.
@@ -544,7 +552,7 @@ class S111Metadata:
     HORIZONTAL_DATUM_REFERENCE = numpy.string_('EPSG')
     HORIZONTAL_DATUM_VALUE = 4326
     DEPTH_TYPE_INDEX = 2
-    TYPE_OF_CURRENT_DATA = 5
+    TYPE_OF_CURRENT_DATA = 6
     INTERPOLATION_TYPE = 10
     COMMON_POINT_RULE = 4
     DIMENSION = 2
@@ -552,14 +560,13 @@ class S111Metadata:
     SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
 
-    def __init__(self, region, product, producer_code, data_coding_format):
+    def __init__(self, region, product, producer_code):
         self.region = numpy.string_(region)
         self.product = numpy.string_(product)
         self.producer_code = producer_code
-        self.data_coding_format = data_coding_format
 
 
-def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, ofs_model, ofs_metadata, target_depth=None):
+def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, ofs_model, ofs_metadata, data_coding_format, target_depth=None):
     """Convert NetCDF model to regular grid in S111 format.
 
     If the supplied model index NetCDF contains information identifying
@@ -586,6 +593,8 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
         ofs_metadata: ``S111Metadata`` instance describing metadata for
             geographic identifier and description of current meter type,
             forecast method, or model.
+        data_coding_format: 1:Time series at fixed stations, 2:Regularly gridded arrays,
+            3:Ungeorectified gridded arrays, 4:Time series for one moving platform.
         target_depth: The water current at a specified target depth below
             the sea surface in meters, default target depth is 4.5 meters,
             target interpolation depth must be greater or equal to 0.
@@ -598,15 +607,37 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
         if not s111_path_prefix.endswith('/'):
             s111_path_prefix += '/'
         file_issuance = cycletime.strftime('%Y%m%dT%HZ')
-        s111_path_prefix += ('S111{}_{}_{}_TYP{}'.format(ofs_metadata.producer_code, file_issuance, str.upper(ofs_model), ofs_metadata.data_coding_format))
+        s111_path_prefix += ('S111{}_{}_{}_TYP{}'.format(ofs_metadata.producer_code, file_issuance, str.upper(ofs_model), data_coding_format))
 
     if target_depth is None:
         target_depth = DEFAULT_TARGET_DEPTH
 
     s111_file_paths = []
 
+    # Output a stationary platform
+    if data_coding_format == 1:
+        with S111File('{}.h5'.format(s111_path_prefix), ofs_metadata, data_coding_format, clobber=True) as s111_file:
+            s111_file_paths.append(s111_file.path)
+
+            for model_file in model_files:
+                try:
+                    model_file.open()
+                    for time_index in range(len(model_file.datetime_values)):
+
+                        # Call model method and optimize lat/lon and u/v
+                        u_compressed, v_compressed, lat_compressed, lon_compressed = model_file.ungeorectified_grid(time_index, target_depth)
+
+                        # Convert currents at irregular grid points from u/v to speed/direction
+                        direction, speed = model.irregular_uv_to_speed_direction(u_compressed, v_compressed)
+
+                        s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed, direction, cycletime, target_depth)
+
+                    s111_file.add_positioning(lon_compressed, lat_compressed)
+                finally:
+                    model_file.close()
+
     # Output to a regular grid
-    if ofs_metadata.data_coding_format == 2:
+    elif data_coding_format == 2:
         try:
             model_index_file.open()
             if model_index_file.dim_subgrid is not None and model_index_file.var_subgrid_id is not None:
@@ -619,7 +650,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                         else:
                             filename = '{}_FID_{}.h5'.format(s111_path_prefix, model_index_file.var_subgrid_id[i])
 
-                        s111_file = S111File(filename, ofs_metadata, model_index_file, subgrid_index=i, clobber=True)
+                        s111_file = S111File(filename, ofs_metadata, data_coding_format, model_index_file, subgrid_index=i, clobber=True)
 
                         s111_file_paths.append(s111_file.path)
                         stack.enter_context(s111_file)
@@ -674,7 +705,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                             model_file.close()
             else:
                 # Output to default grid (no subgrids)
-                with S111File('{}.h5'.format(s111_path_prefix), ofs_metadata, model_index_file, clobber=True) as s111_file:
+                with S111File('{}.h5'.format(s111_path_prefix), ofs_metadata, data_coding_format, model_index_file, clobber=True) as s111_file:
                     s111_file_paths.append(s111_file.path)
                     for model_file in model_files:
                         try:
@@ -715,8 +746,8 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
             model_index_file.close()
 
     # Output to ungeorectified grid
-    elif ofs_metadata.data_coding_format == 3:
-        with S111File('{}.h5'.format(s111_path_prefix), ofs_metadata, clobber=True) as s111_file:
+    elif data_coding_format == 3:
+        with S111File('{}.h5'.format(s111_path_prefix), ofs_metadata, data_coding_format, clobber=True) as s111_file:
             s111_file_paths.append(s111_file.path)
 
             for model_file in model_files:
@@ -725,7 +756,29 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                     for time_index in range(len(model_file.datetime_values)):
 
                         # Call model method and optimize lat/lon and u/v
-                        u_compressed, v_compressed, lat_compressed, lon_compressed = model_file.optimize_ungeorectified_grid(time_index)
+                        u_compressed, v_compressed, lat_compressed, lon_compressed = model_file.ungeorectified_grid(time_index, target_depth)
+
+                        # Convert currents at irregular grid points from u/v to speed/direction
+                        direction, speed = model.irregular_uv_to_speed_direction(u_compressed, v_compressed)
+
+                        s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed, direction, cycletime, target_depth)
+
+                    s111_file.add_positioning(lon_compressed, lat_compressed)
+                finally:
+                    model_file.close()
+
+    # Output a moving platform
+    elif data_coding_format == 4:
+        with S111File('{}.h5'.format(s111_path_prefix), ofs_metadata, data_coding_format, clobber=True) as s111_file:
+            s111_file_paths.append(s111_file.path)
+
+            for model_file in model_files:
+                try:
+                    model_file.open()
+                    for time_index in range(len(model_file.datetime_values)):
+
+                        # Call model method and optimize lat/lon and u/v
+                        u_compressed, v_compressed, lat_compressed, lon_compressed = model_file.ungeorectified_grid(time_index, target_depth)
 
                         # Convert currents at irregular grid points from u/v to speed/direction
                         direction, speed = model.irregular_uv_to_speed_direction(u_compressed, v_compressed)
