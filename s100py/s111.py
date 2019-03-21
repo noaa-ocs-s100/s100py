@@ -55,7 +55,7 @@ class S111File:
     Attributes:
         path: Path (relative or absolute) to the .h5 file, including filename.
         filename: Name of the .h5 file.
-        ofs_metadata: ``S111Metadata`` instance describing metadata for geographic
+        input_metadata: ``S111Metadata`` instance describing metadata for geographic
             identifier and description of current meter type, forecast method,
             or model.
         model_index: (Optional, default None) ``ModelIndexFile`` instance
@@ -74,7 +74,7 @@ class S111File:
             metadata.
     """
 
-    def __init__(self, path, ofs_metadata, data_coding_format, model_index=None, subgrid_index=None, clobber=False):
+    def __init__(self, path, input_metadata, data_coding_format, model_index=None, subgrid_index=None, clobber=False):
         """Initializes S111File object and opens h5 file at specified path.
 
         If ``path`` has an extension other than '.h5', it is replaced with
@@ -83,7 +83,7 @@ class S111File:
         Args:
             path: Path of target hdf5 file. Must end in '.h5', otherwise its
                 extension will be replaced with '.h5'.
-            ofs_metadata: ``S111Metadata`` instance describing metadata for
+            input_metadata: ``S111Metadata`` instance describing metadata for
                 geographic identifier and description of current meter type,
                 forecast method, or model.
             data_coding_format: 1:Time series at fixed stations, 2:Regularly gridded arrays,
@@ -101,7 +101,7 @@ class S111File:
         self.path = prefix + '.h5'
         self.filename = os.path.basename(self.path)
         self.model_index = model_index
-        self.ofs_metadata = ofs_metadata
+        self.input_metadata = input_metadata
         self.data_coding_format = data_coding_format
         self.subgrid_index = subgrid_index
 
@@ -220,17 +220,17 @@ class S111File:
         self.h5_file.attrs.create('depthTypeIndex', S111Metadata.DEPTH_TYPE_INDEX, dtype=numpy.int32)
         self.h5_file.attrs.create('metadata', metadata_xml_reference, dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('horizontalDatumValue', S111Metadata.HORIZONTAL_DATUM_VALUE, dtype=numpy.int32)
-        self.h5_file.attrs.create('geographicIdentifier', self.ofs_metadata.region, dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('geographicIdentifier', self.input_metadata.region, dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('productSpecification', S111Metadata.PRODUCT_SPECIFICATION, dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('horizontalDatumReference', S111Metadata.HORIZONTAL_DATUM_REFERENCE, dtype=h5py.special_dtype(vlen=str))
 
         # Add feature container metadata
-        self.feature.attrs.create('methodCurrentsProduct', self.ofs_metadata.product, dtype=h5py.special_dtype(vlen=str))
+        self.feature.attrs.create('methodCurrentsProduct', self.input_metadata.product, dtype=h5py.special_dtype(vlen=str))
         self.feature.attrs.create('dimension', S111Metadata.DIMENSION, dtype=numpy.int32)
         self.feature.attrs.create('dataCodingFormat', self.data_coding_format, dtype=numpy.int32)
         self.feature.attrs.create('commonPointRule', S111Metadata.COMMON_POINT_RULE, dtype=numpy.int32)
         self.feature.attrs.create('interpolationType', S111Metadata.INTERPOLATION_TYPE, dtype=numpy.int32)
-        self.feature.attrs.create('typeOfCurrentData', self.ofs_metadata.type_of_current_data, dtype=numpy.int32)
+        self.feature.attrs.create('typeOfCurrentData', self.input_metadata.type_of_current_data, dtype=numpy.int32)
         self.feature.attrs.create('horizontalPositionUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('verticalUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('timeUncertainty', -1.0, dtype=numpy.float32)
@@ -364,8 +364,12 @@ class S111File:
         # Add speed and direction data to feature instance group compound dataset
         values_dtype = numpy.dtype([('surfaceCurrentSpeed', numpy.float32), ('surfaceCurrentDirection', numpy.float32)])
 
-        speed = speed.filled(FILLVALUE)
-        direction = direction.filled(FILLVALUE)
+        # Check if numpy array is masked
+        # If numpy array is masked remove nan values
+        if numpy.ma.is_masked(speed):
+            speed = speed.filled(FILLVALUE)
+            direction = direction.filled(FILLVALUE)
+
         speed = numpy.round(speed, decimals=2)
         direction = numpy.round(direction, decimals=1)
 
@@ -447,7 +451,7 @@ class S111File:
 
 
 class S111Metadata:
-    """Contains s111 metadata to pass to s111File.
+    """Contains s111 metadata to pass to S111File.
 
     PRODUCT_SPECIFICATION: The product specification used to create this dataset.
     EPOCH: Code denoting the epoch of the geodetic datum used by the CRS.
@@ -476,14 +480,49 @@ class S111Metadata:
     SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
 
-    def __init__(self, region, product, type_of_current_data, producer_code):
+    def __init__(self, region, product, type_of_current_data, producer_code, station_id=None):
+        """Initializes S111Metadata object.
+
+        Args:
+            region: Geographic identifier.
+            product: Description of current meter type, forecast method or model, etc.
+            type_of_current_data: 1: Historical observation (O)
+                                  2: Real-time observation (R)
+                                  3: Astronomical prediction (A)
+                                  4: Analysis or hybrid method (Y)
+                                  5: Hydrodynamic model hindcast (M)
+                                  6: Hydrodynamic model forecast (F)
+            producer_code: Two-character hydrographic office producer code.
+            station_id: (Optional, default None) Station identifier.
+        """
         self.region = numpy.string_(region)
         self.product = numpy.string_(product)
         self.type_of_current_data = int(type_of_current_data)
         self.producer_code = producer_code
+        self.station_id = station_id
 
 
-def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, ofs_model, ofs_metadata, data_coding_format, target_depth=None):
+class S111TimeSeries:
+    """Contains prediction time series data to pass to S111File. """
+
+    def __init__(self, latitude, longitude, speed, direction, datetime_values):
+        """Initializes S111TimeSeries object.
+
+        Args:
+            latitude: 1d 'numpy.ndarray' containing latitudes.
+            longitude: 1d 'numpy.ndarray' containing longitudes.
+            speed: 1d 'numpy.ndarray' containing speed.
+            direction: 1d 'numpy.ndarray' containing direction.
+            datetime_values: List containing datetime objects.
+        """
+        self.latitude = latitude
+        self.longitude = longitude
+        self.speed = speed
+        self.direction = direction
+        self.datetime_values = datetime_values
+
+
+def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, ofs_model, input_metadata, data_coding_format, target_depth=None):
     """Convert NetCDF model to regular grid in S111 format.
 
     If the supplied model index NetCDF contains information identifying
@@ -507,7 +546,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
         cycletime: ``datetime.datetime`` instance representing target cycle
             time of model forecast(s) being processed.
         ofs_model: Model identifier (e.g. "cbofs").
-        ofs_metadata: ``S111Metadata`` instance describing metadata for
+        input_metadata: ``S111Metadata`` instance describing metadata for
             geographic identifier and description of current meter type,
             forecast method, or model.
         data_coding_format: 1:Time series at fixed stations, 2:Regularly gridded arrays,
@@ -524,7 +563,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
         if not s111_path_prefix.endswith('/'):
             s111_path_prefix += '/'
         file_issuance = cycletime.strftime('%Y%m%dT%HZ')
-        s111_path_prefix += ('S111{}_{}_{}_TYP{}'.format(ofs_metadata.producer_code, file_issuance, str.upper(ofs_model), data_coding_format))
+        s111_path_prefix += ('S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, str.upper(ofs_model), data_coding_format))
 
     if target_depth is None:
         target_depth = DEFAULT_TARGET_DEPTH
@@ -546,7 +585,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                         filename = '{}_FID_{}.h5'.format(s111_path_prefix,
                                                          model_index_file.var_subgrid_id[i])
 
-                    s111_file = S111File(filename, ofs_metadata, data_coding_format,
+                    s111_file = S111File(filename, input_metadata, data_coding_format,
                                          model_index_file, subgrid_index=i, clobber=True)
 
                     s111_file_paths.append(s111_file.path)
@@ -554,7 +593,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                     s111_files.append(s111_file)
             else:
                 # Output entire domain
-                s111_file = S111File('{}.h5'.format(s111_path_prefix), ofs_metadata, data_coding_format, model_index_file,clobber=True)
+                s111_file = S111File('{}.h5'.format(s111_path_prefix), input_metadata, data_coding_format, model_index_file,clobber=True)
                 s111_file_paths.append(s111_file.path)
 
             for model_file in model_files:
@@ -606,6 +645,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
                                             os.remove('{}'.format(s111_file.path))
                                             s111_file_paths.remove(s111_file.path)
                         else:
+
                             s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed,
                                                                       direction, cycletime, target_depth)
                 finally:
@@ -614,7 +654,7 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
             model_index_file.close()
 
     else:
-        with S111File('{}.h5'.format(s111_path_prefix), ofs_metadata, data_coding_format, clobber=True) as s111_file:
+        with S111File('{}.h5'.format(s111_path_prefix), input_metadata, data_coding_format, clobber=True) as s111_file:
             s111_file_paths.append(s111_file.path)
 
             for model_file in model_files:
@@ -636,3 +676,42 @@ def convert_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, 
 
     return s111_file_paths
 
+
+def predictions_to_s111(input_data, s111_path_prefix, input_metadata, data_coding_format, depth):
+    """Convert current predictions to S111 format.
+
+    Current predictions at fixed stations.
+
+    Args:
+        input_data: ``S111TimeSeries`` instance describing predictions time
+            series data, which includes, 1d 'ndarrays' of latitude, longitude,
+            direction and speed.
+        s111_path_prefix: Path prefix for desired output location for generated
+            S-111 files. If specified path is a directory, file(s) will be
+            output to specified directory with autogenerated names. Otherwise,
+            generated file(s) will be placed at specified file path, but with a
+            filename suffix appended based on the properties of the target
+            output grid and the model file.
+        input_metadata: ``S111Metadata`` instance describing metadata for
+            geographic identifier and description of current meter type,
+            forecast method, or station identifier (e.g. "cb0201").
+        data_coding_format: 1:Time series at fixed stations, 2:Regularly gridded arrays,
+            3:Ungeorectified gridded arrays, 4:Time series for one moving platform.
+        depth: The water current at a specified target depth below
+            the sea surface in meters.
+
+    Returns:
+        List of paths to HDF5 files created.
+    """
+    cycletime = input_data.datetime_values[0]
+
+    if os.path.isdir(s111_path_prefix):
+        if not s111_path_prefix.endswith('/'):
+            s111_path_prefix += '/'
+        file_issuance = datetime.datetime.strftime(cycletime, '%Y%m%dT%H%M%SZ')
+        s111_path_prefix += ('S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, input_metadata.station_id, data_coding_format))
+
+    s111_file = S111File('{}.h5'.format(s111_path_prefix), input_metadata, data_coding_format, clobber=True)
+
+    s111_file.add_feature_instance_group_data(input_data.datetime_values[0], input_data.speed, input_data.direction, cycletime, depth)
+    s111_file.add_positioning(input_data.longitude, input_data.latitude)
