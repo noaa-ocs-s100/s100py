@@ -113,10 +113,8 @@ class S111File:
             self.groupF = self.h5_file.create_group('Group_F')
             self.feature = self.h5_file.create_group('SurfaceCurrent')
             self.feature_instance = self.feature.create_group('SurfaceCurrent.01')
+            self.feature_instance_groups = None
             self.groupF_dset = None
-
-            # Create s111 metadata structure
-            # self.create_file_metadata()
 
             # Add feature content
             self.add_feature_codes_content()
@@ -210,7 +208,7 @@ class S111File:
     def add_metadata(self):
         """Add metadata.
 
-        Based on grid properties, s111 metadata, and ofs metadata.
+        Based on grid properties, s111 metadata, and input metadata.
         """
 
         metadata_xml_reference = numpy.string_('MD_{}.XML'.format(os.path.splitext(self.filename)[0]))
@@ -229,11 +227,13 @@ class S111File:
         self.feature.attrs.create('dimension', S111Metadata.DIMENSION, dtype=numpy.int32)
         self.feature.attrs.create('dataCodingFormat', self.data_coding_format, dtype=numpy.int32)
         self.feature.attrs.create('commonPointRule', S111Metadata.COMMON_POINT_RULE, dtype=numpy.int32)
-        self.feature.attrs.create('interpolationType', S111Metadata.INTERPOLATION_TYPE, dtype=numpy.int32)
         self.feature.attrs.create('typeOfCurrentData', self.input_metadata.type_of_current_data, dtype=numpy.int32)
         self.feature.attrs.create('horizontalPositionUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('verticalUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('timeUncertainty', -1.0, dtype=numpy.float32)
+
+        if self.data_coding_format != 1:
+            self.feature.attrs.create('interpolationType', S111Metadata.INTERPOLATION_TYPE, dtype=numpy.int32)
 
         # Add feature instance metadata
         if self.data_coding_format == 2:
@@ -268,17 +268,17 @@ class S111File:
             min_lat = numpy.round(min_lat, 7)
             max_lat = numpy.round(max_lat, 7)
 
-            # Update carrier metadata
+            # Add carrier metadata
             self.h5_file.attrs.create('westBoundLongitude', min_lon, dtype=numpy.float32)
             self.h5_file.attrs.create('eastBoundLongitude', max_lon, dtype=numpy.float32)
             self.h5_file.attrs.create('southBoundLatitude', min_lat, dtype=numpy.float32)
             self.h5_file.attrs.create('northBoundLatitude', max_lat, dtype=numpy.float32)
 
-            # Update feature container metadata
+            # Add feature container metadata
             self.feature.attrs.create('sequencingRule.scanDirection', S111Metadata.SEQUENCING_RULE_SCAN_DIRECTION, dtype=h5py.special_dtype(vlen=str))
             self.feature.attrs.create('sequencingRule.type', S111Metadata.SEQUENCING_RULE_TYPE, dtype=numpy.int32)
 
-            # Update feature instance metadata
+            # Add feature instance metadata
             self.feature_instance.attrs.create('startSequence', S111Metadata.START_SEQUENCE, dtype=h5py.special_dtype(vlen=str))
             self.feature_instance.attrs.create('gridOriginLongitude', min_lon, dtype=numpy.float32)
             self.feature_instance.attrs.create('gridOriginLatitude', min_lat, dtype=numpy.float32)
@@ -287,7 +287,7 @@ class S111File:
             self.feature_instance.attrs.create('numPointsLongitudinal', num_points_lon, dtype=numpy.int32)
             self.feature_instance.attrs.create('numPointsLatitudinal', num_points_lat, dtype=numpy.int32)
 
-            # Update feature instance metadata
+            # Add feature instance metadata
             self.feature_instance.attrs.create('westBoundLongitude', min_lon, dtype=numpy.float32)
             self.feature_instance.attrs.create('eastBoundLongitude', max_lon, dtype=numpy.float32)
             self.feature_instance.attrs.create('southBoundLatitude', min_lat, dtype=numpy.float32)
@@ -314,19 +314,20 @@ class S111File:
         # Create a list of all feature instance objects and groups
         feature_instance_objs = []
         self.feature_instance.visit(feature_instance_objs.append)
-        feature_instance_groups = [obj for obj in feature_instance_objs if
-                                   isinstance(self.feature_instance[obj], h5py.Group)]
+        self.feature_instance_groups = [obj for obj in feature_instance_objs if
+                                        isinstance(self.feature_instance[obj], h5py.Group)]
 
         # Convert time value to string
         time_str = datetime_value.strftime('%Y%m%dT%H%M%SZ')
 
-        # Update attributes from datasets added
+        # Format speed and get attributes
         min_speed = numpy.nanmin(speed)
         max_speed = numpy.nanmax(speed)
         min_speed = numpy.round(min_speed, decimals=2)
         max_speed = numpy.round(max_speed, decimals=2)
 
-        if len(feature_instance_groups) == 0:
+        # Create feature instance groups
+        if len(self.feature_instance_groups) == 0:
             self.feature.attrs.create('numInstances', len(self.feature_instance), dtype=numpy.int32)
             feature_group = self.feature_instance.create_group('Group_001')
             print('Creating', 'Group_001', 'dataset.')
@@ -338,19 +339,19 @@ class S111File:
             self.h5_file.attrs.create('issueDate', numpy.string_(issuance_date), dtype=h5py.special_dtype(vlen=str))
             self.feature_instance.attrs.create('dateTimeOfFirstRecord', numpy.string_(time_str), dtype=h5py.special_dtype(vlen=str))
             self.feature_instance.attrs.create('dateTimeOfLastRecord', numpy.string_(time_str), dtype=h5py.special_dtype(vlen=str))
-
+            # Add initial speed attributes
             self.feature.attrs.create('minDatasetCurrentSpeed', min_speed, dtype=numpy.float32)
             self.feature.attrs.create('maxDatasetCurrentSpeed', max_speed, dtype=numpy.float32)
 
         else:
-            num_groups = len(feature_instance_groups)
             # num_groups is 0-based
+            num_groups = len(self.feature_instance_groups)
             new_group = num_groups + 1
             feature_group = self.feature_instance.create_group('Group_{:03d}'.format(new_group))
             print('Creating', 'Group_{:03d}'.format(new_group), 'dataset.')
             self.feature_instance.attrs.modify('dateTimeOfLastRecord', numpy.string_(time_str))
 
-            # Update min and max speed attributes each time data is added
+            # Update speed attributes each time data is added
             prior_min_speed = self.feature.attrs['minDatasetCurrentSpeed']
             prior_max_speed = self.feature.attrs['maxDatasetCurrentSpeed']
             if min_speed < prior_min_speed:
@@ -358,7 +359,7 @@ class S111File:
             if max_speed > prior_max_speed:
                 self.feature.attrs.modify('maxDatasetCurrentSpeed', max_speed)
 
-        # Update attributes from datasets added
+        # Add time string to feature instance group compound dataset
         feature_group.attrs.create('timePoint', numpy.string_(time_str), None, h5py.special_dtype(vlen=str))
 
         # Add speed and direction data to feature instance group compound dataset
@@ -370,9 +371,11 @@ class S111File:
             speed = speed.filled(FILLVALUE)
             direction = direction.filled(FILLVALUE)
 
+        # Format speed/direction
         speed = numpy.round(speed, decimals=2)
         direction = numpy.round(direction, decimals=1)
 
+        # Add speed/direction data
         values = numpy.zeros(speed.shape, dtype=values_dtype)
         values['surfaceCurrentSpeed'] = speed
         values['surfaceCurrentDirection'] = direction
@@ -380,32 +383,18 @@ class S111File:
                                                    compression='gzip', compression_opts=9)
         values_dset[...] = values
 
-        # Update group_f attributes
-        self.groupF_dset.attrs.create('chunking', str(values_dset.chunks), dtype=h5py.special_dtype(vlen=str))
-        self.feature_instance.attrs.modify('instanceChunking', numpy.string_(str(values_dset.chunks)))
-
         # Update depth attribute
         current_depth = target_depth * -1
         self.h5_file.attrs.create('surfaceCurrentDepth', current_depth, dtype=numpy.float32)
 
-        # Time record interval is the same throughout the forecast.
-        if self.h5_file.__contains__('/SurfaceCurrent/SurfaceCurrent.01/Group_003'):
-            first_time = datetime.datetime.strptime(
-                (self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
-            second_time = datetime.datetime.strptime(
-                (self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_002'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
+        # Update chunking attributes
+        chunking_str = ','.join(str(x) for x in values_dset.chunks)
 
-            interval = second_time - first_time
-            time_interval = interval.total_seconds()
-            self.feature_instance.attrs.create('timeRecordInterval', time_interval, dtype=numpy.int32)
-
-        # Update attributes after all the value groups have been added, 0-based
-        num_feature_instance_groups = len(feature_instance_groups) + 1
-        self.feature_instance.attrs.create('numberOfTimes', num_feature_instance_groups, dtype=numpy.int32)
-        self.feature_instance.attrs.create('numGRP', num_feature_instance_groups, dtype=numpy.int32)
+        self.groupF_dset.attrs.create('chunking', chunking_str, dtype=h5py.special_dtype(vlen=str))
+        self.feature_instance.attrs.create('instanceChunking', numpy.string_(chunking_str))
 
     def add_positioning(self, lon, lat):
-        """Add positioning data to the S111 file.
+        """Add positioning group and data to the S111 file.
 
         Args:
             lat: ``numpy.ma.masked_array`` representing latitude.
@@ -447,7 +436,51 @@ class S111File:
         self.feature_instance.attrs.create('eastBoundLongitude', max_lon, dtype=numpy.float32)
         self.feature_instance.attrs.create('southBoundLatitude', min_lat, dtype=numpy.float32)
         self.feature_instance.attrs.create('northBoundLatitude', max_lat, dtype=numpy.float32)
-        self.feature_instance.attrs.create('numberOfNodes', lon.shape[0], dtype=numpy.int32)
+
+    def add_model_metadata(self):
+        """Model specific metadata"""
+
+        # Update attributes after all the value groups have been added, 0-based
+        num_feature_instance_groups = len(self.feature_instance_groups) + 1
+        self.feature_instance.attrs.create('numGRP', num_feature_instance_groups, dtype=numpy.int32)
+        self.feature_instance.attrs.create('numberOfTimes', num_feature_instance_groups, dtype=numpy.int32)
+
+        if self.h5_file.__contains__('/SurfaceCurrent/SurfaceCurrent.01/Group_003'):
+            first_time = datetime.datetime.strptime(
+                (self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
+            second_time = datetime.datetime.strptime(
+                (self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_002'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
+
+            interval = second_time - first_time
+            time_interval = interval.total_seconds()
+            self.feature_instance.attrs.create('timeRecordInterval', time_interval, dtype=numpy.int32)
+
+        if self.data_coding_format == 3:
+            nodes = self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001/values']
+            num_nodes = nodes.shape[0]
+            self.feature_instance.attrs.create('numberOfNodes', num_nodes, dtype=numpy.int32)
+
+    def add_time_series_metadata(self, datetime_values):
+        """Time series specific metadata
+
+        Args: datetime_values: List of datetime objects
+        """
+
+        num_feature_instance_groups = len(self.feature_instance_groups) + 1
+        self.feature_instance.attrs.create('numGRP', num_feature_instance_groups, dtype=numpy.int32)
+
+        last_time_str = datetime_values[-1].strftime('%Y%m%dT%H%M%SZ')
+
+        # Overwrite last date time record
+        self.feature_instance.attrs.modify('dateTimeOfLastRecord', numpy.string_(last_time_str))
+
+        interval = datetime_values[1] - datetime_values[0]
+        time_interval = interval.total_seconds()
+        num_times = len(datetime_values)
+
+        self.feature_instance.attrs.create('timeRecordInterval', time_interval, dtype=numpy.int32)
+        self.feature_instance.attrs.create('numberOfTimes', num_times, dtype=numpy.int32)
+        self.feature_instance.attrs.create('numberOfStations', num_feature_instance_groups, dtype=numpy.int32)
 
 
 class S111Metadata:
@@ -563,7 +596,9 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, of
         if not s111_path_prefix.endswith('/'):
             s111_path_prefix += '/'
         file_issuance = cycletime.strftime('%Y%m%dT%HZ')
-        s111_path_prefix += ('S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, str.upper(ofs_model), data_coding_format))
+        s111_path_prefix += (
+            'S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, str.upper(ofs_model),
+                                        data_coding_format))
 
     if target_depth is None:
         target_depth = DEFAULT_TARGET_DEPTH
@@ -571,6 +606,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, of
     s111_file_paths = []
 
     if data_coding_format == 2:
+
         try:
             model_index_file.open()
             if model_index_file.dim_subgrid is not None and model_index_file.var_subgrid_id is not None:
@@ -593,7 +629,8 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, of
                     s111_files.append(s111_file)
             else:
                 # Output entire domain
-                s111_file = S111File('{}.h5'.format(s111_path_prefix), input_metadata, data_coding_format, model_index_file,clobber=True)
+                s111_file = S111File('{}.h5'.format(s111_path_prefix), input_metadata, data_coding_format,
+                                     model_index_file, clobber=True)
                 s111_file_paths.append(s111_file.path)
 
             for model_file in model_files:
@@ -648,6 +685,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, of
 
                             s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed,
                                                                       direction, cycletime, target_depth)
+                            s111_file.add_model_metadata()
                 finally:
                     model_file.close()
         finally:
@@ -663,14 +701,17 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, of
                     for time_index in range(len(model_file.datetime_values)):
 
                         # Call model method and optimize lat/lon and u/v
-                        u_compressed, v_compressed, lat_compressed, lon_compressed = model_file.ungeorectified_grid(time_index, target_depth)
+                        u_compressed, v_compressed, lat_compressed, lon_compressed = model_file.ungeorectified_grid(
+                            time_index, target_depth)
 
                         # Convert currents at irregular grid points from u/v to speed/direction
                         direction, speed = model.irregular_uv_to_speed_direction(u_compressed, v_compressed)
 
-                        s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed, direction, cycletime, target_depth)
+                        s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed,
+                                                                  direction, cycletime, target_depth)
 
                     s111_file.add_positioning(lon_compressed, lat_compressed)
+                    s111_file.add_model_metadata()
                 finally:
                     model_file.close()
 
@@ -709,9 +750,14 @@ def predictions_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
         if not s111_path_prefix.endswith('/'):
             s111_path_prefix += '/'
         file_issuance = datetime.datetime.strftime(cycletime, '%Y%m%dT%H%M%SZ')
-        s111_path_prefix += ('S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, input_metadata.station_id, data_coding_format))
+        s111_path_prefix += (
+            'S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, input_metadata.station_id,
+                                        data_coding_format))
 
     s111_file = S111File('{}.h5'.format(s111_path_prefix), input_metadata, data_coding_format, clobber=True)
 
-    s111_file.add_feature_instance_group_data(input_data.datetime_values[0], input_data.speed, input_data.direction, cycletime, depth)
+    s111_file.add_feature_instance_group_data(input_data.datetime_values[0], input_data.speed, input_data.direction,
+                                              cycletime, depth)
+
     s111_file.add_positioning(input_data.longitude, input_data.latitude)
+    s111_file.add_time_series_metadata(input_data.datetime_values)
