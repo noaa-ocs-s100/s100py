@@ -227,7 +227,7 @@ class S111File:
         self.feature.attrs.create('dimension', S111Metadata.DIMENSION, dtype=numpy.int32)
         self.feature.attrs.create('dataCodingFormat', self.data_coding_format, dtype=numpy.int32)
         self.feature.attrs.create('commonPointRule', S111Metadata.COMMON_POINT_RULE, dtype=numpy.int32)
-        self.feature.attrs.create('typeOfCurrentData', self.input_metadata.type_of_current_data, dtype=numpy.int32)
+        self.feature.attrs.create('typeOfCurrentData', self.input_metadata.current_datatype, dtype=numpy.int32)
         self.feature.attrs.create('horizontalPositionUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('verticalUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('timeUncertainty', -1.0, dtype=numpy.float32)
@@ -491,8 +491,6 @@ class S111Metadata:
     HORIZONTAL_DATUM_REFERENCE: Reference to the register from which the horizontal datum value is taken.
     HORIZONTAL_DATUM_VALUE: Horizontal Datum of the entire dataset.
     DEPTH_TYPE_INDEX: 1:Layer average, 2:Sea surface, 3:Vertical datum, 4:Sea bottom.
-    TYPE_OF_CURRENT_DATA: 1:Historical, 2:Real-time, 3:Astronomical , 4:Hybrid, 5:Hydrodynamic model hindcast,
-        6:Hydrodynamic Model forecast.
     INTERPOLATION_TYPE: Interpolation method recommended for evaluation of the S100_GridCoverage.
     COMMON_POINT_RULE: The procedure used for evaluating geometric objects that overlap or lie fall on boundaries.
     DIMENSION: The dimension of the feature instance.
@@ -513,26 +511,33 @@ class S111Metadata:
     SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
 
-    def __init__(self, region, product, type_of_current_data, producer_code, station_id=None):
+    def __init__(self, region, product, current_datatype, producer_code, current_depth, station_id=None, model_system=None):
         """Initializes S111Metadata object.
 
         Args:
             region: Geographic identifier.
-            product: Description of current meter type, forecast method or model, etc.
-            type_of_current_data: 1: Historical observation (O)
-                                  2: Real-time observation (R)
-                                  3: Astronomical prediction (A)
-                                  4: Analysis or hybrid method (Y)
-                                  5: Hydrodynamic model hindcast (M)
-                                  6: Hydrodynamic model forecast (F)
+            product: Description of current meter type, forecast method or
+                model, etc.
+            current_datatype: 1: Historical observation (O)
+                              2: Real-time observation (R)
+                              3: Astronomical prediction (A)
+                              4: Analysis or hybrid method (Y)
+                              5: Hydrodynamic model hindcast (M)
+                              6: Hydrodynamic model forecast (F)
             producer_code: Two-character hydrographic office producer code.
+            current_depth: The water current at a specified target depth below
+                the sea surface in meters.
             station_id: (Optional, default None) Station identifier.
+            model_system:(Optional, default None) Ocean model system
+                identifier (e.g. "cbofs").
         """
         self.region = numpy.string_(region)
         self.product = numpy.string_(product)
-        self.type_of_current_data = int(type_of_current_data)
+        self.current_datatype = int(current_datatype)
         self.producer_code = producer_code
+        self.current_depth = current_depth
         self.station_id = station_id
+        self.model_system = model_system
 
 
 class S111TimeSeries:
@@ -555,7 +560,7 @@ class S111TimeSeries:
         self.datetime_values = datetime_values
 
 
-def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, ofs_model, input_metadata, data_coding_format, target_depth=None):
+def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, input_metadata, data_coding_format):
     """Convert NetCDF model to regular grid in S111 format.
 
     If the supplied model index NetCDF contains information identifying
@@ -578,15 +583,11 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, of
             output grid and the model file.
         cycletime: ``datetime.datetime`` instance representing target cycle
             time of model forecast(s) being processed.
-        ofs_model: Model identifier (e.g. "cbofs").
         input_metadata: ``S111Metadata`` instance describing metadata for
             geographic identifier and description of current meter type,
-            forecast method, or model.
+            forecast method, model identifier or current depth.
         data_coding_format: 1:Time series at fixed stations, 2:Regularly gridded arrays,
             3:Ungeorectified gridded arrays, 4:Time series for one moving platform.
-        target_depth: The water current at a specified target depth below
-            the sea surface in meters, default target depth is 4.5 meters,
-            target interpolation depth must be greater or equal to 0.
 
     Returns:
         List of paths to HDF5 files created.
@@ -597,11 +598,13 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, of
             s111_path_prefix += '/'
         file_issuance = cycletime.strftime('%Y%m%dT%HZ')
         s111_path_prefix += (
-            'S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, str.upper(ofs_model),
-                                        data_coding_format))
+            'S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance,
+                                        str.upper(input_metadata.model_system), data_coding_format))
 
-    if target_depth is None:
+    if input_metadata.current_depth is None:
         target_depth = DEFAULT_TARGET_DEPTH
+    else:
+        target_depth = input_metadata.current_depth
 
     s111_file_paths = []
 
@@ -638,6 +641,9 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, of
                     model_file.open()
                     for time_index in range(len(model_file.datetime_values)):
                         # Call model method and convert and interpolate u/v to regular grid
+                        # The water current at a specified target depth below the sea surface in meters the default
+                        # target depth is 4.5 meters, target interpolation depth must be greater or equal to 0.
+
                         reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index_file, time_index, target_depth)
 
                         reg_grid_u = numpy.ma.masked_array(reg_grid_u, model_index_file.var_mask.mask)
@@ -718,7 +724,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, of
     return s111_file_paths
 
 
-def predictions_to_s111(input_data, s111_path_prefix, input_metadata, data_coding_format, depth):
+def predictions_to_s111(input_data, s111_path_prefix, input_metadata, data_coding_format):
     """Convert current predictions to S111 format.
 
     Current predictions at fixed stations.
@@ -738,8 +744,6 @@ def predictions_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
             forecast method, or station identifier (e.g. "cb0201").
         data_coding_format: 1:Time series at fixed stations, 2:Regularly gridded arrays,
             3:Ungeorectified gridded arrays, 4:Time series for one moving platform.
-        depth: The water current at a specified target depth below
-            the sea surface in meters.
 
     Returns:
         List of paths to HDF5 files created.
@@ -757,7 +761,7 @@ def predictions_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
     s111_file = S111File('{}.h5'.format(s111_path_prefix), input_metadata, data_coding_format, clobber=True)
 
     s111_file.add_feature_instance_group_data(input_data.datetime_values[0], input_data.speed, input_data.direction,
-                                              cycletime, depth)
+                                              cycletime, input_metadata.current_depth)
 
     s111_file.add_positioning(input_data.longitude, input_data.latitude)
     s111_file.add_time_series_metadata(input_data.datetime_values)
