@@ -232,9 +232,6 @@ class S111File:
         self.feature.attrs.create('verticalUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('timeUncertainty', -1.0, dtype=numpy.float32)
 
-        if self.data_coding_format != 1:
-            self.feature.attrs.create('interpolationType', S111Metadata.INTERPOLATION_TYPE, dtype=numpy.int32)
-
         # Add feature instance metadata
         if self.data_coding_format == 2:
             # Width between first two cells, grid spacing is uniform
@@ -439,6 +436,8 @@ class S111File:
 
     def add_model_metadata(self):
         """Model specific metadata"""
+
+        self.feature.attrs.create('interpolationType', S111Metadata.INTERPOLATION_TYPE, dtype=numpy.int32)
 
         # Update attributes after all the value groups have been added, 0-based
         num_feature_instance_groups = len(self.feature_instance_groups) + 1
@@ -650,7 +649,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
                         reg_grid_v = numpy.ma.masked_array(reg_grid_v, model_index_file.var_mask.mask)
 
                         # Convert currents at regular grid points from u/v to speed/direction
-                        direction, speed = model.regular_uv_to_speed_direction(reg_grid_u, reg_grid_v)
+                        speed, direction = model.regular_uv_to_speed_direction(reg_grid_u, reg_grid_v)
 
                         # Apply mask
                         direction = numpy.ma.masked_array(direction, model_index_file.var_mask.mask)
@@ -711,7 +710,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
                             time_index, target_depth)
 
                         # Convert currents at irregular grid points from u/v to speed/direction
-                        direction, speed = model.irregular_uv_to_speed_direction(u_compressed, v_compressed)
+                        speed, direction = model.irregular_uv_to_speed_direction(u_compressed, v_compressed)
 
                         s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed,
                                                                   direction, cycletime, target_depth)
@@ -724,14 +723,14 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
     return s111_file_paths
 
 
-def predictions_to_s111(input_data, s111_path_prefix, input_metadata, data_coding_format):
+def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_coding_format):
     """Convert current predictions to S111 format.
 
     Current predictions at fixed stations.
 
     Args:
-        input_data: ``S111TimeSeries`` instance describing predictions time
-            series data, which includes, 1d 'ndarrays' of latitude, longitude,
+        input_data: ``S111TimeSeries`` instance describing observations or predictions
+            time series data, which includes, 1d 'ndarrays' of latitude, longitude,
             direction and speed.
         s111_path_prefix: Path prefix for desired output location for generated
             S-111 files. If specified path is a directory, file(s) will be
@@ -745,8 +744,6 @@ def predictions_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
         data_coding_format: 1:Time series at fixed stations, 2:Regularly gridded arrays,
             3:Ungeorectified gridded arrays, 4:Time series for one moving platform.
 
-    Returns:
-        List of paths to HDF5 files created.
     """
     cycletime = input_data.datetime_values[0]
 
