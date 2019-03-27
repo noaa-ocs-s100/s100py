@@ -705,11 +705,11 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
                     model_file.open()
                     for time_index in range(len(model_file.datetime_values)):
 
-                        # Call model method and optimize lat/lon and u/v
-                        u_compressed, v_compressed, lat_compressed, lon_compressed = model_file.ungeorectified_grid(
+                        # Get native-grid output with invalid/masked values removed
+                        u_compressed, v_compressed, lat_compressed, lon_compressed = model_file.output_native_grid(
                             time_index, target_depth)
 
-                        # Convert currents at irregular grid points from u/v to speed/direction
+                        # Convert currents from u/v to speed/direction
                         speed, direction = model.irregular_uv_to_speed_direction(u_compressed, v_compressed)
 
                         s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed,
@@ -717,6 +717,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
 
                     s111_file.add_positioning(lon_compressed, lat_compressed)
                     s111_file.add_model_metadata()
+
                 finally:
                     model_file.close()
 
