@@ -214,7 +214,6 @@ class S111File:
         metadata_xml_reference = numpy.string_('MD_{}.XML'.format(os.path.splitext(self.filename)[0]))
 
         # Add carrier metadata
-        self.h5_file.attrs.create('epoch', S111Metadata.EPOCH, dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('depthTypeIndex', S111Metadata.DEPTH_TYPE_INDEX, dtype=numpy.int32)
         self.h5_file.attrs.create('metadata', metadata_xml_reference, dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('horizontalDatumValue', S111Metadata.HORIZONTAL_DATUM_VALUE, dtype=numpy.int32)
@@ -298,8 +297,6 @@ class S111File:
         Args:
             datetime_value: ``datetime.datetime`` instance representing valid time of
                 the nowcast/forecast data being added.
-            lat: ``numpy.ma.masked_array`` representing latitude.
-            lon: ``numpy.ma.masked_array`` representing longitude.
             speed: ``numpy.ma.masked_array`` representing current speed.
             direction: ``numpy.ma.masked_array`` representing current.
             cycletime: ``datetime.datetime`` representing model cycle time.
@@ -340,6 +337,10 @@ class S111File:
             self.feature.attrs.create('minDatasetCurrentSpeed', min_speed, dtype=numpy.float32)
             self.feature.attrs.create('maxDatasetCurrentSpeed', max_speed, dtype=numpy.float32)
 
+            feature_instance_date = int(cycletime.strftime('%Y%m'))
+            epoch = S111Metadata.determine_epoch(feature_instance_date)
+            self.h5_file.attrs.create('epoch', epoch, dtype=h5py.special_dtype(vlen=str))
+
         else:
             # num_groups is 0-based
             num_groups = len(self.feature_instance_groups)
@@ -376,12 +377,12 @@ class S111File:
         values = numpy.zeros(speed.shape, dtype=values_dtype)
         values['surfaceCurrentSpeed'] = speed
         values['surfaceCurrentDirection'] = direction
-        values_dset = feature_group.create_dataset('values', speed.shape, dtype=values_dtype, chunks=True,
-                                                   compression='gzip', compression_opts=9)
+        values_dset = feature_group.create_dataset('values', speed.shape, dtype=values_dtype, chunks=True, compression='gzip', compression_opts=9)
         values_dset[...] = values
 
         # Update depth attribute
-        current_depth = target_depth * -1
+        current_depth = (-abs(target_depth)) + 0
+
         self.h5_file.attrs.create('surfaceCurrentDepth', current_depth, dtype=numpy.float32)
 
         # Update chunking attributes
@@ -390,33 +391,34 @@ class S111File:
         self.groupF_dset.attrs.create('chunking', chunking_str, dtype=h5py.special_dtype(vlen=str))
         self.feature_instance.attrs.create('instanceChunking', numpy.string_(chunking_str))
 
-    def add_positioning(self, lon, lat):
+    def add_positioning(self, longitude, latitude):
         """Add positioning group and data to the S111 file.
 
         Args:
-            lat: ``numpy.ma.masked_array`` representing latitude.
-            lon: ``numpy.ma.masked_array`` representing longitude.
+            longitude: ``numpy.ma.masked_array`` representing longitude.
+            latitude: ``numpy.ma.masked_array`` representing latitude.
         """
 
         # Add longitude/latitude positioning
         geometry_dtype = numpy.dtype([('longitude', numpy.float32), ('latitude', numpy.float32)])
+        dim = len(longitude)
 
         # Create positioning group
         feature_positioning = self.feature_instance.create_group('Positioning')
 
         # Create lon/lat compound dataset
-        geometry = numpy.zeros(lon.shape, dtype=geometry_dtype)
-        geometry['longitude'] = lon
-        geometry['latitude'] = lat
-        geometry_dset = feature_positioning.create_dataset('geometryValues', lon.shape, dtype=geometry_dtype,
+        geometry = numpy.zeros((dim,), dtype=geometry_dtype)
+        geometry['longitude'] = longitude
+        geometry['latitude'] = latitude
+        geometry_dset = feature_positioning.create_dataset('geometryValues', (dim,), dtype=geometry_dtype,
                                                            chunks=True, compression='gzip', compression_opts=9)
         geometry_dset[...] = geometry
 
         # X/Y coordinates are located at the center of each grid cell
-        min_lon = numpy.nanmin(lon)
-        min_lat = numpy.nanmin(lat)
-        max_lon = numpy.nanmax(lon)
-        max_lat = numpy.nanmax(lat)
+        min_lon = numpy.nanmin(longitude)
+        min_lat = numpy.nanmin(latitude)
+        max_lon = numpy.nanmax(longitude)
+        max_lat = numpy.nanmax(latitude)
 
         min_lon = numpy.round(min_lon, 7)
         max_lon = numpy.round(max_lon, 7)
@@ -486,7 +488,6 @@ class S111Metadata:
     """Contains s111 metadata to pass to S111File.
 
     PRODUCT_SPECIFICATION: The product specification used to create this dataset.
-    EPOCH: Code denoting the epoch of the geodetic datum used by the CRS.
     HORIZONTAL_DATUM_REFERENCE: Reference to the register from which the horizontal datum value is taken.
     HORIZONTAL_DATUM_VALUE: Horizontal Datum of the entire dataset.
     DEPTH_TYPE_INDEX: 1:Layer average, 2:Sea surface, 3:Vertical datum, 4:Sea bottom.
@@ -499,7 +500,6 @@ class S111Metadata:
 
     """
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-111.1.0.0')
-    EPOCH = numpy.string_('G1762')
     HORIZONTAL_DATUM_REFERENCE = numpy.string_('EPSG')
     HORIZONTAL_DATUM_VALUE = 4326
     DEPTH_TYPE_INDEX = 2
@@ -538,11 +538,33 @@ class S111Metadata:
         self.station_id = station_id
         self.model_system = model_system
 
+    def determine_epoch(feature_instance_date):
+        """Epoch code of the geodetic datum used by the CRS.
+
+        Args:
+            feature_instance_date: feature datetime object
+        """
+
+        if feature_instance_date < 199406:
+            epoch = 'TRANSIT'
+        elif feature_instance_date < 199706:
+            epoch = 'G730'
+        elif feature_instance_date < 200201:
+            epoch = 'G873'
+        elif feature_instance_date < 201202:
+            epoch = 'G1150'
+        elif feature_instance_date < 201310:
+            epoch = 'G1674'
+        elif feature_instance_date >= 201310:
+            epoch = 'G1762'
+
+        return epoch
+
 
 class S111TimeSeries:
     """Contains prediction time series data to pass to S111File. """
 
-    def __init__(self, latitude, longitude, speed, direction, datetime_values):
+    def __init__(self, longitude, latitude, speed, direction, datetime_values):
         """Initializes S111TimeSeries object.
 
         Args:
@@ -552,8 +574,8 @@ class S111TimeSeries:
             direction: 1d 'numpy.ndarray' containing direction.
             datetime_values: List containing datetime objects.
         """
-        self.latitude = latitude
         self.longitude = longitude
+        self.latitude = latitude
         self.speed = speed
         self.direction = direction
         self.datetime_values = datetime_values
@@ -629,6 +651,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
                     s111_file_paths.append(s111_file.path)
                     stack.enter_context(s111_file)
                     s111_files.append(s111_file)
+
             else:
                 # Output entire domain
                 s111_file = S111File('{}.h5'.format(s111_path_prefix), input_metadata, data_coding_format,
@@ -682,6 +705,8 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
                                             s111_file.add_feature_instance_group_data(
                                                 model_file.datetime_values[time_index], subgrid_speed,
                                                 subgrid_direction, cycletime, target_depth)
+                                            s111_file.add_model_metadata()
+
                                         else:
                                             s111_file.close()
                                             os.remove('{}'.format(s111_file.path))
@@ -691,6 +716,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
                             s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed,
                                                                       direction, cycletime, target_depth)
                             s111_file.add_model_metadata()
+
                 finally:
                     model_file.close()
         finally:
@@ -715,11 +741,11 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
                         s111_file.add_feature_instance_group_data(model_file.datetime_values[time_index], speed,
                                                                   direction, cycletime, target_depth)
 
-                    s111_file.add_positioning(lon_compressed, lat_compressed)
-                    s111_file.add_model_metadata()
-
                 finally:
                     model_file.close()
+
+            s111_file.add_positioning(lon_compressed, lat_compressed)
+            s111_file.add_model_metadata()
 
     return s111_file_paths
 
@@ -730,9 +756,9 @@ def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
     Current predictions at fixed stations.
 
     Args:
-        input_data: ``S111TimeSeries`` instance describing observations or predictions
-            time series data, which includes, 1d 'ndarrays' of latitude, longitude,
-            direction and speed.
+        input_data: List of ``S111TimeSeries`` (or subclasses thereof) instance
+            describing observations or predictions time series data, which includes,
+            1d `ndarrays` of latitude, longitude, direction and speed.
         s111_path_prefix: Path prefix for desired output location for generated
             S-111 files. If specified path is a directory, file(s) will be
             output to specified directory with autogenerated names. Otherwise,
@@ -746,20 +772,38 @@ def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
             3:Ungeorectified gridded arrays, 4:Time series for one moving platform.
 
     """
-    cycletime = input_data.datetime_values[0]
+    timestamp = input_data[0].datetime_values[0]
 
     if os.path.isdir(s111_path_prefix):
         if not s111_path_prefix.endswith('/'):
             s111_path_prefix += '/'
-        file_issuance = datetime.datetime.strftime(cycletime, '%Y%m%dT%H%M%SZ')
+        file_issuance = datetime.datetime.strftime(timestamp, '%Y%m%dT%H%M%SZ')
         s111_path_prefix += (
-            'S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, input_metadata.station_id,
-                                        data_coding_format))
+            'S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, input_metadata.region, data_coding_format))
 
-    s111_file = S111File('{}.h5'.format(s111_path_prefix), input_metadata, data_coding_format, clobber=True)
+        stations_longitude = []
+        stations_latitude = []
 
-    s111_file.add_feature_instance_group_data(input_data.datetime_values[0], input_data.speed, input_data.direction,
-                                              cycletime, input_metadata.current_depth)
+        with S111File('{}.h5'.format(s111_path_prefix), input_metadata, data_coding_format, clobber=True) as s111_file:
 
-    s111_file.add_positioning(input_data.longitude, input_data.latitude)
-    s111_file.add_time_series_metadata(input_data.datetime_values)
+            if data_coding_format == 1:
+                for station in input_data:
+                    s111_file.add_feature_instance_group_data(station.datetime_values[0], station.speed, station.direction, cycletime, input_metadata.current_depth)
+
+                    stations_longitude.append(station.longitude)
+                    stations_latitude.append(station.latitude)
+
+                s111_file.add_positioning(stations_longitude, stations_latitude)
+
+                s111_file.add_time_series_metadata(input_data[0].datetime_values)
+
+            else:
+                for obs in input_data:
+                    s111_file.add_feature_instance_group_data(obs.datetime_values[0], obs.speed,
+                                                              obs.direction, timestamp,
+                                                              input_metadata.current_depth)
+
+                s111_file.add_positioning(obs.longitude, obs.latitude)
+
+                s111_file.add_time_series_metadata(input_data[0].datetime_values)
+
