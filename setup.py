@@ -11,7 +11,7 @@ with open(os.path.join(HERE, 'README.rst'), encoding='utf-8') as f:
 
 setuptools.setup(
     name='s100py',
-    version='0.1.0',
+    version='0.2.0',
     license='',
     author='Erin Nagel, Jason Greenlaw',
     author_email='erin.nagel@noaa.gov, jason.greenlaw@noaa.gov',
@@ -19,7 +19,7 @@ setuptools.setup(
     long_description=long_description,
     url='',
     packages=setuptools.find_packages(),
-    install_requires=['h5py', 'numpy', 'thyme'],
+    install_requires=['h5py', 'numpy', 'thyme(>=0.2.0)'],
     classifiers=[
         'Programming Language :: Python :: 3',
         'Intended Audience :: Science/Research',
