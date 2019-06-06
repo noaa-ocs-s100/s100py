@@ -324,7 +324,6 @@ class S111File:
         if len(self.feature_instance_groups) == 0:
             self.feature.attrs.create('numInstances', len(self.feature_instance), dtype=numpy.int32)
             feature_group = self.feature_instance.create_group('Group_001')
-            print('Creating', 'Group_001', 'dataset.')
 
             # Time attributes updated once
             issuance_time = cycletime.strftime('%H%M%SZ')
@@ -344,9 +343,8 @@ class S111File:
         else:
             # num_groups is 0-based
             num_groups = len(self.feature_instance_groups)
-            new_group = num_groups + 1
-            feature_group = self.feature_instance.create_group('Group_{:03d}'.format(new_group))
-            print('Creating', 'Group_{:03d}'.format(new_group), 'dataset.')
+            add_group = num_groups + 1
+            feature_group = self.feature_instance.create_group('Group_{:03d}'.format(add_group))
             self.feature_instance.attrs.modify('dateTimeOfLastRecord', numpy.string_(time_str))
 
             # Update speed attributes each time data is added
@@ -452,9 +450,8 @@ class S111File:
             second_time = datetime.datetime.strptime(
                 (self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_002'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
 
-            interval = second_time - first_time
-            time_interval = interval.total_seconds()
-            self.feature_instance.attrs.create('timeRecordInterval', time_interval, dtype=numpy.int32)
+            time_interval_secs = (second_time - first_time).total_seconds()
+            self.feature_instance.attrs.create('timeRecordInterval', time_interval_secs, dtype=numpy.int32)
 
         if self.data_coding_format == 3:
             nodes = self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001/values']
