@@ -579,7 +579,7 @@ class S111TimeSeries:
 
 
 def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, input_metadata, data_coding_format):
-    """Convert NetCDF model to regular grid in S111 format.
+    """Convert NetCDF hydrodynamic model to S111 format.
 
     If the supplied model index NetCDF contains information identifying
     subgrids, one S111 file will be generated for each subgrid. Otherwise,
@@ -748,9 +748,9 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
 
 
 def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_coding_format):
-    """Convert current predictions to S111 format.
+    """Convert oceanographic time series data to S111 format.
 
-    Current predictions at fixed stations.
+    Current observations and predictions at fixed or moving stations.
 
     Args:
         input_data: List of ``S111TimeSeries`` (or subclasses thereof) instance
