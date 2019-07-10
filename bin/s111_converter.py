@@ -40,7 +40,6 @@ class S111Converter:
             with h5py.File(file, 'r') as h5_file:
                 # Read S111 HDF5 feature instance, attributes and values
                 feature_instance = h5_file['/SurfaceCurrent/SurfaceCurrent.01/']
-                print(feature_instance.attrs)
                 num_grp = feature_instance.attrs['numGRP']
                 split_path = os.path.split(file)
                 filename = os.path.splitext(split_path[1])
