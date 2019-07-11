@@ -25,28 +25,23 @@ The initial focus of this package is on two of the S-100 encoding formats:
 
 However, support for additional formats will likely be added in the future.
 
-**S-111 Data Types**
-
-    1 - Time series data at one or more fixed stations
-
-    2 - Regularly-gridded data at one or more times
-
-    3 - Ungeorectified gridded data or point set data at one or more times
-
-    4 - Time series data for one moving platform
-
 For further information about S-100 formats, see the
 `IHO website <http://s100.iho.int/S100/>`_.
 
 Features
 ========
 - Create and modify S-111 compliant HDF5 files in all four data coding formats:
+
   1. Time-series at fixed station
+
   2. Regularly-gridded arrays
+
   3. Ungeorectified gridded arrays (i.e. irregular grid)
+
   4. Time series for moving platform
+
 - Chop output into multiple subgrids (i.e. tiles), each written to a distinct
-  S-111 file, in order to minimize file sizes
+  S-111 file, to reduce file sizes
 - Create and modify HDF5 S-100/S-111 metadata
 
 
@@ -62,46 +57,23 @@ packages:
 
 Example Usage
 =============
-To create an S-111 regular grid (Type 2) file from the NOS Chesapeake Bay
-Operational Forecast System file valid at 7/9/2019 0000 UTC:
-
-.. code-block:: python
-
-    import datetime
-    from s100py import s111
-    from thyme.model import roms
-    data_coding_format = 2
-    file_metadata = s111.S111Metadata(
-            "Chesapeake Bay",
-            "ROMS",
-            data_coding_format,
-            "US",
-            4.5,
-            None,
-            "CBOFS")
-    native_model_file = roms.ROMSFile('/path/to/cbofs_file.nc')
-    model_index_file = roms.ROMSIndexFile('/path/to/cbofs_index_file.nc')
-    s111.model_to_s111(
-            model_index_file,
-            [native_model_file],
-            '/path/to/s111_directory',
-            datetime.datetime(2019,7,8,0,0),
-            file_metadata,
-            data_coding_format)
-
-To create an S-111 file containing moving platform (Type 4) real-time
-observation data:
+**Create an S-111 File (Type 1):**
 
 .. code-block:: python
 
     from s100py import s111
+
+    data_coding_format = 1
+
     file_metadata = s111.S111Metadata(
-            "Gulf of Mexico",
-            "Moving Platform",
-            2, # 2 = Real-time observation
-            "US",
+            "Gulf of Mexico", # region
+            "harmonic_current_predictions", # product description
+            3, # current type code for astronomical prediction
+            "US", # producer code
             0, # meters below sea surface (0 = at/near surface)
-            "station1234")
+            "station1234", # station id
+            None) # model identifier
+
     input_data = []
     input_data.append(
         s111.S111TimeSeries(
@@ -110,11 +82,107 @@ observation data:
                 speed, # 1D `numpy.ndarray` containing speed values in knots
                 direction, # 1D `numpy.ndarray` containing Direction values in arc-degrees
                 datetime_values)) # List containing a `datetime.datetime` for each observation in the series
+
     s111.time_series_to_s111(
             input_data,
             '/path/to/s111_directory',
             file_metadata,
-            4) # 4 = Time series for moving Platform
+            data_coding_format)
+
+**Create an S-111 File (Type 2)**
+
+NOS Chesapeake Bay Operational Forecast System file valid at 7/9/2019 0000 UTC:
+
+.. code-block:: python
+
+    import datetime
+    from s100py import s111
+    from thyme.model import roms
+
+    data_coding_format = 2
+
+    file_metadata = s111.S111Metadata(
+            "Chesapeake Bay", # region
+            "ROMS_Hydrodynamic_Model_Forecasts", # product type description
+            6, # current data type for hydrodynamic forecast
+            "US", # producer code
+            4.5, # meters below sea surface (0 = at/near surface)
+            None, # station id
+            "CBOFS") # model identifier
+
+    native_model_file = roms.ROMSFile('/path/to/cbofs_file.nc')
+    model_index_file = roms.ROMSIndexFile('/path/to/cbofs_index_file.nc')
+
+    s111.model_to_s111(
+            model_index_file,
+            [native_model_file],
+            '/path/to/s111_directory',
+            datetime.datetime(2019,7,9,0,0),
+            file_metadata,
+            data_coding_format)
+
+**Create an S-111 File (Type 3)**
+
+NOS Chesapeake Bay Operational Forecast System file valid at 7/9/2019 0000 UTC:
+
+.. code-block:: python
+
+    import datetime
+    from s100py import s111
+    from thyme.model import roms
+
+    data_coding_format = 3
+
+    file_metadata = s111.S111Metadata(
+            "Chesapeake Bay", # region
+            "ROMS_Hydrodynamic_Model_Forecasts", # product type description
+            6, # current data type for hydrodynamic forecast
+            "US", # producer code
+            4.5, # meters below sea surface (0 = at/near surface)
+            None, # station id
+            "CBOFS") # model identifier
+
+    native_model_file = roms.ROMSFile('/path/to/cbofs_file.nc')
+
+    s111.model_to_s111(
+            None,
+            [native_model_file],
+            '/path/to/s111_directory',
+            datetime.datetime(2019,7,9,0,0),
+            file_metadata,
+            data_coding_format)
+
+**Create an S-111 file (Type 4):**
+
+.. code-block:: python
+
+    from s100py import s111
+
+    data_coding_format = 4
+
+    file_metadata = s111.S111Metadata(
+            "Western_N_Pacific_Ocean_Philippine_Sea", # region
+            "argos_lagrangian_drifter_12hr_interpolated", # product type description
+            4, # current type code for analysis or hybrid method
+            "US", # producer code
+            15, # meters below sea surface (0 = at/near surface)
+            None, # station id
+            None) # model identifier
+
+    input_data = []
+    input_data.append(
+        s111.S111TimeSeries(
+                longitude, # 1D `numpy.ndarray` containing longitude values
+                latitude, # 1D `numpy.ndarray` containing latitude values
+                speed, # 1D `numpy.ndarray` containing speed values in knots
+                direction, # 1D `numpy.ndarray` containing Direction values in arc-degrees
+                datetime_values)) # List containing a `datetime.datetime` for each observation in the series
+
+    s111.time_series_to_s111(
+            input_data,
+            '/path/to/s111_directory',
+            file_metadata,
+            data_coding_format)
 
 Authors
 =======
