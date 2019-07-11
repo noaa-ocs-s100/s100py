@@ -25,6 +25,16 @@ The initial focus of this package is on two of the S-100 encoding formats:
 
 However, support for additional formats will likely be added in the future.
 
+**S-111 Data Types**
+
+    1 - Time series data at one or more fixed stations
+
+    2 - Regularly-gridded data at one or more times
+
+    3 - Ungeorectified gridded data or point set data at one or more times
+
+    4 - Time series data for one moving platform
+
 For further information about S-100 formats, see the
 `IHO website <http://s100.iho.int/S100/>`_.
 
