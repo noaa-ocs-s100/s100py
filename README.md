@@ -62,7 +62,7 @@ Example Usage
 
 **Create an S-111 File (Type 1):**
 
-``` {.python}
+```python
 from s100py import s111
 
 data_coding_format = 1
@@ -100,7 +100,7 @@ s111.time_series_to_s111(
 NOS Chesapeake Bay Operational Forecast System file valid at 7/9/2019
 0000 UTC:
 
-``` {.python}
+```python
 import datetime
 from s100py import s111
 from thyme.model import roms
@@ -145,7 +145,7 @@ s111.model_to_s111(
 NOS Chesapeake Bay Operational Forecast System file valid at 7/9/2019
 0000 UTC:
 
-``` {.python}
+```python
 import datetime
 from s100py import s111
 from thyme.model import roms
@@ -177,7 +177,7 @@ s111.model_to_s111(
 ```
 **Create an S-111 file (Type 4):**
 
-``` {.python}
+```python
 from s100py import s111
 
 data_coding_format = 4
