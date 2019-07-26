@@ -214,18 +214,18 @@ class S111File:
         metadata_xml_reference = numpy.string_('MD_{}.XML'.format(os.path.splitext(self.filename)[0]))
 
         # Add carrier metadata
-        self.h5_file.attrs.create('depthTypeIndex', S111Metadata.DEPTH_TYPE_INDEX, dtype=numpy.int32)
+        self.h5_file.attrs.create('depthTypeIndex', self.input_metadata.DEPTH_TYPE_INDEX, dtype=numpy.int32)
         self.h5_file.attrs.create('metadata', metadata_xml_reference, dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('horizontalDatumValue', S111Metadata.HORIZONTAL_DATUM_VALUE, dtype=numpy.int32)
+        self.h5_file.attrs.create('horizontalDatumValue', self.input_metadata.HORIZONTAL_DATUM_VALUE, dtype=numpy.int32)
         self.h5_file.attrs.create('geographicIdentifier', self.input_metadata.region, dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('productSpecification', S111Metadata.PRODUCT_SPECIFICATION, dtype=h5py.special_dtype(vlen=str))
-        self.h5_file.attrs.create('horizontalDatumReference', S111Metadata.HORIZONTAL_DATUM_REFERENCE, dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('productSpecification', self.input_metadata.PRODUCT_SPECIFICATION, dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('horizontalDatumReference', self.input_metadata.HORIZONTAL_DATUM_REFERENCE, dtype=h5py.special_dtype(vlen=str))
 
         # Add feature container metadata
         self.feature.attrs.create('methodCurrentsProduct', self.input_metadata.product, dtype=h5py.special_dtype(vlen=str))
-        self.feature.attrs.create('dimension', S111Metadata.DIMENSION, dtype=numpy.int32)
+        self.feature.attrs.create('dimension', self.input_metadata.DIMENSION, dtype=numpy.int32)
         self.feature.attrs.create('dataCodingFormat', self.data_coding_format, dtype=numpy.int32)
-        self.feature.attrs.create('commonPointRule', S111Metadata.COMMON_POINT_RULE, dtype=numpy.int32)
+        self.feature.attrs.create('commonPointRule', self.input_metadata.COMMON_POINT_RULE, dtype=numpy.int32)
         self.feature.attrs.create('typeOfCurrentData', self.input_metadata.current_datatype, dtype=numpy.int32)
         self.feature.attrs.create('horizontalPositionUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('verticalUncertainty', -1.0, dtype=numpy.float32)
@@ -271,11 +271,11 @@ class S111File:
             self.h5_file.attrs.create('northBoundLatitude', max_lat, dtype=numpy.float32)
 
             # Add feature container metadata
-            self.feature.attrs.create('sequencingRule.scanDirection', S111Metadata.SEQUENCING_RULE_SCAN_DIRECTION, dtype=h5py.special_dtype(vlen=str))
-            self.feature.attrs.create('sequencingRule.type', S111Metadata.SEQUENCING_RULE_TYPE, dtype=numpy.int32)
+            self.feature.attrs.create('sequencingRule.scanDirection', self.input_metadata.SEQUENCING_RULE_SCAN_DIRECTION, dtype=h5py.special_dtype(vlen=str))
+            self.feature.attrs.create('sequencingRule.type', self.input_metadata.SEQUENCING_RULE_TYPE, dtype=numpy.int32)
 
             # Add feature instance metadata
-            self.feature_instance.attrs.create('startSequence', S111Metadata.START_SEQUENCE, dtype=h5py.special_dtype(vlen=str))
+            self.feature_instance.attrs.create('startSequence', self.input_metadata.START_SEQUENCE, dtype=h5py.special_dtype(vlen=str))
             self.feature_instance.attrs.create('gridOriginLongitude', min_lon, dtype=numpy.float32)
             self.feature_instance.attrs.create('gridOriginLatitude', min_lat, dtype=numpy.float32)
             self.feature_instance.attrs.create('gridSpacingLongitudinal', cellsize_x, dtype=numpy.float32)
@@ -332,12 +332,27 @@ class S111File:
             self.h5_file.attrs.create('issueDate', numpy.string_(issuance_date), dtype=h5py.special_dtype(vlen=str))
             self.feature_instance.attrs.create('dateTimeOfFirstRecord', numpy.string_(time_str), dtype=h5py.special_dtype(vlen=str))
             self.feature_instance.attrs.create('dateTimeOfLastRecord', numpy.string_(time_str), dtype=h5py.special_dtype(vlen=str))
+            self.feature_instance.attrs.create('timeRecordInterval', 0, dtype=numpy.int32)
+
             # Add initial speed attributes
             self.feature.attrs.create('minDatasetCurrentSpeed', min_speed, dtype=numpy.float32)
             self.feature.attrs.create('maxDatasetCurrentSpeed', max_speed, dtype=numpy.float32)
 
             feature_instance_date = int(cycletime.strftime('%Y%m'))
-            epoch = S111Metadata.determine_epoch(feature_instance_date)
+
+            if feature_instance_date < 199406:
+                epoch = 'TRANSIT'
+            elif feature_instance_date < 199706:
+                epoch = 'G730'
+            elif feature_instance_date < 200201:
+                epoch = 'G873'
+            elif feature_instance_date < 201202:
+                epoch = 'G1150'
+            elif feature_instance_date < 201310:
+                epoch = 'G1674'
+            elif feature_instance_date >= 201310:
+                epoch = 'G1762'
+
             self.h5_file.attrs.create('epoch', epoch, dtype=h5py.special_dtype(vlen=str))
 
         else:
@@ -437,7 +452,7 @@ class S111File:
     def add_model_metadata(self):
         """Model specific metadata"""
 
-        self.feature.attrs.create('interpolationType', S111Metadata.INTERPOLATION_TYPE, dtype=numpy.int32)
+        self.feature.attrs.create('interpolationType', self.input_metadata.INTERPOLATION_TYPE, dtype=numpy.int32)
 
         # Update attributes after all the value groups have been added, 0-based
         num_feature_instance_groups = len(self.feature_instance_groups) + 1
@@ -451,7 +466,7 @@ class S111File:
                 (self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_002'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
 
             time_interval_secs = (second_time - first_time).total_seconds()
-            self.feature_instance.attrs.create('timeRecordInterval', time_interval_secs, dtype=numpy.int32)
+            self.feature_instance.attrs.modify('timeRecordInterval', time_interval_secs)
 
         if self.data_coding_format == 3:
             nodes = self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001/values']
@@ -507,7 +522,7 @@ class S111Metadata:
     SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
 
-    def __init__(self, region, product, current_datatype, producer_code, current_depth, station_id=None, model_system=None):
+    def __init__(self, region, product, current_datatype, producer_code, station_id=None, model_system=None):
         """Initializes S111Metadata object.
 
         Args:
@@ -521,41 +536,16 @@ class S111Metadata:
                               5: Hydrodynamic model hindcast (M)
                               6: Hydrodynamic model forecast (F)
             producer_code: Two-character hydrographic office producer code.
-            current_depth: The water current at a specified target depth below
-                the sea surface in meters.
             station_id: (Optional, default None) Station identifier.
             model_system:(Optional, default None) Ocean model system
                 identifier (e.g. "cbofs").
         """
-        self.region = numpy.string_(region)
-        self.product = numpy.string_(product)
-        self.current_datatype = int(current_datatype)
+        self.region = region
+        self.product = product
+        self.current_datatype = current_datatype
         self.producer_code = producer_code
-        self.current_depth = current_depth
         self.station_id = station_id
         self.model_system = model_system
-
-    def determine_epoch(feature_instance_date):
-        """Epoch code of the geodetic datum used by the CRS.
-
-        Args:
-            feature_instance_date: feature datetime object
-        """
-
-        if feature_instance_date < 199406:
-            epoch = 'TRANSIT'
-        elif feature_instance_date < 199706:
-            epoch = 'G730'
-        elif feature_instance_date < 200201:
-            epoch = 'G873'
-        elif feature_instance_date < 201202:
-            epoch = 'G1150'
-        elif feature_instance_date < 201310:
-            epoch = 'G1674'
-        elif feature_instance_date >= 201310:
-            epoch = 'G1762'
-
-        return epoch
 
 
 class S111TimeSeries:
@@ -578,7 +568,7 @@ class S111TimeSeries:
         self.datetime_values = datetime_values
 
 
-def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, input_metadata, data_coding_format):
+def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, input_metadata, data_coding_format, target_depth):
     """Convert NetCDF hydrodynamic model to S111 format.
 
     If the supplied model index NetCDF contains information identifying
@@ -603,9 +593,11 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
             time of model forecast(s) being processed.
         input_metadata: ``S111Metadata`` instance describing metadata for
             geographic identifier and description of current meter type,
-            forecast method, model identifier or current depth.
+            forecast method, or model identifier.
         data_coding_format: 1:Time series at fixed stations, 2:Regularly gridded arrays,
             3:Ungeorectified gridded arrays, 4:Time series for one moving platform.
+        target_depth: The water current at a specified target depth below the sea
+            surface in meters.
 
     Returns:
         List of paths to HDF5 files created.
@@ -619,10 +611,9 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
             'S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance,
                                         str.upper(input_metadata.model_system), data_coding_format))
 
-    if input_metadata.current_depth is None:
+    # model_to_s111 requires a target.
+    if target_depth is None:
         target_depth = DEFAULT_TARGET_DEPTH
-    else:
-        target_depth = input_metadata.current_depth
 
     s111_file_paths = []
 
@@ -747,7 +738,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
     return s111_file_paths
 
 
-def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_coding_format):
+def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_coding_format, current_depth):
     """Convert oceanographic time series data to S111 format.
 
     Current observations and predictions at fixed or moving stations.
@@ -767,6 +758,8 @@ def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
             forecast method, or station identifier (e.g. "cb0201").
         data_coding_format: 1:Time series at fixed stations, 2:Regularly gridded arrays,
             3:Ungeorectified gridded arrays, 4:Time series for one moving platform.
+        current_depth: The water current at a specified target depth below
+            the sea surface in meters.
 
     """
     timestamp = input_data[0].datetime_values[0]
@@ -785,7 +778,8 @@ def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
 
             if data_coding_format == 1:
                 for station in input_data:
-                    s111_file.add_feature_instance_group_data(station.datetime_values[0], station.speed, station.direction, cycletime, input_metadata.current_depth)
+                    s111_file.add_feature_instance_group_data(station.datetime_values[0], station.speed,
+                                                              station.direction, timestamp, current_depth)
 
                     stations_longitude.append(station.longitude)
                     stations_latitude.append(station.latitude)
@@ -796,9 +790,7 @@ def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
 
             else:
                 for obs in input_data:
-                    s111_file.add_feature_instance_group_data(obs.datetime_values[0], obs.speed,
-                                                              obs.direction, timestamp,
-                                                              input_metadata.current_depth)
+                    s111_file.add_feature_instance_group_data(obs.datetime_values[0], obs.speed, obs.direction, timestamp, current_depth)
 
                 s111_file.add_positioning(obs.longitude, obs.latitude)
 
