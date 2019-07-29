@@ -57,6 +57,19 @@ packages:
 -   numpy
 -   [thyme](https://github.com/noaa-ocs-modeling/thyme)
 
+Installation
+------------
+
+This package relies on [thyme](https://github.com/noaa-ocs-modeling/thyme),
+which may require downloading/compiling additional libraries before
+installation. See the `thyme` documentation for install instructions.
+
+After `thyme` has been installed, s100py can be installed with `pip`:
+
+```python
+pip install s100py
+```
+
 Example Usage
 -------------
 
