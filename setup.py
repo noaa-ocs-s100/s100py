@@ -17,7 +17,7 @@ setuptools.setup(
     author_email='erin.nagel@noaa.gov, jason.greenlaw@noaa.gov',
     description='This python package provides utilities for encoding hydrographic datasets in the International Hydrographic Organization (IHO) S-100 format',
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type='text/markdown',
     url='https://github.com/noaa-ocs-s100/s100py',
     packages=setuptools.find_packages(),
     install_requires=['thyme(>=0.3.3)', 'numpy', 'h5py'],
