@@ -215,7 +215,7 @@ input_data = [s111.S111TimeSeries(
             datetime_values)]  # List containing a `datetime.datetime` for each observation in the series
 
 s111.time_series_to_s111(
-        [input_data],
+        input_data,
         '/path/to/s111_directory',
         file_metadata,
         data_coding_format,
