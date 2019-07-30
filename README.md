@@ -61,12 +61,15 @@ Installation
 ------------
 
 This package relies on [thyme](https://github.com/noaa-ocs-modeling/thyme),
-which may require downloading/compiling additional libraries before
-installation. See the `thyme` documentation for install instructions.
+which requires the GDAL Python bindings be present, so it usually can\'t 
+just be installed using `pip install gdal`. We recommend installing GDAL 
+either through a package manager (e.g. `conda`, `apt`, `yum`, `pacman`) 
+or by compiling from scratch. [Miniconda](https://docs.conda.io/en/latest/miniconda.html) 
+is probably the easiest method.
 
-After `thyme` has been installed, s100py can be installed with `pip`:
+Once `gdal` has been installed, s100py can be installed using `pip`:
 
-```python
+```bash
 pip install s100py
 ```
 
@@ -91,14 +94,12 @@ file_metadata = s111.S111Metadata(
         "station1234",  # station id
         None)  # model identifier
 
-input_data = []
-input_data.append(
-    s111.S111TimeSeries(
+input_data = [s111.S111TimeSeries(
             longitude,  # 1D `numpy.ndarray` containing longitude values
             latitude,  # 1D `numpy.ndarray` containing latitude values
             speed,  # 1D `numpy.ndarray` containing speed values in knots
             direction,  # 1D `numpy.ndarray` containing Direction values in arc-degrees
-            datetime_values))  # List containing a `datetime.datetime` for each observation in the series
+            datetime_values)]  # List containing a `datetime.datetime` for each observation in the series
 
 s111.time_series_to_s111(
         input_data,
@@ -206,17 +207,15 @@ file_metadata = s111.S111Metadata(
         None,  # station id
         None)  # model identifier
 
-input_data = []
-input_data.append(
-    s111.S111TimeSeries(
+input_data = [s111.S111TimeSeries(
             longitude,  # 1D `numpy.ndarray` containing longitude values
             latitude,  # 1D `numpy.ndarray` containing latitude values
             speed,  # 1D `numpy.ndarray` containing speed values in knots
             direction,  # 1D `numpy.ndarray` containing Direction values in arc-degrees
-            datetime_values))  # List containing a `datetime.datetime` for each observation in the series
+            datetime_values)]  # List containing a `datetime.datetime` for each observation in the series
 
 s111.time_series_to_s111(
-        input_data,
+        [input_data],
         '/path/to/s111_directory',
         file_metadata,
         data_coding_format,
