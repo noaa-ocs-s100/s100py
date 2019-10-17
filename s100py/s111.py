@@ -519,7 +519,7 @@ class S111Metadata:
     HORIZONTAL_DATUM_VALUE = 4326
     DEPTH_TYPE_INDEX = 2
     INTERPOLATION_TYPE = 10
-    COMMON_POINT_RULE = 4
+    COMMON_POINT_RULE = 3
     SEQUENCING_RULE_TYPE = 1
     SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
