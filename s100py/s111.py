@@ -223,7 +223,6 @@ class S111File:
 
         # Add feature container metadata
         self.feature.attrs.create('methodCurrentsProduct', self.input_metadata.product, dtype=h5py.special_dtype(vlen=str))
-        self.feature.attrs.create('dimension', self.input_metadata.DIMENSION, dtype=numpy.int32)
         self.feature.attrs.create('dataCodingFormat', self.data_coding_format, dtype=numpy.int32)
         self.feature.attrs.create('commonPointRule', self.input_metadata.COMMON_POINT_RULE, dtype=numpy.int32)
         self.feature.attrs.create('typeOfCurrentData', self.input_metadata.current_datatype, dtype=numpy.int32)
@@ -231,8 +230,8 @@ class S111File:
         self.feature.attrs.create('verticalUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('timeUncertainty', -1.0, dtype=numpy.float32)
 
-        # Add feature instance metadata
         if self.data_coding_format == 2:
+
             # Width between first two cells, grid spacing is uniform
             cellsize_x = self.model_index.var_x[1] - self.model_index.var_x[0]
             cellsize_y = self.model_index.var_y[1] - self.model_index.var_y[0]
@@ -273,6 +272,7 @@ class S111File:
             # Add feature container metadata
             self.feature.attrs.create('sequencingRule.scanDirection', self.input_metadata.SEQUENCING_RULE_SCAN_DIRECTION, dtype=h5py.special_dtype(vlen=str))
             self.feature.attrs.create('sequencingRule.type', self.input_metadata.SEQUENCING_RULE_TYPE, dtype=numpy.int32)
+            self.feature.attrs.create('dimension', 2, dtype=numpy.int32)
 
             # Add feature instance metadata
             self.feature_instance.attrs.create('startSequence', self.input_metadata.START_SEQUENCE, dtype=h5py.special_dtype(vlen=str))
@@ -443,6 +443,8 @@ class S111File:
         self.h5_file.attrs.create('eastBoundLongitude', max_lon, dtype=numpy.float32)
         self.h5_file.attrs.create('southBoundLatitude', min_lat, dtype=numpy.float32)
         self.h5_file.attrs.create('northBoundLatitude', max_lat, dtype=numpy.float32)
+        # Update feature container metadata
+        self.feature.attrs.create('dimension', 1, dtype=numpy.int32)
         # Update feature instance metadata
         self.feature_instance.attrs.create('westBoundLongitude', min_lon, dtype=numpy.float32)
         self.feature_instance.attrs.create('eastBoundLongitude', max_lon, dtype=numpy.float32)
@@ -452,6 +454,7 @@ class S111File:
     def add_model_metadata(self):
         """Model specific metadata"""
 
+        # Update feature container metadata
         self.feature.attrs.create('interpolationType', self.input_metadata.INTERPOLATION_TYPE, dtype=numpy.int32)
 
         # Update attributes after all the value groups have been added, 0-based
@@ -517,7 +520,6 @@ class S111Metadata:
     DEPTH_TYPE_INDEX = 2
     INTERPOLATION_TYPE = 10
     COMMON_POINT_RULE = 4
-    DIMENSION = 2
     SEQUENCING_RULE_TYPE = 1
     SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
