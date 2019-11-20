@@ -271,8 +271,7 @@ class S111File:
 
             # Add feature container metadata
             self.feature.attrs.create('sequencingRule.scanDirection', self.input_metadata.SEQUENCING_RULE_SCAN_DIRECTION, dtype=h5py.special_dtype(vlen=str))
-            self.feature.attrs.create('sequencingRule.type', self.input_metadata.SEQUENCING_RULE_TYPE['linear'], dtype=h5py.special_dtype(enum=(numpy.int, self.input_metadata.SEQUENCING_RULE_TYPE)))
-            self.feature.attrs.create('dimension', 2, dtype=numpy.int32)
+            self.feature.attrs.create('sequencingRule.type', self.input_metadata.SEQUENCING_RULE_TYPE['linear'], dtype=h5py.special_dtype(enum=(numpy.uint8, self.input_metadata.SEQUENCING_RULE_TYPE)))
 
             # Add feature instance metadata
             self.feature_instance.attrs.create('startSequence', self.input_metadata.START_SEQUENCE, dtype=h5py.special_dtype(vlen=str))
@@ -389,9 +388,10 @@ class S111File:
         values_dset = feature_group.create_dataset('values', speed.shape, dtype=values_dtype, chunks=True, compression='gzip', compression_opts=9)
         values_dset[...] = values
 
+        self.feature.attrs.create('dimension', speed.ndim, dtype=numpy.uint8)
+
         # Update depth attribute
         current_depth = (-abs(target_depth)) + 0
-
         self.h5_file.attrs.create('surfaceCurrentDepth', current_depth, dtype=numpy.float32)
 
         # Update chunking attributes
@@ -435,6 +435,7 @@ class S111File:
         max_lat = numpy.round(max_lat, 7)
 
         # Update carrier metadata
+        self.feature.attrs.create('dimension', latitude.ndim, dtype=numpy.uint8)
         self.h5_file.attrs.create('westBoundLongitude', min_lon, dtype=numpy.float32)
         self.h5_file.attrs.create('eastBoundLongitude', max_lon, dtype=numpy.float32)
         self.h5_file.attrs.create('southBoundLatitude', min_lat, dtype=numpy.float32)
