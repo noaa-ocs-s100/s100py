@@ -458,7 +458,7 @@ class S111File:
         self.feature_instance.attrs.create('numGRP', num_feature_instance_groups, dtype=numpy.int32)
         self.feature_instance.attrs.create('numberOfTimes', num_feature_instance_groups, dtype=numpy.int32)
 
-        if self.h5_file.__contains__('/SurfaceCurrent/SurfaceCurrent.01/Group_003'):
+        if self.h5_file.__contains__('/SurfaceCurrent/SurfaceCurrent.01/Group_002'):
             first_time = datetime.datetime.strptime(
                 (self.h5_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
             second_time = datetime.datetime.strptime(
