@@ -435,13 +435,13 @@ class S111File:
         max_lat = numpy.round(max_lat, 7)
 
         # Update carrier metadata
-        self.feature.attrs.create('dimension', latitude.ndim, dtype=numpy.uint8)
+
         self.h5_file.attrs.create('westBoundLongitude', min_lon, dtype=numpy.float32)
         self.h5_file.attrs.create('eastBoundLongitude', max_lon, dtype=numpy.float32)
         self.h5_file.attrs.create('southBoundLatitude', min_lat, dtype=numpy.float32)
         self.h5_file.attrs.create('northBoundLatitude', max_lat, dtype=numpy.float32)
         # Update feature container metadata
-        self.feature.attrs.create('dimension', 1, dtype=numpy.int32)
+        self.feature.attrs.create('dimension', latitude.ndim, dtype=numpy.uint8)
         # Update feature instance metadata
         self.feature_instance.attrs.create('westBoundLongitude', min_lon, dtype=numpy.float32)
         self.feature_instance.attrs.create('eastBoundLongitude', max_lon, dtype=numpy.float32)
