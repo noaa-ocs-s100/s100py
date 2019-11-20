@@ -326,10 +326,6 @@ class S111File:
             feature_group = self.feature_instance.create_group('Group_001')
 
             # Time attributes updated once
-            issuance_time = cycletime.strftime('%H%M%SZ')
-            issuance_date = cycletime.strftime('%Y%m%d')
-            self.h5_file.attrs.create('issueTime', numpy.string_(issuance_time), dtype=h5py.special_dtype(vlen=str))
-            self.h5_file.attrs.create('issueDate', numpy.string_(issuance_date), dtype=h5py.special_dtype(vlen=str))
             self.feature_instance.attrs.create('dateTimeOfFirstRecord', numpy.string_(time_str), dtype=h5py.special_dtype(vlen=str))
             self.feature_instance.attrs.create('dateTimeOfLastRecord', numpy.string_(time_str), dtype=h5py.special_dtype(vlen=str))
             self.feature_instance.attrs.create('timeRecordInterval', 0, dtype=numpy.int32)
@@ -476,6 +472,13 @@ class S111File:
             num_nodes = nodes.shape[0]
             self.feature_instance.attrs.create('numberOfNodes', num_nodes, dtype=numpy.int32)
 
+        now = datetime.datetime.now()
+        issuance_time = now.strftime('%H%M%SZ')
+        issuance_date = now.strftime('%Y%m%d')
+
+        self.h5_file.attrs.create('issueTime', numpy.string_(issuance_time), dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('issueDate', numpy.string_(issuance_date), dtype=h5py.special_dtype(vlen=str))
+
     def add_time_series_metadata(self, datetime_values):
         """Time series specific metadata
 
@@ -497,6 +500,13 @@ class S111File:
         self.feature_instance.attrs.create('timeRecordInterval', time_interval, dtype=numpy.int32)
         self.feature_instance.attrs.create('numberOfTimes', num_times, dtype=numpy.int32)
         self.feature_instance.attrs.create('numberOfStations', num_feature_instance_groups, dtype=numpy.int32)
+
+        now = datetime.datetime.now()
+        issuance_time = now.strftime('%H%M%SZ')
+        issuance_date = now.strftime('%Y%m%d')
+
+        self.h5_file.attrs.create('issueTime', numpy.string_(issuance_time), dtype=h5py.special_dtype(vlen=str))
+        self.h5_file.attrs.create('issueDate', numpy.string_(issuance_date), dtype=h5py.special_dtype(vlen=str))
 
 
 class S111Metadata:
@@ -609,6 +619,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
         if not s111_path_prefix.endswith('/'):
             s111_path_prefix += '/'
         file_issuance = cycletime.strftime('%Y%m%dT%HZ')
+
         s111_path_prefix += (
             'S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance,
                                         str.upper(input_metadata.model_system), data_coding_format))
@@ -709,6 +720,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
 
                 finally:
                     model_file.close()
+
         finally:
             model_index_file.close()
 
@@ -797,4 +809,3 @@ def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
                 s111_file.add_positioning(obs.longitude, obs.latitude)
 
                 s111_file.add_time_series_metadata(input_data[0].datetime_values)
-
