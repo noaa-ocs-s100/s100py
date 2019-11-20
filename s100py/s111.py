@@ -214,7 +214,7 @@ class S111File:
         metadata_xml_reference = numpy.string_('MD_{}.XML'.format(os.path.splitext(self.filename)[0]))
 
         # Add carrier metadata
-        self.h5_file.attrs.create('depthTypeIndex', self.input_metadata.DEPTH_TYPE_INDEX, dtype=numpy.int32)
+        self.h5_file.attrs.create('depthTypeIndex', self.input_metadata.DEPTH_TYPE_INDEX['Sea surface'], dtype=h5py.special_dtype(enum=(numpy.uint8, self.input_metadata.DEPTH_TYPE_INDEX)))
         self.h5_file.attrs.create('metadata', metadata_xml_reference, dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('horizontalDatumValue', self.input_metadata.HORIZONTAL_DATUM_VALUE, dtype=numpy.int32)
         self.h5_file.attrs.create('geographicIdentifier', self.input_metadata.region, dtype=h5py.special_dtype(vlen=str))
@@ -223,9 +223,9 @@ class S111File:
 
         # Add feature container metadata
         self.feature.attrs.create('methodCurrentsProduct', self.input_metadata.product, dtype=h5py.special_dtype(vlen=str))
-        self.feature.attrs.create('dataCodingFormat', self.data_coding_format, dtype=numpy.int32)
-        self.feature.attrs.create('commonPointRule', self.input_metadata.COMMON_POINT_RULE, dtype=numpy.int32)
-        self.feature.attrs.create('typeOfCurrentData', self.input_metadata.current_datatype, dtype=numpy.int32)
+        self.feature.attrs.create('dataCodingFormat', self.data_coding_format, dtype=h5py.special_dtype(enum=(numpy.uint8, self.input_metadata.DATA_CODING_FORMAT)))
+        self.feature.attrs.create('commonPointRule', self.input_metadata.COMMON_POINT_RULE['high'], dtype=h5py.special_dtype(enum=(numpy.uint8, self.input_metadata.COMMON_POINT_RULE)))
+        self.feature.attrs.create('typeOfCurrentData', self.input_metadata.current_datatype, dtype=h5py.special_dtype(enum=(numpy.uint8, self.input_metadata.TYPE_OF_CURRENT_DATA)))
         self.feature.attrs.create('horizontalPositionUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('verticalUncertainty', -1.0, dtype=numpy.float32)
         self.feature.attrs.create('timeUncertainty', -1.0, dtype=numpy.float32)
@@ -271,7 +271,7 @@ class S111File:
 
             # Add feature container metadata
             self.feature.attrs.create('sequencingRule.scanDirection', self.input_metadata.SEQUENCING_RULE_SCAN_DIRECTION, dtype=h5py.special_dtype(vlen=str))
-            self.feature.attrs.create('sequencingRule.type', self.input_metadata.SEQUENCING_RULE_TYPE, dtype=numpy.int32)
+            self.feature.attrs.create('sequencingRule.type', self.input_metadata.SEQUENCING_RULE_TYPE['linear'], dtype=h5py.special_dtype(enum=(numpy.int, self.input_metadata.SEQUENCING_RULE_TYPE)))
             self.feature.attrs.create('dimension', 2, dtype=numpy.int32)
 
             # Add feature instance metadata
@@ -451,7 +451,8 @@ class S111File:
         """Model specific metadata"""
 
         # Update feature container metadata
-        self.feature.attrs.create('interpolationType', self.input_metadata.INTERPOLATION_TYPE, dtype=numpy.int32)
+        self.feature.attrs.create('interpolationType', self.input_metadata.INTERPOLATION_TYPE['discrete'],
+                                  dtype=h5py.special_dtype(enum=(numpy.uint8, self.input_metadata.INTERPOLATION_TYPE)))
 
         # Update attributes after all the value groups have been added, 0-based
         num_feature_instance_groups = len(self.feature_instance_groups) + 1
@@ -524,15 +525,74 @@ class S111Metadata:
     START_SEQUENCE: Starting location of the scan.
 
     """
-    PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-111.1.0.0')
+    PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-111.1.0')
     HORIZONTAL_DATUM_REFERENCE = numpy.string_('EPSG')
     HORIZONTAL_DATUM_VALUE = 4326
-    DEPTH_TYPE_INDEX = 2
-    INTERPOLATION_TYPE = 10
-    COMMON_POINT_RULE = 3
-    SEQUENCING_RULE_TYPE = 1
+    DATA_CODING_FORMAT = {'Time series at fixed stations': 1,
+                          'Regularly-gridded arrays': 2,
+                          'Ungeorectified gridded arrays': 3,
+                          'Moving platform': 4
+                          }
+    DEPTH_TYPE_INDEX = {'Layer average': 1, 'Sea surface': 2, 'Vertical datum': 3, 'Sea Bottom': 4}
+    INTERPOLATION_TYPE = {'nearestneighbor': 1,
+                          'linear': 2,
+                          'quadratic': 3,
+                          'cubic': 4,
+                          'bilinear': 5,
+                          'biquadratic': 6,
+                          'bicubic': 7,
+                          'lostarea': 8,
+                          'barycentric': 9,
+                          'discrete': 10,
+                          }
+    COMMON_POINT_RULE = {'average': 1, 'low': 2, 'high': 3, 'all': 4}
+    TYPE_OF_CURRENT_DATA = {'Historical observation (O)': 1,
+                            'Real-time observation (R)': 2,
+                            'Astronomical prediction (A)': 3,
+                            'Analysis or hybrid method (Y)': 4,
+                            'Hydrodynamic model hindcast (M)': 5,
+                            'Hydrodynamic model forecast (F)': 6,
+                            }
+    SEQUENCING_RULE_TYPE = {'linear': 1,
+                            'boustrophedonic': 2,
+                            'CantorDiagonal': 3,
+                            'spiral': 4,
+                            'Morton': 5,
+                            'Hilbert': 6,
+                            }
     SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
     START_SEQUENCE = numpy.string_('0,0')
+    VERTICAL_DATUM = {'meanLowWaterSprings': 1,
+                      'meanLowerLowWaterSprings': 2,
+                      'meanSeaLevel': 3,
+                      'lowestLowWater': 4,
+                      'meanLowWater': 5,
+                      'lowestLowWaterSprings': 6,
+                      'approximateMeanLowWaterSprings': 7,
+                      'indianSpringLowWater': 8,
+                      'lowWaterSprings': 9,
+                      'approximateLowestAstronomicalTide': 10,
+                      'nearlyLowestLowWater': 11,
+                      'meanLowerLowWater': 12,
+                      'lowWater': 13,
+                      'approximateMeanLowWater': 14,
+                      'approximateMeanLowerLowWater': 15,
+                      'meanHighWater': 16,
+                      'meanHighWaterSprings': 17,
+                      'highWater': 18,
+                      'approximateMeanSeaLevel': 19,
+                      'highWaterSprings': 20,
+                      'meanHigherHighWater': 21,
+                      'equinoctialSpringLowWater': 22,
+                      'lowestAstronomicalTide': 23,
+                      'localDatum': 24,
+                      'internationalGreatLakesDatum1985': 25,
+                      'meanWaterLevel': 26,
+                      'lowerLowWaterLargeTide': 27,
+                      'higherHighWaterLargeTide': 28,
+                      'nearlyHighestHighWater': 29,
+                      'highestAstronomicalTide': 30,
+                      }
 
     def __init__(self, region, product, current_datatype, producer_code, station_id=None, model_system=None):
         """Initializes S111Metadata object.
