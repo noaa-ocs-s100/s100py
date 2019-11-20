@@ -198,8 +198,8 @@ class S111File:
         # Add feature instance uncertainty compound dataset
         u_dtype = numpy.dtype([('name', h5py.special_dtype(vlen=str)), ('value', numpy.float32)])
         u_data = numpy.zeros((2,), u_dtype)
-        u_data['name'][0] = 'surfaceCurrentSpeedUncertainty'
-        u_data['name'][1] = 'surfaceCurrentDirectionUncertainty'
+        u_data['name'][0] = 'surfaceCurrentSpeed'
+        u_data['name'][1] = 'surfaceCurrentDirection'
         u_data['value'][0] = -1.0
         u_data['value'][1] = -1.0
         uncertainty_data = self.feature_instance.create_dataset('uncertainty', (2,), u_dtype)
