@@ -8,6 +8,7 @@ import datetime
 import os
 import numpy
 import warnings
+import shutil
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=FutureWarning)
@@ -870,3 +871,73 @@ def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
                 s111_file.add_positioning(obs.longitude, obs.latitude)
 
                 s111_file.add_time_series_metadata(input_data[0].datetime_values)
+
+
+def concatenate_s111(h5_files, path_prefix):
+    """Concatenate multiple S111 HDF5 hourly forecasts files into a single S111 HDF5 forecast cycle file.
+
+    Limitations:
+        Specified h5_files must be S-111 type-2 files each containing a single hourly forecast.
+
+    Args:
+        h5_files: List of S111 `.h5` hourly forecasts files to concatenate.
+        path_prefix: Path prefix for desired output location for generated S-111 file.
+
+    """
+
+    # Use the first forecast file as a template for the new S111 file
+    f001 = shutil.copy(h5_files[0], f'{path_prefix}/s111_forecast_cycle.h5')
+
+    try:
+        output_file = h5py.File(f001, 'r+')
+        # Add data starting with the second forecast file(f002), use a starting index of 2
+        for idx, path in enumerate(h5_files[1:], 2):
+
+            # Create new group for each input_file
+            output_file['SurfaceCurrent/SurfaceCurrent.01'].create_group(f'Group_{idx:03d}')
+            print(path)
+
+            # Open and read input_file
+            try:
+                input_file = h5py.File(path, 'r')
+
+                data_shape = input_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values'].shape
+                time_str = input_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001'].attrs['timePoint']
+
+                if idx == 2:
+                    first_time = datetime.datetime.strptime(
+                        (output_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
+                    second_time = datetime.datetime.strptime(
+                        (input_file['/SurfaceCurrent/SurfaceCurrent.01/Group_001'].attrs['timePoint']), '%Y%m%dT%H%M%SZ')
+
+                    time_interval_secs = (second_time - first_time).total_seconds()
+                    output_file['SurfaceCurrent/SurfaceCurrent.01'].attrs.modify('timeRecordInterval', time_interval_secs)
+
+                output_file['SurfaceCurrent/SurfaceCurrent.01'].attrs.modify('dateTimeOfLastRecord', numpy.string_(time_str))
+                output_file[f'SurfaceCurrent/SurfaceCurrent.01/Group_{idx:03d}'].attrs.create('timePoint', numpy.string_(time_str), None, h5py.special_dtype(vlen=str))
+
+                # If the input_file has a lower minimum speed use the input_file minDatasetCurrentSpeed speed value
+                if input_file['SurfaceCurrent'].attrs['minDatasetCurrentSpeed'] < output_file['SurfaceCurrent'].attrs['minDatasetCurrentSpeed']:
+                    output_file['SurfaceCurrent'].attrs.modify('minDatasetCurrentSpeed', input_file['SurfaceCurrent'].attrs['minDatasetCurrentSpeed'])
+
+                # If the input_file has a greater maximum speed use the input_file maxDatasetCurrentSpeed speed value
+                if input_file['SurfaceCurrent'].attrs['maxDatasetCurrentSpeed'] > output_file['SurfaceCurrent'].attrs['maxDatasetCurrentSpeed']:
+                    output_file['SurfaceCurrent'].attrs.modify('maxDatasetCurrentSpeed', input_file['SurfaceCurrent'].attrs['maxDatasetCurrentSpeed'])
+
+                output_file['SurfaceCurrent/SurfaceCurrent.01'].attrs.modify('numGRP', idx)
+                output_file['SurfaceCurrent/SurfaceCurrent.01'].attrs.modify('numberOfTimes', idx)
+
+                # Add each input file's compound dataset containing spd/dir values to the output file
+                values_dtype = numpy.dtype([('surfaceCurrentSpeed', numpy.float32), ('surfaceCurrentDirection', numpy.float32)])
+                values = numpy.zeros(data_shape, dtype=values_dtype)
+                values['surfaceCurrentSpeed'] = input_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentSpeed']
+                values['surfaceCurrentDirection'] = input_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentDirection']
+                values_dset = output_file[f'SurfaceCurrent/SurfaceCurrent.01/Group_{idx:03d}'].create_dataset('values', data_shape, dtype=values_dtype, chunks=True, compression='gzip', compression_opts=9)
+                values_dset[...] = values
+            finally:
+                input_file.close()
+
+    finally:
+        output_file.close()
+
+    return f"s111_forecast_cycle.h5"
