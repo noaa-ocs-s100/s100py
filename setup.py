@@ -11,7 +11,7 @@ with open(os.path.join(HERE, 'README.md'), encoding='utf-8') as f:
 
 setuptools.setup(
     name='s100py',
-    version='0.4.0',
+    version='0.5.0',
     license='BSD-2-Clause',
     author='Erin Nagel, Jason Greenlaw',
     author_email='erin.nagel@noaa.gov, jason.greenlaw@noaa.gov',
