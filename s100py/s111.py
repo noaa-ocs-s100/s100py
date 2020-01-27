@@ -873,7 +873,7 @@ def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
                 s111_file.add_time_series_metadata(input_data[0].datetime_values)
 
 
-def concatenate_s111(h5_files, path_prefix):
+def concatenate_s111(h5_files, output_path):
     """Concatenate multiple S111 HDF5 hourly forecasts files into a single S111 HDF5 forecast cycle file.
 
     Limitations:
@@ -881,12 +881,12 @@ def concatenate_s111(h5_files, path_prefix):
 
     Args:
         h5_files: List of S111 `.h5` hourly forecasts files to concatenate.
-        path_prefix: Path prefix for desired output location for generated S-111 file.
+        output_path: Path to output S-111 HDF5 file.
 
     """
 
     # Use the first forecast file as a template for the new S111 file
-    f001 = shutil.copy(h5_files[0], f'{path_prefix}/s111_forecast_cycle.h5')
+    f001 = shutil.copy(h5_files[0], output_path)
 
     try:
         output_file = h5py.File(f001, 'r+')
@@ -940,4 +940,3 @@ def concatenate_s111(h5_files, path_prefix):
     finally:
         output_file.close()
 
-    return f"s111_forecast_cycle.h5"
