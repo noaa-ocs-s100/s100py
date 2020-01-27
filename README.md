@@ -1,5 +1,6 @@
 s100py
 ======
+[![Build Status](https://travis-ci.com/noaa-ocs-s100/s100py.svg?branch=master)](https://travis-ci.com/noaa-ocs-s100/s100py)
 
 Python Utilities for Working with IHO S-100 Data Formats
 
