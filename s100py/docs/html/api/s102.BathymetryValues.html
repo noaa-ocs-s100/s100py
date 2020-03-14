@@ -1,0 +1,210 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>BathymetryValues &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BathymetryValuesList" href="s102.BathymetryValuesList.html" />
+    <link rel="prev" title="BathymetryValueRecord" href="s102.BathymetryValueRecord.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s102.BathymetryValuesList.html" title="BathymetryValuesList"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s102.BathymetryValueRecord.html" title="BathymetryValueRecord"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../modules.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s102.html" accesskey="U">s102 Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="bathymetryvalues">
+<h1>BathymetryValues<a class="headerlink" href="#bathymetryvalues" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s102.BathymetryValues">
+<em class="property">class </em><code class="sig-prename descclassname">s102.</code><code class="sig-name descname">BathymetryValues</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#s102.BathymetryValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="HSTB.drivers.s100.s1xx.S1XX_WritesOwnGroup_base.html#HSTB.drivers.s100.s1xx.S1XX_WritesOwnGroup_base" title="HSTB.drivers.s100.s1xx.S1XX_WritesOwnGroup_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">HSTB.drivers.s100.s1xx.S1XX_WritesOwnGroup_base</span></code></a></p>
+<p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s102.BathymetryValues.depth" title="s102.BathymetryValues.depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">depth</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s102.BathymetryValues.metadata_name" title="s102.BathymetryValues.metadata_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata_name</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s102.BathymetryValues.uncertainty" title="s102.BathymetryValues.uncertainty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uncertainty</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s102.BathymetryValues.get_write_order" title="s102.BathymetryValues.get_write_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_write_order</span></code></a>()</p></td>
+<td><p>Override this method if the write order of attributes/groups/dataset items is important :returns: :rtype: A list of key names if order is important, None otherwise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s102.BathymetryValues.read" title="s102.BathymetryValues.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(group_object[, indent])</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">param group_object</dt>
+<dd class="field-odd"><p>The group (an h5py.File is a group too) to read from.</p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s102.BathymetryValues.write" title="s102.BathymetryValues.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a>(group_object[, indent])</p></td>
+<td><p>Write out the dataset using order specified with any extra values as unordered but named at the end.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s102.BathymetryValues.depth">
+<code class="sig-name descname">depth</code><a class="headerlink" href="#s102.BathymetryValues.depth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s102.BathymetryValues.metadata_name">
+<code class="sig-name descname">metadata_name</code><a class="headerlink" href="#s102.BathymetryValues.metadata_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s102.BathymetryValues.uncertainty">
+<code class="sig-name descname">uncertainty</code><a class="headerlink" href="#s102.BathymetryValues.uncertainty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods Documentation</p>
+<dl class="method">
+<dt id="s102.BathymetryValues.get_write_order">
+<code class="sig-name descname">get_write_order</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s102.BathymetryValues.get_write_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this method if the write order of attributes/groups/dataset items is important
+:returns:
+:rtype: A list of key names if order is important, None otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="s102.BathymetryValues.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">group_object</em>, <em class="sig-param">indent=0</em><span class="sig-paren">)</span><a class="headerlink" href="#s102.BathymetryValues.read" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>group_object</strong> – The group (an h5py.File is a group too) to read from.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s102.BathymetryValues.write">
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">group_object</em>, <em class="sig-param">indent=0</em><span class="sig-paren">)</span><a class="headerlink" href="#s102.BathymetryValues.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out the dataset using order specified with any extra values as unordered but named at the end.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group_object</strong> – HDF5 object to write into</p></li>
+<li><p><strong>indent</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>HDF5 dataset created during the write method</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s102.BathymetryValues.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#s102.BathymetryValues.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s102.BathymetryValueRecord.html"
+                        title="previous chapter">BathymetryValueRecord</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s102.BathymetryValuesList.html"
+                        title="next chapter">BathymetryValuesList</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s102.BathymetryValuesList.html" title="BathymetryValuesList"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s102.BathymetryValueRecord.html" title="BathymetryValueRecord"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../modules.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s102.html" >s102 Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

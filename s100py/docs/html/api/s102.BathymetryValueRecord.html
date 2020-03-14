@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>BathymetryValueRecord &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BathymetryValues" href="s102.BathymetryValues.html" />
+    <link rel="prev" title="BathymetryGroup_List" href="s102.BathymetryGroup_List.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s102.BathymetryValues.html" title="BathymetryValues"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s102.BathymetryGroup_List.html" title="BathymetryGroup_List"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../modules.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s102.html" accesskey="U">s102 Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="bathymetryvaluerecord">
+<h1>BathymetryValueRecord<a class="headerlink" href="#bathymetryvaluerecord" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s102.BathymetryValueRecord">
+<em class="property">class </em><code class="sig-prename descclassname">s102.</code><code class="sig-name descname">BathymetryValueRecord</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#s102.BathymetryValueRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="HSTB.drivers.s100.s1xx.S1XX_Attributes_base.html#HSTB.drivers.s100.s1xx.S1XX_Attributes_base" title="HSTB.drivers.s100.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">HSTB.drivers.s100.s1xx.S1XX_Attributes_base</span></code></a></p>
+<p>4.2.1.1.2.2 and Figure 4.4 of v2.0.0
+The attribute values has the value type S102_BathymetryValueRecord which is a sequence of value items that
+shall assign values to the grid points.
+There are two attributes in the bathymetry value record, depth and uncertainty in the S102_BathymetryValues class.
+The definition for the depth is defined by the depthCorrectionType attribute in the S102_DataIdentification class.
+The definition of the type of data in the values record is defined by the verticalUncertaintyType attribute in the
+S102_DataIdentification class.</p>
+<p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s102.BathymetryValueRecord.depth" title="s102.BathymetryValueRecord.depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">depth</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s102.BathymetryValueRecord.uncertainty" title="s102.BathymetryValueRecord.uncertainty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uncertainty</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s102.BathymetryValueRecord.depth">
+<code class="sig-name descname">depth</code><a class="headerlink" href="#s102.BathymetryValueRecord.depth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s102.BathymetryValueRecord.uncertainty">
+<code class="sig-name descname">uncertainty</code><a class="headerlink" href="#s102.BathymetryValueRecord.uncertainty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s102.BathymetryValueRecord.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#s102.BathymetryValueRecord.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s102.BathymetryGroup_List.html"
+                        title="previous chapter">BathymetryGroup_List</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s102.BathymetryValues.html"
+                        title="next chapter">BathymetryValues</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s102.BathymetryValues.html" title="BathymetryValues"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s102.BathymetryGroup_List.html" title="BathymetryGroup_List"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../modules.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s102.html" >s102 Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

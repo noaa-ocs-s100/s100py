@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>HSTB.drivers.s100.s1xx Module &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="S1XXFile" href="api/HSTB.drivers.s100.s1xx.S1XXFile.html" />
+    <link rel="prev" title="s100" href="modules.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api/HSTB.drivers.s100.s1xx.S1XXFile.html" title="S1XXFile"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="s100"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="modules.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-HSTB.drivers.s100.s1xx">
+<span id="hstb-drivers-s100-s1xx-module"></span><h1>HSTB.drivers.s100.s1xx Module<a class="headerlink" href="#module-HSTB.drivers.s100.s1xx" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ABC</span></code></p></td>
+<td><p>Helper class that provides a standard way to create an ABC using inheritance.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code></p></td>
+<td><p>Callable type; Callable[[int], str] is a function of (int) -&gt; str.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Iterator</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/HSTB.drivers.s100.s1xx.S1XXFile.html#HSTB.drivers.s100.s1xx.S1XXFile" title="HSTB.drivers.s100.s1xx.S1XXFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XXFile</span></code></a>(*args, **kywrds)</p></td>
+<td><p>hdf5 files have primary creation methods of create_dataset  to insert array data attrs           a dictionary-like to add/read metadata about the current group create_group    to make a group containing datasets and/or metadata</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/HSTB.drivers.s100.s1xx.S1XX_Attributes_base.html#HSTB.drivers.s100.s1xx.S1XX_Attributes_base" title="HSTB.drivers.s100.s1xx.S1XX_Attributes_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a>([fill_empty])</p></td>
+<td><p>This class implements a general hdf5 group object that has attributes, dataset or sub-groups.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/HSTB.drivers.s100.s1xx.S1XX_Dataset_base.html#HSTB.drivers.s100.s1xx.S1XX_Dataset_base" title="HSTB.drivers.s100.s1xx.S1XX_Dataset_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Dataset_base</span></code></a>(*args, **opts)</p></td>
+<td><p>The S102 spec stores some things as attributes that could (or should) be stored as attributes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/HSTB.drivers.s100.s1xx.S1XX_MetadataList_base.html#HSTB.drivers.s100.s1xx.S1XX_MetadataList_base" title="HSTB.drivers.s100.s1xx.S1XX_MetadataList_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_MetadataList_base</span></code></a>(*args, **opts)</p></td>
+<td><p>This class represents arrays (noted in UML as <em>, 1..</em>, 0..* etc) which is not really part of HDF5.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/HSTB.drivers.s100.s1xx.S1XX_WritesOwnGroup_base.html#HSTB.drivers.s100.s1xx.S1XX_WritesOwnGroup_base" title="HSTB.drivers.s100.s1xx.S1XX_WritesOwnGroup_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_WritesOwnGroup_base</span></code></a>([fill_empty])</p></td>
+<td><p>Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can’t predict The S1XX_Attributes_base will call the derived class’ writer without pre-making group for it.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Type</span></code></p></td>
+<td><p>A special construct usable to annotate class objects.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="class-inheritance-diagram">
+<h2>Class Inheritance Diagram<a class="headerlink" href="#class-inheritance-diagram" title="Permalink to this headline">¶</a></h2>
+<div class="graphviz"><img src="_images/inheritance-c4ff6bd38b00ef63d483eba5dac7d1e750c8b06e.png" alt="Inheritance diagram of HSTB.drivers.s100.s1xx.S1XXFile, HSTB.drivers.s100.s1xx.S1XX_Attributes_base, HSTB.drivers.s100.s1xx.S1XX_Dataset_base, HSTB.drivers.s100.s1xx.S1XX_MetadataList_base, HSTB.drivers.s100.s1xx.S1XX_WritesOwnGroup_base" usemap="#inheritance10eb67332f" class="inheritance graphviz" /></div>
+<map id="inheritance10eb67332f" name="inheritance10eb67332f">
+<area shape="rect" id="node15" href="api/HSTB.drivers.s100.s1xx.S1XX_Attributes_base.html#HSTB.drivers.s100.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="77,119,166,134"/>
+<area shape="rect" id="node14" href="api/HSTB.drivers.s100.s1xx.S1XXFile.html#HSTB.drivers.s100.s1xx.S1XXFile" target="_top" title="hdf5 files have primary creation methods of" alt="" coords="722,18,765,33"/>
+<area shape="rect" id="node17" href="api/HSTB.drivers.s100.s1xx.S1XX_WritesOwnGroup_base.html#HSTB.drivers.s100.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="194,119,308,134"/>
+<area shape="rect" id="node16" href="api/HSTB.drivers.s100.s1xx.S1XX_Dataset_base.html#HSTB.drivers.s100.s1xx.S1XX_Dataset_base" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes." alt="" coords="345,90,426,105"/>
+<area shape="rect" id="node18" href="api/HSTB.drivers.s100.s1xx.S1XX_MetadataList_base.html#HSTB.drivers.s100.s1xx.S1XX_MetadataList_base" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5." alt="" coords="336,119,435,134"/>
+</map></div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="modules.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">HSTB.drivers.s100.s1xx Module</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="modules.html"
+                        title="previous chapter">s100</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api/HSTB.drivers.s100.s1xx.S1XXFile.html"
+                        title="next chapter">S1XXFile</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api/HSTB.drivers.s100.s1xx.S1XXFile.html" title="S1XXFile"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="s100"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="modules.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>
