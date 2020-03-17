@@ -1,7 +1,7 @@
 import os
 import logging
 
-from HSTB.drivers.s100 import s102, bag_to_s102
+from s100py import s102, bag_to_s102
 
 if __name__ == "__main__":
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         s102_read_test = s102.S102File(output_path, "r", driver=None)
         s102_copy_root_test = s102.S102File(output_path + "copyroot.h5", "w", driver=None)
         s102_copy_root_test.root = s102_read_test.root
-        s102_copy_root_test.write_s102_data()
+        s102_copy_root_test.write()
 
         # s102_read_test.read_s102_metadata()
 

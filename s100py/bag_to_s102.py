@@ -253,7 +253,7 @@ def sr_bag_to_s102(input_bag, output_path=""):
     root.geographic_identifier = "Long Beach, CA"
     root.issue_date = meta_bagxml['date_stamp']  # datetime.date.today().isoformat()
 
-    sfile.write_s102_data()
+    sfile.write()
 
 
 def NAVO_convert_bag(bag_path, output_path, path_to_convertor=".\\BAG_to_S102.exe", buffer=False):

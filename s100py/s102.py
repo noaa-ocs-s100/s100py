@@ -14,7 +14,7 @@ import numpy
 try:
     from . import s1xx
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
-    __package__ = "HSTB.drivers.s100"
+    __package__ = "s100py"
 
 from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_WritesOwnGroup_base, S1XXFile
 from .s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, S100_FeatureContainer, S100Root, FeatureInstance_Format_2
@@ -95,7 +95,7 @@ START_SEQUENCE: Starting location of the scan.
 # def $SELECTION$
 
 # override the basic S100 spec that says to use an underscore and use a dot instead
-class S102_MetadataList_base(S1XX_WritesOwnGroup_base):
+class S102_MetadataList_base(S1XX_MetadataList_base):
     write_format_str = ".%03d"
 
 

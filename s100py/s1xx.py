@@ -6,6 +6,7 @@ import logging
 import inspect
 import traceback
 import datetime
+from enum import Enum
 
 import h5py
 # @todo - consider removing the numpy dependence
@@ -13,145 +14,6 @@ import numpy
 
 Record = s1xx_sequence = Union[numpy.ndarray, h5py.Dataset]
 
-H5T_CLASS_T = {
-    h5py.h5t.NO_CLASS: 'H5T_NO_CLASS',
-    h5py.h5t.INTEGER: 'H5T_INTEGER',
-    h5py.h5t.FLOAT: 'H5T_FLOAT',
-    h5py.h5t.TIME: 'H5T_TIME',
-    h5py.h5t.STRING: 'H5T_STRING',
-    h5py.h5t.BITFIELD: 'H5T_BITFIELD',
-    h5py.h5t.OPAQUE: 'H5T_OPAQUE',
-    h5py.h5t.COMPOUND: 'H5T_COMPOUND',
-    h5py.h5t.REFERENCE: 'H5T_REFERENCE',
-    h5py.h5t.ENUM: 'H5T_ENUM',
-    h5py.h5t.VLEN: 'H5T_VLEN',
-    h5py.h5t.ARRAY: 'H5T_ARRAY',
-    h5py.h5t.NATIVE_INT8: 'H5T_NATIVE_INT8',
-    h5py.h5t.NATIVE_UINT8: 'H5T_NATIVE_UINT8',
-    h5py.h5t.NATIVE_INT16: 'H5T_NATIVE_INT16',
-    h5py.h5t.NATIVE_UINT16: 'H5T_NATIVE_UINT16',
-    h5py.h5t.NATIVE_INT32: 'H5T_NATIVE_INT32',
-    h5py.h5t.NATIVE_UINT32: 'H5T_NATIVE_UINT32',
-    h5py.h5t.NATIVE_INT64: 'H5T_NATIVE_INT64',
-    h5py.h5t.NATIVE_UINT64: 'H5T_NATIVE_UINT64',
-    h5py.h5t.C_S1: 'H5T_C_S1'
-}
-
-VERTICAL_DATUM = {'meanLowWaterSprings': 1,
-                  "MLWS": 1,
-                  'meanLowerLowWaterSprings': 2,
-                  'meanSeaLevel': 3,
-                  "MSL": 3,
-                  'lowestLowWater': 4,
-                  'meanLowWater': 5,
-                  'MLW': 5,
-                  'lowestLowWaterSprings': 6,
-                  'approximateMeanLowWaterSprings': 7,
-                  'indianSpringLowWater': 8,
-                  'lowWaterSprings': 9,
-                  'approximateLowestAstronomicalTide': 10,
-                  'nearlyLowestLowWater': 11,
-                  'meanLowerLowWater': 12,
-                  'MLLW': 12,
-                  'lowWater': 13,
-                  'LW': 13,
-                  'approximateMeanLowWater': 14,
-                  'approximateMeanLowerLowWater': 15,
-                  'meanHighWater': 16,
-                  'MHW': 16,
-                  'meanHighWaterSprings': 17,
-                  'MHWS': 17,
-                  'highWater': 18,
-                  'approximateMeanSeaLevel': 19,
-                  'highWaterSprings': 20,
-                  'meanHigherHighWater': 21,
-                  'MHHW': 21,
-                  'equinoctialSpringLowWater': 22,
-                  'lowestAstronomicalTide': 23,
-                  'LAT': 23,
-                  'localDatum': 24,
-                  'internationalGreatLakesDatum1985': 25,
-                  'meanWaterLevel': 26,
-                  'lowerLowWaterLargeTide': 27,
-                  'higherHighWaterLargeTide': 28,
-                  'nearlyHighestHighWater': 29,
-                  'highestAstronomicalTide': 30,
-                  'HAT': 30,
-                  }
-
-HORIZONTAL_DATUM_REFERENCE = numpy.string_('EPSG')
-DATA_CODING_FORMAT = {'Point Set': 1,
-                      'Regular Grid': 2
-                      }
-
-"""
-Enumeration S100_CV_InterpolationMethod Codes for interpolation methods between known feature attribute
-values associated with geometric objects in the domain of the discrete coverage
-Extension of ISO 19123
-CV_InterpolationMethod
-
-Literal nearestneighbor
-Assign the feature attribute value associated with the nearest domain object in the domain of the coverage
-1 Any type of coverage
-
-Literal linear
-Assign the value computed by a linear function along a line segment connecting two point value pairs, or along a curve with positions are described by values
-of an arc-length parameter
-2 Only segmented curves
-
-Literal quadratic
-Assign the value computed by a quadratic function of distance along a value segment
-3 Only segmented curves
-
-Literal cubic
-Assign the value computed by a cubic function of distance along a value segment
-4 Only segmented curves
-
-Literal bilinear
-Assign a value computed by using a bilinear function of position within the grid cell
-5 Only quadrilateral grids
-
-Literal biquadratic
-Assign a value computed by using a biquadratic function of position within the grid cell
-6 Only quadrilateral grids
-
-Literal bicubic
-Assign a value computed by using a bicubic function of position within the grid cell
-7 Only quadrilateral grids
-
-Literal lostarea
-Assign a value computed by using the lost area method described in ISO 19123
-8 Only Thiessen polygons
-
-Literal barycentric
-Assign a value computed by using the barycentric method described in ISO 19123
-9 Only TIN
-
-Literal discrete
-No interpolation method applies to the coverage
-10
-"""
-INTERPOLATION_TYPE = {'nearestneighbor': 1,
-                      'linear': 2,
-                      'quadratic': 3,
-                      'cubic': 4,
-                      'bilinear': 5,
-                      'biquadratic': 6,
-                      'bicubic': 7,
-                      'lostarea': 8,
-                      'barycentric': 9,
-                      'discrete': 10,
-                      }
-COMMON_POINT_RULE = {'average': 1, 'low': 2, 'high': 3, 'all': 4}
-SEQUENCING_RULE_TYPE = {'linear': 1,
-                        'boustrophedonic': 2,
-                        'CantorDiagonal': 3,
-                        'spiral': 4,
-                        'Morton': 5,
-                        'Hilbert': 6,
-                        }
-SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
-START_SEQUENCE = numpy.string_('0,0')
 
 class S1XX_Attributes_base(ABC):
     """ This class implements a general hdf5 group object that has attributes, dataset or sub-groups.
@@ -305,6 +167,23 @@ class S1XX_Attributes_base(ABC):
                     logging.debug(key_repr + " datetime: {}", val)
                     # @TODO: figure out how to write datetimes
                     raise NotImplementedError("DateTimes not supported yet")
+                elif isinstance(val, Enum):
+                    logging.debug(key_repr + " enumeration: " + str(val))
+                    enum_as_dict = collections.OrderedDict([[item.name, item.value] for item in type(val)])
+                    int_type = numpy.uint8
+                    try:  # enum_dtype is added in h5py 2.10
+                        enumtype = h5py.enum_dtype(enum_as_dict, int_type)
+                    except AttributeError:  # special_dtype is for h5py <= 2.9
+                        enumtype = h5py.special_dtype(enum=(int_type, enum_as_dict))
+                    try:
+                        group_object.attrs.create(key, val.value, dtype=enumtype)
+                    except TypeError:  # h5py isn't accepting OrderedDict, convert to dict
+                        try:
+                            enumtype = h5py.enum_dtype(dict(enum_as_dict), int_type)
+                        except AttributeError:
+                            enumtype = h5py.special_dtype(enum=(int_type, dict(enum_as_dict)))
+                        group_object.attrs.create(key, val.value, dtype=enumtype)
+
                 else:
                     logging.debug(key_repr + " simple type: " + str(val))
                     group_object.attrs[key] = val
@@ -424,6 +303,12 @@ class S1XX_Attributes_base(ABC):
                                   p.endswith(self._attr_name_suffix) and p[:-len(self._attr_name_suffix)] in props]
         return implemented_properties
 
+    def set_enum_attribute(self, val, attribute_name, enum_type):
+        if isinstance(val, str):
+            val = enum_type[val]
+        if isinstance(val , int):
+            val = enum_type(val)
+        self._attributes[attribute_name] = val
 
 class S1XX_WritesOwnGroup_base(S1XX_Attributes_base):
     """ Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict
@@ -653,13 +538,13 @@ class S1XXFile(h5py.File):
         # initialize with the s102 data if the file already exists.
         # if this is an empty file or opening for write then this is essentially a no-op
         if self.root_type:
-            self.read_s1xx_data()
+            self.read()
 
-    def read_s1xx_data(self):
+    def read(self):
         self.root = self.root_type()
         self.root.read(self)
 
-    def write_s1xx_data(self):
+    def write(self):
         self.root.write(self)
 
     def create_empty_metadata(self):

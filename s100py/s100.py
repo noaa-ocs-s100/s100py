@@ -6,6 +6,7 @@ import logging
 import inspect
 import traceback
 import datetime
+from enum import Enum
 
 import h5py
 # @todo - consider removing the numpy dependence
@@ -14,10 +15,169 @@ import numpy
 try:
     from . import s1xx
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
-    __package__ = "HSTB.drivers.s100"
+    __package__ = "s100py"
 
 from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_WritesOwnGroup_base, S1XXFile
-from .s1xx import H5T_CLASS_T, VERTICAL_DATUM, HORIZONTAL_DATUM_REFERENCE, DATA_CODING_FORMAT
+
+H5T_CLASS_T = {
+    h5py.h5t.NO_CLASS: 'H5T_NO_CLASS',
+    h5py.h5t.INTEGER: 'H5T_INTEGER',
+    h5py.h5t.FLOAT: 'H5T_FLOAT',
+    h5py.h5t.TIME: 'H5T_TIME',
+    h5py.h5t.STRING: 'H5T_STRING',
+    h5py.h5t.BITFIELD: 'H5T_BITFIELD',
+    h5py.h5t.OPAQUE: 'H5T_OPAQUE',
+    h5py.h5t.COMPOUND: 'H5T_COMPOUND',
+    h5py.h5t.REFERENCE: 'H5T_REFERENCE',
+    h5py.h5t.ENUM: 'H5T_ENUM',
+    h5py.h5t.VLEN: 'H5T_VLEN',
+    h5py.h5t.ARRAY: 'H5T_ARRAY',
+    h5py.h5t.NATIVE_INT8: 'H5T_NATIVE_INT8',
+    h5py.h5t.NATIVE_UINT8: 'H5T_NATIVE_UINT8',
+    h5py.h5t.NATIVE_INT16: 'H5T_NATIVE_INT16',
+    h5py.h5t.NATIVE_UINT16: 'H5T_NATIVE_UINT16',
+    h5py.h5t.NATIVE_INT32: 'H5T_NATIVE_INT32',
+    h5py.h5t.NATIVE_UINT32: 'H5T_NATIVE_UINT32',
+    h5py.h5t.NATIVE_INT64: 'H5T_NATIVE_INT64',
+    h5py.h5t.NATIVE_UINT64: 'H5T_NATIVE_UINT64',
+    h5py.h5t.C_S1: 'H5T_C_S1'
+}
+
+
+class VERTICAL_DATUM(Enum):
+    """ Note: while a Vertical Datum can be created with the shorthand aliases, ex: MLWS, the string written and
+    returned from the file/S100 object will be the official long name, e.g. "meanLowWaterSprings" etc.
+    """
+    meanLowWaterSprings = 1
+    MLWS = 1
+    meanLowerLowWaterSprings = 2
+    meanSeaLevel = 3
+    MSL = 3
+    lowestLowWater = 4
+    meanLowWater = 5
+    MLW = 5
+    lowestLowWaterSprings = 6
+    approximateMeanLowWaterSprings = 7
+    indianSpringLowWater = 8
+    lowWaterSprings = 9
+    approximateLowestAstronomicalTide = 10
+    nearlyLowestLowWater = 11
+    meanLowerLowWater = 12
+    MLLW = 12
+    lowWater = 13
+    LW = 13
+    approximateMeanLowWater = 14
+    approximateMeanLowerLowWater = 15
+    meanHighWater = 16
+    MHW = 16
+    meanHighWaterSprings = 17
+    MHWS = 17
+    highWater = 18
+    approximateMeanSeaLevel = 19
+    highWaterSprings = 20
+    meanHigherHighWater = 21
+    MHHW = 21
+    equinoctialSpringLowWater = 22
+    lowestAstronomicalTide = 23
+    LAT = 23
+    localDatum = 24
+    internationalGreatLakesDatum1985 = 25
+    meanWaterLevel = 26
+    lowerLowWaterLargeTide = 27
+    higherHighWaterLargeTide = 28
+    nearlyHighestHighWater = 29
+    highestAstronomicalTide = 30
+    HAT = 30
+
+
+HORIZONTAL_DATUM_REFERENCE = numpy.string_('EPSG')
+DATA_CODING_FORMAT = Enum(value="DATA_CODING_FORMAT",
+                          names=[
+                              ('Point Set', 1),
+                              ('Regular Grid', 2),
+                          ]
+                          )
+
+
+class INTERPOLATION_TYPE(Enum):
+    """
+    Enumeration S100_CV_InterpolationMethod Codes for interpolation methods between known feature attribute
+    values associated with geometric objects in the domain of the discrete coverage
+    Extension of ISO 19123
+    CV_InterpolationMethod
+
+    Literal nearestneighbor
+    Assign the feature attribute value associated with the nearest domain object in the domain of the coverage
+    1 Any type of coverage
+
+    Literal linear
+    Assign the value computed by a linear function along a line segment connecting two point value pairs, or along a curve with positions are described by values
+    of an arc-length parameter
+    2 Only segmented curves
+
+    Literal quadratic
+    Assign the value computed by a quadratic function of distance along a value segment
+    3 Only segmented curves
+
+    Literal cubic
+    Assign the value computed by a cubic function of distance along a value segment
+    4 Only segmented curves
+
+    Literal bilinear
+    Assign a value computed by using a bilinear function of position within the grid cell
+    5 Only quadrilateral grids
+
+    Literal biquadratic
+    Assign a value computed by using a biquadratic function of position within the grid cell
+    6 Only quadrilateral grids
+
+    Literal bicubic
+    Assign a value computed by using a bicubic function of position within the grid cell
+    7 Only quadrilateral grids
+
+    Literal lostarea
+    Assign a value computed by using the lost area method described in ISO 19123
+    8 Only Thiessen polygons
+
+    Literal barycentric
+    Assign a value computed by using the barycentric method described in ISO 19123
+    9 Only TIN
+
+    Literal discrete
+    No interpolation method applies to the coverage
+    10
+    """
+    nearestneighbor = 1
+    linear = 2
+    quadratic = 3
+    cubic = 4
+    bilinear = 5
+    biquadratic = 6
+    bicubic = 7
+    lostarea = 8
+    barycentric = 9
+    discrete = 10
+
+
+class COMMON_POINT_RULE(Enum):
+    average = 1
+    low = 2
+    high = 3
+    all = 4
+
+
+class SEQUENCING_RULE_TYPE(Enum):
+    linear = 1
+    boustrophedonic = 2
+    CantorDiagonal = 3
+    spiral = 4
+    Morton = 5
+    Hilbert = 6
+
+
+SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
+START_SEQUENCE = numpy.string_('0,0')
+
 
 class DirectPosition(S1XX_Attributes_base):
     """ 4.2.1.1.4 of v2.0.0
@@ -370,6 +530,7 @@ class GeographicBoundingBox(GeographicExtent):
     def north_bound_latitude_create(self):
         self.north_bound_latitude = self.north_bound_latitude_type()
 
+
 class VertexPoint(S1XX_Attributes_base):
     """ From Figure 8-21 in S100 v4.0.0
 
@@ -430,6 +591,7 @@ class VertexPoint(S1XX_Attributes_base):
 
     def value_create(self):
         self.value = self.value_type([2, ], numpy.float)
+
 
 class FeatureInstance(GeographicBoundingBox):
     @property
@@ -838,20 +1000,20 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         return "dataCodingFormat"
 
     @property
-    def data_coding_format(self) -> int:
+    def data_coding_format(self) -> DATA_CODING_FORMAT:
         return self._attributes[self.data_coding_format_attribute_name]
 
     @data_coding_format.setter
     def data_coding_format(self, val: int):
-        self._attributes[self.data_coding_format_attribute_name] = val
+        self.set_enum_attribute(val, self.data_coding_format_attribute_name, self.data_coding_format_type)
 
     @property
-    def data_coding_format_type(self) -> Type[int]:
-        return int
+    def data_coding_format_type(self) -> DATA_CODING_FORMAT:
+        return DATA_CODING_FORMAT
 
     def data_coding_format_create(self):
         """ Creates a blank, empty or zero value for data_coding_format"""
-        self.data_coding_format = self.data_coding_format_type()
+        self.data_coding_format = self.data_coding_format_type["Regular Grid"]
 
     @property
     def dimension_attribute_name(self) -> str:
@@ -878,20 +1040,20 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         return "commonPointRule"
 
     @property
-    def common_point_rule(self) -> int:
+    def common_point_rule(self) -> COMMON_POINT_RULE:
         return self._attributes[self.common_point_rule_attribute_name]
 
     @common_point_rule.setter
-    def common_point_rule(self, val: int):
-        self._attributes[self.common_point_rule_attribute_name] = val
+    def common_point_rule(self, val: Union[int, str, COMMON_POINT_RULE]):
+        self.set_enum_attribute(val, self.common_point_rule_attribute_name, self.common_point_rule_type)
 
     @property
-    def common_point_rule_type(self) -> Type[int]:
-        return int
+    def common_point_rule_type(self) -> Type[Enum]:
+        return COMMON_POINT_RULE
 
     def common_point_rule_create(self):
         """ Creates a blank, empty or zero value for common_point_rule"""
-        self.common_point_rule = self.common_point_rule_type()
+        self.common_point_rule = self.common_point_rule_type["average"]
 
     @property
     def horizontal_position_uncertainty_attribute_name(self) -> str:
@@ -978,7 +1140,7 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         return "sequencingRule.type"
 
     @property
-    def sequencing_rule_type(self) -> Type[int]:
+    def sequencing_rule_type(self) -> SEQUENCING_RULE_TYPE:
         # @todo -- clean up formatting
         """ table 10c-20 of S100
 
@@ -1015,16 +1177,16 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         return self._attributes[self.sequencing_rule_type_attribute_name]
 
     @sequencing_rule_type.setter
-    def sequencing_rule_type(self, val: int):
-        self._attributes[self.sequencing_rule_type_attribute_name] = val
+    def sequencing_rule_type(self, val: Union[int, str, SEQUENCING_RULE_TYPE]):
+        self.set_enum_attribute(val, self.sequencing_rule_type_attribute_name, self.sequencing_rule_type_type)
 
     @property
-    def sequencing_rule_type_type(self) -> Type[int]:
-        return int
+    def sequencing_rule_type_type(self) -> Type[Enum]:
+        return SEQUENCING_RULE_TYPE
 
     def sequencing_rule_type_create(self):
         """ Creates a blank, empty or zero value for sequencing_rule_type"""
-        self.sequencing_rule_type = self.sequencing_rule_type_type()
+        self.sequencing_rule_type = self.sequencing_rule_type_type["linear"]
 
     @property
     def sequencing_rule_scan_direction_attribute_name(self) -> str:
@@ -1061,16 +1223,16 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         return self._attributes[self.interpolation_type_attribute_name]
 
     @interpolation_type.setter
-    def interpolation_type(self, val: int):
-        self._attributes[self.interpolation_type_attribute_name] = val
+    def interpolation_type(self, val: Union[int, str, INTERPOLATION_TYPE]):
+        self.set_enum_attribute(val, self.interpolation_type_attribute_name, self.interpolation_type_type)
 
     @property
-    def interpolation_type_type(self) -> Type[int]:
-        return int
+    def interpolation_type_type(self) -> Type[Enum]:
+        return INTERPOLATION_TYPE
 
     def interpolation_type_create(self):
         """ Creates a blank, empty or zero value for interpolation_type"""
-        self.interpolation_type = self.interpolation_type_type()
+        self.interpolation_type = self.interpolation_type_type['nearestneighbor']
 
 
 class S100Root(GeographicBoundingBox):
@@ -1246,20 +1408,21 @@ class S100Root(GeographicBoundingBox):
         return self._attributes[self.vertical_datum_attribute_name]
 
     @vertical_datum.setter
-    def vertical_datum(self, val: Union[int, str]):
-        if isinstance(val, str):
-            val = val.upper()
-            val = VERTICAL_DATUM[val]
-
-        self._attributes[self.vertical_datum_attribute_name] = val
+    def vertical_datum(self, val: Union[int, str, VERTICAL_DATUM]):
+        self.set_enum_attribute(val, self.vertical_datum_attribute_name, self.vertical_datum_type)
+        # if isinstance(val, str):
+        #     val = self.vertical_datum_type[val]
+        # if isinstance(val , int):
+        #     val = self.vertical_datum_type(val)
+        # self._attributes[self.vertical_datum_attribute_name] = val
 
     @property
-    def vertical_datum_type(self) -> Type[int]:
-        return int
+    def vertical_datum_type(self) -> Type[Enum]:
+        return VERTICAL_DATUM
 
     def vertical_datum_create(self):
         """ Creates a blank, empty or zero value for vertical_datum"""
-        self.vertical_datum = self.vertical_datum_type()
+        self.vertical_datum = self.vertical_datum_type["MLLW"]
 
     @property
     def meta_features_attribute_name(self) -> str:
@@ -1281,8 +1444,10 @@ class S100Root(GeographicBoundingBox):
         """ Creates a blank, empty or zero value for meta_features"""
         self.meta_features = self.meta_features_type()
 
+
 class S102File(S1XXFile):
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-100.4.0')
+
     def __init__(self, *args, **kywrds):
         kywrds['root'] = S100Root
         super().__init__(*args, **kywrds)
