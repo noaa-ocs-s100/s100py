@@ -1,1 +1,1 @@
-..  automodapi:: s102
+..  automodapi:: s100py.s102

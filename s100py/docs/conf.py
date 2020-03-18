@@ -122,12 +122,13 @@ extensions = ['sphinx.ext.imgmath',
 #              'sphinx.ext.autosummary',
               'sphinx_automodapi.automodapi',
               'sphinx.ext.napoleon',
+              'sphinx_autodoc_typehints',
               ]
 
 automodsumm_inherited_members = False
 automodsumm_inherited_members = False
 numpydoc_show_class_members = False  # orevents duplication per automodapi docs
-graphviz_dot = r"C:\PydroSVN\trunk\Miniconda36\envs\Pydro367\Library\bin\graphviz\dot.exe"
+graphviz_dot = os.path.normpath(os.path.join(root_p, r"..\..\..\..\..\envs\Pydro367\Library\bin\graphviz\dot.exe"))
 # autosummary_generate = True
 
 autodoc_default_options = {
@@ -170,7 +171,7 @@ templates_path = ['_templates']
 source_suffix = '.rst'
 
 # The master toctree document.
-master_doc = 'modules'
+master_doc = 's100py'
 
 # adds figure numbers automatically
 numfig = True

@@ -1,7 +1,16 @@
+import pytest
+
 import os
 import logging
+import tempfile
 
-from s100py import s102, bag_to_s102
+from s100py import s100, s102, bag_to_s102
+
+@pytest.fixture(scope="module")
+def s102_file():
+    tf = tempfile.TemporaryFile(suffix=".h5")
+    f = s102.S102File(tf)
+    return f
 
 if __name__ == "__main__":
 

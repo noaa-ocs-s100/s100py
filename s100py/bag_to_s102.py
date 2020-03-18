@@ -1,6 +1,5 @@
 import os
-import gdal
-import osr
+from osgeo import gdal, osr
 import tempfile
 import pprint
 import logging
@@ -56,41 +55,6 @@ def sr_bag_to_s102(input_bag, output_path=""):
         pprint.pprint(meta_gdal)
         pprint.pprint(meta_bagxml)
 
-        # Out[192]:
-        # {'shape': (3365, 2818),
-        #  'res': (10.0, -10.0),
-        #  'resolution': 10.0,
-        #  'point_spacing': 10.0,
-        #  'bounds': ([458060.0, 5663190.0], [491710.0, 5691370.0]),
-        #  'from_horiz_datum': 'PROJCS["WGS 84 / UTM zone 31N",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.2572235629972,AUTHORITY["EPSG","7030"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree (supplier to define representation)",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"],EXTENSION["tx_authority","WG84"]],PROJECTION["Transverse_Mercator",AUTHORITY["EPSG","16031"]],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",3],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AUTHORITY["EPSG","32631"]]',
-        #  'lon_min': 2.400773372098,
-        #  'lon_max': 2.880898826722,
-        #  'lat_min': 51.118649293132,
-        #  'lat_max': 51.373521900904,
-        #  'abstract': 'shoal depth - resolution 10m',
-        #  'date': '20190205',
-        #  'date_stamp': '20190220',
-        #  'unc_type': 'unknown',
-        #  'z_min': -38.469173,
-        #  'z_max': 2.6,
-        #  'source_indicator': 'BATHY_GEN_resolution_10m.csar',
-        #  'filename': 'C:\\Data\\S102 Data\\BATHY_GEN_resolution_10m.bag',
-        #  'source_date': '20190205',
-        #  'survey_authority': 'Flemish Ministry of Mobility and Public Works, Maritime Services and Coast Agency, \nCoastal Division, Flemish Hydrography',
-        #  'end_date': '20190205',
-        #  'from_vert_datum': 'LAT',
-        #  'from_horiz_frame': 'WGS84'}
-        # meta_gdal
-        # Out[193]:
-        # {'AREA_OR_POINT': 'Point',
-        #  'BagVersion': '1.6.0',
-        #  'BAG_DATETIME': '2019-02-05T16:08:47',
-        #  'shape': (2818, 3365),
-        #  'from_horiz_datum': 'PROJCS["WGS 84 / UTM zone 31N",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.2572235629972,AUTHORITY["EPSG","7030"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree (supplier to define representation)",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"],EXTENSION["tx_authority","WG84"]],PROJECTION["Transverse_Mercator",AUTHORITY["EPSG","16031"]],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",3],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AUTHORITY["EPSG","32631"]]',
-        #  'from_horiz_type': 'utm',
-        #  'from_horiz_key': 31,
-        #  'from_horiz_frame': 'WGS84_G1674',
-        #  'from_horiz_units': 'm'}
     depth_raster_data = raster_band.ReadAsArray()
     depth_nodata_value = raster_band.GetNoDataValue()
     uncertainty_raster_data = uncertainty_band.ReadAsArray()
@@ -105,8 +69,6 @@ def sr_bag_to_s102(input_bag, output_path=""):
     root.vertical_datum = meta_bagxml['from_vert_datum']
 
     bathy_cov_dset = root.feature_information.bathymetry_coverage_dataset
-    # >>> type(bc[0])
-    # Out[63]: HSTB.drivers.s102.FeatureInformation
     bathy_depth_info = bathy_cov_dset.append_new_item()  # bathy_cov_dset.append(bathy_cov_dset.metadata_type())
     bathy_depth_info.initialize_properties(True)
     bathy_depth_info.code = DEPTH
@@ -118,9 +80,8 @@ def sr_bag_to_s102(input_bag, output_path=""):
     # bathy_depth_info.lower = -12000
     # bathy_depth_info.upper = 12000
     # bathy_depth_info.closure = "closedInterval"
+
     bathy_uncertainty_info = bathy_cov_dset.append_new_item()
-    # >>> type(bc[0])
-    # Out[63]: HSTB.drivers.s102.FeatureInformation
     bathy_uncertainty_info.initialize_properties(True)
     bathy_uncertainty_info.code = UNCERTAINTY
     bathy_uncertainty_info.name = UNCERTAINTY

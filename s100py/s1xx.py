@@ -52,8 +52,13 @@ class S1XX_Attributes_base(ABC):
                     group_object.attrs[attr_name]) + " was in the group_object but not found in the standard attributes")
                 self._attributes[attr_name] = group_object.attrs[attr_name]
             else:
-                logging.debug(indentstr + " Standard attr/val: " + attr_name + "/" + str(group_object.attrs[attr_name]) + " found and read")
-                setattr(self, expected_items[attr_name], group_object.attrs[attr_name])
+                use_type = self.__getattribute__(expected_items[attr_name] + "_type")
+                if issubclass(use_type, Enum):
+                    logging.debug(indentstr + " Enumerated attr/val: " + attr_name + "/" + str(group_object.attrs[attr_name]) + " found and read")
+                    self.set_enum_attribute(group_object.attrs[attr_name], attr_name, use_type)
+                else:
+                    logging.debug(indentstr + " Standard attr/val: " + attr_name + "/" + str(group_object.attrs[attr_name]) + " found and read")
+                    setattr(self, expected_items[attr_name], group_object.attrs[attr_name])
 
     def __repr__(self):
         s = str(self.__class__) + "\n"
@@ -195,6 +200,9 @@ class S1XX_Attributes_base(ABC):
         raise NotImplementedError("flesh this out if we want an xml representation of S100+ file")
         # basically add a flag to read/write functions, then everywhere a group, dataset or attribute is written either use xml or hdf5
 
+    def get_metadata(self, key):
+        return self._attributes[key]
+
     def add_metadata(self, key, value):
         self._attributes[key] = value
 
@@ -306,7 +314,7 @@ class S1XX_Attributes_base(ABC):
     def set_enum_attribute(self, val, attribute_name, enum_type):
         if isinstance(val, str):
             val = enum_type[val]
-        if isinstance(val , int):
+        if isinstance(val , (int, numpy.integer)):
             val = enum_type(val)
         self._attributes[attribute_name] = val
 
@@ -324,7 +332,7 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
     This class takes the supplied name and type and will make it act like a list in python and read/write the data in HDF5 like S102 wants.
 
     """
-    read_re_pattern = "[_\.](\d+)"
+    read_re_pattern = r"[_\.](\d+)"
     write_format_str = "_%03d"
 
     def __init__(self, *args, **opts):
@@ -529,11 +537,11 @@ class S1XXFile(h5py.File):
 
     def __init__(self, *args, **kywrds):
         # @TODO: This is the NAVO default setting, have to decide if that is best and handle other options too.
-        kywrds.setdefault('driver', "family")
         kywrds.setdefault('root', None)
         self.root_type = kywrds.pop('root')
-        if kywrds['driver'] == 'family':
-            kywrds.setdefault('memb_size', 681574400)
+        if "driver" in kywrds:
+            if kywrds['driver'] == 'family':  # @todo @fixme -- this is from the NAVO files, figure how to set memb_size automatically.
+                kywrds.setdefault('memb_size', 681574400)
         super().__init__(*args, **kywrds)
         # initialize with the s102 data if the file already exists.
         # if this is an empty file or opening for write then this is essentially a no-op

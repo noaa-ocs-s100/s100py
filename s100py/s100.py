@@ -595,6 +595,10 @@ class VertexPoint(S1XX_Attributes_base):
 
 class FeatureInstance(GeographicBoundingBox):
     @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
     def vertical_extent_minimum_z_attribute_name(self) -> str:
         return "verticalExtent.minimumZ"
 
@@ -1240,6 +1244,10 @@ class S100Root(GeographicBoundingBox):
     """
 
     @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
     def product_specification_attribute_name(self) -> str:
         return "productSpecification"
 
@@ -1445,7 +1453,7 @@ class S100Root(GeographicBoundingBox):
         self.meta_features = self.meta_features_type()
 
 
-class S102File(S1XXFile):
+class S100File(S1XXFile):
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-100.4.0')
 
     def __init__(self, *args, **kywrds):
