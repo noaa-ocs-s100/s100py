@@ -1,3 +1,10 @@
+""" This module contains base classes.  they should not be used directly but only used by code
+implementing one of the S100 family of specifications.
+
+See :any:`extending_the_api` for further details about using the classes to create or modify an api.
+"""
+
+
 import collections
 from abc import ABC, abstractmethod
 from typing import Callable, Iterator, Union, Optional, List, Type

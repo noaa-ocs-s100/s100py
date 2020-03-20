@@ -45,54 +45,8 @@ START_SEQUENCE: Starting location of the scan.
 # S100 doc part 10C has HDF5 layout information as well.
 # S100 doc 10C-7 has some representation guidelines
 
-# As an example and to test compatibility a deerived attributes class is made for an older NAVO format
+# As an example and to test compatibility a derived attributes class is made for an older NAVO format
 
-# pycharm template -- To make it work,
-# File-Settings-Editor-LiveTemplates
-# create a new template (hit the plus button on the side) and name it S102 and give it a description
-# paste in the code below (@property lines)
-# Click the Edit Variables and for $attr$ under expression put: snakeCase($SELECTION$)
-# at the bottom is a line that says "applicable in" and has a hyperlinked word (define or change) -- click that and select Python
-#
-# To use, highlight the camel case S102 attribute name and press ctrl-alt-T and select your S102 from the list
-# It will fill in the names and then put the cursor in the right place to specify the type
-#
-# what it does:
-# take the selected text (name from the S102 doc) and:
-# make a read only property returning the S102 HDF5 attribute name
-# make a read/write property to contain the data
-#
-# @property
-# def $attr$_attribute_name(self) -> str:
-#     return "$SELECTION$"
-#
-# @property
-# def $attr$(self) -> $type$:
-#     return self._attributes[self.$attr$_attribute_name]
-#
-# @$attr$.setter
-# def $attr$(self, val: $type$):
-#     self._attributes[self.$attr$_attribute_name] = val
-#
-# @property
-# def $attr$_type(self) -> Type[$type$]:
-#     return $type$
-#
-# def $attr$_create(self):
-#     """ Creates a blank, empty or zero value for $attr$"""
-#     self.$attr$ = self.$attr$_type()
-
-
-# retrofit live template - delete when finished first writing.
-# $SELECTION$(self) -> $type$:
-#     return self._attributes[self.$SELECTION$_attribute_name]
-#
-# @$SELECTION$.setter
-# def $SELECTION$(self, val: $type$):
-#     self._attributes[self.$SELECTION$_attribute_name] = val
-#
-# @property
-# def $SELECTION$
 
 # override the basic S100 spec that says to use an underscore and use a dot instead
 class S102_MetadataList_base(S1XX_MetadataList_base):

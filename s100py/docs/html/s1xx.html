@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="S1XXFile" href="api/s100py.s1xx.S1XXFile.html" />
-    <link rel="prev" title="s100py" href="s100py.html" /> 
+    <link rel="prev" title="Extending the API" href="extending_the_api.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +34,7 @@
           <a href="api/s100py.s1xx.S1XXFile.html" title="S1XXFile"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="s100py.html" title="s100py"
+          <a href="extending_the_api.html" title="Extending the API"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
       </ul>
@@ -47,6 +47,9 @@
             
   <div class="section" id="module-s100py.s1xx">
 <span id="s100py-s1xx-module"></span><h1>s100py.s1xx Module<a class="headerlink" href="#module-s100py.s1xx" title="Permalink to this headline">¶</a></h1>
+<p>This module contains base classes.  they should not be used directly but only used by code
+implementing one of the S100 family of specifications.</p>
+<p>See <a class="reference internal" href="extending_the_api.html"><span class="doc">Extending the API</span></a> for further details about using the classes to create or modify an api.</p>
 <div class="section" id="classes">
 <h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
 <table class="longtable docutils align-default">
@@ -93,7 +96,7 @@
 </div>
 <div class="section" id="class-inheritance-diagram">
 <h2>Class Inheritance Diagram<a class="headerlink" href="#class-inheritance-diagram" title="Permalink to this headline">¶</a></h2>
-<div class="graphviz"><img src="_images/inheritance-6c5b2451ec4ba3fa99ee02cdda4c8459265cfa9b.png" alt="Inheritance diagram of s100py.s1xx.S1XXFile, s100py.s1xx.S1XX_Attributes_base, s100py.s1xx.S1XX_Dataset_base, s100py.s1xx.S1XX_MetadataList_base, s100py.s1xx.S1XX_WritesOwnGroup_base" usemap="#inheritancee16163cb39" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="_images/inheritance-7277f61d331a4410c3a8d003ef7f12a4cfe6e1a4.png" alt="Inheritance diagram of s100py.s1xx.S1XXFile, s100py.s1xx.S1XX_Attributes_base, s100py.s1xx.S1XX_Dataset_base, s100py.s1xx.S1XX_MetadataList_base, s100py.s1xx.S1XX_WritesOwnGroup_base" usemap="#inheritancee16163cb39" class="inheritance graphviz" /></div>
 <map id="inheritancee16163cb39" name="inheritancee16163cb39">
 <area shape="rect" id="node15" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="77,119,166,134"/>
 <area shape="rect" id="node14" href="api/s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" target="_top" title="hdf5 files have primary creation methods of" alt="" coords="722,18,765,33"/>
@@ -110,17 +113,27 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="s100py.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">s100py.s1xx Module</a><ul>
-<li><a class="reference internal" href="#classes">Classes</a></li>
-<li><a class="reference internal" href="#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">s100py.s1xx Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XXFile.html">S1XXFile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_Attributes_base.html">S1XX_Attributes_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_Dataset_base.html">S1XX_Dataset_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_MetadataList_base.html">S1XX_MetadataList_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html">S1XX_WritesOwnGroup_base</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102.html">s100py.s102 Module</a></li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="s100py.html"
-                        title="previous chapter">s100py</a></p>
+  <p class="topless"><a href="extending_the_api.html"
+                        title="previous chapter">Extending the API</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="api/s100py.s1xx.S1XXFile.html"
                         title="next chapter">S1XXFile</a></p>
@@ -151,7 +164,7 @@
           <a href="api/s100py.s1xx.S1XXFile.html" title="S1XXFile"
              >next</a> |</li>
         <li class="right" >
-          <a href="s100py.html" title="s100py"
+          <a href="extending_the_api.html" title="Extending the API"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
       </ul>

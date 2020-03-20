@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Extending the API &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="s100py.s1xx Module" href="s1xx.html" />
+    <link rel="prev" title="s100py" href="s100py.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s1xx.html" title="s100py.s1xx Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s100py.html" title="s100py"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="extending-the-api">
+<h1>Extending the API<a class="headerlink" href="#extending-the-api" title="Permalink to this headline">¶</a></h1>
+<p>To create a new api from this framework or modify an existing one, use the classes below.
+S1XX_Attributes_base for hdf5 groups with attributes, datasets and sub-groups.
+S1XX_Dataset_base for datasets (numpy arrays).
+S1XX_MetadataList_base for groups that have multiple occurrences using the S100 naming scheme (Group_NNN)</p>
+<p>To make data members for one of the above classes, here is how to make a template in PyCharm to
+speed creation:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>File-Settings-Editor-LiveTemplates</p></li>
+<li><p>create a new template (hit the plus button on the side) and name it S102 and give it a description
+paste in the code below (&#64;property lines)</p></li>
+<li><p>Click the Edit Variables and for $attr$ under expression put: snakeCase($SELECTION$)
+at the bottom is a line that says “applicable in” and has a hyperlinked word (define or change) – click that and select Python</p></li>
+</ul>
+</div></blockquote>
+<p>To use, highlight the camel case S102 attribute name and press ctrl-alt-T and select your S102 from the list
+It will fill in the names and then put the cursor in the right place to specify the type</p>
+<dl class="simple">
+<dt>what it does:</dt><dd><ul class="simple">
+<li><p>take the selected text (name from the S102 doc) and:</p></li>
+<li><p>make a read only property returning the S102 HDF5 attribute name</p></li>
+<li><p>make a read/write property to contain the data</p></li>
+<li><p>make a property to tell the type of the data</p></li>
+<li><p>make a _create() function to make a default value for the attribute</p></li>
+</ul>
+</dd>
+</dl>
+<p>Code to put in your live template</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>@property
+def $attr$_attribute_name(self) -&gt; str:
+    return &quot;$SELECTION$&quot;
+
+@property
+def $attr$(self) -&gt; $type$:
+    return self._attributes[self.$attr$_attribute_name]
+
+@$attr$.setter
+def $attr$(self, val: $type$):
+    self._attributes[self.$attr$_attribute_name] = val
+
+@property
+def $attr$_type(self) -&gt; Type[$type$]:
+    return $type$
+
+def $attr$_create(self):
+    &quot;&quot;&quot; Creates a blank, empty or zero value for $attr$&quot;&quot;&quot;
+    self.$attr$ = self.$attr$_type()
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102.html">s100py.s102 Module</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s100py.html"
+                        title="previous chapter">s100py</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s1xx.html"
+                        title="next chapter">s100py.s1xx Module</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s1xx.html" title="s100py.s1xx Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s100py.html" title="s100py"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>
