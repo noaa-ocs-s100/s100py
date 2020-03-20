@@ -19,6 +19,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 
 from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_WritesOwnGroup_base, S1XXFile
 
+
 H5T_CLASS_T = {
     h5py.h5t.NO_CLASS: 'H5T_NO_CLASS',
     h5py.h5t.INTEGER: 'H5T_INTEGER',
@@ -453,6 +454,7 @@ class GeographicBoundingBox(GeographicExtent):
     @property
     def __version__(self) -> int:
         return 1
+
 
     @property
     def west_bound_longitude(self) -> float:
@@ -970,6 +972,222 @@ class FeatureInstance_Format_2(FeatureInstance):
         self.start_sequence = self.start_sequence_type()
 
 
+class FeatureInformation(S1XX_Attributes_base):
+    """  In S100, table 10c-8.
+    In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0
+
+    This is used to describe the BathymetryCoverage and TrackingListCoverage within the GroupF feature listing.
+    The features described under GroupF have a matching named entry parallel to GroupF (top level).
+    The actual data (depths etc) is stored in the top level element while basic metadata is stored in this element.
+    """
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def code(self) -> str:
+        """ The camel case name of the data
+
+        Returns
+        -------
+        str
+            The name of the dataset ("depth" or "uncertainty")
+        """
+        return self._attributes[self.code_attribute_name]
+
+    @code.setter
+    def code(self, val: str):
+        self._attributes[self.code_attribute_name] = val
+
+    @property
+    def code_attribute_name(self) -> str:
+        return "code"
+
+    @property
+    def code_type(self):
+        return str
+
+    def code_create(self):
+        self.code = self.code_type()
+
+    @property
+    def name(self) -> str:
+        """ The plain text name of the data
+        Returns
+        -------
+        str
+            Name of the dataset ("depth" or "uncertainty")
+        """
+        return self._attributes[self.name_attribute_name]
+
+    @name.setter
+    def name(self, val: str):
+        self._attributes[self.name_attribute_name] = val
+
+    @property
+    def name_attribute_name(self) -> str:
+        return "name"
+
+    @property
+    def name_type(self):
+        return str
+
+    def name_create(self):
+        self.name = self.name_type()
+
+    @property
+    def unit_of_measure(self) -> str:
+        """ Units of measurement for the dataset
+        Returns
+        -------
+        str
+            "metres"
+        """
+        return self._attributes[self.unit_of_measure_attribute_name]
+
+    @unit_of_measure.setter
+    def unit_of_measure(self, val: str):
+        self._attributes[self.unit_of_measure_attribute_name] = val
+
+    @property
+    def unit_of_measure_attribute_name(self) -> str:
+        return "uom.name"
+
+    @property
+    def unit_of_measure_type(self):
+        return str
+
+    def unit_of_measure_create(self):
+        self.unit_of_measure = self.unit_of_measure_type("metres")
+
+    @property
+    def fill_value(self) -> float:
+        """ Value denoting missing data
+        Returns
+        -------
+        float
+            1000000
+        """
+        return self._attributes[self.fill_value_attribute_name]
+
+    @fill_value.setter
+    def fill_value(self, val: float):
+        self._attributes[self.fill_value_attribute_name] = val
+
+    @property
+    def fill_value_attribute_name(self) -> str:
+        return "fillValue"
+
+    @property
+    def fill_value_type(self):
+        return float
+
+    def fill_value_create(self):
+        self.fill_value = self.fill_value_type(1000000)
+
+    @property
+    def datatype(self) -> int:
+        """
+        Returns
+        -------
+        string
+            H5T_NATIVE_FLOAT
+        """
+        return self._attributes[self.datatype_attribute_name]
+
+    @datatype.setter
+    def datatype(self, val: int):
+        self._attributes[self.datatype_attribute_name] = val
+
+    @property
+    def datatype_attribute_name(self) -> str:
+        return "datatype"
+
+    @property
+    def datatype_type(self):
+        return str
+
+    def datatype_create(self):
+        self.datatype = self.datatype_type("H5T_NATIVE_FLOAT")
+
+    @property
+    def lower(self) -> float:
+        """
+        Returns
+        -------
+        float
+            -12000
+        """
+        return self._attributes[self.lower_attribute_name]
+
+    @lower.setter
+    def lower(self, val: float):
+        self._attributes[self.lower_attribute_name] = val
+
+    @property
+    def lower_attribute_name(self) -> str:
+        return "lower"
+
+    @property
+    def lower_type(self):
+        return float
+
+    def lower_create(self):
+        self.lower = self.lower_type(-12000)
+
+    @property
+    def upper(self) -> float:
+        """
+        Returns
+        -------
+        float
+            12000
+        """
+        return self._attributes[self.upper_attribute_name]
+
+    @upper.setter
+    def upper(self, val: float):
+        self._attributes[self.upper_attribute_name] = val
+
+    @property
+    def upper_attribute_name(self) -> str:
+        return "upper"
+
+    @property
+    def upper_type(self):
+        return float
+
+    def upper_create(self):
+        self.upper = self.upper_type(12000)
+
+    @property
+    def closure(self) -> str:
+        """
+        Returns
+        -------
+        str
+            closedInterval
+        """
+        return self._attributes[self.closure_attribute_name]
+
+    @closure.setter
+    def closure(self, val: str):
+        self._attributes[self.closure_attribute_name] = val
+
+    @property
+    def closure_attribute_name(self) -> str:
+        return "closure"
+
+    @property
+    def closure_type(self):
+        return str
+
+    def closure_create(self):
+        self.closure = self.closure_type("closedInterval")
+
+
+
 class S100_FeatureContainer(S1XX_Attributes_base):
 
     @property
@@ -1239,6 +1457,7 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         self.interpolation_type = self.interpolation_type_type['nearestneighbor']
 
 
+
 class S100Root(GeographicBoundingBox):
     """ From table 10c-6 in S100 spec.
     """
@@ -1412,7 +1631,7 @@ class S100Root(GeographicBoundingBox):
         return "verticalDatum"
 
     @property
-    def vertical_datum(self) -> int:
+    def vertical_datum(self) -> Enum:
         return self._attributes[self.vertical_datum_attribute_name]
 
     @vertical_datum.setter

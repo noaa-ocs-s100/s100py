@@ -47,3 +47,25 @@ Code to put in your live template ::
         """ Creates a blank, empty or zero value for $attr$"""
         self.$attr$ = self.$attr$_type()
 
+For enumeration data types use this template which is very similar::
+
+    @property
+    def $attr$_attribute_name(self) -> str:
+        return "$SELECTION$"
+
+    @property
+    def $attr$(self) -> $type$:
+        return self._attributes[self.$attr$_attribute_name]
+
+    @name_of_data.setter
+    def name_of_data(self, val: Union[int, str, MONTY]):
+        self.set_enum_attribute(val, self.name_of_data_attribute_name, self.name_of_data_type)
+
+    @property
+    def $attr$_type(self) -> Type[$type$]:
+        return $type$
+
+    def $attr$_create(self):
+        """ Creates a value using the first item in the enumeration of $attr$"""
+        self.$attr$ = list(self.$attr$_type)[0]
+

@@ -17,7 +17,8 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py"
 
 from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_WritesOwnGroup_base, S1XXFile
-from .s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, S100_FeatureContainer, S100Root, FeatureInstance_Format_2
+from .s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint
+from .s100 import FeatureInformation, S100_FeatureContainer, S100Root, FeatureInstance_Format_2
 
 BATHY_COVERAGE = "BathymetryCoverage"
 TRACKING_COVERAGE = "TrackingListCoverage"
@@ -53,82 +54,82 @@ class S102_MetadataList_base(S1XX_MetadataList_base):
     write_format_str = ".%03d"
 
 
-# @TODO -- determine if this is old.  The spec seems to describe a one dimensional array or list of points but the values in the grid is a 2 x N x M dataset
-class BathymetryValueRecord(S1XX_Attributes_base):
-    """ 4.2.1.1.2.2 and Figure 4.4 of v2.0.0
-    The attribute values has the value type S102_BathymetryValueRecord which is a sequence of value items that
-    shall assign values to the grid points.
-    There are two attributes in the bathymetry value record, depth and uncertainty in the S102_BathymetryValues class.
-    The definition for the depth is defined by the depthCorrectionType attribute in the S102_DataIdentification class.
-    The definition of the type of data in the values record is defined by the verticalUncertaintyType attribute in the
-    S102_DataIdentification class.
-    """
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def depth_attribute_name(self) -> str:
-        return "depth"
-
-    @property
-    def depth_type(self):
-        return numpy.ndarray
-
-    def depth_create(self):
-        self.depth = self.depth_type([], numpy.float)
-
-    @property
-    def depth(self) -> float:
-        return self._attributes[self.depth_attribute_name]
-
-    @depth.setter
-    def depth(self, val: float):
-        self._attributes[self.depth_attribute_name] = val
-
-    @property
-    def uncertainty_attribute_name(self) -> str:
-        return "uncertainty"
-
-    @property
-    def uncertainty_type(self):
-        return numpy.ndarray
-
-    def uncertainty_create(self):
-        self.uncertainty = self.uncertainty_type([], numpy.float)
-
-    @property
-    def uncertainty(self) -> float:
-        return self._attributes[self.uncertainty_attribute_name]
-
-    @uncertainty.setter
-    def uncertainty(self, val: float):
-        self._attributes[self.uncertainty_attribute_name] = val
-
-
-class BathymetryValuesList(S102_MetadataList_base):
-    """ 4.2.1.1.2 and Figure 4.4 of v2.0.0
-    The class S102_BathymetryValues is related to BathymetryCoverage by a composition relationship in which
-    an ordered sequence of depth values provide data values for each grid cell.
-    The class S102_BathymetryValues inherits from S100_Grid.
-    """
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_name(self) -> str:
-        return "values"
-
-    @property
-    def metadata_type(self) -> type:
-        return BathymetryValueRecord
+# # @TODO -- determine if this is old.  The spec seems to describe a one dimensional array or list of points but the values in the grid is a 2 x N x M dataset
+# class BathymetryValueRecord(S1XX_Attributes_base):
+#     """ 4.2.1.1.2.2 and Figure 4.4 of v2.0.0
+#     The attribute values has the value type S102_BathymetryValueRecord which is a sequence of value items that
+#     shall assign values to the grid points.
+#     There are two attributes in the bathymetry value record, depth and uncertainty in the S102_BathymetryValues class.
+#     The definition for the depth is defined by the depthCorrectionType attribute in the S102_DataIdentification class.
+#     The definition of the type of data in the values record is defined by the verticalUncertaintyType attribute in the
+#     S102_DataIdentification class.
+#     """
+#
+#     @property
+#     def __version__(self) -> int:
+#         return 1
+#
+#     @property
+#     def __version__(self) -> int:
+#         return 1
+#
+#     @property
+#     def depth_attribute_name(self) -> str:
+#         return "depth"
+#
+#     @property
+#     def depth_type(self):
+#         return numpy.ndarray
+#
+#     def depth_create(self):
+#         self.depth = self.depth_type([], numpy.float)
+#
+#     @property
+#     def depth(self) -> float:
+#         return self._attributes[self.depth_attribute_name]
+#
+#     @depth.setter
+#     def depth(self, val: float):
+#         self._attributes[self.depth_attribute_name] = val
+#
+#     @property
+#     def uncertainty_attribute_name(self) -> str:
+#         return "uncertainty"
+#
+#     @property
+#     def uncertainty_type(self):
+#         return numpy.ndarray
+#
+#     def uncertainty_create(self):
+#         self.uncertainty = self.uncertainty_type([], numpy.float)
+#
+#     @property
+#     def uncertainty(self) -> float:
+#         return self._attributes[self.uncertainty_attribute_name]
+#
+#     @uncertainty.setter
+#     def uncertainty(self, val: float):
+#         self._attributes[self.uncertainty_attribute_name] = val
+#
+#
+# class BathymetryValuesList(S102_MetadataList_base):
+#     """ 4.2.1.1.2 and Figure 4.4 of v2.0.0
+#     The class S102_BathymetryValues is related to BathymetryCoverage by a composition relationship in which
+#     an ordered sequence of depth values provide data values for each grid cell.
+#     The class S102_BathymetryValues inherits from S100_Grid.
+#     """
+#
+#     @property
+#     def __version__(self) -> int:
+#         return 1
+#
+#     @property
+#     def metadata_name(self) -> str:
+#         return "values"
+#
+#     @property
+#     def metadata_type(self) -> type:
+#         return BathymetryValueRecord
 
 
 class BathymetryValues(S1XX_WritesOwnGroup_base):
@@ -822,219 +823,6 @@ class BathymetryGroup_List(S102_MetadataList_base):
         return BathymetryCoverage
 
 
-class FeatureInformation(S1XX_Attributes_base):
-    """ 10.2.1 and table 10.2 and Table 10.1 of v2.0.0
-    This is used to describe the BathymetryCoverage and TrackingListCoverage within the GroupF feature listing.
-    The features described under GroupF have a matching named entry parallel to GroupF (top level).
-    The actual data (depths etc) is stored in the top level element while basic metadata is stored in this element.
-    """
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def code(self) -> str:
-        """ The camel case name of the data
-
-        Returns
-        -------
-        str
-            The name of the dataset ("depth" or "uncertainty")
-        """
-        return self._attributes[self.code_attribute_name]
-
-    @code.setter
-    def code(self, val: str):
-        self._attributes[self.code_attribute_name] = val
-
-    @property
-    def code_attribute_name(self) -> str:
-        return "code"
-
-    @property
-    def code_type(self):
-        return str
-
-    def code_create(self):
-        self.code = self.code_type()
-
-    @property
-    def name(self) -> str:
-        """ The plain text name of the data
-        Returns
-        -------
-        str
-            Name of the dataset ("depth" or "uncertainty")
-        """
-        return self._attributes[self.name_attribute_name]
-
-    @name.setter
-    def name(self, val: str):
-        self._attributes[self.name_attribute_name] = val
-
-    @property
-    def name_attribute_name(self) -> str:
-        return "name"
-
-    @property
-    def name_type(self):
-        return str
-
-    def name_create(self):
-        self.name = self.name_type()
-
-    @property
-    def unit_of_measure(self) -> str:
-        """ Units of measurement for the dataset
-        Returns
-        -------
-        str
-            "metres"
-        """
-        return self._attributes[self.unit_of_measure_attribute_name]
-
-    @unit_of_measure.setter
-    def unit_of_measure(self, val: str):
-        self._attributes[self.unit_of_measure_attribute_name] = val
-
-    @property
-    def unit_of_measure_attribute_name(self) -> str:
-        return "uom.name"
-
-    @property
-    def unit_of_measure_type(self):
-        return str
-
-    def unit_of_measure_create(self):
-        self.unit_of_measure = self.unit_of_measure_type("metres")
-
-    @property
-    def fill_value(self) -> float:
-        """ Value denoting missing data
-        Returns
-        -------
-        float
-            1000000
-        """
-        return self._attributes[self.fill_value_attribute_name]
-
-    @fill_value.setter
-    def fill_value(self, val: float):
-        self._attributes[self.fill_value_attribute_name] = val
-
-    @property
-    def fill_value_attribute_name(self) -> str:
-        return "fillValue"
-
-    @property
-    def fill_value_type(self):
-        return float
-
-    def fill_value_create(self):
-        self.fill_value = self.fill_value_type(1000000)
-
-    @property
-    def datatype(self) -> int:
-        """
-        Returns
-        -------
-        string
-            H5T_NATIVE_FLOAT
-        """
-        return self._attributes[self.datatype_attribute_name]
-
-    @datatype.setter
-    def datatype(self, val: int):
-        self._attributes[self.datatype_attribute_name] = val
-
-    @property
-    def datatype_attribute_name(self) -> str:
-        return "datatype"
-
-    @property
-    def datatype_type(self):
-        return str
-
-    def datatype_create(self):
-        self.datatype = self.datatype_type("H5T_NATIVE_FLOAT")
-
-    @property
-    def lower(self) -> float:
-        """
-        Returns
-        -------
-        float
-            -12000
-        """
-        return self._attributes[self.lower_attribute_name]
-
-    @lower.setter
-    def lower(self, val: float):
-        self._attributes[self.lower_attribute_name] = val
-
-    @property
-    def lower_attribute_name(self) -> str:
-        return "lower"
-
-    @property
-    def lower_type(self):
-        return float
-
-    def lower_create(self):
-        self.lower = self.lower_type(-12000)
-
-    @property
-    def upper(self) -> float:
-        """
-        Returns
-        -------
-        float
-            12000
-        """
-        return self._attributes[self.upper_attribute_name]
-
-    @upper.setter
-    def upper(self, val: float):
-        self._attributes[self.upper_attribute_name] = val
-
-    @property
-    def upper_attribute_name(self) -> str:
-        return "upper"
-
-    @property
-    def upper_type(self):
-        return float
-
-    def upper_create(self):
-        self.upper = self.upper_type(12000)
-
-    @property
-    def closure(self) -> str:
-        """
-        Returns
-        -------
-        str
-            closedInterval
-        """
-        return self._attributes[self.closure_attribute_name]
-
-    @closure.setter
-    def closure(self, val: str):
-        self._attributes[self.closure_attribute_name] = val
-
-    @property
-    def closure_attribute_name(self) -> str:
-        return "closure"
-
-    @property
-    def closure_type(self):
-        return str
-
-    def closure_create(self):
-        self.closure = self.closure_type("closedInterval")
-
-
 class TrackingListCoverages_List(S102_MetadataList_base):
     """ 4.2.1.1.9 and Figure 4.4 and Table 10.1 of v2.0.0
     """
@@ -1191,7 +979,13 @@ class TrackingListContainer(S100_FeatureContainer):
 
 
 class FeatureInformation_dataset(S1XX_Dataset_base):
+    """   In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0
 
+    This is used to describe the BathymetryCoverage and TrackingListCoverage within the GroupF feature listing.
+    The features described under GroupF have a matching named entry parallel to GroupF (top level).
+    The actual data (depths etc) is stored in the top level element while basic metadata is stored in this element.
+
+    """
     @property
     def __version__(self) -> int:
         return 1

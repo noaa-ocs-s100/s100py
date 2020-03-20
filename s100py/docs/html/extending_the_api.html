@@ -18,8 +18,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="s100py.s1xx Module" href="s1xx.html" />
-    <link rel="prev" title="s100py" href="s100py.html" /> 
+    <link rel="next" title="An Example API" href="sample_api.html" />
+    <link rel="prev" title="TrackingListValues_List" href="api/s100py.s102.TrackingListValues_List.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -31,10 +31,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="s1xx.html" title="s100py.s1xx Module"
+          <a href="sample_api.html" title="An Example API"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="s100py.html" title="s100py"
+          <a href="api/s100py.s102.TrackingListValues_List.html" title="TrackingListValues_List"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
       </ul>
@@ -96,6 +96,28 @@ def $attr$_create(self):
     self.$attr$ = self.$attr$_type()
 </pre></div>
 </div>
+<p>For enumeration data types use this template which is very similar:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>@property
+def $attr$_attribute_name(self) -&gt; str:
+    return &quot;$SELECTION$&quot;
+
+@property
+def $attr$(self) -&gt; $type$:
+    return self._attributes[self.$attr$_attribute_name]
+
+@name_of_data.setter
+def name_of_data(self, val: Union[int, str, MONTY]):
+    self.set_enum_attribute(val, self.name_of_data_attribute_name, self.name_of_data_type)
+
+@property
+def $attr$_type(self) -&gt; Type[$type$]:
+    return $type$
+
+def $attr$_create(self):
+    &quot;&quot;&quot; Creates a value using the first item in the enumeration of $attr$&quot;&quot;&quot;
+    self.$attr$ = list(self.$attr$_type)[0]
+</pre></div>
+</div>
 </div>
 
 
@@ -106,18 +128,19 @@ def $attr$_create(self):
         <div class="sphinxsidebarwrapper">
   <h3><a href="s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="s102.html">s100py.s102 Module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_api.html">An Example API</a></li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="s100py.html"
-                        title="previous chapter">s100py</a></p>
+  <p class="topless"><a href="api/s100py.s102.TrackingListValues_List.html"
+                        title="previous chapter">TrackingListValues_List</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="s1xx.html"
-                        title="next chapter">s100py.s1xx Module</a></p>
+  <p class="topless"><a href="sample_api.html"
+                        title="next chapter">An Example API</a></p>
 <div id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
@@ -142,10 +165,10 @@ def $attr$_create(self):
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="s1xx.html" title="s100py.s1xx Module"
+          <a href="sample_api.html" title="An Example API"
              >next</a> |</li>
         <li class="right" >
-          <a href="s100py.html" title="s100py"
+          <a href="api/s100py.s102.TrackingListValues_List.html" title="TrackingListValues_List"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
       </ul>

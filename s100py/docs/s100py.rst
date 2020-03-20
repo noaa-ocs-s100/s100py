@@ -100,9 +100,10 @@ so we should have initialized first. ::
 .. toctree::
     :maxdepth: 4
 
-    extending_the_api
     s1xx
     s100
     s102
+    extending_the_api
+    sample_api
 
 
