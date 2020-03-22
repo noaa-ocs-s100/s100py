@@ -57,9 +57,9 @@ For enumeration data types use this template which is very similar::
     def $attr$(self) -> $type$:
         return self._attributes[self.$attr$_attribute_name]
 
-    @name_of_data.setter
-    def name_of_data(self, val: Union[int, str, MONTY]):
-        self.set_enum_attribute(val, self.name_of_data_attribute_name, self.name_of_data_type)
+    @$attr$.setter
+    def $attr$(self, val: Union[int, str, $type$]):
+        self.set_enum_attribute(val, self.$attr$_attribute_name, self.$attr$_type)
 
     @property
     def $attr$_type(self) -> Type[$type$]:
