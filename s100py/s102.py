@@ -1241,8 +1241,8 @@ class DiscoveryMetadata(S1XX_Attributes_base):
 class S102File(S1XXFile):
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-102.2.0')
     def __init__(self, *args, **kywrds):
-        kywrds['root'] = S102Root
-        super().__init__(*args, **kywrds)
+        # kywrds['root'] = S102Root
+        super().__init__(*args, root=S102Root, **kywrds)
 
 
 # root = s102.Root()

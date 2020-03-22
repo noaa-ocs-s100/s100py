@@ -105,5 +105,6 @@ so we should have initialized first. ::
     s102
     extending_the_api
     sample_api
+    using_sample_api
 
 

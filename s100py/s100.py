@@ -1676,5 +1676,5 @@ class S100File(S1XXFile):
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-100.4.0')
 
     def __init__(self, *args, **kywrds):
-        kywrds['root'] = S100Root
-        super().__init__(*args, **kywrds)
+        # kywrds['root'] = S100Root
+        super().__init__(*args, root=S100Root, **kywrds)

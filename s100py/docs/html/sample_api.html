@@ -1,0 +1,527 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>An Example API &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using The Example API" href="using_sample_api.html" />
+    <link rel="prev" title="Extending the API" href="extending_the_api.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="using_sample_api.html" title="Using The Example API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="extending_the_api.html" title="Extending the API"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="an-example-api">
+<h1>An Example API<a class="headerlink" href="#an-example-api" title="Permalink to this headline">¶</a></h1>
+<p>Let’s create a new sample api to show the basic pieces of the s100py framework.  We’ll lay out an example
+data spec and then create the code and classes to make it work.  The basic data types are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>basic attribute (string, int, float, enum)</p></li>
+<li><p>named dataset</p></li>
+<li><p>grid dataset</p></li>
+<li><p>named sub group</p></li>
+<li><p>variable number of occurrence subgroup (e.g. Group_01, Group_02…)</p></li>
+<li><p>file</p></li>
+</ul>
+</div></blockquote>
+<p>Here is our pretend data spec:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">S999</span>
+<span class="o">|</span>
+<span class="o">+</span> <span class="n">datasetWithNames</span> <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">named</span> <span class="n">dataset</span><span class="p">)</span>
+<span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">+</span> <span class="n">attrInt</span> <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">+</span> <span class="n">attrFloat</span> <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">+</span> <span class="n">attrStr</span> <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">string</span><span class="p">)</span>
+<span class="o">|</span>
+<span class="o">+</span> <span class="n">dataGroup_01</span><span class="p">,</span> <span class="n">dataGroup_02</span><span class="o">...</span>  <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">multi</span><span class="o">-</span><span class="n">occurrence</span> <span class="n">group</span><span class="p">)</span>
+<span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">+</span> <span class="n">nameOfData</span> <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">enumeration</span><span class="p">)</span>
+<span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">+</span> <span class="n">dataGrid</span> <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">rectangular</span> <span class="n">grid</span> <span class="n">dataset</span><span class="p">)</span>
+<span class="o">|</span>
+<span class="o">+</span> <span class="n">myLocationGroup</span> <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">sub</span> <span class="n">group</span> <span class="n">but</span> <span class="n">based</span> <span class="n">on</span> <span class="n">a</span> <span class="n">S100</span> <span class="nb">type</span><span class="p">,</span> <span class="n">GeographicBoundingBox</span><span class="p">)</span>
+<span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">+</span> <span class="n">utmZone</span> <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="o">|</span>
+<span class="o">+</span> <span class="n">myFirstObject</span> <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">sub</span> <span class="n">group</span><span class="p">)</span>
+<span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">+</span> <span class="n">dataValue</span> <span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">string</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each piece of data from the S100 spec there should be a python friendly (pep8 - “snake case”) name to hold the data.
+Also there is a read only property that contains the S100 name (which may be camel case and not as human friendly).
+There are also two helper functions to help discover the type of the data that should be stored and one to create
+an instance of the data with an appropriate default.</p>
+<p>Let’s start from the bottom of the tree and make a group object that has a string attribute.
+This could look like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">myFirstObject</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_value</span><span class="o">=</span><span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_value_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;dataValue&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_value_type</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="k">def</span> <span class="nf">data_value_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="mi">999</span>
+</pre></div>
+</div>
+<p>But doing this would require the data types read and write themselves to disk and do other housekeeping.
+Also data validation would be harder.</p>
+<p>For datatypes that have child data members there is a base class <a class="reference internal" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1XX_Attributes_base</span></code></a>.
+This eventually equates to an HDF5 Group object that can have HDF5 attributes, datasets or subgroups.
+To allow for qc of the input and output of data by the user or what is being read from disk,
+we used properties (<a class="reference external" href="https://docs.python.org/3/library/functions.html#property&gt;">&#64;property</a>) instead of plain member data.
+They work the same when writing code but allow the API to validate data in addition.</p>
+<p>The data is actually held in a ‘private’ dictionary “_attributes” which is based on the S100 names (not the python style naming).
+This allows for any data in an HDF5 file when read to also be stored, so if reading non-standard data or a newer
+or older format, there is a better chance that the data will still behave naturally and not be lost.
+We also provide type hints to help auto create the docs and when writing code in an IDE or shell that supports typehints.</p>
+<p>Here is how the API is actually implemented, notice the name MyObject does not have to match the S100 name
+of myFirstObject:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import modules we are going to use below.</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Type</span>
+<span class="kn">from</span> <span class="nn">s100py</span> <span class="k">import</span> <span class="n">s1xx</span><span class="p">,</span> <span class="n">s100</span>
+
+<span class="k">class</span> <span class="nc">MyObject</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Attributes_base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Create our first data class with properties etc &quot;&quot;&quot;</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_value_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;dataValue&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_value_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@data_value</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">data_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_value_attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_value_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span>
+
+    <span class="k">def</span> <span class="nf">data_value_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for data_value&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_value_type</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>That would be a lot of typing, but there is a template in <a class="reference internal" href="extending_the_api.html"><span class="doc">Extending the API</span></a> that makes it much faster
+and is even better when used as a <a class="reference external" href="https://www.jetbrains.com/help/pycharm/tutorial-creating-and-applying-live-templates-code-snippets.html">PyCharm Live Template</a>.  If using PyCharm just type in the S100 camelcase name
+and run the live template and it will automatically make the python style name.  Hit tab and you can specify the datatype
+and it will fill it into multiple locations at once for you.</p>
+<p>Now let’s try a datatype that has eastBoundLongitude, westBoundLongitude, northBoundLongitude, southBoundLatitude and
+utmZone.  The first four attributes are already part of an <a class="reference internal" href="api/s100py.s100.GeographicBoundingBox.html#s100py.s100.GeographicBoundingBox" title="s100py.s100.GeographicBoundingBox"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s100.GeographicBoundingBox</span></code></a> so let’s derive a class
+from there.</p>
+<p>Use the template for utmZone and notice the attribute will be an int (and in PyCharm you’ll be done in an instant).
+Let’s also add some limits on the zone number in the &#64;property.setter</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyLocation</span><span class="p">(</span><span class="n">s100</span><span class="o">.</span><span class="n">GeographicBoundingBox</span><span class="p">):</span>
+    <span class="n">empty_zone</span> <span class="o">=</span> <span class="mi">999</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">utm_zone_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;utmZone&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">utm_zone</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">utm_zone_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@utm_zone</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">utm_zone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">val</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="p">)</span> <span class="ow">and</span> <span class="n">val</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_zone</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Illegal zone number, must be between 1 and 60&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">utm_zone_attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">utm_zone_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span>
+
+    <span class="k">def</span> <span class="nf">utm_zone_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for utm_zone&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">utm_zone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">utm_zone_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">empty_zone</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next is a multi-occurrence object.  These are groups that S100 says has an integer at the end of it’s name, like Group_001.
+To store these there is a class that makes them act as python lists, <a class="reference internal" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" title="s100py.s1xx.S1XX_MetadataList_base"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1XX_MetadataList_base</span></code></a>.
+This class needs to know what the acceptable name patterns are for reading/writing the data,
+the default is an underscore OR dot followed by one or more integers.
+You also have to supply a <a class="reference external" href="https://docs.python.org/3/library/functions.html#property&gt;">&#64;property</a> “metadata_name” and “metadata_type” for the name and type of the data to be held in the list.</p>
+<p>But first, our example says that this dataGroup_01 will contain an attribute and a rectangular grid dataset.
+We know how to encode an attribute which is a simple string or number but not a dataset.
+Actually, a straight rectangular grid is simple, it is just a property that has a numpy array or h5py dataset as it’s type.</p>
+<dl class="simple">
+<dt>The other attribute says it’s an enumeration.  Let’s say the document defines:</dt><dd><ul class="simple">
+<li><p>“spam” = 1</p></li>
+<li><p>“cheese” = 2</p></li>
+</ul>
+</dd>
+</dl>
+<p>Let’s encode that as a python enumeration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
+<span class="k">class</span> <span class="nc">MONTY</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">spam</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">cheese</span> <span class="o">=</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>Now let’s make the class that has the enumeration and the dataset.  The enumeration data doesn’t quite follow
+the standard template, so there is a second one just for enumerations in <a href="#id1"><span class="problematic" id="id2">:any:`extending_the_api`_</span></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DataGroupObject</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Attributes_base</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name_of_data_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;nameOfData&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name_of_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MONTY</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name_of_data_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@name_of_data</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">name_of_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">MONTY</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_enum_attribute</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_of_data_attribute_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_of_data_type</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name_of_data_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Enum</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">MONTY</span>
+
+    <span class="k">def</span> <span class="nf">name_of_data_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates an enumerated value of &#39;spam&#39; (because it&#39;s first in the list) &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_of_data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_of_data_type</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_grid_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;dataGrid&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s1xx</span><span class="o">.</span><span class="n">s1xx_sequence</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_grid_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@data_grid</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">data_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">s1xx</span><span class="o">.</span><span class="n">s1xx_sequence</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_grid_attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_grid_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s1xx</span><span class="o">.</span><span class="n">s1xx_sequence</span><span class="p">:</span>
+        <span class="k">return</span> <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>
+
+    <span class="k">def</span> <span class="nf">data_grid_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for data_grid&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_grid_type</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Ok, now let’s make the list object that will actually have these data groups.  Recall the <a class="reference internal" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" title="s100py.s1xx.S1XX_MetadataList_base"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1XX_MetadataList_base</span></code></a>
+base class:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DataGroups</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_MetadataList_base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This is the list of dataGroup_NNN that are held as a list.</span>
+<span class="sd">    Each dataGroup_NNN has a data_grid dataset and name_of_data attribute.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">metadata_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;dataGroup&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">metadata_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">DataGroupObject</span>
+</pre></div>
+</div>
+<p>For the last datatype we’ll make the compund dataset “datasetWithNames”.  This is to encapsulate S100 specs that lay out
+data with names, like attributes, but say they belong in a dataset.   The <a href="#id3"><span class="problematic" id="id4">:any:`s1xx.S1XX_Dataset_base`_</span></a> takes care of this.
+Similar to the List we jsut made above, this class uses a list to keep an arbitrary number of data arrays and read/write
+them to HDF%.</p>
+<p>For example, the S100 spec Table 10c-8 describes a compound array stored as a dataset which is more naturally used
+as a multiple lists of attributes.  Our example will make a datatype to hold three attributes and a datatype that
+holds them in a list.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">datasetWithNames</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Attributes_base</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_write_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;attrInt&quot;</span><span class="p">,</span> <span class="s2">&quot;attrStr&quot;</span><span class="p">,</span> <span class="s2">&quot;attrFloat&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr_int_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;attrInt&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr_int</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr_int_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@attr_int</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">attr_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr_int_attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr_int_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">int</span>
+
+    <span class="k">def</span> <span class="nf">attr_int_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for attr_int&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr_int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_int_type</span><span class="p">()</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr_float_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;attrFloat&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr_float</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr_float_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@attr_float</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">attr_float</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr_float_attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr_float_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">float</span>
+
+    <span class="k">def</span> <span class="nf">attr_float_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for attr_float&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr_float</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_float_type</span><span class="p">()</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr_str_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;attrStr&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr_str_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@attr_str</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">attr_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr_str_attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr_str_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">str</span>
+
+    <span class="k">def</span> <span class="nf">attr_str_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for attr_str&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_str_type</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Now we’ll wrap this data class inside a <a href="#id5"><span class="problematic" id="id6">:any:`s1xx.S1XX_Dataset_base`_</span></a>  class so it reads and writes to arrays
+and can be accessed as a python list.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DatasetWithNames_List</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Dataset_base</span><span class="p">):</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">metadata_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="nb">type</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">datasetWithNames</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">metadata_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;datasetWithNames&quot;</span>
+</pre></div>
+</div>
+<p>The final data class we’ll make is make a root object that contains all the datatypes we just made and associate that with a
+file object (which is derived from an h5py File).  The root object itself is just another
+class derived from <code class="xref any docutils literal notranslate"><span class="pre">s1xx.S1XXAttribute_base</span></code>.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">S999Root</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Attributes_base</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dataset_with_names_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;datasetWithNames&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dataset_with_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DatasetWithNames_List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_with_names_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@dataset_with_names</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">dataset_with_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">DatasetWithNames_List</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_with_names_attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dataset_with_names_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">DatasetWithNames_List</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">DatasetWithNames_List</span>
+
+    <span class="k">def</span> <span class="nf">dataset_with_names_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for dataset_with_names&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_with_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_with_names_type</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_group_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;dataGroup&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_group</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataGroups</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_group_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@data_group</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">data_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">DataGroups</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_group_attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_group_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">DataGroups</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">DataGroups</span>
+
+    <span class="k">def</span> <span class="nf">data_group_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for data_group&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_group_type</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">my_location_group_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;myLocationGroup&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">my_location_group</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyLocation</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">my_location_group_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@my_location_group</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">my_location_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">MyLocation</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">my_location_group_attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">my_location_group_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">MyLocation</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">MyLocation</span>
+
+    <span class="k">def</span> <span class="nf">my_location_group_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for my_location_group&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">my_location_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_location_group_type</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">my_first_object_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;myFirstObject&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">my_first_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyObject</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">my_first_object_attribute_name</span><span class="p">]</span>
+
+    <span class="nd">@my_first_object</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">my_first_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">MyObject</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">my_first_object_attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">my_first_object_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">MyObject</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">MyObject</span>
+
+    <span class="k">def</span> <span class="nf">my_first_object_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for my_first_object&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">my_first_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_first_object_type</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The final thing to do is to associate the root data class to a S1XXFile.
+The file is derived from a h5py.File object and will accept any of the creation arguments h5py will take.
+All we need to do is add a product specification string and add a ‘root’ keyword.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">S999File</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XXFile</span><span class="p">):</span>
+    <span class="n">PRODUCT_SPECIFICATION</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">string_</span><span class="p">(</span><span class="s1">&#39;INT.IHO.S-Fake&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kywrds</span><span class="p">):</span>
+        <span class="c1"># kywrds[&#39;root&#39;] = S999Root</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="n">S999Root</span> <span class="o">**</span><span class="n">kywrds</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All that is left is <a class="reference internal" href="using_sample_api.html"><span class="doc">Using The Example API</span></a></p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102.html">s100py.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="extending_the_api.html"
+                        title="previous chapter">Extending the API</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="using_sample_api.html"
+                        title="next chapter">Using The Example API</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="using_sample_api.html" title="Using The Example API"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="extending_the_api.html" title="Extending the API"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

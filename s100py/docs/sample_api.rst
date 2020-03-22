@@ -70,10 +70,17 @@ This allows for any data in an HDF5 file when read to also be stored, so if read
 or older format, there is a better chance that the data will still behave naturally and not be lost.
 We also provide type hints to help auto create the docs and when writing code in an IDE or shell that supports typehints.
 
-Here is how the API is actually implemented, notice the name MyObject will not have to match the S100 name
+Here is how the API is actually implemented, notice the name MyObject does not have to match the S100 name
 of myFirstObject::
 
+    # Import modules we are going to use below.
+    from enum import Enum
+    import numpy
+    from typing import Callable, Iterator, Union, Optional, List, Type
+    from s100py import s1xx, s100
+
     class MyObject(s1xx.S1XX_Attributes_base):
+        """ Create our first data class with properties etc """
         @property
         def __version__(self) -> int:
             return 1
@@ -111,6 +118,7 @@ Use the template for utmZone and notice the attribute will be an int (and in PyC
 Let's also add some limits on the zone number in the @property.setter ::
 
     class MyLocation(s100.GeographicBoundingBox):
+        empty_zone = 999
         @property
         def __version__(self) -> int:
             return 1
@@ -127,7 +135,7 @@ Let's also add some limits on the zone number in the @property.setter ::
         def utm_zone(self, val: int):
             if isinstance(val, str):
                 val = int(val)
-            if val <= 0 or val >60:
+            if (val <= 0 or val > 60) and val != self.empty_zone:
                 raise Exception("Illegal zone number, must be between 1 and 60")
             self._attributes[self.utm_zone_attribute_name] = val
 
@@ -137,7 +145,7 @@ Let's also add some limits on the zone number in the @property.setter ::
 
         def utm_zone_create(self):
             """ Creates a blank, empty or zero value for utm_zone"""
-            self.utm_zone = self.utm_zone_type()
+            self.utm_zone = self.utm_zone_type(self.empty_zone)
 
 Next is a multi-occurrence object.  These are groups that S100 says has an integer at the end of it's name, like Group_001.
 To store these there is a class that makes them act as python lists, :any:`s1xx.S1XX_MetadataList_base`.
@@ -202,7 +210,7 @@ the standard template, so there is a second one just for enumerations in :any:`e
 
         @property
         def data_grid_type(self) -> s1xx.s1xx_sequence:
-            return s1xx.s1xx_sequence
+            return return numpy.ndarray
 
         def data_grid_create(self):
             """ Creates a blank, empty or zero value for data_grid"""
@@ -320,10 +328,101 @@ and can be accessed as a python list.::
         def metadata_name(self) -> str:
             return "datasetWithNames"
 
-The final thing we'll do is make a root object that contains all the datatypes we just made and associate that with a
+The final data class we'll make is make a root object that contains all the datatypes we just made and associate that with a
 file object (which is derived from an h5py File).  The root object itself is just another
 class derived from :any:`s1xx.S1XXAttribute_base`.::
 
 
+    class S999Root(s1xx.S1XX_Attributes_base):
+        @property
+        def dataset_with_names_attribute_name(self) -> str:
+            return "datasetWithNames"
 
+        @property
+        def dataset_with_names(self) -> DatasetWithNames_List:
+            return self._attributes[self.dataset_with_names_attribute_name]
 
+        @dataset_with_names.setter
+        def dataset_with_names(self, val: DatasetWithNames_List):
+            self._attributes[self.dataset_with_names_attribute_name] = val
+
+        @property
+        def dataset_with_names_type(self) -> Type[DatasetWithNames_List]:
+            return DatasetWithNames_List
+
+        def dataset_with_names_create(self):
+            """ Creates a blank, empty or zero value for dataset_with_names"""
+            self.dataset_with_names = self.dataset_with_names_type()
+
+        @property
+        def data_group_attribute_name(self) -> str:
+            return "dataGroup"
+
+        @property
+        def data_group(self) -> DataGroups:
+            return self._attributes[self.data_group_attribute_name]
+
+        @data_group.setter
+        def data_group(self, val: DataGroups):
+            self._attributes[self.data_group_attribute_name] = val
+
+        @property
+        def data_group_type(self) -> Type[DataGroups]:
+            return DataGroups
+
+        def data_group_create(self):
+            """ Creates a blank, empty or zero value for data_group"""
+            self.data_group = self.data_group_type()
+
+        @property
+        def my_location_group_attribute_name(self) -> str:
+            return "myLocationGroup"
+
+        @property
+        def my_location_group(self) -> MyLocation:
+            return self._attributes[self.my_location_group_attribute_name]
+
+        @my_location_group.setter
+        def my_location_group(self, val: MyLocation):
+            self._attributes[self.my_location_group_attribute_name] = val
+
+        @property
+        def my_location_group_type(self) -> Type[MyLocation]:
+            return MyLocation
+
+        def my_location_group_create(self):
+            """ Creates a blank, empty or zero value for my_location_group"""
+            self.my_location_group = self.my_location_group_type()
+
+        @property
+        def my_first_object_attribute_name(self) -> str:
+            return "myFirstObject"
+
+        @property
+        def my_first_object(self) -> MyObject:
+            return self._attributes[self.my_first_object_attribute_name]
+
+        @my_first_object.setter
+        def my_first_object(self, val: MyObject):
+            self._attributes[self.my_first_object_attribute_name] = val
+
+        @property
+        def my_first_object_type(self) -> Type[MyObject]:
+            return MyObject
+
+        def my_first_object_create(self):
+            """ Creates a blank, empty or zero value for my_first_object"""
+            self.my_first_object = self.my_first_object_type()
+
+The final thing to do is to associate the root data class to a S1XXFile.
+The file is derived from a h5py.File object and will accept any of the creation arguments h5py will take.
+All we need to do is add a product specification string and add a 'root' keyword. ::
+
+    class S999File(s1xx.S1XXFile):
+        PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-Fake')
+
+        def __init__(self, *args, **kywrds):
+            # kywrds['root'] = S999Root
+            super().__init__(*args, root=S999Root **kywrds)
+
+All that is left is :any:`using_sample_api`

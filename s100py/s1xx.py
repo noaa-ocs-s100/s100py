@@ -33,10 +33,15 @@ class S1XX_Attributes_base(ABC):
     """
     _attr_name_suffix = "_attribute_name"
 
-    def __init__(self, fill_empty=False):
+    def __init__(self, fill_empty=False, **kywrds):
         self._attributes = collections.OrderedDict()
         if fill_empty:
             self.initialize_properties(fill_empty)
+        for ky, val in kywrds.items():
+            if ky in self.get_standard_properties():
+                exec("self.{} = val".format(ky))
+            else:
+                self.add_metadata(ky, val)
         # self._child_groups = {}
 
     @property
@@ -505,9 +510,16 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
                 # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
                 write_array = []
                 for val in self:
-                    list_vals = [val._attributes[key] for key in write_keys]
-                    # convert unicode strings into ascii since HDF5 doesn't like the unicode strings that numpy will produce
-                    list_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in list_vals]
+                    list_vals=[]
+                    for key in write_keys:
+                        v = val._attributes[key]
+                        if isinstance(v, str):  # convert unicode strings into ascii since HDF5 doesn't like the unicode strings that numpy will produce
+                            v = v.encode("utf-8")
+                        elif isinstance(v, Enum):  # convert Enums to integars
+                            v = v.value
+                        list_vals.append(v)
+
+                    # list_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in list_vals]
                     write_array.append(list_vals)
 
                 # hdf5 needs names to the columns which is done in a record array or structured array.
