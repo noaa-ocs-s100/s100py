@@ -20,7 +20,7 @@ Here is our pretend data spec::
 
     S999
     |
-    + datasetWithNames (type=named dataset)
+    + datasetWithNames (type=compound dataset)
     | |
     | + attrInt (type=int)
     | |
@@ -103,6 +103,7 @@ class MyLocation(s100.GeographicBoundingBox):
 
     @utm_zone.setter
     def utm_zone(self, val: int):
+        """ This will limit the utm zones to 1 thru 60 but also allow for a special 'empty' zone of 999 """
         if isinstance(val, str):
             val = int(val)
         if (val <= 0 or val > 60) and val != self.empty_zone:
@@ -372,34 +373,87 @@ def test_api():
 
     the_first_object = MyObject()
     the_first_object.data_value = "A sample string"
+    my_other_first_object = MyObject(data_value="A sample string")
+    assert the_first_object.data_value == my_other_first_object.data_value
     write_to_file.root.my_first_object = the_first_object
 
     a_location = MyLocation()
+    # create values for all child attributes and by passing in True it would recurse all grandchildren and beyond too
     a_location.initialize_properties(True)
     a_location.utm_zone = 18
     a_location.east_bound_longitude = 33.5
+    a_location.add_metadata("extraData", 12345)
+
+    print("Show what attributes are held inside our location class, can use either the instance or the class name itself")
+    print(a_location.get_standard_properties())
+    # ['east_bound_longitude', 'extent_type_code', 'north_bound_latitude', 'south_bound_latitude', 'utm_zone', 'west_bound_longitude']
+    print(MyLocation.get_standard_properties())
+    # ['east_bound_longitude', 'extent_type_code', 'north_bound_latitude', 'south_bound_latitude', 'utm_zone', 'west_bound_longitude']
+    assert a_location.get_standard_properties() == MyLocation.get_standard_properties()
+
+    # the mapping to see the HDF5 naming only works on an instance - not the class unfortunately
+    print(a_location.get_standard_properties_mapping())
+    # {'eastBoundLongitude': 'east_bound_longitude',
+    #  'extentTypeCode': 'extent_type_code',
+    #  'northBoundLatitude': 'north_bound_latitude',
+    #  'southBoundLatitude': 'south_bound_latitude',
+    #  'utmZone': 'utm_zone',
+    #  'westBoundLongitude': 'west_bound_longitude'}
+    # get_standard_keys will return the names expected from an HDF5 file based on the S100 specs
+    print(a_location.get_standard_keys())
+    # returns --
+    # ['eastBoundLongitude',
+    #  'extentTypeCode',
+    #  'northBoundLatitude',
+    #  'southBoundLatitude',
+    #  'utmZone',
+    #  'westBoundLongitude']
+
+    # get_all_keys will show all the HDF5 data names held in the object -- this can include non-standard data
+    print(a_location.get_all_keys())
+    # returns -- (notice the extraData in the list.
+    # {'eastBoundLongitude',
+    #  'extentTypeCode',
+    #  'extraData',
+    #  'northBoundLatitude',
+    #  'southBoundLatitude',
+    #  'utmZone',
+    #  'westBoundLongitude'}
+
+    # get rid of west -- it shouldn't show up in the HDF5 file after this
     del a_location.west_bound_longitude
     write_to_file.root.my_location_group = a_location
 
     write_to_file.root.data_group_create()  # this makes the DataGroups which is a list container for the DataGroupObject
+
+    # Introspect the data group to figure out what it wants without reading the docs :)
+    print(write_to_file.root.get_standard_properties())
+    # ['data_group', 'dataset_with_names', 'my_first_object', 'my_location_group']
+    print(write_to_file.root.data_group.get_standard_properties())
+    # []
+    print(type(write_to_file.root.data_group.metadata_type()))
+    # <class 'sample_api_test.DataGroupObject'>
+    print(type(write_to_file.root.data_group.metadata_type()).get_standard_properties())
+    # ['data_grid', 'name_of_data']
+
     data_1 = DataGroupObject()
-    data_1.name_of_data = data_1.name_of_data_type["spam"]
+    data_1.name_of_data = "spam"
+    # data_1.name_of_data = data_1.name_of_data_type["spam"]
     data_1.data_grid = numpy.zeros([2, 5])
     write_to_file.root.data_group.append(data_1)
     del data_1.name_of_data
 
     data_2 = DataGroupObject()
-    data_2.name_of_data = MONTY(2)
+    data_2.name_of_data = 2
     data_2.data_grid = numpy.ones([3, 4])
     write_to_file.root.data_group.append(data_2)
 
     data_3 = write_to_file.root.data_group.append_new_item()
     data_3.data_grid = numpy.arange(0, 10, .75)
-    data_3.name_of_data = "cheese"
+    data_3.name_of_data = data_3.name_of_data_type["cheese"]
 
-    write_to_file.root.data_group.append_new_item().name_of_data = 2
+    write_to_file.root.data_group.append_new_item().name_of_data = MONTY(2)
 
-    attrib_datasets = DatasetWithNames_List()  # rather than call create we can also make the list independently and set it later
     attr_1 = datasetWithNames()
     attr_1.initialize_properties(True)
 
@@ -408,12 +462,12 @@ def test_api():
     attr_2.attr_str = "A custom string this time"
     attr_2.attr_int = 27
     attr_2.attr_float = 35.0
-    write_to_file.root.dataset_with_names = DatasetWithNames_List((attr_1, attr_2))
+    write_to_file.root.dataset_with_names = DatasetWithNames_List((attr_1, attr_2))  # also could have used _create and append/append_new_item
 
     write_to_file.write()
     write_to_file.close()
 
-    read_from_file = S999File(fstr)
+    read_from_file = S999File(fstr, "r")
     assert read_from_file.root.dataset_with_names[1].attr_int == 27
     assert read_from_file.root.dataset_with_names[0].attr_str in b"used a default string"
     assert write_to_file.root.data_group[1].name_of_data == MONTY(2)

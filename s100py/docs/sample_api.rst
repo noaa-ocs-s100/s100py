@@ -18,7 +18,7 @@ Here is our pretend data spec::
 
     S999
     |
-    + datasetWithNames (type=named dataset)
+    + datasetWithNames (type=compound dataset)
     | |
     | + attrInt (type=int)
     | |
@@ -42,7 +42,7 @@ Here is our pretend data spec::
 
 Each piece of data from the S100 spec there should be a python friendly (pep8 - "snake case") name to hold the data.
 Also there is a read only property that contains the S100 name (which may be camel case and not as human friendly).
-There are also two helper functions to help discover the type of the data that should be stored and one to create
+There are also two helpers to help discover the type of the data that should be stored and one to create
 an instance of the data with an appropriate default.
 
 Let's start from the bottom of the tree and make a group object that has a string attribute.
@@ -110,15 +110,23 @@ and is even better when used as a `PyCharm Live Template`_.  If using PyCharm ju
 and run the live template and it will automatically make the python style name.  Hit tab and you can specify the datatype
 and it will fill it into multiple locations at once for you.
 
+To recap:
+    - @property to get the data and do any reformatting needed etc.
+    - @property.setter potential validation or other checks/changes to incoming data
+    - *_attribute_name which defines the conversion from python naming to HDF5 (S100) naming
+    - *_type to help the user of the api know the type to use and for the api to load from disk
+    - *_create to make empty objects or supply default values as specified by S100
+
 Now let's try a datatype that has eastBoundLongitude, westBoundLongitude, northBoundLongitude, southBoundLatitude and
 utmZone.  The first four attributes are already part of an :any:`s100.GeographicBoundingBox` so let's derive a class
 from there.
 
 Use the template for utmZone and notice the attribute will be an int (and in PyCharm you'll be done in an instant).
-Let's also add some limits on the zone number in the @property.setter ::
+Let's also add some limits on the zone number in the @property.setter, define an 'empty_zone' and
+make 'empty_zone' the default for the utm_zone::
 
     class MyLocation(s100.GeographicBoundingBox):
-        empty_zone = 999
+        empty_zone = 999  # a way to mark the utm not being set
         @property
         def __version__(self) -> int:
             return 1
@@ -133,6 +141,7 @@ Let's also add some limits on the zone number in the @property.setter ::
 
         @utm_zone.setter
         def utm_zone(self, val: int):
+            """ This will limit the utm zones to 1 thru 60 but also allow for a special 'empty' zone of 999 """
             if isinstance(val, str):
                 val = int(val)
             if (val <= 0 or val > 60) and val != self.empty_zone:
@@ -144,8 +153,9 @@ Let's also add some limits on the zone number in the @property.setter ::
             return int
 
         def utm_zone_create(self):
-            """ Creates a blank, empty or zero value for utm_zone"""
+            """ Use 999 by default """
             self.utm_zone = self.utm_zone_type(self.empty_zone)
+
 
 Next is a multi-occurrence object.  These are groups that S100 says has an integer at the end of it's name, like Group_001.
 To store these there is a class that makes them act as python lists, :any:`s1xx.S1XX_MetadataList_base`.
@@ -243,7 +253,8 @@ them to HDF%.
 
 For example, the S100 spec Table 10c-8 describes a compound array stored as a dataset which is more naturally used
 as a multiple lists of attributes.  Our example will make a datatype to hold three attributes and a datatype that
-holds them in a list.::
+holds them in a list.  Notice we will implement the get_write_order() to make the HDF5 array be written in the order
+we want and not just by name.::
 
     class datasetWithNames(s1xx.S1XX_Attributes_base):
         def get_write_order(self):
@@ -330,7 +341,7 @@ and can be accessed as a python list.::
 
 The final data class we'll make is make a root object that contains all the datatypes we just made and associate that with a
 file object (which is derived from an h5py File).  The root object itself is just another
-class derived from :any:`s1xx.S1XXAttribute_base`.::
+class derived from :any:`s1xx.S1XX_Attributes_base`.::
 
 
     class S999Root(s1xx.S1XX_Attributes_base):

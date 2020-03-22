@@ -218,6 +218,9 @@ class S1XX_Attributes_base(ABC):
     def add_metadata(self, key, value):
         self._attributes[key] = value
 
+    add_data = add_metadata
+    get_data = get_metadata
+
     def get_s1xx_attr(self, s1xx_name):
         expected_items = self.get_standard_properties_mapping()
         return self.__getattribute__(expected_items[s1xx_name])
@@ -238,8 +241,8 @@ class S1XX_Attributes_base(ABC):
 
     def get_all_keys(self):  # this includes custom keys
         current_keys = set(self._attributes.keys())
-        total_keys = current_keys.update(self.get_standard_keys())
-        return total_keys
+        current_keys.update(self.get_standard_keys())
+        return current_keys
 
     # def get_standard_keys(self):  # this is only things that have properties associated
     #     props = [p[0] for p in inspect.getmembers(self.__class__, lambda x: isinstance(x, property))]
@@ -276,6 +279,13 @@ class S1XX_Attributes_base(ABC):
                 s100_to_property_for_lists[s100_attr] = prop
         return s100_to_property_for_lists
 
+    # @classmethod
+    # @todo question - if we make all the _attribute_name as staticmethods or class variables then this could be a classmethod.
+    # @todo Do we want to allow flexibility of changing the HDF5 name for an instance?
+    # a little testing shows that using class variables and letting the user change it would fail in this function.
+    # so if we change the _attribute_name to class variables then the user could change the name on demand - for better or worse
+    #  but this would not be a classmethod.
+    # if we want this to be a classmethod then all the attribute_name would bee to become staticmethods and become functions - meaning adding ()
     def get_standard_properties_mapping(self):
         """ This function autodetermines the HDF5 or xml names and their associated property names.
 
@@ -307,7 +317,8 @@ class S1XX_Attributes_base(ABC):
             if fill_empty and isinstance(o, S1XX_Attributes_base):
                 o.initialize_properties(fill_empty)
 
-    def get_standard_properties(self):
+    @classmethod
+    def get_standard_properties(cls):
         """  This function autodetermines the properties implemented (which have get/set and _attribute_name methods associated)
 
         Returns
@@ -318,9 +329,9 @@ class S1XX_Attributes_base(ABC):
             For class "Root":
             ['bathymetry_coverage', 'feature_information', 'tracking_list_coverage']
         """
-        props = [p[0] for p in inspect.getmembers(self.__class__, lambda x: isinstance(x, property))]
-        implemented_properties = [p[:-len(self._attr_name_suffix)] for p in props if
-                                  p.endswith(self._attr_name_suffix) and p[:-len(self._attr_name_suffix)] in props]
+        props = [p[0] for p in inspect.getmembers(cls, lambda x: isinstance(x, property))]
+        implemented_properties = [p[:-len(cls._attr_name_suffix)] for p in props if
+                                  p.endswith(cls._attr_name_suffix) and p[:-len(cls._attr_name_suffix)] in props]
         return implemented_properties
 
     def set_enum_attribute(self, val, attribute_name, enum_type):
