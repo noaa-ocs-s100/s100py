@@ -202,7 +202,9 @@ class CLI:
                     surface_current_01.num_points_longitudinal = nx
 
                     # TODO: Add uncertainty dataset
-                    # surface_current_01.uncertainty_dataset.append_new_item()
+                    # ud = surface_current_01.uncertainty_dataset.append_new_item()
+                    # ud.name = "test"
+                    # ud.value = 5
 
                     del surface_current_01.grid_spacing_vertical
                     del surface_current_01.grid_origin_vertical

@@ -55,66 +55,70 @@ class S111_MetadataList_base(S1XX_MetadataList_base, ABC):
     pass
 
 
-# class SurfaceCurrentUncertaintyInformation(S1XX_Attributes_base, ABC):
-#     @property
-#     def __version__(self) -> int:
-#         return 1
-#
-#     @property
-#     def name(self) -> str:
-#         """ The plain text name of the data
-#         Returns
-#         -------
-#         str
-#             Name of the dataset ("surfaceCurrentSpeed" or "surfaceCurrentDirection")
-#         """
-#         return self._attributes[self.name_attribute_name]
-#
-#     @name.setter
-#     def name(self, val: str):
-#         self._attributes[self.name_attribute_name] = val
-#
-#     @property
-#     def name_attribute_name(self) -> str:
-#         return "name"
-#
-#     @property
-#     def name_type(self):
-#         return str
-#
-#     def name_create(self):
-#         self.name = self.name_type()
-#
-#     @property
-#     def value(self) -> str:
-#         """ The uncertainty value"""
-#         return self._attributes[self.value_attribute_name]
-#
-#     @value.setter
-#     def value(self, val: int):
-#         self._attributes[self.value_attribute_name] = val
-#
-#     @property
-#     def value_attribute_name(self) -> str:
-#         return "value"
-#
-#     @property
-#     def value_type(self):
-#         return str
-#
-#     def value_create(self):
-#         self.value = self.value_type()
+class SurfaceCurrentUncertaintyInformation(S1XX_Attributes_base, ABC):
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def name(self) -> str:
+        """ The plain text name of the data
+        Returns
+        -------
+        str
+            Name of the dataset ("surfaceCurrentSpeed" or "surfaceCurrentDirection")
+        """
+        return self._attributes[self.name_attribute_name]
+
+    @name.setter
+    def name(self, val: str):
+        self._attributes[self.name_attribute_name] = val
+
+    @property
+    def name_attribute_name(self) -> str:
+        return "name"
+
+    @property
+    def name_type(self):
+        return str
+
+    def name_create(self):
+        self.name = self.name_type()
+
+    @property
+    def value(self) -> str:
+        """ The uncertainty value"""
+        return self._attributes[self.value_attribute_name]
+
+    @value.setter
+    def value(self, val: int):
+        self._attributes[self.value_attribute_name] = val
+
+    @property
+    def value_attribute_name(self) -> str:
+        return "value"
+
+    @property
+    def value_type(self):
+        return str
+
+    def value_create(self):
+        self.value = self.value_type()
 
 
-# class SurfaceCurrentUncertaintyDataset(S1XX_Dataset_base, ABC):
-#
-#     @property
-#     def __version__(self) -> int:
-#         return 1
-#
-#     @property
-#     def metadata_type(self) -> Type[SurfaceCurrentUncertaintyInformation]:
-#         return SurfaceCurrentUncertaintyInformation
+class SurfaceCurrentUncertaintyDataset(S1XX_Dataset_base, ABC):
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def metadata_name(self) -> str:
+        return "uncertainty"
+
+    @property
+    def metadata_type(self) -> Type[SurfaceCurrentUncertaintyInformation]:
+        return SurfaceCurrentUncertaintyInformation
 
 
 class SurfaceCurrentValueRecord(S1XX_Attributes_base, ABC):
@@ -689,25 +693,25 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_Format_2, ABC):
         """ Creates a blank, empty or zero value for datetime_last_record"""
         self.datetime_last_record = self.datetime_last_record_type()
 
-    # @property
-    # def uncertainty_dataset_attribute_name(self) -> str:
-    #     return "uncertainty"
-    #
-    # @property
-    # def uncertainty_dataset(self) -> S1XX_Dataset_base:
-    #     return self._attributes[self.uncertainty_dataset_attribute_name]
-    #
-    # @uncertainty_dataset.setter
-    # def uncertainty_dataset(self, val: S1XX_Dataset_base):
-    #     self._attributes[self.uncertainty_dataset_attribute_name] = val
-    #
-    # @property
-    # def uncertainty_dataset_type(self) -> Type[SurfaceCurrentUncertaintyDataset]:
-    #     return SurfaceCurrentUncertaintyDataset
-    #
-    # def uncertainty_dataset_create(self):
-    #     """ Creates a blank, empty or zero value for uncertainty_dataset"""
-    #     self.uncertainty_dataset = self.uncertainty_dataset_type()
+    @property
+    def uncertainty_dataset_attribute_name(self) -> str:
+        return "uncertainty"
+
+    @property
+    def uncertainty_dataset(self) -> S1XX_Dataset_base:
+        return self._attributes[self.uncertainty_dataset_attribute_name]
+
+    @uncertainty_dataset.setter
+    def uncertainty_dataset(self, val: S1XX_Dataset_base):
+        self._attributes[self.uncertainty_dataset_attribute_name] = val
+
+    @property
+    def uncertainty_dataset_type(self) -> Type[SurfaceCurrentUncertaintyDataset]:
+        return SurfaceCurrentUncertaintyDataset
+
+    def uncertainty_dataset_create(self):
+        """ Creates a blank, empty or zero value for uncertainty_dataset"""
+        self.uncertainty_dataset = self.uncertainty_dataset_type()
 
 
 class SurfaceCurrentList(S111_MetadataList_base, ABC):
