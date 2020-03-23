@@ -137,6 +137,7 @@ class CLI:
                     root.surface_current_depth = -4.5
                     root.depth_type_index = 2
 
+
                     del root.vertical_datum
                     del root.extent_type_code
                     del root.meta_features
@@ -245,7 +246,7 @@ class CLI:
                     s111_file.write()
 
         finally:
-            model_index.close
+            model_index.close()
             model_file.close()
 
 

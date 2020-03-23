@@ -35,6 +35,7 @@ DEPTH_TYPE_INDEX = Enum(value="DEPTH_TYPE_INDEX",
                                ]
                         )
 
+
 """Contains s111 metadata to pass to S111File.
 
 PRODUCT_SPECIFICATION: The product specification used to create this dataset.
@@ -836,37 +837,16 @@ class SurfaceCurrentContainer(S100_FeatureContainer, ABC):
         return self._attributes[self.type_of_current_data_attribute_name]
 
     @type_of_current_data.setter
-    def type_of_current_data(self, val: int):
+    def type_of_current_data(self, val: Union[int, str, TYPE_OF_CURRENT_DATA]):
         self.set_enum_attribute(val, self.type_of_current_data_attribute_name, self.type_of_current_data_type)
 
     @property
-    def type_of_current_data_type(self) -> TYPE_OF_CURRENT_DATA:
+    def type_of_current_data_type(self) -> Type[TYPE_OF_CURRENT_DATA]:
         return TYPE_OF_CURRENT_DATA
 
     def type_of_current_data_create(self):
-        """ Creates a blank, empty or zero value for type_of_current_data"""
-        self.type_of_current_data = self.type_of_current_data_type
-
-    # TODO: Key Error - Using Extending API enum template
-    # @property
-    # def type_of_current_data_attribute_name(self) -> str:
-    #     return "typeOfCurrentData"
-    #
-    # @property
-    # def type_of_current_data(self) -> TYPE_OF_CURRENT_DATA:
-    #     return self._attributes[self.type_of_current_data_attribute_name]
-    #
-    # @type_of_current_data.setter
-    # def type_of_current_data(self, val: Union[int, str, TYPE_OF_CURRENT_DATA]):
-    #     self.set_enum_attribute(val, self.type_of_current_data_attribute_name, self.type_of_current_data)
-    #
-    # @property
-    # def type_of_current_data_type(self) -> Type[TYPE_OF_CURRENT_DATA]:
-    #     return TYPE_OF_CURRENT_DATA
-    #
-    # def type_of_current_data_create(self):
-    #     """ Creates a value using the first item in the enumeration of type_of_current_data"""
-    #     self.type_of_current_data = list(self.type_of_current_data_type)[0]
+        """ Creates a value using the first item in the enumeration of type_of_current_data"""
+        self.type_of_current_data = list(self.type_of_current_data_type)[0]
 
 
 class FeatureInformationDataset(S1XX_Dataset_base, ABC):
@@ -991,16 +971,16 @@ class S111Root(S100Root, ABC):
         return self._attributes[self.depth_type_index_attribute_name]
 
     @depth_type_index.setter
-    def depth_type_index(self, val: int):
+    def depth_type_index(self, val: Union[int, str, DEPTH_TYPE_INDEX]):
         self.set_enum_attribute(val, self.depth_type_index_attribute_name, self.depth_type_index_type)
 
     @property
-    def depth_type_index_type(self) -> DEPTH_TYPE_INDEX:
+    def depth_type_index_type(self) -> Type[DEPTH_TYPE_INDEX]:
         return DEPTH_TYPE_INDEX
 
     def depth_type_index_create(self):
-        """ Creates a blank, empty or zero value for depth_type_index"""
-        self.depth_type_index = self.depth_type_index_type
+        """ Creates a value using the first item in the enumeration of depth_type_index"""
+        self.depth_type_index = list(self.depth_type_index_type)[0]
 
     @property
     def surface_current_depth_attribute_name(self) -> str:
