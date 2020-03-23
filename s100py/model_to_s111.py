@@ -205,6 +205,9 @@ class CLI:
                     # ud = surface_current_01.uncertainty_dataset.append_new_item()
                     # ud.name = "test"
                     # ud.value = 5
+                    # # mismatch data to test
+                    # ud2 = surface_current_01.uncertainty_dataset.append_new_item()
+                    # ud2.name = "test"
 
                     del surface_current_01.grid_spacing_vertical
                     del surface_current_01.grid_origin_vertical

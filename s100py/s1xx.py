@@ -523,7 +523,10 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
                 for val in self:
                     list_vals=[]
                     for key in write_keys:
-                        v = val._attributes[key]
+                        try:
+                            v = val._attributes[key]
+                        except KeyError as key_err:
+                            raise KeyError("{} in {} is missing data, this would give a mismatched array \n  please fill all data {} for all items in the list/dataset".format(key_err.args[0], self.metadata_name, str(write_keys)))
                         if isinstance(v, str):  # convert unicode strings into ascii since HDF5 doesn't like the unicode strings that numpy will produce
                             v = v.encode("utf-8")
                         elif isinstance(v, Enum):  # convert Enums to integars
@@ -536,7 +539,11 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
                 # hdf5 needs names to the columns which is done in a record array or structured array.
                 # but to create that without specifying type we need to transpose first then call 'fromarrays'
                 transposed_array = list(map(list, zip(*write_array)))
-                rec_array = numpy.core.records.fromarrays(transposed_array, names=write_keys)
+                if write_keys:
+                    rec_array = numpy.core.records.fromarrays(transposed_array, names=write_keys)
+                else:
+                    rec_array = h5py.Empty("")
+                    raise ValueError(self.metadata_name + " had no data fields defined to write - this would create an h5py.Empty dataset")
                 dataset = group_object.create_dataset(self.metadata_name, data=rec_array)
             return dataset
         except Exception as e:
