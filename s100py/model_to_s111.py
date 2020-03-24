@@ -2,9 +2,10 @@ import os
 import numpy
 import datetime
 import fire
+import re
 # import logging
 
-from thyme.model import model, roms
+from thyme.model import model, roms, fvcom, pom, hycom
 from s100py.s111 import S111File
 
 # """
@@ -25,10 +26,44 @@ PRODUCER_CODE = "US"
 DATA_CODING_FORMAT = 2
 TYPE_OF_CURRENT_DATA = 6
 
+MODELTYPE_FVCOM = 'fvcom'
+MODELTYPE_HYCOM = 'hycom'
+MODELTYPE_POM = 'pom'
+MODELTYPE_ROMS = 'roms'
+
+MODEL_FILE_CLASS = {
+    MODELTYPE_FVCOM: fvcom.FVCOMFile,
+    MODELTYPE_HYCOM: hycom.HYCOMFile,
+    MODELTYPE_POM: pom.POMFile,
+    MODELTYPE_ROMS: roms.ROMSFile
+}
+
+MODEL_INDEX_CLASS = {
+    MODELTYPE_FVCOM: fvcom.FVCOMIndexFile,
+    MODELTYPE_HYCOM: hycom.HYCOMIndexFile,
+    MODELTYPE_POM: pom.POMIndexFile,
+    MODELTYPE_ROMS: roms.ROMSIndexFile
+}
+
+
 PRODUCT_DESCRIPTION_FVCOM = 'FVCOM_Hydrodynamic_Model_Forecasts'
 PRODUCT_DESCRIPTION_HYCOM = 'HYCOM_Hydrodynamic_Model_Forecasts'
 PRODUCT_DESCRIPTION_POM = 'POM_Hydrodynamic_Model_Forecasts'
 PRODUCT_DESCRIPTION_ROMS = 'ROMS_Hydrodynamic_Model_Forecasts'
+
+MODELS = {
+    'cbofs': {
+        'region': 'Chesapeake_Bay',
+        'product': PRODUCT_DESCRIPTION_ROMS,
+        'model_type': MODELTYPE_ROMS,
+    },
+    'nyofs': {
+
+        'region': 'Port_of_New_York_and_New_Jersey',
+        'product': PRODUCT_DESCRIPTION_POM,
+        'model_type': MODELTYPE_POM,
+    }
+}
 
 
 class CLI:
@@ -49,19 +84,24 @@ class CLI:
         Returns:
             List of paths to HDF5 files created.
         """
-        model_file = roms.ROMSFile(model_file_path)
-        model_index = roms.ROMSIndexFile(model_index_path)
         s111_path_prefix = os.path.split(output_path)[0]
+        model_filename = os.path.split(model_file_path)[-1]
+        model_name = model_filename.split('.')[1]
+
+        model_index = MODEL_INDEX_CLASS[MODELS[model_name]['model_type']](model_index_path)
+        model_file = MODEL_FILE_CLASS[MODELS[model_name]['model_type']](model_file_path)
 
         # Path format/prefix for output S111 files. Forecast initialization (reference).
         if os.path.isdir(s111_path_prefix):
             if not s111_path_prefix.endswith('/'):
                 s111_path_prefix += '/'
 
-            file_issuance = "20200129T12Z"
+            file_date = re.findall(r'\d{8}', model_filename)[0]
+            cycletime = re.findall(r'(?<=t)[^t:]+(?=:?z)', model_filename)[0]
+            file_datetime = file_date + cycletime
+            file_issuance = f"{file_date}T{cycletime}Z"
 
-            s111_path_prefix += (
-                f'S111{PRODUCER_CODE}_{file_issuance}_CBOFS_TYP{DATA_CODING_FORMAT}')
+            s111_path_prefix += f'S111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_TYP{DATA_CODING_FORMAT}'
 
         try:
             model_index.open()
@@ -119,12 +159,12 @@ class CLI:
                     s111_file.create_empty_metadata()
                     root = s111_file.root
 
-                    root.product_specification = "INT.IHO.S-111.1.0.1"
+                    root.product_specification = "INT.IHO.S-111.1.0"
                     root.metadata = 'MD_{}.XML'.format(os.path.split(s111_path_prefix)[-1])
                     root.horizontal_datum_reference = "EPSG"
                     root.horizontal_datum_value = 4326
                     root.epoch = "G1762"
-                    root.geographic_identifier = "Chesapeake Bay"
+                    root.geographic_identifier = MODELS[model_name]['region']
                     now = datetime.datetime.now()
                     root.issue_date = now.strftime('%Y%m%d')
                     root.issue_time = now.strftime('%H%M%SZ')
@@ -136,7 +176,6 @@ class CLI:
                     # Additional S-111 root metadata
                     root.surface_current_depth = -4.5
                     root.depth_type_index = 2
-
 
                     del root.vertical_datum
                     del root.extent_type_code
@@ -201,13 +240,13 @@ class CLI:
                     surface_current_01.num_points_latitudinal = ny
                     surface_current_01.num_points_longitudinal = nx
 
-                    # TODO: Add uncertainty dataset
-                    # ud = surface_current_01.uncertainty_dataset.append_new_item()
-                    # ud.name = "test"
-                    # ud.value = 5
-                    # # mismatch data to test
-                    # ud2 = surface_current_01.uncertainty_dataset.append_new_item()
-                    # ud2.name = "test"
+                    # Feature Instance Uncertainty Dataset
+                    speed_uncertainty = surface_current_01.uncertainty_dataset.append_new_item()
+                    speed_uncertainty.name = "surfaceCurrentSpeed"
+                    speed_uncertainty.value = -1.0
+                    direction_uncertainty = surface_current_01.uncertainty_dataset.append_new_item()
+                    direction_uncertainty.name = "surfaceCurrentDirection"
+                    direction_uncertainty.value = -1.0
 
                     del surface_current_01.grid_spacing_vertical
                     del surface_current_01.grid_origin_vertical
