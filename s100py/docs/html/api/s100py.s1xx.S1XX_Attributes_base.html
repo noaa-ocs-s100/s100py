@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>S1XX_Attributes_base &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="S1XX_Dataset_base" href="s100py.s1xx.S1XX_Dataset_base.html" />
+    <link rel="prev" title="S1XXFile" href="s100py.s1xx.S1XXFile.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s1xx.S1XX_Dataset_base.html" title="S1XX_Dataset_base"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s1xx.S1XXFile.html" title="S1XXFile"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s1xx.html" accesskey="U">s100py.s1xx Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="s1xx-attributes-base">
+<h1>S1XX_Attributes_base<a class="headerlink" href="#s1xx-attributes-base" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s100py.s1xx.S1XX_Attributes_base">
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s1xx.</code><code class="sig-name descname">S1XX_Attributes_base</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>This class implements a general hdf5 group object that has attributes, dataset or sub-groups.
+Works with S1XX_MetadataList_base if the subgroups have multiple occurences (like Group.01, Group.02)
+Works with S1XX_Dataset_base for things that are stored like a numpy array (dataset) in hdf5</p>
+<p>__version__ and S1XX_version must be overridden.
+To call a base class property use super().property, e.g. super().__version__
+This base class is built from the version 2.0.0 that was eventually published Nov. 2019</p>
+<p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.S1XX_version" title="s100py.s1xx.S1XX_Attributes_base.S1XX_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_version</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.add_data" title="s100py.s1xx.S1XX_Attributes_base.add_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_data</span></code></a>(key, value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.add_metadata" title="s100py.s1xx.S1XX_Attributes_base.add_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_metadata</span></code></a>(key, value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.get_all_keys" title="s100py.s1xx.S1XX_Attributes_base.get_all_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_keys</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.get_data" title="s100py.s1xx.S1XX_Attributes_base.get_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data</span></code></a>(key)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.get_metadata" title="s100py.s1xx.S1XX_Attributes_base.get_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_metadata</span></code></a>(key)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.get_s1xx_attr" title="s100py.s1xx.S1XX_Attributes_base.get_s1xx_attr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_s1xx_attr</span></code></a>(s1xx_name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.get_standard_keys" title="s100py.s1xx.S1XX_Attributes_base.get_standard_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_standard_keys</span></code></a>()</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">returns</dt>
+<dd class="field-odd"><p>The S102 HDF5 group/attribute/dataset names from this object that will be written or read from an HDF5 file.</p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.get_standard_list_properties" title="s100py.s1xx.S1XX_Attributes_base.get_standard_list_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_standard_list_properties</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.get_standard_properties" title="s100py.s1xx.S1XX_Attributes_base.get_standard_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_standard_properties</span></code></a>()</p></td>
+<td><p>This function autodetermines the properties implemented (which have get/set and _attribute_name methods associated)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.get_standard_properties_mapping" title="s100py.s1xx.S1XX_Attributes_base.get_standard_properties_mapping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_standard_properties_mapping</span></code></a>()</p></td>
+<td><p>This function autodetermines the HDF5 or xml names and their associated property names.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.get_write_order" title="s100py.s1xx.S1XX_Attributes_base.get_write_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_write_order</span></code></a>()</p></td>
+<td><p>Override this method if the write order of attributes/groups/dataset items is important :returns: :rtype: A list of key names if order is important, None otherwise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.initialize_properties" title="s100py.s1xx.S1XX_Attributes_base.initialize_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_properties</span></code></a>([fill_empty])</p></td>
+<td><p>Calls the create function for all the properties of the class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.read" title="s100py.s1xx.S1XX_Attributes_base.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(group_object[, indent])</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">param group_object</dt>
+<dd class="field-odd"><p>The group (an h5py.File is a group too) to read from.</p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.read_hdf5_attributes" title="s100py.s1xx.S1XX_Attributes_base.read_hdf5_attributes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_hdf5_attributes</span></code></a>(group_object[, indent])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.set_enum_attribute" title="s100py.s1xx.S1XX_Attributes_base.set_enum_attribute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_enum_attribute</span></code></a>(val, attribute_name, …)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.set_s1xx_attr" title="s100py.s1xx.S1XX_Attributes_base.set_s1xx_attr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_s1xx_attr</span></code></a>(s1xx_name, val)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.write" title="s100py.s1xx.S1XX_Attributes_base.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a>(group_object[, indent])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Attributes_base.write_as_xml" title="s100py.s1xx.S1XX_Attributes_base.write_as_xml"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_as_xml</span></code></a>(etree_object)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s100py.s1xx.S1XX_Attributes_base.S1XX_version">
+<code class="sig-name descname">S1XX_version</code><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.S1XX_version" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Methods Documentation</p>
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.add_data">
+<code class="sig-name descname">add_data</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.add_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.add_metadata">
+<code class="sig-name descname">add_metadata</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.add_metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.get_all_keys">
+<code class="sig-name descname">get_all_keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.get_all_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.get_data">
+<code class="sig-name descname">get_data</code><span class="sig-paren">(</span><em class="sig-param">key</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.get_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.get_metadata">
+<code class="sig-name descname">get_metadata</code><span class="sig-paren">(</span><em class="sig-param">key</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.get_metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.get_s1xx_attr">
+<code class="sig-name descname">get_s1xx_attr</code><span class="sig-paren">(</span><em class="sig-param">s1xx_name</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.get_s1xx_attr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.get_standard_keys">
+<code class="sig-name descname">get_standard_keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.get_standard_keys" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>The S102 HDF5 group/attribute/dataset names from this object that will be written or read from an HDF5 file.
+e.g. BathymetryCoverage or westBoundLongitude etc.</p>
+<p>For the class “Root”:
+[‘BathymetryCoverage’, ‘Group_F’, ‘TrackingListCoverage’]</p>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.get_standard_list_properties">
+<code class="sig-name descname">get_standard_list_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.get_standard_list_properties" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.get_standard_properties">
+<em class="property">classmethod </em><code class="sig-name descname">get_standard_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.get_standard_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function autodetermines the properties implemented (which have get/set and _attribute_name methods associated)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>Names of the properties implemented.</p>
+<p>For class “Root”:
+[‘bathymetry_coverage’, ‘feature_information’, ‘tracking_list_coverage’]</p>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.get_standard_properties_mapping">
+<code class="sig-name descname">get_standard_properties_mapping</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.get_standard_properties_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function autodetermines the HDF5 or xml names and their associated property names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>dictionary of xml element names as keys and property names as values.</p>
+<p>For the class “Root”:
+{‘BathymetryCoverage’: ‘bathymetry_coverage’,
+‘Group_F’: ‘feature_information’,
+‘TrackingListCoverage’: ‘tracking_list_coverage’}</p>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.get_write_order">
+<code class="sig-name descname">get_write_order</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.get_write_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this method if the write order of attributes/groups/dataset items is important
+:returns:
+:rtype: A list of key names if order is important, None otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.initialize_properties">
+<code class="sig-name descname">initialize_properties</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.initialize_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the create function for all the properties of the class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">group_object</em>, <em class="sig-param">indent=0</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.read" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>group_object</strong> – The group (an h5py.File is a group too) to read from.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.read_hdf5_attributes">
+<code class="sig-name descname">read_hdf5_attributes</code><span class="sig-paren">(</span><em class="sig-param">group_object</em>, <em class="sig-param">indent=0</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.read_hdf5_attributes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.set_enum_attribute">
+<code class="sig-name descname">set_enum_attribute</code><span class="sig-paren">(</span><em class="sig-param">val</em>, <em class="sig-param">attribute_name</em>, <em class="sig-param">enum_type</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.set_enum_attribute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.set_s1xx_attr">
+<code class="sig-name descname">set_s1xx_attr</code><span class="sig-paren">(</span><em class="sig-param">s1xx_name</em>, <em class="sig-param">val</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.set_s1xx_attr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.write">
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">group_object</em>, <em class="sig-param">indent=0</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.write_as_xml">
+<code class="sig-name descname">write_as_xml</code><span class="sig-paren">(</span><em class="sig-param">etree_object</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.write_as_xml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_Attributes_base.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Attributes_base.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s1xx.html#classes">Classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XXFile.html">S1XXFile</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">S1XX_Attributes_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_Dataset_base.html">S1XX_Dataset_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_MetadataList_base.html">S1XX_MetadataList_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html">S1XX_WritesOwnGroup_base</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../s1xx.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102.html">s100py.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s100py.s1xx.S1XXFile.html"
+                        title="previous chapter">S1XXFile</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s100py.s1xx.S1XX_Dataset_base.html"
+                        title="next chapter">S1XX_Dataset_base</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s1xx.S1XX_Dataset_base.html" title="S1XX_Dataset_base"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s1xx.S1XXFile.html" title="S1XXFile"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s1xx.html" >s100py.s1xx Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

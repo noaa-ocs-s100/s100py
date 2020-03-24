@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>S100Root &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="S100_FeatureContainer" href="HSTB.drivers.s100.s100.S100_FeatureContainer.html" />
+    <link rel="prev" title="Point" href="HSTB.drivers.s100.s100.Point.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HSTB.drivers.s100.s100.S100_FeatureContainer.html" title="S100_FeatureContainer"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="HSTB.drivers.s100.s100.Point.html" title="Point"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../modules.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s100.html" accesskey="U">HSTB.drivers.s100.s100 Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="s100root">
+<h1>S100Root<a class="headerlink" href="#s100root" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="HSTB.drivers.s100.s100.S100Root">
+<em class="property">class </em><code class="sig-prename descclassname">HSTB.drivers.s100.s100.</code><code class="sig-name descname">S100Root</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="HSTB.drivers.s100.s100.GeographicBoundingBox.html#HSTB.drivers.s100.s100.GeographicBoundingBox" title="HSTB.drivers.s100.s100.GeographicBoundingBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">HSTB.drivers.s100.s100.GeographicBoundingBox</span></code></a></p>
+<p>From table 10c-6 in S100 spec.</p>
+<p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.S100Root.epoch" title="HSTB.drivers.s100.s100.S100Root.epoch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">epoch</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.S100Root.geographic_identifier" title="HSTB.drivers.s100.s100.S100Root.geographic_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geographic_identifier</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.S100Root.horizontal_datum_reference" title="HSTB.drivers.s100.s100.S100Root.horizontal_datum_reference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">horizontal_datum_reference</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.S100Root.horizontal_datum_value" title="HSTB.drivers.s100.s100.S100Root.horizontal_datum_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">horizontal_datum_value</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.S100Root.issue_date" title="HSTB.drivers.s100.s100.S100Root.issue_date"><code class="xref py py-obj docutils literal notranslate"><span class="pre">issue_date</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.S100Root.issue_time" title="HSTB.drivers.s100.s100.S100Root.issue_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">issue_time</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.S100Root.meta_features" title="HSTB.drivers.s100.s100.S100Root.meta_features"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meta_features</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.S100Root.metadata" title="HSTB.drivers.s100.s100.S100Root.metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.S100Root.product_specification" title="HSTB.drivers.s100.s100.S100Root.product_specification"><code class="xref py py-obj docutils literal notranslate"><span class="pre">product_specification</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.S100Root.vertical_datum" title="HSTB.drivers.s100.s100.S100Root.vertical_datum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vertical_datum</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.S100Root.epoch">
+<code class="sig-name descname">epoch</code><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.S100Root.geographic_identifier">
+<code class="sig-name descname">geographic_identifier</code><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.geographic_identifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.S100Root.horizontal_datum_reference">
+<code class="sig-name descname">horizontal_datum_reference</code><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.horizontal_datum_reference" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.S100Root.horizontal_datum_value">
+<code class="sig-name descname">horizontal_datum_value</code><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.horizontal_datum_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.S100Root.issue_date">
+<code class="sig-name descname">issue_date</code><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.issue_date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.S100Root.issue_time">
+<code class="sig-name descname">issue_time</code><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.issue_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.S100Root.meta_features">
+<code class="sig-name descname">meta_features</code><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.meta_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.S100Root.metadata">
+<code class="sig-name descname">metadata</code><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.S100Root.product_specification">
+<code class="sig-name descname">product_specification</code><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.product_specification" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.S100Root.vertical_datum">
+<code class="sig-name descname">vertical_datum</code><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.vertical_datum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="HSTB.drivers.s100.s100.S100Root.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#HSTB.drivers.s100.s100.S100Root.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="HSTB.drivers.s100.s100.Point.html"
+                        title="previous chapter">Point</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="HSTB.drivers.s100.s100.S100_FeatureContainer.html"
+                        title="next chapter">S100_FeatureContainer</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HSTB.drivers.s100.s100.S100_FeatureContainer.html" title="S100_FeatureContainer"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="HSTB.drivers.s100.s100.Point.html" title="Point"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../modules.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s100.html" >HSTB.drivers.s100.s100 Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

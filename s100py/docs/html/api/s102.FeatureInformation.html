@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>FeatureInformation &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="FeatureInformation_dataset" href="s102.FeatureInformation_dataset.html" />
+    <link rel="prev" title="FeatureCodes" href="s102.FeatureCodes.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s102.FeatureInformation_dataset.html" title="FeatureInformation_dataset"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s102.FeatureCodes.html" title="FeatureCodes"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../modules.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s102.html" accesskey="U">s102 Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="featureinformation">
+<h1>FeatureInformation<a class="headerlink" href="#featureinformation" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s102.FeatureInformation">
+<em class="property">class </em><code class="sig-prename descclassname">s102.</code><code class="sig-name descname">FeatureInformation</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#s102.FeatureInformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="HSTB.drivers.s100.s1xx.S1XX_Attributes_base.html#HSTB.drivers.s100.s1xx.S1XX_Attributes_base" title="HSTB.drivers.s100.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">HSTB.drivers.s100.s1xx.S1XX_Attributes_base</span></code></a></p>
+<p>10.2.1 and table 10.2 and Table 10.1 of v2.0.0
+This is used to describe the BathymetryCoverage and TrackingListCoverage within the GroupF feature listing.
+The features described under GroupF have a matching named entry parallel to GroupF (top level).
+The actual data (depths etc) is stored in the top level element while basic metadata is stored in this element.</p>
+<p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s102.FeatureInformation.closure" title="s102.FeatureInformation.closure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">closure</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">returns</dt>
+<dd class="field-odd"><p>closedInterval</p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s102.FeatureInformation.code" title="s102.FeatureInformation.code"><code class="xref py py-obj docutils literal notranslate"><span class="pre">code</span></code></a></p></td>
+<td><p>The camel case name of the data</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s102.FeatureInformation.datatype" title="s102.FeatureInformation.datatype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datatype</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">returns</dt>
+<dd class="field-odd"><p>H5T_NATIVE_FLOAT</p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s102.FeatureInformation.fill_value" title="s102.FeatureInformation.fill_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_value</span></code></a></p></td>
+<td><p>Value denoting missing data :returns: 1000000 :rtype: float</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s102.FeatureInformation.lower" title="s102.FeatureInformation.lower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lower</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">returns</dt>
+<dd class="field-odd"><p>-12000</p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s102.FeatureInformation.name" title="s102.FeatureInformation.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
+<td><p>The plain text name of the data :returns: Name of the dataset (“depth” or “uncertainty”) :rtype: str</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s102.FeatureInformation.unit_of_measure" title="s102.FeatureInformation.unit_of_measure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit_of_measure</span></code></a></p></td>
+<td><p>Units of measurement for the dataset :returns: “metres” :rtype: str</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s102.FeatureInformation.upper" title="s102.FeatureInformation.upper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upper</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">returns</dt>
+<dd class="field-odd"><p>12000</p>
+</dd>
+</dl>
+</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s102.FeatureInformation.closure">
+<code class="sig-name descname">closure</code><a class="headerlink" href="#s102.FeatureInformation.closure" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>closedInterval</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s102.FeatureInformation.code">
+<code class="sig-name descname">code</code><a class="headerlink" href="#s102.FeatureInformation.code" title="Permalink to this definition">¶</a></dt>
+<dd><p>The camel case name of the data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The name of the dataset (“depth” or “uncertainty”)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s102.FeatureInformation.datatype">
+<code class="sig-name descname">datatype</code><a class="headerlink" href="#s102.FeatureInformation.datatype" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>H5T_NATIVE_FLOAT</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s102.FeatureInformation.fill_value">
+<code class="sig-name descname">fill_value</code><a class="headerlink" href="#s102.FeatureInformation.fill_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Value denoting missing data
+:returns: 1000000
+:rtype: float</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s102.FeatureInformation.lower">
+<code class="sig-name descname">lower</code><a class="headerlink" href="#s102.FeatureInformation.lower" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>-12000</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s102.FeatureInformation.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#s102.FeatureInformation.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The plain text name of the data
+:returns: Name of the dataset (“depth” or “uncertainty”)
+:rtype: str</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s102.FeatureInformation.unit_of_measure">
+<code class="sig-name descname">unit_of_measure</code><a class="headerlink" href="#s102.FeatureInformation.unit_of_measure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Units of measurement for the dataset
+:returns: “metres”
+:rtype: str</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s102.FeatureInformation.upper">
+<code class="sig-name descname">upper</code><a class="headerlink" href="#s102.FeatureInformation.upper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>12000</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s102.FeatureInformation.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#s102.FeatureInformation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s102.FeatureCodes.html"
+                        title="previous chapter">FeatureCodes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s102.FeatureInformation_dataset.html"
+                        title="next chapter">FeatureInformation_dataset</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s102.FeatureInformation_dataset.html" title="FeatureInformation_dataset"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s102.FeatureCodes.html" title="FeatureCodes"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../modules.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s102.html" >s102 Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

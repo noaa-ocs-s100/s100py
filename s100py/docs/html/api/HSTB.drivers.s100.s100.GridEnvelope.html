@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>GridEnvelope &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Point" href="HSTB.drivers.s100.s100.Point.html" />
+    <link rel="prev" title="GridCoordinate" href="HSTB.drivers.s100.s100.GridCoordinate.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HSTB.drivers.s100.s100.Point.html" title="Point"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="HSTB.drivers.s100.s100.GridCoordinate.html" title="GridCoordinate"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../modules.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s100.html" accesskey="U">HSTB.drivers.s100.s100 Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gridenvelope">
+<h1>GridEnvelope<a class="headerlink" href="#gridenvelope" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="HSTB.drivers.s100.s100.GridEnvelope">
+<em class="property">class </em><code class="sig-prename descclassname">HSTB.drivers.s100.s100.</code><code class="sig-name descname">GridEnvelope</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#HSTB.drivers.s100.s100.GridEnvelope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="HSTB.drivers.s100.s1xx.S1XX_Attributes_base.html#HSTB.drivers.s100.s1xx.S1XX_Attributes_base" title="HSTB.drivers.s100.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">HSTB.drivers.s100.s1xx.S1XX_Attributes_base</span></code></a></p>
+<p>4.2.1.1.5 of v2.0.0
+While I would think that the envelope would describe the real world extents of the grid,
+in the docs it describes the envelope as specifying the row/column offsets for the lower left and upper right
+coordinates using the integer indices (S100 and ISO 19123 sec. 8.3).  The real world coordinates are in the origin and offsetVectors instead.
+So this seems unnecessary since the value seems the same as the size of the matrix held, which can be gotten by reading that instead.</p>
+<p><a class="reference external" href="https://www.fgdc.gov/standards/projects/frameword-data-standard/GI_FrameworkDataStandard_Part3_Elevation.doc/at_download/file&amp;usg=AOvVaw07QEsNy5urachwIO1e4ALU">https://www.fgdc.gov/standards/projects/frameword-data-standard/GI_FrameworkDataStandard_Part3_Elevation.doc/at_download/file&amp;usg=AOvVaw07QEsNy5urachwIO1e4ALU</a></p>
+<p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.GridEnvelope.high" title="HSTB.drivers.s100.s100.GridEnvelope.high"><code class="xref py py-obj docutils literal notranslate"><span class="pre">high</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HSTB.drivers.s100.s100.GridEnvelope.low" title="HSTB.drivers.s100.s100.GridEnvelope.low"><code class="xref py py-obj docutils literal notranslate"><span class="pre">low</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.GridEnvelope.high">
+<code class="sig-name descname">high</code><a class="headerlink" href="#HSTB.drivers.s100.s100.GridEnvelope.high" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="HSTB.drivers.s100.s100.GridEnvelope.low">
+<code class="sig-name descname">low</code><a class="headerlink" href="#HSTB.drivers.s100.s100.GridEnvelope.low" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="HSTB.drivers.s100.s100.GridEnvelope.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#HSTB.drivers.s100.s100.GridEnvelope.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="HSTB.drivers.s100.s100.GridCoordinate.html"
+                        title="previous chapter">GridCoordinate</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="HSTB.drivers.s100.s100.Point.html"
+                        title="next chapter">Point</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HSTB.drivers.s100.s100.Point.html" title="Point"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="HSTB.drivers.s100.s100.GridCoordinate.html" title="GridCoordinate"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../modules.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s100.html" >HSTB.drivers.s100.s100 Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>
