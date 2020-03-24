@@ -289,7 +289,7 @@ class SurfaceCurrentValues(S1XX_WritesOwnGroup_base, ABC):
             # numpy.array is coming out with wrong (at least different) shape and fromarrays is working -- not sure why right now.
             # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
             rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, 'f4') for name in write_keys])
-            dataset = group_object.create_dataset(self.metadata_name, data=rec_array)
+            dataset = group_object.create_dataset(self.metadata_name, data=rec_array, chunks=True, compression='gzip', compression_opts=9)
             return dataset
         except Exception as e:
             raise e
