@@ -169,8 +169,10 @@ class S1XX_Attributes_base(ABC):
                     logging.debug(key_repr + " array: " + str(val.shape))
                     # convert any strings to bytes of h5py will fail to write the unicode
                     converted_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in val]
-                    # transposed_array = list(map(list, zip(*write_array)))
-                    # rec_array = numpy.core.records.fromarrays(transposed_array, names=write_keys)
+                    try:
+                        del group_object[key]
+                    except KeyError:
+                        pass  # didn't exist, no error
                     new_dataset = group_object.create_dataset(key, data=converted_vals)
                 elif isinstance(val, S1XX_WritesOwnGroup_base):
                     # things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict
@@ -178,7 +180,7 @@ class S1XX_Attributes_base(ABC):
                     val.write(group_object, indent=indent + 1)
                 elif isinstance(val, S1XX_Attributes_base):
                     logging.debug(key_repr + " S100 object - writing itself now...")
-                    new_group = group_object.create_group(key)
+                    new_group = group_object.require_group(key)
                     val.write(new_group, indent=indent + 1)
                 elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
                     logging.debug(key_repr + " datetime: {}", val)
@@ -261,9 +263,6 @@ class S1XX_Attributes_base(ABC):
             ['BathymetryCoverage', 'Group_F', 'TrackingListCoverage']
         """
         return list(self.get_standard_properties_mapping().keys())
-        # props = [p[0] for p in inspect.getmembers(self.__class__, lambda x: isinstance(x, property))]
-        # implemented_properties = [self.__getattribute__(p) for p in props if p.endswith(self._attr_name_suffix) and p[:-len(self._attr_name_suffix)] in props]
-        # return implemented_properties
 
     def get_standard_list_properties(self):
         """
@@ -329,7 +328,8 @@ class S1XX_Attributes_base(ABC):
             For class "Root":
             ['bathymetry_coverage', 'feature_information', 'tracking_list_coverage']
         """
-        props = [p[0] for p in inspect.getmembers(cls, lambda x: isinstance(x, property))]
+        # allow for properties or class attributes (the str check does this)
+        props = [p[0] for p in inspect.getmembers(cls, lambda x: isinstance(x, (property, str)))]
         implemented_properties = [p[:-len(cls._attr_name_suffix)] for p in props if
                                   p.endswith(cls._attr_name_suffix) and p[:-len(cls._attr_name_suffix)] in props]
         return implemented_properties
@@ -355,7 +355,7 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
     This class takes the supplied name and type and will make it act like a list in python and read/write the data in HDF5 like S102 wants.
 
     """
-    read_re_pattern = r"[_\.](\d+)"
+    read_re_pattern = r"[_\.](\d+)$"
     write_format_str = "_%03d"
 
     def __init__(self, *args, **opts):
@@ -410,13 +410,13 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
             logging.debug(indent * "  " + "Writing" + " " + str(self))
             # create N new group objects named as metadata_name.NNN
             for index, val in enumerate(self):
-                name = self.metadata_name + ".%03d" % (index + 1)
+                name = self.metadata_name + self.write_format_str % (index + 1)
                 if isinstance(val, s1xx_sequence.__args__):  # this looks inside the typing.Union to see what arrays should be treated like this
                     raise NotImplementedError()
                 # elif isinstance(val, S1XX_MetadataList_base):
                 #     raise NotImplementedError("Nested Lists")
                 elif isinstance(val, S1XX_Attributes_base):  # Attributes, List and Datasets all work the same (for now)
-                    new_group = group_object.create_group(name)
+                    new_group = group_object.require_group(name)
                     val.write(new_group, indent + 1)
                 elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
                     logging.debug(name + " datetime: {}", val)
@@ -511,7 +511,7 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
             if len(self) > 0:
                 val = self[0]
                 write_keys = []
-                if self.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
+                if val.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
                     write_keys.extend(val.get_write_order())
 
                 # to preserve order of other keys - iterate instead of using set logic
@@ -544,6 +544,10 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
                 else:
                     rec_array = h5py.Empty("")
                     raise ValueError(self.metadata_name + " had no data fields defined to write - this would create an h5py.Empty dataset")
+                try:
+                    del group_object[self.metadata_name]
+                except KeyError:
+                    pass  # didn't exist, no error
                 dataset = group_object.create_dataset(self.metadata_name, data=rec_array)
             return dataset
         except Exception as e:
