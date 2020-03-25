@@ -48,10 +48,17 @@ There are also two helper functions to help discover the type of the data that s
 an instance of the data with an appropriate default.
 """
 # builtings
+import tempfile
+import os
 from enum import Enum
 from typing import Callable, Iterator, Union, Optional, List, Type
 # 3rd party
+import h5py
 import numpy
+try:
+    import pytest
+except:
+    pass
 # custom modules
 from s100py import s1xx, s100
 
@@ -62,13 +69,12 @@ class MONTY(Enum):
 
 
 class MyObject(s1xx.S1XX_Attributes_base):
+    data_value_attribute_name = "dataValue"
+
     @property
     def __version__(self) -> int:
         return 1
 
-    @property
-    def data_value_attribute_name(self) -> str:
-        return "dataValue"
 
     @property
     def data_value(self) -> str:
@@ -184,16 +190,16 @@ class DataGroups(s1xx.S1XX_MetadataList_base):
 
 
 class datasetWithNames(s1xx.S1XX_Attributes_base):
+    attr_int_attribute_name = "attrInt"
+    attr_float_attribute_name = "attrFloat"
+    attr_str_attribute_name = "attrStr"
+
     def get_write_order(self):
-        return ["attrInt", "attrStr", "attrFloat"]
+        return [self.attr_int_attribute_name, self.attr_str_attribute_name, self.attr_float_attribute_name]
 
     @property
     def __version__(self) -> int:
         return 1
-
-    @property
-    def attr_int_attribute_name(self) -> str:
-        return "attrInt"
 
     @property
     def attr_int(self) -> int:
@@ -212,10 +218,6 @@ class datasetWithNames(s1xx.S1XX_Attributes_base):
         self.attr_int = self.attr_int_type(55)
 
     @property
-    def attr_float_attribute_name(self) -> str:
-        return "attrFloat"
-
-    @property
     def attr_float(self) -> float:
         return self._attributes[self.attr_float_attribute_name]
 
@@ -230,10 +232,6 @@ class datasetWithNames(s1xx.S1XX_Attributes_base):
     def attr_float_create(self):
         """ Creates a blank, empty or zero value for attr_float"""
         self.attr_float = self.attr_float_type(123.4)
-
-    @property
-    def attr_str_attribute_name(self) -> str:
-        return "attrStr"
 
     @property
     def attr_str(self) -> str:
@@ -268,13 +266,11 @@ class DatasetWithNames_List(s1xx.S1XX_Dataset_base):
 
 
 class S999Root(s1xx.S1XX_Attributes_base):
+    dataset_with_names_attribute_name = "datasetWithNames"
+
     @property
     def __version__(self) -> int:
         return 1
-
-    @property
-    def dataset_with_names_attribute_name(self) -> str:
-        return "datasetWithNames"
 
     @property
     def dataset_with_names(self) -> DatasetWithNames_List:
@@ -360,16 +356,39 @@ class S999File(s1xx.S1XXFile):
         # kywrds['root'] = S999Root
         super().__init__(*args, root=S999Root, **kywrds)
 
-def test_api():
-    import tempfile
-    import os
+
+try:
+    pytest
+except NameError:
+    pass
+else:
+    @pytest.fixture(scope="module")
+    def filename():
+        h, fstr = tempfile.mkstemp(".h5", dir=os.path.split(__file__)[0])
+        os.close(h)
+        yield fstr
+        try:
+            os.remove(fstr)
+        except (FileNotFoundError, PermissionError):
+            print("failed to remove "+fstr)
+
+    @pytest.fixture(scope="module")
+    def revised_filename():
+        h, fstr = tempfile.mkstemp(".revised.h5", dir=os.path.split(__file__)[0])
+        os.close(h)
+        yield fstr
+        try:
+            os.remove(fstr)
+        except (FileNotFoundError, PermissionError):
+            print("failed to remove "+fstr)
+
+
+def test_api(filename, revised_filename):
 
     print("running the sample api")
-    h, fstr = tempfile.mkstemp(suffix=".h5", prefix="sample_s999", dir=os.path.split(__file__)[0])
-    os.close(h)
-    write_to_file = S999File(fstr)
-    h, fstr_rewrite = tempfile.mkstemp(suffix=".h5", prefix="sample_revised_s999", dir=os.path.split(__file__)[0])
-    os.close(h)
+    write_to_file = S999File(filename)
+    if not revised_filename:
+        revised_filename = filename + ".revised.h5"
 
     the_first_object = MyObject()
     the_first_object.data_value = "A sample string"
@@ -393,12 +412,14 @@ def test_api():
 
     # the mapping to see the HDF5 naming only works on an instance - not the class unfortunately
     print(a_location.get_standard_properties_mapping())
+    # returns --
     # {'eastBoundLongitude': 'east_bound_longitude',
     #  'extentTypeCode': 'extent_type_code',
     #  'northBoundLatitude': 'north_bound_latitude',
     #  'southBoundLatitude': 'south_bound_latitude',
     #  'utmZone': 'utm_zone',
     #  'westBoundLongitude': 'west_bound_longitude'}
+
     # get_standard_keys will return the names expected from an HDF5 file based on the S100 specs
     print(a_location.get_standard_keys())
     # returns --
@@ -467,24 +488,200 @@ def test_api():
     write_to_file.write()
     write_to_file.close()
 
-    read_from_file = S999File(fstr, "r")
+    read_from_file = S999File(filename, "r")
     assert read_from_file.root.dataset_with_names[1].attr_int == 27
     assert read_from_file.root.dataset_with_names[0].attr_str in b"used a default string"
-    assert write_to_file.root.data_group[1].name_of_data == MONTY(2)
-    assert write_to_file.root.data_group[2].data_grid[1] == 0.75  # the second element of the range
-    assert write_to_file.root.my_location_group.east_bound_longitude == 33.5
+    assert read_from_file.root.data_group[1].name_of_data == MONTY(2)
+    assert read_from_file.root.data_group[2].data_grid[1] == 0.75  # the second element of the range
+    assert read_from_file.root.my_location_group.east_bound_longitude == 33.5
     try:
-        write_to_file.root.my_location_group.west_bound_longitude
+        read_from_file.root.my_location_group.west_bound_longitude
     except:
         pass  # all good, the value shouldn't exist
     else:
-        assert write_to_file.root.my_location_group.west_bound_longitude is None  # this should not exist, even as None
+        assert read_from_file.root.my_location_group.west_bound_longitude is None  # this should not exist, even as None
 
-    copy_of_file = S999File(fstr_rewrite)
+    copy_of_file = S999File(revised_filename)
     copy_of_file.root = read_from_file.root
     # this shows how to initialize on creation
     copy_of_file.root.my_location_group = MyLocation(utm_zone=22, east_bound_longitude=11, extra_attr="This shouldn't even be here, but it works")
     copy_of_file.write()
+    copy_of_file.close()
+
+
+def test_direct_access_just_attributes(revised_filename):
+    """ Test/demonstrate accessing an HDF5 file directly on a simple datatype"""
+    h5file = h5py.File(revised_filename)
+    obj_location = "/myFirstObject"
+    new_string = "A revised simple string"
+    data = MyObject()
+    data.read(h5file[obj_location])
+    print(data.data_value)  # prints:  'A sample string'
+    data.data_value = new_string
+    # overwrite
+    data.write(h5file[obj_location])
+    # duplicate
+    h5file.require_group(obj_location + "_new")
+    data.write(h5file[obj_location + "_new"])
+
+    revised_data = MyObject()
+    revised_data.read(h5file[obj_location])
+    assert revised_data.data_value == data.data_value
+    assert revised_data.data_value == new_string
+
+    h5file.close()
+
+
+def test_direct_access_attr_and_dataset(revised_filename):
+    """ Test/demonstrate accessing an HDF5 file directly for enum and dataset (numpy array)"""
+    h5file = h5py.File(revised_filename)
+    obj_location = "/dataGroup_003"
+    new_enum = MONTY['spam']
+    new_val = 99
+    data = DataGroupObject()
+    data.read(h5file[obj_location])
+    # print(data.name_of_data, data.data_grid)
+    data.name_of_data = new_enum
+    data.data_grid[3] = new_val
+    # overwrite
+    data.write(h5file[obj_location])
+    # duplicate -- we will need to create a group for it to write into or put it into an existing group
+    h5file.create_group(obj_location + "_new")
+    data.write(h5file[obj_location + "_new"])
+
+    revised_data = DataGroupObject()
+    revised_data.read(h5file[obj_location])
+    assert revised_data.name_of_data == data.name_of_data
+    assert revised_data.name_of_data == new_enum
+    assert revised_data.name_of_data == new_enum
+    assert revised_data.data_grid[3] == new_val
+
+    h5file.close()
+
+
+def test_direct_access_list(revised_filename):
+    """ For a multi-occurrence object, test/demonstrate accessing an HDF5 file directly
+     Lists actually name themselves, so we will give it a different parent than the root as a test too"""
+    h5file = h5py.File(revised_filename)
+    obj_location = "/"  # this is the root of the file
+    new_val = 35
+    data = DataGroups()
+    data_alternate_read = DataGroups()
+    # show that the file object is the same as using ["/"]
+    data.read(h5file)
+    data_alternate_read.read(h5file[obj_location])
+    print("number of data groups read", len(data))
+    assert len(data) == len(data_alternate_read)
+    assert len(data) == 4
+
+    data[2].data_grid[4] = new_val
+    # overwrite
+    data.write(h5file)
+    # duplicate
+    h5file.create_group("extra_list")
+    data.write(h5file["extra_list"])
+
+    check_data = DataGroups()
+    check_data.read(h5file)
+    assert check_data[2].data_grid[4] == new_val
+
+    check_other_data = DataGroups()
+    check_other_data.read(h5file["extra_list"])
+    assert check_other_data[2].data_grid[4] == new_val
+
+    h5file.close()
+
+def test_direct_access_compound_array(revised_filename):
+    h5file = h5py.File(revised_filename)
+    obj_location = "/datasetWithNames"  # this is the root of the file
+    data = DatasetWithNames_List()
+    data.read(h5file[obj_location])
+    data[0].attr_int = 5
+    # overwrite
+    # the dataset type needs to create a dataset with it's own name, so we pass in the parent.
+    data.write(h5file["/"])
+
+    # duplicate
+    data[0].attr_str = "duplicated"
+    h5file.require_group("/new_compound_array")
+    data.write(h5file["/new_compound_array"])
+
+    h5file.close()
+
+def test_change_names_on_new_data(revised_filename):
+    """ This plays some games with the attribute_name.  Because the data is held in a dictionary based on the hdf5 names,
+    changing the mapping between python name and HDF5 name can have consequences.  """
+    h5file = h5py.File(revised_filename)
+
+    # set up a standard object but store it in a non-standard group
+    obj_with_standard_name = MyObject()
+    obj_with_standard_name.data_value = "standard"
+    assert obj_with_standard_name.data_value_attribute_name == "dataValue"
+    h5file.require_group("/test_standard_name")
+    obj_with_standard_name.write(h5file["/test_standard_name"])
+
+    # change just the instance's name for HDF5, doing this BEFORE adding data works fine
+    obj_with_non_standard_name = MyObject()
+    obj_with_non_standard_name.data_value_attribute_name = "Change_instance_name"
+    obj_with_non_standard_name.data_value = "Testing just the curreent instance"
+    h5file.require_group("/test_instance_names")
+    obj_with_non_standard_name.write(h5file["/test_instance_names"])
+
+    assert obj_with_non_standard_name.data_value == "Testing just the curreent instance"
+
+    # Change the class definition, which can be easier if ALL the data you ever want to read uses that different naming
+    MyObject.data_value_attribute_name = "Change_all_classes"
+    changed_class_obj = MyObject()
+    changed_class_obj.data_value = "Change_the_class_itself"
+    h5file.require_group("/test_class_names")
+    changed_class_obj.write(h5file["/test_class_names"])
+
+    assert changed_class_obj.data_value_attribute_name == "Change_all_classes"
+    assert obj_with_non_standard_name.data_value_attribute_name == "Change_instance_name"
+
+    # but watch out, existing data will also get the new name (but the one we changed just the instance of will be unaffected).
+    # our standard name data will now have data that is orphaned and adding/changing the data via the api will only use the new names
+    obj_with_standard_name.data_value = "still standard?"
+    h5file.require_group("/test_standard_whoa")
+    obj_with_standard_name.write(h5file["/test_standard_whoa"])
+    assert obj_with_standard_name.data_value_attribute_name == "Change_all_classes"
+    assert obj_with_non_standard_name.data_value == "Testing just the curreent instance"
+
+    h5file.close()
+
+def test_changing_names_on_existing_data(revised_filename):
+    """ Change the attribute names in existing data, this requires re-mapping the old data to the new name or deleting the old."""
+    h5file = h5py.File(revised_filename)
+    obj_location = "/datasetWithNames"  # this is the root of the file
+    data = DatasetWithNames_List()
+    data.read(h5file[obj_location])
+
+    # change the names and values of exising data
+    for index, compund_arr in enumerate(data):
+        del compund_arr.attr_int  #delete the old data before we rename
+        compund_arr.attr_int_attribute_name = "changed_individual_int"
+        compund_arr.attr_int = (index + 5) * 2
+
+    # change the name in all the classes in existence at once.  This could corrupt other data in memory, in theory!
+    old_name = datasetWithNames.attr_float_attribute_name
+    datasetWithNames.attr_float_attribute_name = "changed_class_float"
+    for index, compund_arr in enumerate(data):
+        compund_arr.__delattr__(old_name)
+        compund_arr.attr_float = (index + 6) * 3
+
+    h5file.require_group("/compound_array_changed_names")
+    data.write(h5file["/compound_array_changed_names"])
+
+    h5file.close()
+
 
 if __name__ == "__main__":
-    test_api()
+    filename = "test_sample.h5"
+    rev_filename = "test_sample.revised.h5"
+    for fname in (filename, rev_filename):
+        try:
+            os.remove(fname)
+        except (FileNotFoundError, PermissionError):
+            pass
+
+    test_api(filename, rev_filename)
