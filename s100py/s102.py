@@ -1245,101 +1245,166 @@ class S102File(S1XXFile):
         super().__init__(*args, root=S102Root, **kywrds)
 
 
-# root = s102.Root()
-# root.get_standard_keys()
-# Out[35]: ['BathymetryCoverage', 'Group_F', 'TrackingListCoverage']
-# root.get_standard_properties()
-# Out[36]: ['bathymetry_coverage', 'feature_information', 'tracking_list_coverage']
-# root.get_standard_properties_mapping()
-# Out[37]:
-# {'BathymetryCoverage': 'bathymetry_coverage',
-#  'Group_F': 'feature_information',
-#  'TrackingListCoverage': 'tracking_list_coverage'}
-#
+def make_s102(output_path, elev_raster, uncert_raster, metadata):
+    """
+    Create an S-102 file from the elevation and uncertainty rasters and a
+    metadata dictionary.
+    """
+    
+    sfile = S102File(output_path, "w", driver=None)
+    sfile.create_empty_metadata()  # init the root with a fully filled out empty metadata set
+    root = sfile.root
+    del root.feature_information.feature_code  # Guessing at the right dataset name to keep (keep featureName)
+    # root.feature_information.feature_code_remove()
+    root.product_specification = "INT.IHO.S-102.2.0.0"
+    root.metadata = os.path.splitext(os.path.basename(output_path))[0] + ".xml"
+    root.vertical_datum = metadata['from_vert_datum']
 
+    bathy_cov_dset = root.feature_information.bathymetry_coverage_dataset
+    bathy_depth_info = bathy_cov_dset.append_new_item()  # bathy_cov_dset.append(bathy_cov_dset.metadata_type())
+    bathy_depth_info.initialize_properties(True)
+    bathy_depth_info.code = DEPTH
+    bathy_depth_info.name = DEPTH
+    # these are auto-filled by the api
+    # bathy_depth_info.unit_of_measure="metres"
+    # bathy_depth_info.fill_value=1000000.0
+    # bathy_depth_info.datatype=H5T_NATIVE_FLOAT
+    # bathy_depth_info.lower = -12000
+    # bathy_depth_info.upper = 12000
+    # bathy_depth_info.closure = "closedInterval"
 
-#
-# list(f.attrs.items())
-# # [('boundingBox.eastBoundLongitude', 392475.0), ('boundingBox.northBoundLatitude', 3754110.0), ('boundingBox.southBoundLatitude', 3738555.0), ('boundingBox.westBoundLongitude', 379470.0), ('geographicIdentifier', b'Long Beach, CA'), ('horizontalDatumEpoch', 2005.0), ('horizontalDatumReference', b'EPSG'), ('horizontalDatumValue', b'PROJCS["UTM-11N-Nad83",GEOGCS["unnamed",DATUM["North_American_Datum_1983",SPHEROID["North_American_Datum_1983",6378137,298.2572201434276],TOWGS84[0,0,0,0,0,0,0]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433],EXTENSION["Scaler","0,0,0,0.01,0.01,0.'), ('issueDate', b'2016-06-13'), ('metaFeatures', b'LA_LB_Area_UTM_original.bag.gml'), ('metadata', b'LA_LB_Area_UTM_original.bag.xml'), ('productSpecification', b'BAG'), ('timeOfIssue', b'2016-06-13')]
-# list(f.keys())
-# # ['Group_F', 'S102_Grid', 'S102_Tracking_List', 'boundingBox', 'sequenceRule']
-# d = f['boundingBox']
-# d = f['S102_Grid']
-# list(d.keys())
-# # ['S102_Grid_01', 'axisNames']
-# g = d["S102_Grid_01"]
-# list(g.keys())
-# # ['Group_001']
-# g001=g['Group_001']
-# list(g001.keys())
-# # ['values']
-# v = g001['values']
-# v.shape
-# # (3111, 2601)
-# v.dtype
-# # dtype([('S102_Elevation', '<f4'), ('S102_Uncertainty', '<f4')])
-# v["S102_Elevation"].shape
-# # (3111, 2601)
-# numpy.min(v["S102_Elevation"])
-# # -36.03
-# numpy.max(v["S102_Elevation"])
-# # 1000000.0
-# depths = v["S102_Elevation"]
-# numpy.set_printoptions(precision=2, suppress=True, linewidth=200)
-# print(depths[::300, ::300])
-# new_sample= r"C:\downloads\S102\S102_Update__from_NAVO_for_edition_2.0.0_June2019\BAG_to_S102_converter_v2_0\BAG_to_S102_converter\sample_data\102NOAA_LA_LB_AREA_GEO_%d.h5"
-# h5py.File(new_sample, "r", driver="family", memb_size=681574400)
-# # <HDF5 file "102NOAA_LA_LB_AREA_GEO_%d.h5" (mode r)>
-# nf = h5py.File(new_sample, "r", driver="family", memb_size=681574400)
-# list(nf.attrs.items())
-# # [('eastBoundLongitude', -118.182045), ('epoch', b'20131016'), ('geographicIdentifier', b'Long Beach, CA'), ('horizontalDatumReference', b'EPSG'), ('horizontalDatumValue', 4326), ('issueDate', b'2018/6/28'), ('metaFeatures', b'sample_data/102NOAA_LA_LB_AREA_GEO.gml'), ('metadata', b'sample_data/102NOAA_LA_LB_AREA_GEO.xml'), ('northBoundLatitude', 33.92136), ('productSpecification', b'BAG'), ('southBoundLatitude', 33.780685), ('timeOfIssue', b'2018/6/28'), ('westBoundLongitude', -118.29966)]
-# list(nf.keys())
-# # ['BathymetryCoverage', 'Group_F', 'TracklingListCoverage']
-# list(f.keys())
-# # ['Group_F', 'S102_Grid', 'S102_Tracking_List', 'boundingBox', 'sequenceRule']
-# nd = nf['BathymetryCoverage']
-# list(nd.keys())
-# # ['BathymetryCoverage_01', 'axisNames']
-# nd01 = nd['BathymetryCoverage_01']
-# list(nd01.keys())
-# # ['Group_001']
-# ng = nd01['Group_001']
-# list(ng.keys())
-# # ['values']
-# nv = ng["values"]
-# nv.shape
-# # (3111, 2601)
-# type(nv)
-# # <class 'h5py._hl.dataset.Dataset'>
-# nv.dtype
-# # dtype([('depth', '<f4'), ('uncertainty', '<f4')])
-# nv.compression
-# # 'gzip'
-# v.compression
-# nv.fillvalue
-# # (0., 0.)
-# v.fillvalue
-# # (0., 0.)
-# ndepths=nv["depth"]
-# print(ndepths[::300, ::300])
-# debug = r"C:\Git_Repos\BagToS102\x64\Debug\test2_0_debug_%d.h5"
-# nf = h5py.File(debug, "r", driver="family", memb_size=681574400)
-# list(nf.attrs.items())
-# # [('eastBoundLongitude', 491710.0), ('epoch', b'20131016'), ('geographicIdentifier', b'Long Beach, CA'), ('horizontalDatumReference', b'EPSG'), ('horizontalDatumValue', 4326), ('issueDate', b'2019-02-05'), ('metaFeatures', b'.\\test2_0_debug.gml'), ('metadata', b'.\\test2_0_debug.xml'), ('northBoundLatitude', 5719550.0), ('productSpecification', b'BAG'), ('southBoundLatitude', 5691370.0), ('timeOfIssue', b'2019-02-05'), ('westBoundLongitude', 458060.0)]
-# list(nf.keys())
-# # ['BathymetryCoverage', 'Group_F', 'TracklingListCoverage']
-# nd = nf['BathymetryCoverage']
-# list(nd.keys())
-# # ['BathymetryCoverage_01', 'axisNames']
-# nd01 = nd['BathymetryCoverage_01']
-# ng = nd01['Group_001']
-# nv = ng["values"]
-# nv.dtype
-# # dtype([('depth', '<f4'), ('uncertainty', '<f4')])
-# nv.compression
-# ndepths=nv["depth"]
-# ndepths.size
-# # 9482570
-# ndepths.shape
-# # (2818, 3365)
-# print(ndepths[::300, ::300])
+    bathy_uncertainty_info = bathy_cov_dset.append_new_item()
+    bathy_uncertainty_info.initialize_properties(True)
+    bathy_uncertainty_info.code = UNCERTAINTY
+    bathy_uncertainty_info.name = UNCERTAINTY
+
+    # I'm not sure what to put here, yet
+    tracking_cov = root.feature_information.tracking_list_coverage
+
+    track_info = tracking_cov.append_new_item()  # append(tracking_cov.metadata_type())
+    track_info.initialize_properties(True)
+    track_info.code = "X"
+    track_info.name = "X"
+    track_info.unit_of_measure = "N/A"
+
+    track_info = tracking_cov.append_new_item()
+    track_info.initialize_properties(True)
+    track_info.code = "Y"
+    track_info.name = "Y"
+    track_info.unit_of_measure = "N/A"
+
+    track_info = tracking_cov.append_new_item()
+    track_info.initialize_properties(True)
+    track_info.code = "originalValue"
+    track_info.name = "Original Value"
+
+    track_info = tracking_cov.append_new_item()
+    track_info.initialize_properties(True)
+    track_info.code = "trackCode"
+    track_info.name = "Track Code"
+    track_info.unit_of_measure = "N/A"
+
+    track_info = tracking_cov.append_new_item()
+    track_info.initialize_properties(True)
+    track_info.code = "listSeries"
+    track_info.name = "List Series"
+    track_info.unit_of_measure = "N/A"
+
+    root.bathymetry_coverage.axis_names = numpy.array(["longitude", "latitude"])  # row major order means X/longitude first
+    root.bathymetry_coverage.common_point_rule = 1  # average
+    # root.bathymetry_coverage.data_coding_format = 2  # default
+    # root.bathymetry_coverage.dimension = 2  # default value
+    root.bathymetry_coverage.sequencing_rule_scan_direction = "Longitude, Latitude"
+    root.bathymetry_coverage.interpolation_type = 1  # nearest neighbor
+    root.bathymetry_coverage.num_instances = 1  # how many Bathycoverages
+    root.bathymetry_coverage.sequencing_rule_type = 1  # linear
+    del root.bathymetry_coverage.time_uncertainty
+
+    bathy_01 = root.bathymetry_coverage.bathymetry_coverage.append_new_item()
+    bathy_01.initialize_properties(True)
+
+    # @todo @fixme
+    print("Need to determine if projected coords or not - assuming UTM right now")
+    minx = metadata['lon_min']
+    maxx = metadata['lon_max']
+    miny = metadata['lat_min']
+    maxy = metadata['lat_max']
+
+    minx = min([metadata['bounds'][0][0], metadata['bounds'][1][0]])
+    maxx = max([metadata['bounds'][0][0], metadata['bounds'][1][0]])
+    miny = min([metadata['bounds'][0][1], metadata['bounds'][1][1]])
+    maxy = max([metadata['bounds'][0][1], metadata['bounds'][1][1]])
+
+    root.east_bound_longitude = minx
+    root.west_bound_longitude = maxx
+    root.south_bound_latitude = miny
+    root.north_bound_latitude = maxy
+    bathy_01.east_bound_longitude = minx
+    bathy_01.west_bound_longitude = maxx
+    bathy_01.south_bound_latitude = miny
+    bathy_01.north_bound_latitude = maxy
+    bathy_01.grid_origin_latitude = miny
+
+    bathy_01.grid_origin_longitude = minx
+    bathy_01.grid_origin_latitude = miny
+    bathy_01.grid_spacing_longitudinal = metadata["res"][0]
+    bathy_01.grid_spacing_latitudinal = metadata["res"][1]
+    del bathy_01.grid_spacing_vertical
+    del bathy_01.grid_origin_vertical
+    bathy_01.num_grp = 1
+
+    bathy_group_object = bathy_01.bathymetry_group.append_new_item()
+    # bathy_group_object.initialize_properties()  # Not creating everything as I'm not sure if the grid attributes shoul dbe thereTrue)
+    print(bathy_group_object.get_standard_properties())
+    # @todo  @FIXME
+    print("need to determine if this is degrees/metres and set axisNames accordingly")
+    # bathy_group_object.axis_names = numpy.array(["longitude", "latitude"])  # row major order means X/longitude first
+    # use default dimension =2
+
+    print("fix here -- row/column order?")
+    nx, ny = metadata['shape']
+
+    bathy_01.num_points_latitudinal = ny
+    bathy_01.num_points_longitudinal = nx
+    del bathy_01.num_points_vertical
+    bathy_01.start_sequence = "0,0"
+    del bathy_01.vertical_extent_maximum_z
+    del bathy_01.vertical_extent_minimum_z
+
+    bathy_group_object.extent_create()
+    bathy_group_object.extent.initialize_properties(True)
+    bathy_group_object.extent.low.coord_values[0:2] = [0, 0]
+    bathy_group_object.extent.high.coord_values[0:2] = [nx, ny]
+
+    nodata_value = metadata['nodata']
+    depth_max = elev_raster[elev_raster != nodata_value].max()
+    depth_min = elev_raster[elev_raster != nodata_value].min()
+    bathy_group_object.maximum_depth = depth_max
+    bathy_group_object.minimum_depth = depth_min
+
+    uncertainty_max = uncert_raster[uncert_raster != nodata_value].max()
+    uncertainty_min = uncert_raster[uncert_raster != nodata_value].min()
+    bathy_group_object.minimum_uncertainty = uncertainty_min
+    bathy_group_object.maximum_uncertainty = uncertainty_max
+    bathy_group_object.dimension = 2
+
+    bathy_group_object.origin_create()
+    bathy_group_object.origin.initialize_properties(True)
+    bathy_group_object.origin.dimension = 2
+    bathy_group_object.origin.coordinate = numpy.array([minx, miny])
+
+    bathy_group_object.values_create()
+    grid = bathy_group_object.values
+    # @todo -- need to make sure nodata values are correct, especially if converting something other than bag which is supposed to have the same nodata value
+    grid.depth = elev_raster
+    grid.uncertainty = uncert_raster
+
+    print("hard coding datum for now")
+    # @todo @fixme hardcoded stuff....
+    root.horizontal_datum_reference = "EPSG"
+    root.horizontal_datum_value = metadata['epsg']
+    root.epoch = "G1762"  # this is the 2013-10-16 WGS84 used by CRS
+    root.geographic_identifier = metadata['geographic_location']
+    root.issue_date = metadata['date_stamp']  # datetime.date.today().isoformat()
+
+    sfile.write()
