@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>More Usage of the API &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Using The Example API" href="using_sample_api.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="using_sample_api.html" title="Using The Example API"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="more-usage-of-the-api">
+<h1>More Usage of the  API<a class="headerlink" href="#more-usage-of-the-api" title="Permalink to this headline">¶</a></h1>
+<p>Using the data and api shown in <a class="reference internal" href="sample_api.html"><span class="doc">An Example API</span></a> and <a class="reference internal" href="using_sample_api.html"><span class="doc">Using The Example API</span></a> we can look at some advanced usage.</p>
+<p>The S100+ files are built on HDF5 and use h5py for access.  You can access data directly and use the api to read it
+by passing any api class the appropriate h5py object.</p>
+<p>We’ll use a h5py.File object in the samples below, create one like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">h5file</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>So, for our first example let’s read the “MyObject” that would be found in the HDF under the group named “myFirstObject”</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">obj_location</span> <span class="o">=</span> <span class="s2">&quot;/myFirstObject&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">MyObject</span><span class="p">()</span>
+<span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="n">obj_location</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">data_value</span><span class="p">)</span>  <span class="c1"># prints:  &#39;A sample string&#39; based on the previous examples</span>
+</pre></div>
+</div>
+<p>We can also edit the data any write it back to that same place, rather than writing an entire file at once.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">data_value</span> <span class="o">=</span> <span class="s2">&quot;A revised simple string&quot;</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="n">obj_location</span><span class="p">])</span>  <span class="c1"># overwrite the data in the HDF5 file</span>
+</pre></div>
+</div>
+<p>We could even put it in the another place in the file.
+This wouldn’y be valid S100+ data but you could do it for compatibility with other software for example.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">h5file</span><span class="o">.</span><span class="n">require_group</span><span class="p">(</span><span class="n">obj_location</span> <span class="o">+</span> <span class="s2">&quot;_new&quot;</span><span class="p">)</span>  <span class="c1"># make a different subgroup called myFirstObject_new</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="n">obj_location</span> <span class="o">+</span> <span class="s2">&quot;_new&quot;</span><span class="p">])</span>  <span class="c1"># and write it to the file</span>
+</pre></div>
+</div>
+<p>Similarly we can access the enumerations of the datasets from the DataGroupObject we defined previously.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">DataGroupObject</span><span class="p">()</span>
+<span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/dataGroup_003&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name_of_data</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">data_grid</span><span class="p">)</span>  <span class="c1"># should show original data</span>
+</pre></div>
+</div>
+<p>Now we can change it and write it back out:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">name_of_data</span> <span class="o">=</span> <span class="n">MONTY</span><span class="p">[</span><span class="s1">&#39;spam&#39;</span><span class="p">]</span>
+<span class="n">data</span><span class="o">.</span><span class="n">data_grid</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">99</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/dataGroup_003&quot;</span><span class="p">])</span>  <span class="c1"># overwrite the existing data</span>
+</pre></div>
+</div>
+<p>And make a duplicate record if wherever we want</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># duplicate to a new name -- we will need to create a group for it to write into or put it into an existing group</span>
+<span class="n">h5file</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s2">&quot;/dataGroup_003_new&quot;</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/dataGroup_003_new&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>It works for entire lists too.
+Our list was located at the root and unlike the classes above, a list needs to start at the parent node.
+The lists have to name themselves (Group_001, Group_002) so need to start at it’s parent level:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">DataGroups</span><span class="p">()</span>
+<span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">h5file</span><span class="p">)</span>  <span class="c1"># side note: you can use h5file or h5file[&quot;/&quot;] interchangeably</span>
+
+<span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">data_grid</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">35</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">)</span>  <span class="c1"># overwrite</span>
+</pre></div>
+</div>
+<p>We can create a copy of the list, but we can’t make a copy at the root where it already exists,
+so we have to create a subgroup and tell it to write itself there.
+We will end up with “/extra_list/Group_001”, “/extra_list/Group_002”…</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># duplicate</span>
+<span class="n">h5file</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s2">&quot;extra_list&quot;</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;extra_list&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Compound arrays work the same way</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">DatasetWithNames_List</span><span class="p">()</span>
+<span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/datasetWithNames&quot;</span><span class="p">])</span>
+<span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attr_int</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="c1"># the dataset type needs to create a dataset with it&#39;s own name, so we pass in the parent.</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/&quot;</span><span class="p">])</span>
+
+<span class="c1"># duplicate</span>
+<span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attr_str</span> <span class="o">=</span> <span class="s2">&quot;duplicated&quot;</span>
+<span class="n">h5file</span><span class="o">.</span><span class="n">require_group</span><span class="p">(</span><span class="s2">&quot;/new_compound_array&quot;</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/new_compound_array&quot;</span><span class="p">])</span>
+
+<span class="n">h5file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl>
+<dt>def test_change_names_on_new_data(revised_filename):</dt><dd><p>“”” This plays some games with the attribute_name.  Because the data is held in a dictionary based on the hdf5 names,
+changing the mapping between python name and HDF5 name can have consequences.  “””
+h5file = h5py.File(revised_filename)</p>
+<p># set up a standard object but store it in a non-standard group
+obj_with_standard_name = MyObject()
+obj_with_standard_name.data_value = “standard”
+assert obj_with_standard_name.data_value_attribute_name == “dataValue”
+h5file.require_group(“/test_standard_name”)
+obj_with_standard_name.write(h5file[“/test_standard_name”])</p>
+<p># change just the instance’s name for HDF5, doing this BEFORE adding data works fine
+obj_with_non_standard_name = MyObject()
+obj_with_non_standard_name.data_value_attribute_name = “Change_instance_name”
+obj_with_non_standard_name.data_value = “Testing just the curreent instance”
+h5file.require_group(“/test_instance_names”)
+obj_with_non_standard_name.write(h5file[“/test_instance_names”])</p>
+<p>assert obj_with_non_standard_name.data_value == “Testing just the curreent instance”</p>
+<p># Change the class definition, which can be easier if ALL the data you ever want to read uses that different naming
+MyObject.data_value_attribute_name = “Change_all_classes”
+changed_class_obj = MyObject()
+changed_class_obj.data_value = “Change_the_class_itself”
+h5file.require_group(“/test_class_names”)
+changed_class_obj.write(h5file[“/test_class_names”])</p>
+<p>assert changed_class_obj.data_value_attribute_name == “Change_all_classes”
+assert obj_with_non_standard_name.data_value_attribute_name == “Change_instance_name”</p>
+<p># but watch out, existing data will also get the new name (but the one we changed just the instance of will be unaffected).
+# our standard name data will now have data that is orphaned and adding/changing the data via the api will only use the new names
+obj_with_standard_name.data_value = “still standard?”
+h5file.require_group(“/test_standard_whoa”)
+obj_with_standard_name.write(h5file[“/test_standard_whoa”])
+assert obj_with_standard_name.data_value_attribute_name == “Change_all_classes”
+assert obj_with_non_standard_name.data_value == “Testing just the curreent instance”</p>
+<p>h5file.close()</p>
+</dd>
+<dt>def test_changing_names_on_existing_data(revised_filename):</dt><dd><p>“”” Change the attribute names in existing data, this requires re-mapping the old data to the new name or deleting the old.”“”
+h5file = h5py.File(revised_filename)
+obj_location = “/datasetWithNames”  # this is the root of the file
+data = DatasetWithNames_List()
+data.read(h5file[obj_location])</p>
+<p># change the names and values of exising data
+for index, compund_arr in enumerate(data):</p>
+<blockquote>
+<div><p>del compund_arr.attr_int  #delete the old data before we rename
+compund_arr.attr_int_attribute_name = “changed_individual_int”
+compund_arr.attr_int = (index + 5) * 2</p>
+</div></blockquote>
+<p># change the name in all the classes in existence at once.  This could corrupt other data in memory, in theory!
+old_name = datasetWithNames.attr_float_attribute_name
+datasetWithNames.attr_float_attribute_name = “changed_class_float”
+for index, compund_arr in enumerate(data):</p>
+<blockquote>
+<div><p>compund_arr.__delattr__(old_name)
+compund_arr.attr_float = (index + 6) * 3</p>
+</div></blockquote>
+<p>h5file.require_group(“/compound_array_changed_names”)
+data.write(h5file[“/compound_array_changed_names”])</p>
+<p>h5file.close()</p>
+</dd>
+</dl>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102.html">s100py.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_api.html">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">More Usage of the  API</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="using_sample_api.html"
+                        title="previous chapter">Using The Example API</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="using_sample_api.html" title="Using The Example API"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>
