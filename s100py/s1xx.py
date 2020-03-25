@@ -143,7 +143,11 @@ class S1XX_Attributes_base(ABC):
             use_type = self.__getattribute__(expected_items[key] + "_type")
             if issubclass(use_type, S1XX_Attributes_base):
                 self.__getattribute__(expected_items[key] + "_create")()
-                self.__getattribute__(expected_items[key]).read(group_object[key], indent=indent + 1)
+                data = self.__getattribute__(expected_items[key])
+                if issubclass(use_type, S1XX_WritesOwnGroup_base):  # pass the parent
+                    data.read(group_object, indent=indent + 1)
+                else:  # pass the exact location for the data
+                    data.read(group_object[key], indent=indent + 1)
             else:
                 self.__setattr__(expected_items[key], group_object[key])
         for list_type_group in list_type_keys:
@@ -431,8 +435,6 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
     def write_as_xml(self, etree_object):
         raise NotImplementedError("flesh this out if we want an xml representation of S102 bathy file")
 
-# @todo - does this need to write it's own groupname? -- I think it can act like the attributes_base instead and just write data wherever
-# @todo - this changed since it now deletes any existing data which would have caused the dataset to fail before
 class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
     """ The S102 spec stores some things as attributes that could (or should) be stored as attributes.
     This class reads/writes datasets but stores/accesses them as a list of class instances.
@@ -465,7 +467,8 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
             s += str(data_object)
         return s
 
-    def read(self, group_object, indent=0):
+    def read(self, group_object_parent, indent=0):
+        group_object = group_object_parent[self.metadata_name]
         self.read_hdf5_attributes(group_object, indent)  # put any attributes from the dataset obect into the overall _attributes
 
         list_length = group_object.shape[0]
@@ -558,8 +561,13 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
         raise NotImplementedError("flesh this out if we want an xml representation of S102 bathy file")
 
 class S1XX_Grids_base(S1XX_WritesOwnGroup_base):
+    @property
+    @abstractmethod
+    def metadata_name(self) -> str:
+        raise NotImplementedError()
 
-    def read(self, group_object, indent=0):
+    def read(self, group_object_parent, indent=0):
+        group_object = group_object_parent[self.metadata_name]
         logging.debug("reading grids")
         for attr in self.get_standard_properties():
             setattr(self, attr, group_object[getattr(self, attr+self._attr_name_suffix)])

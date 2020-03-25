@@ -2,6 +2,7 @@ More Usage of the  API
 ==========================
 
 Using the data and api shown in :any:`sample_api` and :any:`using_sample_api` we can look at some advanced usage.
+The sample code below is also in the s100py/tests/sample_api_test.py where it should run with pytest.
 
 The S100+ files are built on HDF5 and use h5py for access.  You can access data directly and use the api to read it
 by passing any api class the appropriate h5py object.
@@ -65,25 +66,25 @@ We will end up with "/extra_list/Group_001", "/extra_list/Group_002"... ::
     h5file.create_group("extra_list")
     data.write(h5file["extra_list"])
 
-Compound arrays work the same way ::
+Compound arrays similarly, when using them you supply it the parent as it need to call create_dataset. ::
 
     data = DatasetWithNames_List()
-    data.read(h5file["/datasetWithNames"])
+    data.read(h5file["/"])
     data[0].attr_int = 5
-    # the dataset type needs to create a dataset with it's own name, so we pass in the parent.
     data.write(h5file["/"])
 
-    # duplicate
+We can put a copy in a new location but it will create a dataset (named "datasetWithNames" in this case)
+under the parent location we supply. ::
+
     data[0].attr_str = "duplicated"
     h5file.require_group("/new_compound_array")
     data.write(h5file["/new_compound_array"])
 
-    h5file.close()
+Now to really abuse the system we can change names of the data but this is dangerous and not recommended.
+It would both not adhere to the S100+ specs and also potentially be error prone. ::
 
-def test_change_names_on_new_data(revised_filename):
-    """ This plays some games with the attribute_name.  Because the data is held in a dictionary based on the hdf5 names,
-    changing the mapping between python name and HDF5 name can have consequences.  """
-    h5file = h5py.File(revised_filename)
+First we'll change one instance of an object.
+Remember the MyObject has one string attribute that should be named "dataValue"::
 
     # set up a standard object but store it in a non-standard group
     obj_with_standard_name = MyObject()
@@ -92,41 +93,45 @@ def test_change_names_on_new_data(revised_filename):
     h5file.require_group("/test_standard_name")
     obj_with_standard_name.write(h5file["/test_standard_name"])
 
-    # change just the instance's name for HDF5, doing this BEFORE adding data works fine
+Now let's make another copy of MyObject and change data_value_attribute_name
+which defines the mapping from python name to S100+.
+Doing this BEFORE adding data works fine. ::
+
     obj_with_non_standard_name = MyObject()
     obj_with_non_standard_name.data_value_attribute_name = "Change_instance_name"
     obj_with_non_standard_name.data_value = "Testing just the curreent instance"
     h5file.require_group("/test_instance_names")
     obj_with_non_standard_name.write(h5file["/test_instance_names"])
 
-    assert obj_with_non_standard_name.data_value == "Testing just the curreent instance"
+If you want to get in trouble then you can change the class variable data_value_attribute_name which will then affect
+ALL the future and existing instances of MyObject. ::
 
-    # Change the class definition, which can be easier if ALL the data you ever want to read uses that different naming
     MyObject.data_value_attribute_name = "Change_all_classes"
     changed_class_obj = MyObject()
     changed_class_obj.data_value = "Change_the_class_itself"
     h5file.require_group("/test_class_names")
     changed_class_obj.write(h5file["/test_class_names"])
 
-    assert changed_class_obj.data_value_attribute_name == "Change_all_classes"
-    assert obj_with_non_standard_name.data_value_attribute_name == "Change_instance_name"
+And here is where the weird stuff happens, the obj_with_standard_name we made just above will also now write into
+that new location too.  Our standard name data will now have data that is orphaned and adding/changing
+the data via the api will only use the new names.
 
-    # but watch out, existing data will also get the new name (but the one we changed just the instance of will be unaffected).
-    # our standard name data will now have data that is orphaned and adding/changing the data via the api will only use the new names
+This will end up having the old data under the old name and the new data under the new name -- definitely not
+what someone probably wants.::
+
     obj_with_standard_name.data_value = "still standard?"
     h5file.require_group("/test_standard_whoa")
     obj_with_standard_name.write(h5file["/test_standard_whoa"])
-    assert obj_with_standard_name.data_value_attribute_name == "Change_all_classes"
-    assert obj_with_non_standard_name.data_value == "Testing just the curreent instance"
 
-    h5file.close()
+But, if you need to change some existing data, you can do it.
+Changing the attribute names in existing data will require re-mapping the old data to the new name
+or deleting the old data.
 
-def test_changing_names_on_existing_data(revised_filename):
-    """ Change the attribute names in existing data, this requires re-mapping the old data to the new name or deleting the old."""
-    h5file = h5py.File(revised_filename)
-    obj_location = "/datasetWithNames"  # this is the root of the file
+Here we will change some of the items in the compound array.  It had attr_int, attr_float and attr_str.
+First we'll change each instance's atrr_int naming and delete the old data and set new data.::
+
     data = DatasetWithNames_List()
-    data.read(h5file[obj_location])
+    data.read(h5file["/"])
 
     # change the names and values of exising data
     for index, compund_arr in enumerate(data):
@@ -134,7 +139,8 @@ def test_changing_names_on_existing_data(revised_filename):
         compund_arr.attr_int_attribute_name = "changed_individual_int"
         compund_arr.attr_int = (index + 5) * 2
 
-    # change the name in all the classes in existence at once.  This could corrupt other data in memory, in theory!
+Then we'll change the attr_float naming for the whole class (and any other existing data in the processes memory)::
+
     old_name = datasetWithNames.attr_float_attribute_name
     datasetWithNames.attr_float_attribute_name = "changed_class_float"
     for index, compund_arr in enumerate(data):
@@ -144,5 +150,4 @@ def test_changing_names_on_existing_data(revised_filename):
     h5file.require_group("/compound_array_changed_names")
     data.write(h5file["/compound_array_changed_names"])
 
-    h5file.close()
 

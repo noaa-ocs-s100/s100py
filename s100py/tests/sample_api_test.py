@@ -593,7 +593,7 @@ def test_direct_access_list(revised_filename):
 
 def test_direct_access_compound_array(revised_filename):
     h5file = h5py.File(revised_filename)
-    obj_location = "/datasetWithNames"  # this is the root of the file
+    obj_location = "/"  # this is the root of the file
     data = DatasetWithNames_List()
     data.read(h5file[obj_location])
     data[0].attr_int = 5
@@ -652,7 +652,7 @@ def test_change_names_on_new_data(revised_filename):
 def test_changing_names_on_existing_data(revised_filename):
     """ Change the attribute names in existing data, this requires re-mapping the old data to the new name or deleting the old."""
     h5file = h5py.File(revised_filename)
-    obj_location = "/datasetWithNames"  # this is the root of the file
+    obj_location = "/"  # this is the root of the file
     data = DatasetWithNames_List()
     data.read(h5file[obj_location])
 

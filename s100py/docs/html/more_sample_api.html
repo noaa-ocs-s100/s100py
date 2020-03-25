@@ -43,7 +43,8 @@
             
   <div class="section" id="more-usage-of-the-api">
 <h1>More Usage of the  API<a class="headerlink" href="#more-usage-of-the-api" title="Permalink to this headline">¶</a></h1>
-<p>Using the data and api shown in <a class="reference internal" href="sample_api.html"><span class="doc">An Example API</span></a> and <a class="reference internal" href="using_sample_api.html"><span class="doc">Using The Example API</span></a> we can look at some advanced usage.</p>
+<p>Using the data and api shown in <a class="reference internal" href="sample_api.html"><span class="doc">An Example API</span></a> and <a class="reference internal" href="using_sample_api.html"><span class="doc">Using The Example API</span></a> we can look at some advanced usage.
+The sample code below is also in the s100py/tests/sample_api_test.py where it should run with pytest.</p>
 <p>The S100+ files are built on HDF5 and use h5py for access.  You can access data directly and use the api to read it
 by passing any api class the appropriate h5py object.</p>
 <p>We’ll use a h5py.File object in the samples below, create one like this:</p>
@@ -104,80 +105,87 @@ We will end up with “/extra_list/Group_001”, “/extra_list/Group_002”…<
 <span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;extra_list&quot;</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>Compound arrays work the same way</p>
+<p>Compound arrays similarly, when using them you supply it the parent as it need to call create_dataset.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">DatasetWithNames_List</span><span class="p">()</span>
-<span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/datasetWithNames&quot;</span><span class="p">])</span>
+<span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/&quot;</span><span class="p">])</span>
 <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attr_int</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="c1"># the dataset type needs to create a dataset with it&#39;s own name, so we pass in the parent.</span>
 <span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/&quot;</span><span class="p">])</span>
-
-<span class="c1"># duplicate</span>
-<span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attr_str</span> <span class="o">=</span> <span class="s2">&quot;duplicated&quot;</span>
-<span class="n">h5file</span><span class="o">.</span><span class="n">require_group</span><span class="p">(</span><span class="s2">&quot;/new_compound_array&quot;</span><span class="p">)</span>
-<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/new_compound_array&quot;</span><span class="p">])</span>
-
-<span class="n">h5file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<dl>
-<dt>def test_change_names_on_new_data(revised_filename):</dt><dd><p>“”” This plays some games with the attribute_name.  Because the data is held in a dictionary based on the hdf5 names,
-changing the mapping between python name and HDF5 name can have consequences.  “””
-h5file = h5py.File(revised_filename)</p>
-<p># set up a standard object but store it in a non-standard group
-obj_with_standard_name = MyObject()
-obj_with_standard_name.data_value = “standard”
-assert obj_with_standard_name.data_value_attribute_name == “dataValue”
-h5file.require_group(“/test_standard_name”)
-obj_with_standard_name.write(h5file[“/test_standard_name”])</p>
-<p># change just the instance’s name for HDF5, doing this BEFORE adding data works fine
-obj_with_non_standard_name = MyObject()
-obj_with_non_standard_name.data_value_attribute_name = “Change_instance_name”
-obj_with_non_standard_name.data_value = “Testing just the curreent instance”
-h5file.require_group(“/test_instance_names”)
-obj_with_non_standard_name.write(h5file[“/test_instance_names”])</p>
-<p>assert obj_with_non_standard_name.data_value == “Testing just the curreent instance”</p>
-<p># Change the class definition, which can be easier if ALL the data you ever want to read uses that different naming
-MyObject.data_value_attribute_name = “Change_all_classes”
-changed_class_obj = MyObject()
-changed_class_obj.data_value = “Change_the_class_itself”
-h5file.require_group(“/test_class_names”)
-changed_class_obj.write(h5file[“/test_class_names”])</p>
-<p>assert changed_class_obj.data_value_attribute_name == “Change_all_classes”
-assert obj_with_non_standard_name.data_value_attribute_name == “Change_instance_name”</p>
-<p># but watch out, existing data will also get the new name (but the one we changed just the instance of will be unaffected).
-# our standard name data will now have data that is orphaned and adding/changing the data via the api will only use the new names
-obj_with_standard_name.data_value = “still standard?”
-h5file.require_group(“/test_standard_whoa”)
-obj_with_standard_name.write(h5file[“/test_standard_whoa”])
-assert obj_with_standard_name.data_value_attribute_name == “Change_all_classes”
-assert obj_with_non_standard_name.data_value == “Testing just the curreent instance”</p>
-<p>h5file.close()</p>
-</dd>
-<dt>def test_changing_names_on_existing_data(revised_filename):</dt><dd><p>“”” Change the attribute names in existing data, this requires re-mapping the old data to the new name or deleting the old.”“”
-h5file = h5py.File(revised_filename)
-obj_location = “/datasetWithNames”  # this is the root of the file
-data = DatasetWithNames_List()
-data.read(h5file[obj_location])</p>
-<p># change the names and values of exising data
-for index, compund_arr in enumerate(data):</p>
-<blockquote>
-<div><p>del compund_arr.attr_int  #delete the old data before we rename
-compund_arr.attr_int_attribute_name = “changed_individual_int”
-compund_arr.attr_int = (index + 5) * 2</p>
-</div></blockquote>
-<p># change the name in all the classes in existence at once.  This could corrupt other data in memory, in theory!
-old_name = datasetWithNames.attr_float_attribute_name
-datasetWithNames.attr_float_attribute_name = “changed_class_float”
-for index, compund_arr in enumerate(data):</p>
-<blockquote>
-<div><p>compund_arr.__delattr__(old_name)
-compund_arr.attr_float = (index + 6) * 3</p>
-</div></blockquote>
-<p>h5file.require_group(“/compound_array_changed_names”)
-data.write(h5file[“/compound_array_changed_names”])</p>
-<p>h5file.close()</p>
-</dd>
-</dl>
+<p>We can put a copy in a new location but it will create a dataset (named “datasetWithNames” in this case)
+under the parent location we supply.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attr_str</span> <span class="o">=</span> <span class="s2">&quot;duplicated&quot;</span>
+<span class="n">h5file</span><span class="o">.</span><span class="n">require_group</span><span class="p">(</span><span class="s2">&quot;/new_compound_array&quot;</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/new_compound_array&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Now to really abuse the system we can change names of the data but this is dangerous and not recommended.
+It would both not adhere to the S100+ specs and also potentially be error prone.</p>
+<p>First we’ll change one instance of an object.
+Remember the MyObject has one string attribute that should be named “dataValue”:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># set up a standard object but store it in a non-standard group</span>
+<span class="n">obj_with_standard_name</span> <span class="o">=</span> <span class="n">MyObject</span><span class="p">()</span>
+<span class="n">obj_with_standard_name</span><span class="o">.</span><span class="n">data_value</span> <span class="o">=</span> <span class="s2">&quot;standard&quot;</span>
+<span class="k">assert</span> <span class="n">obj_with_standard_name</span><span class="o">.</span><span class="n">data_value_attribute_name</span> <span class="o">==</span> <span class="s2">&quot;dataValue&quot;</span>
+<span class="n">h5file</span><span class="o">.</span><span class="n">require_group</span><span class="p">(</span><span class="s2">&quot;/test_standard_name&quot;</span><span class="p">)</span>
+<span class="n">obj_with_standard_name</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/test_standard_name&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Now let’s make another copy of MyObject and change data_value_attribute_name
+which defines the mapping from python name to S100+.
+Doing this BEFORE adding data works fine.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">obj_with_non_standard_name</span> <span class="o">=</span> <span class="n">MyObject</span><span class="p">()</span>
+<span class="n">obj_with_non_standard_name</span><span class="o">.</span><span class="n">data_value_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;Change_instance_name&quot;</span>
+<span class="n">obj_with_non_standard_name</span><span class="o">.</span><span class="n">data_value</span> <span class="o">=</span> <span class="s2">&quot;Testing just the curreent instance&quot;</span>
+<span class="n">h5file</span><span class="o">.</span><span class="n">require_group</span><span class="p">(</span><span class="s2">&quot;/test_instance_names&quot;</span><span class="p">)</span>
+<span class="n">obj_with_non_standard_name</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/test_instance_names&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>If you want to get in trouble then you can change the class variable data_value_attribute_name which will then affect
+ALL the future and existing instances of MyObject.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MyObject</span><span class="o">.</span><span class="n">data_value_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;Change_all_classes&quot;</span>
+<span class="n">changed_class_obj</span> <span class="o">=</span> <span class="n">MyObject</span><span class="p">()</span>
+<span class="n">changed_class_obj</span><span class="o">.</span><span class="n">data_value</span> <span class="o">=</span> <span class="s2">&quot;Change_the_class_itself&quot;</span>
+<span class="n">h5file</span><span class="o">.</span><span class="n">require_group</span><span class="p">(</span><span class="s2">&quot;/test_class_names&quot;</span><span class="p">)</span>
+<span class="n">changed_class_obj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/test_class_names&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>And here is where the weird stuff happens, the obj_with_standard_name we made just above will also now write into
+that new location too.  Our standard name data will now have data that is orphaned and adding/changing
+the data via the api will only use the new names.</p>
+<p>This will end up having the old data under the old name and the new data under the new name – definitely not
+what someone probably wants.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">obj_with_standard_name</span><span class="o">.</span><span class="n">data_value</span> <span class="o">=</span> <span class="s2">&quot;still standard?&quot;</span>
+<span class="n">h5file</span><span class="o">.</span><span class="n">require_group</span><span class="p">(</span><span class="s2">&quot;/test_standard_whoa&quot;</span><span class="p">)</span>
+<span class="n">obj_with_standard_name</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/test_standard_whoa&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>But, if you need to change some existing data, you can do it.
+Changing the attribute names in existing data will require re-mapping the old data to the new name
+or deleting the old data.</p>
+<p>Here we will change some of the items in the compound array.  It had attr_int, attr_float and attr_str.
+First we’ll change each instance’s atrr_int naming and delete the old data and set new data.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">DatasetWithNames_List</span><span class="p">()</span>
+<span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/&quot;</span><span class="p">])</span>
+
+<span class="c1"># change the names and values of exising data</span>
+<span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">compund_arr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">del</span> <span class="n">compund_arr</span><span class="o">.</span><span class="n">attr_int</span>  <span class="c1">#delete the old data before we rename</span>
+    <span class="n">compund_arr</span><span class="o">.</span><span class="n">attr_int_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;changed_individual_int&quot;</span>
+    <span class="n">compund_arr</span><span class="o">.</span><span class="n">attr_int</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>Then we’ll change the attr_float naming for the whole class (and any other existing data in the processes memory):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">old_name</span> <span class="o">=</span> <span class="n">datasetWithNames</span><span class="o">.</span><span class="n">attr_float_attribute_name</span>
+<span class="n">datasetWithNames</span><span class="o">.</span><span class="n">attr_float_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;changed_class_float&quot;</span>
+<span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">compund_arr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">compund_arr</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">old_name</span><span class="p">)</span>
+    <span class="n">compund_arr</span><span class="o">.</span><span class="n">attr_float</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span>
+
+<span class="n">h5file</span><span class="o">.</span><span class="n">require_group</span><span class="p">(</span><span class="s2">&quot;/compound_array_changed_names&quot;</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h5file</span><span class="p">[</span><span class="s2">&quot;/compound_array_changed_names&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
 </div>
 
 
