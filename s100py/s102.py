@@ -1399,7 +1399,6 @@ def make_s102(output_path, elev_raster, uncert_raster, metadata):
     grid.depth = elev_raster
     grid.uncertainty = uncert_raster
 
-    print("hard coding datum for now")
     # @todo @fixme hardcoded stuff....
     root.horizontal_datum_reference = "EPSG"
     root.horizontal_datum_value = metadata['epsg']

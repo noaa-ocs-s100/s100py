@@ -6,6 +6,8 @@ import logging
 import numpy
 
 from .s102 import make_s102
+
+# @todo fuse should not be a dependency for reading BAGs.  Use new BAG api?
 from fuse.raw_read.noaa import bag  # this is from NBS (National Bathymetric Source)
 
 def get_valid_epsg() -> list:
