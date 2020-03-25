@@ -16,7 +16,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py"
 
-from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_WritesOwnGroup_base, S1XXFile
+from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_Grids_base, S1XXFile
 from .s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint
 from .s100 import FeatureInformation, S100_FeatureContainer, S100Root, FeatureInstance_Format_2
 
@@ -38,7 +38,6 @@ SEQUENCING_RULE_SCAN_DIRECTION: AxisNames, comma-separated (e.g. "longitude,lati
 START_SEQUENCE: Starting location of the scan.
 
 """
-
 
 
 # figure 4.4 in section 4.2.1 of v2.0.0 shows an overview of many of the S102 classes used
@@ -132,7 +131,7 @@ class S102_MetadataList_base(S1XX_MetadataList_base):
 #         return BathymetryValueRecord
 
 
-class BathymetryValues(S1XX_WritesOwnGroup_base):
+class BathymetryValues(S1XX_Grids_base):
     @property
     def __version__(self) -> int:
         return 1
@@ -183,54 +182,6 @@ class BathymetryValues(S1XX_WritesOwnGroup_base):
 
     def get_write_order(self):
         return [self.depth_attribute_name, self.uncertainty_attribute_name]
-
-    def read(self, group_object, indent=0):
-        logging.debug("reading depth/uncertainty matrices")
-        self.depth = group_object[self.depth_attribute_name]
-        self.uncertainty = group_object[self.uncertainty_attribute_name]
-
-    def write(self, group_object, indent=0):
-        # @todo - is there a bug here if some instances are missing attributes leading to a mismatched array?
-        """ Write out the dataset using order specified with any extra values as unordered but named at the end.
-
-        Parameters
-        ----------
-        group_object
-            HDF5 object to write into
-        indent
-
-        Returns
-        -------
-        HDF5 dataset created during the write method
-        """
-
-        try:
-            # First determine the write order of the keys
-            logging.debug(indent * "  " + "Writing" + " " + str(self))
-
-            dataset = None
-
-            write_keys = []
-            if self.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
-                write_keys.extend(self.get_write_order())
-
-            # to preserve order of other keys - iterate instead of using set logic
-            for key in self._attributes:
-                if key not in write_keys:
-                    write_keys.append(key)
-            # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
-            write_array = [self._attributes[key] for key in write_keys]
-
-            # hdf5 needs names to the columns which is done in a record array or structured array.
-            # but to create that without specifying type we need to transpose first then call 'fromarrays'
-
-            # numpy.array is coming out with wrong (at least different) shape and fromarrays is working -- not sure why right now.
-            # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
-            rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, 'f4') for name in write_keys])
-            dataset = group_object.create_dataset(self.metadata_name, data=rec_array)
-            return dataset
-        except Exception as e:
-            raise e
 
 
 # @TODO -- determine where this is supposed to go.
@@ -840,8 +791,6 @@ class TrackingListCoverages_List(S102_MetadataList_base):
         return TrackingListGroup_List
 
 
-
-
 class BathymetryFeatureInstance(FeatureInstance_Format_2):
     @property
     def bathymetry_group_attribute_name(self) -> str:
@@ -891,8 +840,6 @@ class BathymetryCoverages_List(S102_MetadataList_base):
     @property
     def metadata_type(self) -> Type[type]:
         return BathymetryFeatureInstance
-
-
 
 
 class BathymetryContainer(S100_FeatureContainer):
@@ -986,6 +933,7 @@ class FeatureInformation_dataset(S1XX_Dataset_base):
     The actual data (depths etc) is stored in the top level element while basic metadata is stored in this element.
 
     """
+
     @property
     def __version__(self) -> int:
         return 1
@@ -1240,10 +1188,10 @@ class DiscoveryMetadata(S1XX_Attributes_base):
 
 class S102File(S1XXFile):
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-102.2.0')
+
     def __init__(self, *args, **kywrds):
         # kywrds['root'] = S102Root
         super().__init__(*args, root=S102Root, **kywrds)
-
 
 # root = s102.Root()
 # root.get_standard_keys()

@@ -6,7 +6,7 @@ from typing import Callable, Iterator, Union, Optional, List, Type
 from enum import Enum
 import numpy
 
-from s100py.s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_WritesOwnGroup_base, S1XXFile
+from s100py.s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_Grids_base, S1XXFile
 from s100py.s100 import S100_FeatureContainer, S100Root, FeatureInstance_Format_2
 
 SURFACE_CURRENT = "SurfaceCurrent"
@@ -195,7 +195,7 @@ class SurfaceCurrentValuesList(S111_MetadataList_base, ABC):
         return SurfaceCurrentValueRecord
 
 
-class SurfaceCurrentValues(S1XX_WritesOwnGroup_base, ABC):
+class SurfaceCurrentValues(S1XX_Grids_base, ABC):
     @property
     def __version__(self) -> int:
         return 1
@@ -246,53 +246,6 @@ class SurfaceCurrentValues(S1XX_WritesOwnGroup_base, ABC):
 
     def get_write_order(self):
         return [self.surface_current_speed_attribute_name, self.surface_current_direction_attribute_name]
-
-    def read(self, group_object, indent=0):
-        logging.debug("reading speed/direction matrices")
-        self.surface_current_speed = group_object[self.surface_current_speed_attribute_name]
-        self.surface_current_direction = group_object[self.surface_current_direction_attribute_name]
-
-    def write(self, group_object, indent=0):
-        """ Write out the dataset using order specified with any extra values as unordered but named at the end.
-
-        Parameters
-        ----------
-        group_object
-            HDF5 object to write into
-        indent
-
-        Returns
-        -------
-        HDF5 dataset created during the write method
-        """
-
-        try:
-            # First determine the write order of the keys
-            logging.debug(indent * "  " + "Writing" + " " + str(self))
-
-            dataset = None
-
-            write_keys = []
-            if self.get_write_order():
-                write_keys.extend(self.get_write_order())
-
-            # to preserve order of other keys - iterate instead of using set logic
-            for key in self._attributes:
-                if key not in write_keys:
-                    write_keys.append(key)
-            # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
-            write_array = [self._attributes[key] for key in write_keys]
-
-            # hdf5 needs names to the columns which is done in a record array or structured array.
-            # but to create that without specifying type we need to transpose first then call 'fromarrays'
-
-            # numpy.array is coming out with wrong (at least different) shape and fromarrays is working -- not sure why right now.
-            # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
-            rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, 'f4') for name in write_keys])
-            dataset = group_object.create_dataset(self.metadata_name, data=rec_array, chunks=True, compression='gzip', compression_opts=9)
-            return dataset
-        except Exception as e:
-            raise e
 
 
 class SurfaceCurrentGroup(S1XX_Attributes_base, ABC):
@@ -1016,5 +969,4 @@ class S111File(S1XXFile):
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-111.1.0')
 
     def __init__(self, *args, **kywrds):
-        kywrds['root'] = S111Root
-        super().__init__(*args, **kywrds)
+        super().__init__(*args, root=S111Root, **kywrds)

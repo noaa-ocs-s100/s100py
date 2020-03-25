@@ -19,7 +19,6 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 
 from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_WritesOwnGroup_base, S1XXFile
 
-
 H5T_CLASS_T = {
     h5py.h5t.NO_CLASS: 'H5T_NO_CLASS',
     h5py.h5t.INTEGER: 'H5T_INTEGER',
@@ -454,7 +453,6 @@ class GeographicBoundingBox(GeographicExtent):
     @property
     def __version__(self) -> int:
         return 1
-
 
     @property
     def west_bound_longitude(self) -> float:
@@ -985,6 +983,16 @@ class FeatureInformation(S1XX_Attributes_base):
     def __version__(self) -> int:
         return 1
 
+    def get_write_order(self):
+        return [self.code_attribute_name,
+                self.name_attribute_name,
+                self.unit_of_measure_attribute_name,
+                self.fill_value_attribute_name,
+                self.datatype_attribute_name,
+                self.lower_attribute_name,
+                self.upper_attribute_name,
+                self.closure_attribute_name]
+
     @property
     def code(self) -> str:
         """ The camel case name of the data
@@ -1185,7 +1193,6 @@ class FeatureInformation(S1XX_Attributes_base):
 
     def closure_create(self):
         self.closure = self.closure_type("closedInterval")
-
 
 
 class S100_FeatureContainer(S1XX_Attributes_base):
@@ -1455,7 +1462,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
     def interpolation_type_create(self):
         """ Creates a blank, empty or zero value for interpolation_type"""
         self.interpolation_type = self.interpolation_type_type['nearestneighbor']
-
 
 
 class S100Root(GeographicBoundingBox):

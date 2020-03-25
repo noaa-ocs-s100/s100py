@@ -4,7 +4,6 @@ implementing one of the S100 family of specifications.
 See :any:`extending_the_api` for further details about using the classes to create or modify an api.
 """
 
-
 import collections
 from abc import ABC, abstractmethod
 from typing import Callable, Iterator, Union, Optional, List, Type
@@ -337,9 +336,10 @@ class S1XX_Attributes_base(ABC):
     def set_enum_attribute(self, val, attribute_name, enum_type):
         if isinstance(val, str):
             val = enum_type[val]
-        if isinstance(val , (int, numpy.integer)):
+        if isinstance(val, (int, numpy.integer)):
             val = enum_type(val)
         self._attributes[attribute_name] = val
+
 
 class S1XX_WritesOwnGroup_base(S1XX_Attributes_base):
     """ Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict
@@ -521,7 +521,7 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
                 # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
                 write_array = []
                 for val in self:
-                    list_vals=[]
+                    list_vals = []
                     for key in write_keys:
                         try:
                             v = val._attributes[key]
@@ -556,7 +556,55 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
     def write_as_xml(self, etree_object):
         raise NotImplementedError("flesh this out if we want an xml representation of S102 bathy file")
 
+class S1XX_Grids_base(S1XX_WritesOwnGroup_base):
 
+    def read(self, group_object, indent=0):
+        logging.debug("reading grids")
+        for attr in self.get_standard_properties():
+            setattr(self, attr, group_object[getattr(self, attr+self._attr_name_suffix)])
+
+    def write(self, group_object, indent=0):
+        # @todo - is there a bug here if some instances are missing attributes leading to a mismatched array?
+        """ Write out the dataset using order specified with any extra values as unordered but named at the end.
+
+        Parameters
+        ----------
+        group_object
+            HDF5 object to write into
+        indent
+
+        Returns
+        -------
+        HDF5 dataset created during the write method
+        """
+
+        try:
+            # First determine the write order of the keys
+            logging.debug(indent * "  " + "Writing" + " " + str(self))
+
+            dataset = None
+
+            write_keys = []
+            if self.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
+                write_keys.extend(self.get_write_order())
+
+            # to preserve order of other keys - iterate instead of using set logic
+            for key in self._attributes:
+                if key not in write_keys:
+                    write_keys.append(key)
+            # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
+            write_array = [self._attributes[key] for key in write_keys]
+
+            # hdf5 needs names to the columns which is done in a record array or structured array.
+            # but to create that without specifying type we need to transpose first then call 'fromarrays'
+
+            # numpy.array is coming out with wrong (at least different) shape and fromarrays is working -- not sure why right now.
+            # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
+            rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, 'f4') for name in write_keys])
+            dataset = group_object.create_dataset(self.metadata_name, data=rec_array, chunks=True, compression='gzip', compression_opts=9)
+
+        except Exception as e:
+            raise e
 
 class S1XXFile(h5py.File):
     """
