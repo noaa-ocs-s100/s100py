@@ -106,5 +106,6 @@ so we should have initialized first. ::
     extending_the_api
     sample_api
     using_sample_api
+    more_sample_api
 
 

@@ -139,11 +139,11 @@
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Dataset_base</span></code>(*args, **opts)</p></td>
 <td><p>The S102 spec stores some things as attributes that could (or should) be stored as attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_MetadataList_base</span></code>(*args, **opts)</p></td>
-<td><p>This class represents arrays (noted in UML as <em>, 1..</em>, 0..* etc) which is not really part of HDF5.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Grids_base</span></code>([fill_empty])</p></td>
+<td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_WritesOwnGroup_base</span></code>([fill_empty])</p></td>
-<td><p>Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can’t predict The S1XX_Attributes_base will call the derived class’ writer without pre-making group for it.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_MetadataList_base</span></code>(*args, **opts)</p></td>
+<td><p>This class represents arrays (noted in UML as <em>, 1..</em>, 0..* etc) which is not really part of HDF5.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceRule</span></code>([fill_empty])</p></td>
 <td><p>4.2.1.1.7 (and .8) of v2.0.0 CV_SequenceRule specified in ISO 19123</p></td>
@@ -189,43 +189,44 @@
 </div>
 <div class="section" id="class-inheritance-diagram">
 <h2>Class Inheritance Diagram<a class="headerlink" href="#class-inheritance-diagram" title="Permalink to this headline">¶</a></h2>
-<div class="graphviz"><img src="_images/inheritance-35e8e1bf4ae71d95c4137dc6309dab270aa64a5a.png" alt="Inheritance diagram of s100py.s102.BathymetryContainer, s100py.s102.BathymetryCoverage, s100py.s102.BathymetryCoverage_dataset, s100py.s102.BathymetryCoverages_List, s100py.s102.BathymetryFeatureInstance, s100py.s102.BathymetryGroup_List, s100py.s102.BathymetryValues, s100py.s102.DiscoveryMetadata, s100py.s102.FeatureCodes, s100py.s102.FeatureInformation_dataset, s100py.s102.S102File, s100py.s102.S102Root, s100py.s102.S102_MetadataList_base, s100py.s102.SurfaceCorrectionValues, s100py.s102.TilingScheme, s100py.s102.TrackingListContainer, s100py.s102.TrackingListCoverage, s100py.s102.TrackingListCoverage_dataset, s100py.s102.TrackingListCoverages_List, s100py.s102.TrackingListGroup_List, s100py.s102.TrackingListSet_List, s100py.s102.TrackingListValues, s100py.s102.TrackingListValues_List" usemap="#inheritancec1f96adb28" class="inheritance graphviz" /></div>
+<div class="graphviz"><img src="_images/inheritance-ee8526534674cc602c32118eb7aa0bd9c6e4e44e.png" alt="Inheritance diagram of s100py.s102.BathymetryContainer, s100py.s102.BathymetryCoverage, s100py.s102.BathymetryCoverage_dataset, s100py.s102.BathymetryCoverages_List, s100py.s102.BathymetryFeatureInstance, s100py.s102.BathymetryGroup_List, s100py.s102.BathymetryValues, s100py.s102.DiscoveryMetadata, s100py.s102.FeatureCodes, s100py.s102.FeatureInformation_dataset, s100py.s102.S102File, s100py.s102.S102Root, s100py.s102.S102_MetadataList_base, s100py.s102.SurfaceCorrectionValues, s100py.s102.TilingScheme, s100py.s102.TrackingListContainer, s100py.s102.TrackingListCoverage, s100py.s102.TrackingListCoverage_dataset, s100py.s102.TrackingListCoverages_List, s100py.s102.TrackingListGroup_List, s100py.s102.TrackingListSet_List, s100py.s102.TrackingListValues, s100py.s102.TrackingListValues_List" usemap="#inheritancec1f96adb28" class="inheritance graphviz" /></div>
 <map id="inheritancec1f96adb28" name="inheritancec1f96adb28">
-<area shape="rect" id="node5" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="59,188,128,200"/>
-<area shape="rect" id="node2" href="api/s100py.s102.BathymetryContainer.html#s100py.s102.BathymetryContainer" target="_top" title="This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c&#45;10" alt="" coords="265,73,331,84"/>
-<area shape="rect" id="node3" href="api/s100py.s100.S100_FeatureContainer.html#s100py.s100.S100_FeatureContainer" target="_top" title="S100_FeatureContainer" alt="" coords="158,95,230,107"/>
-<area shape="rect" id="node41" href="api/s100py.s102.TrackingListContainer.html#s100py.s102.TrackingListContainer" target="_top" title="Table 10.1 of v2.0.0" alt="" coords="265,95,332,107"/>
-<area shape="rect" id="node4" href="api/s100py.s102.BathymetryCoverage.html#s100py.s102.BathymetryCoverage" target="_top" title="4.2.1.1.1 and Figure 4.4 of v2.0.0" alt="" coords="161,121,226,132"/>
-<area shape="rect" id="node14" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="150,143,238,155"/>
-<area shape="rect" id="node20" href="api/s100py.s102.DiscoveryMetadata.html#s100py.s102.DiscoveryMetadata" target="_top" title="12.1 of v2.0.0" alt="" coords="164,166,224,177"/>
-<area shape="rect" id="node21" href="api/s100py.s102.FeatureCodes.html#s100py.s102.FeatureCodes" target="_top" title="Table 10.1 and sect 10.2.1 of v2.0.0" alt="" coords="170,188,217,200"/>
-<area shape="rect" id="node27" href="api/s100py.s100.GeographicExtent.html#s100py.s100.GeographicExtent" target="_top" title="4.2.1.1.12 of v2.0.0" alt="" coords="165,211,223,222"/>
-<area shape="rect" id="node39" href="api/s100py.s100.VertexPoint.html#s100py.s100.VertexPoint" target="_top" title="From Figure 8&#45;21 in S100 v4.0.0" alt="" coords="173,233,214,244"/>
-<area shape="rect" id="node40" href="api/s100py.s102.TilingScheme.html#s100py.s102.TilingScheme" target="_top" title="4.2.2, table 4.1 in v2.0.0" alt="" coords="171,255,217,267"/>
-<area shape="rect" id="node42" href="api/s100py.s102.TrackingListCoverage.html#s100py.s102.TrackingListCoverage" target="_top" title="4.2.1.1.9 and Figure 4.4 of v2.0.0" alt="" coords="161,278,227,289"/>
-<area shape="rect" id="node6" href="api/s100py.s102.BathymetryCoverage_dataset.html#s100py.s102.BathymetryCoverage_dataset" target="_top" title="BathymetryCoverage_dataset" alt="" coords="462,47,550,59"/>
-<area shape="rect" id="node7" href="api/s100py.s102.FeatureInformation_dataset.html#s100py.s102.FeatureInformation_dataset" target="_top" title="In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0" alt="" coords="359,70,440,81"/>
-<area shape="rect" id="node43" href="api/s100py.s102.TrackingListCoverage_dataset.html#s100py.s102.TrackingListCoverage_dataset" target="_top" title="TrackingListCoverage_dataset" alt="" coords="462,70,550,81"/>
-<area shape="rect" id="node8" href="api/s100py.s102.BathymetryCoverages_List.html#s100py.s102.BathymetryCoverages_List" target="_top" title="4.2.1.1.2 and Figure 4.4 and Table 10.1 of v2.0.0" alt="" coords="466,92,546,104"/>
-<area shape="rect" id="node9" href="api/s100py.s102.S102_MetadataList_base.html#s100py.s102.S102_MetadataList_base" target="_top" title="S102_MetadataList_base" alt="" coords="361,160,438,171"/>
-<area shape="rect" id="node12" href="api/s100py.s102.BathymetryGroup_List.html#s100py.s102.BathymetryGroup_List" target="_top" title="This is the list of Group.NNN that are held as a list." alt="" coords="471,115,541,126"/>
-<area shape="rect" id="node44" href="api/s100py.s102.TrackingListCoverages_List.html#s100py.s102.TrackingListCoverages_List" target="_top" title="4.2.1.1.9 and Figure 4.4 and Table 10.1 of v2.0.0" alt="" coords="465,137,547,149"/>
-<area shape="rect" id="node45" href="api/s100py.s102.TrackingListGroup_List.html#s100py.s102.TrackingListGroup_List" target="_top" title="TrackingListGroup_List" alt="" coords="471,160,541,171"/>
-<area shape="rect" id="node46" href="api/s100py.s102.TrackingListSet_List.html#s100py.s102.TrackingListSet_List" target="_top" title="TrackingListSet_List" alt="" coords="474,182,538,194"/>
-<area shape="rect" id="node48" href="api/s100py.s102.TrackingListValues_List.html#s100py.s102.TrackingListValues_List" target="_top" title="TrackingListValues_List" alt="" coords="470,204,542,216"/>
-<area shape="rect" id="node10" href="api/s100py.s102.BathymetryFeatureInstance.html#s100py.s102.BathymetryFeatureInstance" target="_top" title="BathymetryFeatureInstance" alt="" coords="572,227,655,238"/>
-<area shape="rect" id="node11" href="api/s100py.s100.FeatureInstance_Format_2.html#s100py.s100.FeatureInstance_Format_2" target="_top" title="Format 2 is the grid format of S100 used in S102 for example." alt="" coords="466,227,546,238"/>
-<area shape="rect" id="node13" href="api/s100py.s102.BathymetryValues.html#s100py.s102.BathymetryValues" target="_top" title="BathymetryValues" alt="" coords="269,118,328,129"/>
-<area shape="rect" id="node22" href="api/s100py.s1xx.S1XX_Dataset_base.html#s100py.s1xx.S1XX_Dataset_base" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes." alt="" coords="267,140,330,152"/>
-<area shape="rect" id="node37" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5." alt="" coords="260,163,337,174"/>
-<area shape="rect" id="node23" href="api/s100py.s100.FeatureInstance.html#s100py.s100.FeatureInstance" target="_top" title="FeatureInstance" alt="" coords="373,221,425,233"/>
-<area shape="rect" id="node24" href="api/s100py.s100.GeographicBoundingBox.html#s100py.s100.GeographicBoundingBox" target="_top" title="4.2.1.1.13 of v2.0.0" alt="" coords="261,221,336,233"/>
-<area shape="rect" id="node33" href="api/s100py.s100.S100Root.html#s100py.s100.S100Root" target="_top" title="From table 10c&#45;6 in S100 spec." alt="" coords="381,244,417,255"/>
-<area shape="rect" id="node35" href="api/s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" target="_top" title="hdf5 files have primary creation methods of" alt="" coords="677,15,710,27"/>
-<area shape="rect" id="node36" href="api/s100py.s102.S102Root.html#s100py.s102.S102Root" target="_top" title="The root group contains a feature information group and N feature containers." alt="" coords="488,249,524,261"/>
-<area shape="rect" id="node34" href="api/s100py.s102.S102File.html#s100py.s102.S102File" target="_top" title="S102File" alt="" coords="732,15,766,27"/>
-<area shape="rect" id="node38" href="api/s100py.s102.SurfaceCorrectionValues.html#s100py.s102.SurfaceCorrectionValues" target="_top" title="SurfaceCorrectionValues" alt="" coords="261,255,336,267"/>
-<area shape="rect" id="node47" href="api/s100py.s102.TrackingListValues.html#s100py.s102.TrackingListValues" target="_top" title="4.2.1.1.10 of v2.0.0" alt="" coords="369,266,429,278"/>
+<area shape="rect" id="node5" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="59,170,128,182"/>
+<area shape="rect" id="node2" href="api/s100py.s102.BathymetryContainer.html#s100py.s102.BathymetryContainer" target="_top" title="This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c&#45;10" alt="" coords="265,70,331,81"/>
+<area shape="rect" id="node3" href="api/s100py.s100.S100_FeatureContainer.html#s100py.s100.S100_FeatureContainer" target="_top" title="S100_FeatureContainer" alt="" coords="158,81,230,92"/>
+<area shape="rect" id="node42" href="api/s100py.s102.TrackingListContainer.html#s100py.s102.TrackingListContainer" target="_top" title="Table 10.1 of v2.0.0" alt="" coords="265,92,332,104"/>
+<area shape="rect" id="node4" href="api/s100py.s102.BathymetryCoverage.html#s100py.s102.BathymetryCoverage" target="_top" title="4.2.1.1.1 and Figure 4.4 of v2.0.0" alt="" coords="161,103,226,115"/>
+<area shape="rect" id="node20" href="api/s100py.s102.DiscoveryMetadata.html#s100py.s102.DiscoveryMetadata" target="_top" title="12.1 of v2.0.0" alt="" coords="164,126,224,137"/>
+<area shape="rect" id="node21" href="api/s100py.s102.FeatureCodes.html#s100py.s102.FeatureCodes" target="_top" title="Table 10.1 and sect 10.2.1 of v2.0.0" alt="" coords="170,148,217,160"/>
+<area shape="rect" id="node27" href="api/s100py.s100.GeographicExtent.html#s100py.s100.GeographicExtent" target="_top" title="4.2.1.1.12 of v2.0.0" alt="" coords="165,170,223,182"/>
+<area shape="rect" id="node38" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="150,193,238,204"/>
+<area shape="rect" id="node40" href="api/s100py.s100.VertexPoint.html#s100py.s100.VertexPoint" target="_top" title="From Figure 8&#45;21 in S100 v4.0.0" alt="" coords="173,215,214,227"/>
+<area shape="rect" id="node41" href="api/s100py.s102.TilingScheme.html#s100py.s102.TilingScheme" target="_top" title="4.2.2, table 4.1 in v2.0.0" alt="" coords="171,238,217,249"/>
+<area shape="rect" id="node43" href="api/s100py.s102.TrackingListCoverage.html#s100py.s102.TrackingListCoverage" target="_top" title="4.2.1.1.9 and Figure 4.4 of v2.0.0" alt="" coords="161,260,227,272"/>
+<area shape="rect" id="node6" href="api/s100py.s102.BathymetryCoverage_dataset.html#s100py.s102.BathymetryCoverage_dataset" target="_top" title="BathymetryCoverage_dataset" alt="" coords="462,170,550,182"/>
+<area shape="rect" id="node7" href="api/s100py.s102.FeatureInformation_dataset.html#s100py.s102.FeatureInformation_dataset" target="_top" title="In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0" alt="" coords="359,193,440,204"/>
+<area shape="rect" id="node44" href="api/s100py.s102.TrackingListCoverage_dataset.html#s100py.s102.TrackingListCoverage_dataset" target="_top" title="TrackingListCoverage_dataset" alt="" coords="462,193,550,204"/>
+<area shape="rect" id="node8" href="api/s100py.s102.BathymetryCoverages_List.html#s100py.s102.BathymetryCoverages_List" target="_top" title="4.2.1.1.2 and Figure 4.4 and Table 10.1 of v2.0.0" alt="" coords="466,215,546,227"/>
+<area shape="rect" id="node9" href="api/s100py.s102.S102_MetadataList_base.html#s100py.s102.S102_MetadataList_base" target="_top" title="S102_MetadataList_base" alt="" coords="361,255,438,266"/>
+<area shape="rect" id="node12" href="api/s100py.s102.BathymetryGroup_List.html#s100py.s102.BathymetryGroup_List" target="_top" title="This is the list of Group.NNN that are held as a list." alt="" coords="471,238,541,249"/>
+<area shape="rect" id="node45" href="api/s100py.s102.TrackingListCoverages_List.html#s100py.s102.TrackingListCoverages_List" target="_top" title="4.2.1.1.9 and Figure 4.4 and Table 10.1 of v2.0.0" alt="" coords="465,260,547,272"/>
+<area shape="rect" id="node46" href="api/s100py.s102.TrackingListGroup_List.html#s100py.s102.TrackingListGroup_List" target="_top" title="TrackingListGroup_List" alt="" coords="471,283,541,294"/>
+<area shape="rect" id="node47" href="api/s100py.s102.TrackingListSet_List.html#s100py.s102.TrackingListSet_List" target="_top" title="TrackingListSet_List" alt="" coords="474,305,538,317"/>
+<area shape="rect" id="node49" href="api/s100py.s102.TrackingListValues_List.html#s100py.s102.TrackingListValues_List" target="_top" title="TrackingListValues_List" alt="" coords="470,328,542,339"/>
+<area shape="rect" id="node10" href="api/s100py.s102.BathymetryFeatureInstance.html#s100py.s102.BathymetryFeatureInstance" target="_top" title="BathymetryFeatureInstance" alt="" coords="572,126,655,137"/>
+<area shape="rect" id="node11" href="api/s100py.s100.FeatureInstance_Format_2.html#s100py.s100.FeatureInstance_Format_2" target="_top" title="Format 2 is the grid format of S100 used in S102 for example." alt="" coords="466,126,546,137"/>
+<area shape="rect" id="node13" href="api/s100py.s102.BathymetryValues.html#s100py.s102.BathymetryValues" target="_top" title="BathymetryValues" alt="" coords="370,170,429,182"/>
+<area shape="rect" id="node14" href="api/s100py.s1xx.S1XX_Grids_base.html#s100py.s1xx.S1XX_Grids_base" target="_top" title="S1XX_Grids_base" alt="" coords="270,170,327,182"/>
+<area shape="rect" id="node22" href="api/s100py.s1xx.S1XX_Dataset_base.html#s100py.s1xx.S1XX_Dataset_base" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes." alt="" coords="267,193,330,204"/>
+<area shape="rect" id="node23" href="api/s100py.s100.FeatureInstance.html#s100py.s100.FeatureInstance" target="_top" title="FeatureInstance" alt="" coords="373,126,425,137"/>
+<area shape="rect" id="node24" href="api/s100py.s100.GeographicBoundingBox.html#s100py.s100.GeographicBoundingBox" target="_top" title="4.2.1.1.13 of v2.0.0" alt="" coords="261,148,336,160"/>
+<area shape="rect" id="node33" href="api/s100py.s100.S100Root.html#s100py.s100.S100Root" target="_top" title="From table 10c&#45;6 in S100 spec." alt="" coords="381,148,417,160"/>
+<area shape="rect" id="node35" href="api/s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" target="_top" title="hdf5 files have primary creation methods of" alt="" coords="677,14,710,25"/>
+<area shape="rect" id="node36" href="api/s100py.s102.S102Root.html#s100py.s102.S102Root" target="_top" title="The root group contains a feature information group and N feature containers." alt="" coords="488,148,524,160"/>
+<area shape="rect" id="node34" href="api/s100py.s102.S102File.html#s100py.s102.S102File" target="_top" title="S102File" alt="" coords="732,14,766,25"/>
+<area shape="rect" id="node37" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5." alt="" coords="260,221,337,233"/>
+<area shape="rect" id="node39" href="api/s100py.s102.SurfaceCorrectionValues.html#s100py.s102.SurfaceCorrectionValues" target="_top" title="SurfaceCorrectionValues" alt="" coords="261,266,336,278"/>
+<area shape="rect" id="node48" href="api/s100py.s102.TrackingListValues.html#s100py.s102.TrackingListValues" target="_top" title="4.2.1.1.10 of v2.0.0" alt="" coords="369,277,429,289"/>
 </map></div>
 </div>
 
@@ -272,6 +273,7 @@
 <li class="toctree-l1"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="more_sample_api.html">More Usage of the  API</a></li>
 </ul>
 
   <h4>Previous topic</h4>

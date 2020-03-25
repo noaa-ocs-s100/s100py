@@ -431,7 +431,8 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
     def write_as_xml(self, etree_object):
         raise NotImplementedError("flesh this out if we want an xml representation of S102 bathy file")
 
-
+# @todo - does this need to write it's own groupname? -- I think it can act like the attributes_base instead and just write data wherever
+# @todo - this changed since it now deletes any existing data which would have caused the dataset to fail before
 class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
     """ The S102 spec stores some things as attributes that could (or should) be stored as attributes.
     This class reads/writes datasets but stores/accesses them as a list of class instances.

@@ -82,13 +82,16 @@ implementing one of the S100 family of specifications.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_Dataset_base.html#s100py.s1xx.S1XX_Dataset_base" title="s100py.s1xx.S1XX_Dataset_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Dataset_base</span></code></a>(*args, **opts)</p></td>
 <td><p>The S102 spec stores some things as attributes that could (or should) be stored as attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" title="s100py.s1xx.S1XX_MetadataList_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_MetadataList_base</span></code></a>(*args, **opts)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_Grids_base.html#s100py.s1xx.S1XX_Grids_base" title="s100py.s1xx.S1XX_Grids_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Grids_base</span></code></a>([fill_empty])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" title="s100py.s1xx.S1XX_MetadataList_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_MetadataList_base</span></code></a>(*args, **opts)</p></td>
 <td><p>This class represents arrays (noted in UML as <em>, 1..</em>, 0..* etc) which is not really part of HDF5.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" title="s100py.s1xx.S1XX_WritesOwnGroup_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_WritesOwnGroup_base</span></code></a>([fill_empty])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" title="s100py.s1xx.S1XX_WritesOwnGroup_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_WritesOwnGroup_base</span></code></a>([fill_empty])</p></td>
 <td><p>Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can’t predict The S1XX_Attributes_base will call the derived class’ writer without pre-making group for it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Type</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Type</span></code></p></td>
 <td><p>A special construct usable to annotate class objects.</p></td>
 </tr>
 </tbody>
@@ -96,13 +99,14 @@ implementing one of the S100 family of specifications.</p>
 </div>
 <div class="section" id="class-inheritance-diagram">
 <h2>Class Inheritance Diagram<a class="headerlink" href="#class-inheritance-diagram" title="Permalink to this headline">¶</a></h2>
-<div class="graphviz"><img src="_images/inheritance-7277f61d331a4410c3a8d003ef7f12a4cfe6e1a4.png" alt="Inheritance diagram of s100py.s1xx.S1XXFile, s100py.s1xx.S1XX_Attributes_base, s100py.s1xx.S1XX_Dataset_base, s100py.s1xx.S1XX_MetadataList_base, s100py.s1xx.S1XX_WritesOwnGroup_base" usemap="#inheritancee16163cb39" class="inheritance graphviz" /></div>
-<map id="inheritancee16163cb39" name="inheritancee16163cb39">
+<div class="graphviz"><img src="_images/inheritance-c160c7c075f4e0077c8bb7e7f0d64c1f1bcb5afb.png" alt="Inheritance diagram of s100py.s1xx.S1XXFile, s100py.s1xx.S1XX_Attributes_base, s100py.s1xx.S1XX_Dataset_base, s100py.s1xx.S1XX_Grids_base, s100py.s1xx.S1XX_MetadataList_base, s100py.s1xx.S1XX_WritesOwnGroup_base" usemap="#inheritancefb9a580d2e" class="inheritance graphviz" /></div>
+<map id="inheritancefb9a580d2e" name="inheritancefb9a580d2e">
 <area shape="rect" id="node15" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="77,119,166,134"/>
 <area shape="rect" id="node14" href="api/s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" target="_top" title="hdf5 files have primary creation methods of" alt="" coords="722,18,765,33"/>
 <area shape="rect" id="node17" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="194,119,308,134"/>
 <area shape="rect" id="node16" href="api/s100py.s1xx.S1XX_Dataset_base.html#s100py.s1xx.S1XX_Dataset_base" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes." alt="" coords="345,90,426,105"/>
-<area shape="rect" id="node18" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5." alt="" coords="336,119,435,134"/>
+<area shape="rect" id="node18" href="api/s100py.s1xx.S1XX_Grids_base.html#s100py.s1xx.S1XX_Grids_base" target="_top" title="S1XX_Grids_base" alt="" coords="349,119,422,134"/>
+<area shape="rect" id="node19" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5." alt="" coords="336,148,435,163"/>
 </map></div>
 </div>
 
@@ -119,6 +123,7 @@ implementing one of the S100 family of specifications.</p>
 <li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XXFile.html">S1XXFile</a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_Attributes_base.html">S1XX_Attributes_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_Dataset_base.html">S1XX_Dataset_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_Grids_base.html">S1XX_Grids_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_MetadataList_base.html">S1XX_MetadataList_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html">S1XX_WritesOwnGroup_base</a></li>
 </ul>
@@ -131,6 +136,7 @@ implementing one of the S100 family of specifications.</p>
 <li class="toctree-l1"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="more_sample_api.html">More Usage of the  API</a></li>
 </ul>
 
   <h4>Previous topic</h4>
