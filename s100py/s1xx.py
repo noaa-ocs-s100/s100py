@@ -32,15 +32,15 @@ class S1XX_Attributes_base(ABC):
     """
     _attr_name_suffix = "_attribute_name"
 
-    def __init__(self, fill_empty=False, **kywrds):
+    def __init__(self, recursively_create_children=False, **kywrds):
         self._attributes = collections.OrderedDict()
-        if fill_empty:
-            self.initialize_properties(fill_empty)
+        if recursively_create_children:
+            self.initialize_properties(recursively_create_children)
         for ky, val in kywrds.items():
             if ky in self.get_standard_properties():
                 exec("self.{} = val".format(ky))
             else:
-                self.add_metadata(ky, val)
+                self.add_data(ky, val)
         # self._child_groups = {}
 
     @property
@@ -52,37 +52,45 @@ class S1XX_Attributes_base(ABC):
     def S1XX_version(self) -> tuple:
         return (2, 0, 0)
 
-    def read_hdf5_attributes(self, group_object, indent=0):
-        indentstr = "    " * indent
-        logging.debug(indentstr + "Reading attributes" + str(self))
+    def read_hdf5_attributes(self, group_object):
+        """ Reads the standard simple types (strings, ints, floats) from the given group as specified by the class specs.
+        Parameters
+        ----------
+        group_object
+            The group (an h5py.File is a group too) to read from.
+
+        Returns
+        -------
+        None
+
+        """
+        logging.debug("Reading attributes" + str(self))
         expected_items = self.get_standard_properties_mapping()
         # basic attributes -- should be simple types so just set them
         for attr_name in group_object.attrs:
             if attr_name not in expected_items:
-                logging.info(indentstr + " The attr/val: " + attr_name + "/" + str(
+                logging.info(" The attr/val: " + attr_name + "/" + str(
                     group_object.attrs[attr_name]) + " was in the group_object but not found in the standard attributes")
                 self._attributes[attr_name] = group_object.attrs[attr_name]
             else:
                 use_type = self.__getattribute__(expected_items[attr_name] + "_type")
                 if issubclass(use_type, Enum):
-                    logging.debug(indentstr + " Enumerated attr/val: " + attr_name + "/" + str(group_object.attrs[attr_name]) + " found and read")
+                    logging.debug(" Enumerated attr/val: " + attr_name + "/" + str(group_object.attrs[attr_name]) + " found and read")
                     self.set_enum_attribute(group_object.attrs[attr_name], attr_name, use_type)
                 else:
-                    logging.debug(indentstr + " Standard attr/val: " + attr_name + "/" + str(group_object.attrs[attr_name]) + " found and read")
+                    logging.debug(" Standard attr/val: " + attr_name + "/" + str(group_object.attrs[attr_name]) + " found and read")
                     setattr(self, expected_items[attr_name], group_object.attrs[attr_name])
 
     def __repr__(self):
+        """ When converting to a string for display, shows the class and what data is currently set internally."""
         s = str(self.__class__) + "\n"
         s += str(self._attributes)
         return s
 
-    # def _remove_attr(self, attr_name):
-    #     try:
-    #         self._attributes.pop(attr_name)
-    #     except KeyError:
-    #         pass
-
     def __delattr__(self, item):
+        """ Delete an attribute from the current data.  Does the conversion from python names to S100+ names,
+        If those names are not found, will delete a non-standard attibute.  Will raise an AttributeError if not found.
+        """
         # mapping = self.get_standard_properties_mapping()
         if item in self._attributes or item in self.get_standard_properties_mapping():
             del self._attributes[item]
@@ -91,8 +99,9 @@ class S1XX_Attributes_base(ABC):
         else:
             del self.__dict__[item]
 
-    def read(self, group_object, indent=0):
-        """
+    def read(self, group_object):
+        """ Given an h5py.File or a h5py group then read the data based on the encoded S100+ spec.
+
         Parameters
         ----------
         group_object
@@ -100,12 +109,12 @@ class S1XX_Attributes_base(ABC):
 
         Returns
         -------
+        None
 
         """
 
-        indentstr = "    " * indent
-        logging.debug(indentstr + "Reading " + str(self))
-        self.read_hdf5_attributes(group_object, indent)
+        logging.debug("Reading " + str(self))
+        self.read_hdf5_attributes(group_object)
 
         expected_items = self.get_standard_properties_mapping()
 
@@ -131,13 +140,13 @@ class S1XX_Attributes_base(ABC):
                 basic_keys.append(data_key)
             else:
                 logging.warning(
-                    indentstr + data_key + " is an HDF5 group and was in the group_object but not found in the standard attributes, SKIPPING!")
+                    data_key + " is an HDF5 group and was in the group_object but not found in the standard attributes, SKIPPING!")
 
         # now read the basic keys and the keys having list data
         # -- only need to call the read once for things that are lists as the Metadata_List class will find all of its occurrences
         for key in basic_keys:
             # create/clear the data
-            logging.debug(indentstr + " Standard attr/val: " + key + " found and reading")
+            logging.debug(" Standard attr/val: " + key + " found and reading")
 
             # read in the HDF5 attributes etc from the group
             use_type = self.__getattribute__(expected_items[key] + "_type")
@@ -145,99 +154,103 @@ class S1XX_Attributes_base(ABC):
                 self.__getattribute__(expected_items[key] + "_create")()
                 data = self.__getattribute__(expected_items[key])
                 if issubclass(use_type, S1XX_WritesOwnGroup_base):  # pass the parent
-                    data.read(group_object, indent=indent + 1)
+                    data.read(group_object)
                 else:  # pass the exact location for the data
-                    data.read(group_object[key], indent=indent + 1)
+                    data.read(group_object[key])
             else:
                 self.__setattr__(expected_items[key], group_object[key])
         for list_type_group in list_type_keys:
             # create/clear the data
-            logging.debug(indentstr + " Standard LIST based attr/val: " + list_type_group + " found and reading")
+            logging.debug(" Standard LIST based attr/val: " + list_type_group + " found and reading")
             self.__getattribute__(list_type_group + "_create")()
             # read in the HDF5 attributes etc from the group
             o = self.__getattribute__(list_type_group)
-            o.read(group_object, indent=indent + 1)
+            o.read(group_object)
 
-    def write(self, group_object, indent=0):
-        try:
-            # iterate through all the key/values in _attributes and write to hdf5
-            # if a value is numpy.array then convert to h5py.Dataset
-            # if a value is a S1XX_Attributes_base instance then create a group and call it's write function
-            # if a value is a date, time - convert to character string per S100, section 10C-7 table 10C-1
-            # otherwise write as a simple attribute and simple type
-            logging.debug(indent * "  " + "Writing" + " " + str(self))
-            for key, val in self._attributes.items():
-                key_repr = indent * "  " + key
-                if isinstance(val, s1xx_sequence.__args__):  # this looks inside the typing.Union to see what arrays should be treated like this
-                    logging.debug(key_repr + " array: " + str(val.shape))
-                    # convert any strings to bytes of h5py will fail to write the unicode
-                    converted_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in val]
-                    try:
-                        del group_object[key]
-                    except KeyError:
-                        pass  # didn't exist, no error
-                    new_dataset = group_object.create_dataset(key, data=converted_vals)
-                elif isinstance(val, S1XX_WritesOwnGroup_base):
-                    # things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict
-                    logging.debug("{}  S100 object - writing itself now...".format(key_repr))
-                    val.write(group_object, indent=indent + 1)
-                elif isinstance(val, S1XX_Attributes_base):
-                    logging.debug(key_repr + " S100 object - writing itself now...")
-                    new_group = group_object.require_group(key)
-                    val.write(new_group, indent=indent + 1)
-                elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
-                    logging.debug(key_repr + " datetime: {}", val)
-                    # @TODO: figure out how to write datetimes
-                    raise NotImplementedError("DateTimes not supported yet")
-                elif isinstance(val, Enum):
-                    logging.debug(key_repr + " enumeration: " + str(val))
-                    enum_as_dict = collections.OrderedDict([[item.name, item.value] for item in type(val)])
-                    int_type = numpy.uint8
-                    try:  # enum_dtype is added in h5py 2.10
-                        enumtype = h5py.enum_dtype(enum_as_dict, int_type)
-                    except AttributeError:  # special_dtype is for h5py <= 2.9
-                        enumtype = h5py.special_dtype(enum=(int_type, enum_as_dict))
-                    try:
-                        group_object.attrs.create(key, val.value, dtype=enumtype)
-                    except TypeError:  # h5py isn't accepting OrderedDict, convert to dict
-                        try:
-                            enumtype = h5py.enum_dtype(dict(enum_as_dict), int_type)
-                        except AttributeError:
-                            enumtype = h5py.special_dtype(enum=(int_type, dict(enum_as_dict)))
-                        group_object.attrs.create(key, val.value, dtype=enumtype)
+    def write(self, group_object):
+        """ write the contained data and all it's children into an HDF5 file using h5py.
 
-                else:
-                    logging.debug(key_repr + " simple type: " + str(val))
-                    group_object.attrs[key] = val
-            # raise NotImplementedError()
-        except Exception as e:
-            raise e
+        Parameters
+        ----------
+        group_object
+            An h5py.File or an h5py group object
+
+        Returns
+        -------
+        None
+
+        """
+        # iterate through all the key/values in _attributes and write to hdf5
+        # if a value is numpy.array then convert to h5py.Dataset
+        # if a value is a S1XX_Attributes_base instance then create a group and call it's write function
+        # if a value is a S1XX_WritesOwnGroup_base instance then let it create the group and tell it to write into the current group_object
+        # if a value is a date, time - convert to character string per S100, section 10C-7 table 10C-1
+        # otherwise write as a simple attribute and simple type
+        logging.debug("Writing" + " " + str(self))
+        for key, val in self._attributes.items():
+            if isinstance(val, s1xx_sequence.__args__):  # this looks inside the typing.Union to see what arrays should be treated like this
+                logging.debug(key + " array: " + str(val.shape))
+                # convert any strings to bytes of h5py will fail to write the unicode
+                converted_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in val]
+                try:
+                    del group_object[key]
+                except KeyError:
+                    pass  # didn't exist, no error
+                new_dataset = group_object.create_dataset(key, data=converted_vals)
+            elif isinstance(val, S1XX_WritesOwnGroup_base):
+                # things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict
+                logging.debug("{}  S100 object - writing itself now...".format(key))
+                val.write(group_object)
+            elif isinstance(val, S1XX_Attributes_base):
+                logging.debug(key + " S100 object - writing itself now...")
+                new_group = group_object.require_group(key)
+                val.write(new_group)
+            elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
+                logging.debug(key + " datetime: {}", val)
+                # @TODO: figure out how to write datetimes
+                raise NotImplementedError("DateTimes not supported yet")
+            elif isinstance(val, Enum):
+                logging.debug(key + " enumeration: " + str(val))
+                enum_as_dict = collections.OrderedDict([[item.name, item.value] for item in type(val)])
+                int_type = numpy.uint8
+                try:  # enum_dtype is added in h5py 2.10
+                    enumtype = h5py.enum_dtype(enum_as_dict, int_type)
+                except AttributeError:  # special_dtype is for h5py <= 2.9
+                    enumtype = h5py.special_dtype(enum=(int_type, enum_as_dict))
+                try:
+                    group_object.attrs.create(key, val.value, dtype=enumtype)
+                except TypeError:  # h5py isn't accepting OrderedDict, convert to dict
+                    try:
+                        enumtype = h5py.enum_dtype(dict(enum_as_dict), int_type)
+                    except AttributeError:
+                        enumtype = h5py.special_dtype(enum=(int_type, dict(enum_as_dict)))
+                    group_object.attrs.create(key, val.value, dtype=enumtype)
+
+            else:
+                logging.debug(key + " simple type: " + str(val))
+                group_object.attrs[key] = val
 
     def write_as_xml(self, etree_object):
         raise NotImplementedError("flesh this out if we want an xml representation of S100+ file")
         # basically add a flag to read/write functions, then everywhere a group, dataset or attribute is written either use xml or hdf5
 
-    def get_metadata(self, key):
+    def get_data(self, key):
         return self._attributes[key]
 
-    def add_metadata(self, key, value):
+    def add_data(self, key, value):
         self._attributes[key] = value
-
-    add_data = add_metadata
-    get_data = get_metadata
 
     def get_s1xx_attr(self, s1xx_name):
         expected_items = self.get_standard_properties_mapping()
         return self.__getattribute__(expected_items[s1xx_name])
 
     def set_s1xx_attr(self, s1xx_name, val):
-        # could make this expected_items a class variable
-        # (- forget the function name __class__ or __new__?) or instance variable (compute in __init__)
         expected_items = self.get_standard_properties_mapping()
         setattr(self, expected_items[s1xx_name], val)
 
     def get_write_order(self):
         """ Override this method if the write order of attributes/groups/dataset items is important
+
         Returns
         -------
         A list of key names if order is important, None otherwise.
@@ -245,6 +258,13 @@ class S1XX_Attributes_base(ABC):
         return None
 
     def get_all_keys(self):  # this includes custom keys
+        """ Gets all the non-standard keys that are contained in this object currently as well as all the
+        standard keys (S100/HDF5 style names) that could be added.
+
+        Returns
+        -------
+        list
+        """
         current_keys = set(self._attributes.keys())
         current_keys.update(self.get_standard_keys())
         return current_keys
@@ -255,7 +275,8 @@ class S1XX_Attributes_base(ABC):
     #     return implemented_properties
 
     def get_standard_keys(self):  # this is only things that have properties associated
-        """
+        """  Returns the S100 (HDF5) names for the things that are listed in the specs for this class.
+
         Returns
         -------
         list
@@ -268,10 +289,13 @@ class S1XX_Attributes_base(ABC):
         return list(self.get_standard_properties_mapping().keys())
 
     def get_standard_list_properties(self):
-        """
+        """ Returns a list of properties that are lists (children based on S1XX_MetadataList_base).
+        Basically a way of finding which items will be named <name>_001, <name>_002 etc
 
         Returns
         -------
+        list
+            The property names that will have auto-generated names based on their index in a list.
 
         """
         s100_to_property = self.get_standard_properties_mapping()
@@ -290,6 +314,7 @@ class S1XX_Attributes_base(ABC):
     # if we want this to be a classmethod then all the attribute_name would bee to become staticmethods and become functions - meaning adding ()
     def get_standard_properties_mapping(self):
         """ This function autodetermines the HDF5 or xml names and their associated property names.
+        Keys are the s100 (HDF5 spelling) strings and the values are the python style naming.
 
         Returns
         -------
@@ -306,30 +331,53 @@ class S1XX_Attributes_base(ABC):
             s100_to_property[self.__getattribute__(prop + self._attr_name_suffix)] = prop
         return s100_to_property
 
-    def initialize_properties(self, fill_empty=False, overwrite=True):
+    def initialize_properties(self, recursively_create_children=False, overwrite=True):
         """ Calls the create function for all the properties of the class.
+        Default values will be created for each attribute that is expected to be contained in this object.
+
+        For example, say a class has simple attributes of ESPG code (int) and locatilty (str) and then a class  made from S1XX_Attributes_base
+        called "extents" which has east and west inside it.
+
+        Calling initialize_properties(recursively_create_children=False) would result in EPSG=0, locality="" and
+        an instance of the "extents" class but NO value (nothing would be written to HDF5) for east, west.
+
+        Calling initialize_properties(recursively_create_children=True)  would result in EPSG=0, locality="" and
+        an instance of the "extents" class but with east=0.0 and wesst=0.0 as well.
+
+        Calling initialize_properties(recursively_create_children=True, overwrite=False) with an esiting dataset, say locality="test"
+        would result in EPSG=0 being made, locality="test" being retained and an instance of the "extents" class with east=0.0 and wesst=0.0 as well.
+
+        Parameters
+        ----------
+        recursively_create_children
+            True = Create children for any child data that would have other children
+            False = Only create data for immediate children of this instance
+        overwrite
+            True = Overwrite existing data with new default data
+            False = Keep existing data if it exists but create new data otherwise
 
         Returns
         -------
         None
+
         """
         for prop in self.get_standard_properties():
             if overwrite or not self.__getattribute__(prop):
                 exec("self.{}_create()".format(prop))
                 o = eval("self.{}".format(prop))
-                if fill_empty and isinstance(o, S1XX_Attributes_base):
-                    o.initialize_properties(fill_empty, overwrite)
+                if recursively_create_children and isinstance(o, S1XX_Attributes_base):
+                    o.initialize_properties(recursively_create_children, overwrite)
 
     @classmethod
     def get_standard_properties(cls):
-        """  This function autodetermines the properties implemented (which have get/set and _attribute_name methods associated)
+        """  This function autodetermines the properties implemented (which have get/set @properties and _attribute_name associated)
 
         Returns
         -------
         list
             Names of the properties implemented.
 
-            For class "Root":
+            For eample class "Root" might have (for S102):
             ['bathymetry_coverage', 'feature_information', 'tracking_list_coverage']
         """
         # allow for properties or class attributes (the str check does this)
@@ -339,6 +387,22 @@ class S1XX_Attributes_base(ABC):
         return implemented_properties
 
     def set_enum_attribute(self, val, attribute_name, enum_type):
+        """ Function to set an attribute that is an enumeration type using either it's string or numeric value
+        or enumeration instance.
+
+        Parameters
+        ----------
+        val
+            The value as a string, int or Enum().
+        attribute_name
+            The S100 name (hdf5 spelling).
+        enum_type
+            The class of enumeration to use if an instance needs to be created.
+
+        Returns
+        -------
+        None
+        """
         if isinstance(val, str):
             val = enum_type[val]
         if isinstance(val, (int, numpy.integer)):
@@ -382,9 +446,8 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
         self.append(self.metadata_type())
         return self[-1]
 
-    def read(self, group_object, indent=0):
-        indentstr = "    " * indent
-        logging.debug(indentstr + "Reading " + str(self))
+    def read(self, group_object):
+        logging.debug("Reading " + str(self))
 
         # keys are HDF5 groups or datasets
         all_keys = list(group_object.keys())
@@ -399,10 +462,10 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
         keys_to_process.sort()
         for index, data_key in keys_to_process:
             obj = self.metadata_type()
-            obj.read(group_object[data_key], indent=indent + 1)
+            obj.read(group_object[data_key])
             self.append(obj)
 
-    def write(self, group_object, indent=0):
+    def write(self, group_object):
         # Iterate through the values in the list and write to hdf5
         # Write each item as self.metadata_name + ".%03d" % index
         # They should all be the same type but we aren't sure what type they are.
@@ -412,7 +475,7 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
         # if a value is a date, time - convert to character string per S100, section 10C-7 table 10C-1
         # otherwise write as a simple attribute and simple type
         try:
-            logging.debug(indent * "  " + "Writing" + " " + str(self))
+            logging.debug("Writing" + " " + str(self))
             # create N new group objects named as metadata_name.NNN
             for index, val in enumerate(self):
                 name = self.metadata_name + self.write_format_str % (index + 1)
@@ -422,7 +485,7 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
                 #     raise NotImplementedError("Nested Lists")
                 elif isinstance(val, S1XX_Attributes_base):  # Attributes, List and Datasets all work the same (for now)
                     new_group = group_object.require_group(name)
-                    val.write(new_group, indent + 1)
+                    val.write(new_group)
                 elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
                     logging.debug(name + " datetime: {}", val)
                     # @TODO: figure out how to write datetimes
@@ -468,9 +531,9 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
             s += str(data_object)
         return s
 
-    def read(self, group_object_parent, indent=0):
+    def read(self, group_object_parent):
         group_object = group_object_parent[self.metadata_name]
-        self.read_hdf5_attributes(group_object, indent)  # put any attributes from the dataset obect into the overall _attributes
+        self.read_hdf5_attributes(group_object)  # put any attributes from the dataset obect into the overall _attributes
 
         list_length = group_object.shape[0]
         has_extra_dimension = False  # NAVO (and maybe the spec) wrote data as shape (2,1) instead of (2,) so we have to use an extra index - data[0][0]
@@ -493,7 +556,7 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
                     current_obj._attributes[data_name] = val
             self.append(current_obj)
 
-    def write(self, group_object, indent=0):
+    def write(self, group_object):
         # @todo - is there a bug here if some instances are missing attributes leading to a mismatched array?
         """ Write out the dataset using order specified with any extra values as unordered but named at the end.
 
@@ -501,7 +564,6 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
         ----------
         group_object
             HDF5 object to write into
-        indent
 
         Returns
         -------
@@ -510,7 +572,7 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
         """
         try:
             # First determine the write order of the keys
-            logging.debug(indent * "  " + "Writing" + " " + str(self))
+            logging.debug("Writing" + " " + str(self))
 
             dataset = None
             if len(self) > 0:
@@ -567,13 +629,13 @@ class S1XX_Grids_base(S1XX_WritesOwnGroup_base):
     def metadata_name(self) -> str:
         raise NotImplementedError()
 
-    def read(self, group_object_parent, indent=0):
+    def read(self, group_object_parent):
         group_object = group_object_parent[self.metadata_name]
         logging.debug("reading grids")
         for attr in self.get_standard_properties():
             setattr(self, attr, group_object[getattr(self, attr+self._attr_name_suffix)])
 
-    def write(self, group_object, indent=0):
+    def write(self, group_object):
         # @todo - is there a bug here if some instances are missing attributes leading to a mismatched array?
         """ Write out the dataset using order specified with any extra values as unordered but named at the end.
 
@@ -581,7 +643,6 @@ class S1XX_Grids_base(S1XX_WritesOwnGroup_base):
         ----------
         group_object
             HDF5 object to write into
-        indent
 
         Returns
         -------
@@ -590,7 +651,7 @@ class S1XX_Grids_base(S1XX_WritesOwnGroup_base):
 
         try:
             # First determine the write order of the keys
-            logging.debug(indent * "  " + "Writing" + " " + str(self))
+            logging.debug("Writing" + " " + str(self))
 
             dataset = None
 
@@ -623,17 +684,6 @@ class S1XXFile(h5py.File):
     attrs           a dictionary-like to add/read metadata about the current group
     create_group    to make a group containing datasets and/or metadata
     """
-    # these keys allow backward compatibility, the first key is current at time of writing
-    top_level_keys = ('BathymetryCoverage', 'S102_Grid', 'S102_BathymetryCoverage')
-    tracking_list_top_level = ("TrackingListCoverage",)
-    tracking_list_second_level = ("TrackingListCoverage.01",)
-    tracking_list_group_level = ("Group.001",)
-    second_level_keys = (
-        'BathymetryCoverage.01', 'S102_Grid.01', 'S102_BathymetryCoverage.01', 'BathymetryCoverage_01', 'S102_Grid_01', 'S102_BathymetryCoverage_01',)
-    group_level_keys = ('Group.001', 'Group_001',)
-    value_level_keys = ("values",)
-    depth_keys = ("depth", "depths", 'elevation', "elevations", "S102_Elevation")
-
     def __init__(self, *args, **kywrds):
         # @TODO: This is the NAVO default setting, have to decide if that is best and handle other options too.
         kywrds.setdefault('root', None)
@@ -656,68 +706,6 @@ class S1XXFile(h5py.File):
 
     def create_empty_metadata(self):
         self.root = self.root_type(True)
-
-    def print_overview(self, display_nodes=10):
-        depths = self.get_depths()
-        print("shape of grid is", depths.shape, "of type", depths.dtype)
-        with numpy.printoptions(precision=2, suppress=True, linewidth=200):
-            x, y = depths.shape
-            r = max(x, y)
-            step = int(r / display_nodes)
-            print(depths[::step, ::step])
-
-    def print_depth_attributes(self):
-        hdf5 = self.get_depth_dataset()
-        print(hdf5.attrs)
-
-    def get_depth_dataset(self):
-        for k in self.top_level_keys:
-            if k in self:
-                d = self[k]
-                break
-        try:
-            d
-        except NameError:
-            raise KeyError(str(self.top_level_keys) + " were not found in " + str(list(self.keys())))
-
-        for k in self.second_level_keys:
-            if k in d:
-                g = d[k]
-                break
-
-        try:
-            g
-        except NameError:
-            raise KeyError(str(self.second_level_keys) + " were not found in " + str(list(d.keys())))
-
-        for k in self.group_level_keys:
-            if k in g:
-                gp = g[k]
-                break
-
-        try:
-            gp
-        except NameError:
-            raise KeyError(str(self.group_level_keys) + " were not found in " + str(list(g.keys())))
-
-        for k in self.value_level_keys:
-            if k in gp:
-                v = gp[k]
-                break
-        try:
-            v
-        except NameError:
-            raise KeyError(str(self.value_level_keys) + " were not found in " + str(list(gp.keys())))
-        return v
-
-    def get_depths(self):
-        v = self.get_depth_dataset()
-        # v.dtype
-        # dtype([('S102_Elevation', '<f4'), ('S102_Uncertainty', '<f4')])
-        for k in self.depth_keys:
-            if k in v.dtype.names:
-                return v[k]
-        raise KeyError(str(self.depth_keys) + " were not found in " + str(list(v.dtype.names)))
 
     def show_keys(self, obj, indent=0):
         try:  # print attributes of dataset or group

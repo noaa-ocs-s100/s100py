@@ -50,7 +50,7 @@
 <h1>FeatureInformation<a class="headerlink" href="#featureinformation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="s100py.s100.FeatureInformation">
-<em class="property">class </em><code class="sig-prename descclassname">s100py.s100.</code><code class="sig-name descname">FeatureInformation</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.FeatureInformation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s100.</code><code class="sig-name descname">FeatureInformation</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.FeatureInformation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1XX_Attributes_base</span></code></a></p>
 <p>In S100, table 10c-8.
 In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0</p>
@@ -118,7 +118,7 @@ The actual data (depths etc) is stored in the top level element while basic meta
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.FeatureInformation.get_write_order" title="s100py.s100.FeatureInformation.get_write_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_write_order</span></code></a>()</p></td>
-<td><p>Override this method if the write order of attributes/groups/dataset items is important :returns: :rtype: A list of key names if order is important, None otherwise.</p></td>
+<td><p>Override this method if the write order of attributes/groups/dataset items is important</p></td>
 </tr>
 </tbody>
 </table>
@@ -217,14 +217,20 @@ The actual data (depths etc) is stored in the top level element while basic meta
 <dl class="method">
 <dt id="s100py.s100.FeatureInformation.get_write_order">
 <code class="sig-name descname">get_write_order</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.FeatureInformation.get_write_order" title="Permalink to this definition">¶</a></dt>
-<dd><p>Override this method if the write order of attributes/groups/dataset items is important
-:returns:
-:rtype: A list of key names if order is important, None otherwise.</p>
+<dd><p>Override this method if the write order of attributes/groups/dataset items is important</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>A list of key names if order is important, None otherwise.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="s100py.s100.FeatureInformation.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.FeatureInformation.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.FeatureInformation.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -256,6 +262,7 @@ The actual data (depths etc) is stored in the top level element while basic meta
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridEnvelope.html">GridEnvelope</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.INTERPOLATION_TYPE.html">INTERPOLATION_TYPE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.Point.html">Point</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100Exception.html">S100Exception</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100File.html">S100File</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100Root.html">S100Root</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100_FeatureContainer.html">S100_FeatureContainer</a></li>
@@ -268,7 +275,8 @@ The actual data (depths etc) is stored in the top level element while basic meta
 <li class="toctree-l2"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html">s100py.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102.html">s100py.s102.s102_utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102.html#module-s100py.s102.s102">s100py.s102.s102 Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>

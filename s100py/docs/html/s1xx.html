@@ -76,19 +76,19 @@ implementing one of the S100 family of specifications.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" title="s100py.s1xx.S1XXFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XXFile</span></code></a>(*args, **kywrds)</p></td>
 <td><p>hdf5 files have primary creation methods of create_dataset  to insert array data attrs           a dictionary-like to add/read metadata about the current group create_group    to make a group containing datasets and/or metadata</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a>([fill_empty])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a>([…])</p></td>
 <td><p>This class implements a general hdf5 group object that has attributes, dataset or sub-groups.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_Dataset_base.html#s100py.s1xx.S1XX_Dataset_base" title="s100py.s1xx.S1XX_Dataset_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Dataset_base</span></code></a>(*args, **opts)</p></td>
 <td><p>The S102 spec stores some things as attributes that could (or should) be stored as attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_Grids_base.html#s100py.s1xx.S1XX_Grids_base" title="s100py.s1xx.S1XX_Grids_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Grids_base</span></code></a>([fill_empty])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_Grids_base.html#s100py.s1xx.S1XX_Grids_base" title="s100py.s1xx.S1XX_Grids_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_Grids_base</span></code></a>([recursively_create_children])</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" title="s100py.s1xx.S1XX_MetadataList_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_MetadataList_base</span></code></a>(*args, **opts)</p></td>
 <td><p>This class represents arrays (noted in UML as <em>, 1..</em>, 0..* etc) which is not really part of HDF5.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" title="s100py.s1xx.S1XX_WritesOwnGroup_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_WritesOwnGroup_base</span></code></a>([fill_empty])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" title="s100py.s1xx.S1XX_WritesOwnGroup_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S1XX_WritesOwnGroup_base</span></code></a>([…])</p></td>
 <td><p>Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can’t predict The S1XX_Attributes_base will call the derived class’ writer without pre-making group for it.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Type</span></code></p></td>
@@ -132,7 +132,8 @@ implementing one of the S100 family of specifications.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102.html">s100py.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102.html">s100py.s102.s102_utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102.html#module-s100py.s102.s102">s100py.s102.s102 Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>

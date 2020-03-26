@@ -401,7 +401,7 @@ def test_api(filename, revised_filename):
     a_location.initialize_properties(True)
     a_location.utm_zone = 18
     a_location.east_bound_longitude = 33.5
-    a_location.add_metadata("extraData", 12345)
+    a_location.add_data("extraData", 12345)
 
     print("Show what attributes are held inside our location class, can use either the instance or the class name itself")
     print(a_location.get_standard_properties())

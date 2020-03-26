@@ -4,7 +4,7 @@ import os
 import logging
 import tempfile
 
-from s100py import s100, s102, s1xx, bag_to_s102
+from s100py import s100
 
 @pytest.fixture(scope="module")
 def s100_file():
@@ -29,7 +29,7 @@ def test_enumeration(s100_file):
     assert s100_file.root.vertical_datum == s100.VERTICAL_DATUM["meanLowerLowWater"]
 
 def test_write(s100_file):
-    s100_file.root.add_metadata("bogus", "testing")
+    s100_file.root.add_data("bogus", "testing")
     s100_file.write()
 
 def test_read(s100_file):
@@ -38,7 +38,7 @@ def test_read(s100_file):
     assert read_file.root.east_bound_longitude == s100_file.root.east_bound_longitude
     assert read_file.root.west_bound_longitude == s100_file.root.west_bound_longitude
     assert read_file.root.vertical_datum == s100_file.root.vertical_datum
-    assert read_file.root.get_metadata("bogus") == "testing"
+    assert read_file.root.get_data("bogus") == "testing"
 
 def test_initialize_props(s100_file):
     s100_file.root.initialize_properties()

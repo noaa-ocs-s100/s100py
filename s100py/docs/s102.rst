@@ -1,1 +1,11 @@
-..  automodapi:: s100py.s102
+Figure out how to show the namespace magic performed in __init__ since the functions in the two modules below
+can be accesses easier: e.g.::
+
+    from s100py import s102
+    s102.from_gdal()
+    # or
+    from s100py.s102 import s102_utils
+    s102_utils.from_gdal()
+
+..  automodapi:: s100py.s102.s102_utils
+..  automodapi:: s100py.s102.s102

@@ -12,13 +12,13 @@ import pprint
 import numpy
 
 try:
-    from . import s1xx
+    from .. import s1xx
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
-    __package__ = "s100py"
+    __package__ = "s100py.s102"
 
-from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_Grids_base, S1XXFile
-from .s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint
-from .s100 import FeatureInformation, S100_FeatureContainer, S100Root, FeatureInstance_Format_2, S100Exception
+from ..s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_Grids_base, S1XXFile
+from ..s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
+    FeatureInformation, S100_FeatureContainer, S100Root, FeatureInstance_Format_2, S100Exception
 
 class S102Exception(S100Exception):
     pass
@@ -1198,6 +1198,80 @@ class DiscoveryMetadata(S1XX_Attributes_base):
 
 class S102File(S1XXFile):
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-102.2.0')
+    # these keys allow backward compatibility with NAVO data, the first key is current at time of writing
+    top_level_keys = ('BathymetryCoverage', 'S102_Grid', 'S102_BathymetryCoverage')
+    tracking_list_top_level = ("TrackingListCoverage",)
+    tracking_list_second_level = ("TrackingListCoverage.01",)
+    tracking_list_group_level = ("Group.001",)
+    second_level_keys = (
+        'BathymetryCoverage.01', 'S102_Grid.01', 'S102_BathymetryCoverage.01', 'BathymetryCoverage_01', 'S102_Grid_01', 'S102_BathymetryCoverage_01',)
+    group_level_keys = ('Group.001', 'Group_001',)
+    value_level_keys = ("values",)
+    depth_keys = ("depth", "depths", 'elevation', "elevations", "S102_Elevation")
+
 
     def __init__(self, *args, **kywrds):
         super().__init__(*args, root=S102Root, **kywrds)
+
+    def print_overview(self, display_nodes=10):
+        depths = self.get_depths()
+        print("shape of grid is", depths.shape, "of type", depths.dtype)
+        with numpy.printoptions(precision=2, suppress=True, linewidth=200):
+            x, y = depths.shape
+            r = max(x, y)
+            step = int(r / display_nodes)
+            print(depths[::step, ::step])
+
+
+    def print_depth_attributes(self):
+        hdf5 = self.get_depth_dataset()
+        print(hdf5.attrs)
+
+    def get_depth_dataset(self):
+        for k in self.top_level_keys:
+            if k in self:
+                d = self[k]
+                break
+        try:
+            d
+        except NameError:
+            raise KeyError(str(self.top_level_keys) + " were not found in " + str(list(self.keys())))
+
+        for k in self.second_level_keys:
+            if k in d:
+                g = d[k]
+                break
+
+        try:
+            g
+        except NameError:
+            raise KeyError(str(self.second_level_keys) + " were not found in " + str(list(d.keys())))
+
+        for k in self.group_level_keys:
+            if k in g:
+                gp = g[k]
+                break
+
+        try:
+            gp
+        except NameError:
+            raise KeyError(str(self.group_level_keys) + " were not found in " + str(list(g.keys())))
+
+        for k in self.value_level_keys:
+            if k in gp:
+                v = gp[k]
+                break
+        try:
+            v
+        except NameError:
+            raise KeyError(str(self.value_level_keys) + " were not found in " + str(list(gp.keys())))
+        return v
+
+    def get_depths(self):
+        v = self.get_depth_dataset()
+        # v.dtype
+        # dtype([('S102_Elevation', '<f4'), ('S102_Uncertainty', '<f4')])
+        for k in self.depth_keys:
+            if k in v.dtype.names:
+                return v[k]
+        raise KeyError(str(self.depth_keys) + " were not found in " + str(list(v.dtype.names)))

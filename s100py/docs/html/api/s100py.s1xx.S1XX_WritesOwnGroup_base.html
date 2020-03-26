@@ -50,14 +50,14 @@
 <h1>S1XX_WritesOwnGroup_base<a class="headerlink" href="#s1xx-writesowngroup-base" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="s100py.s1xx.S1XX_WritesOwnGroup_base">
-<em class="property">class </em><code class="sig-prename descclassname">s100py.s1xx.</code><code class="sig-name descname">S1XX_WritesOwnGroup_base</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_WritesOwnGroup_base" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s1xx.</code><code class="sig-name descname">S1XX_WritesOwnGroup_base</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_WritesOwnGroup_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1XX_Attributes_base</span></code></a></p>
 <p>Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can’t predict
 The S1XX_Attributes_base will call the derived class’ writer without pre-making group for it.
 i.e. the derived class can specify its own group name or dataset and apply specialized logic as needed.</p>
 <dl class="method">
 <dt id="s100py.s1xx.S1XX_WritesOwnGroup_base.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">fill_empty=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_WritesOwnGroup_base.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_WritesOwnGroup_base.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -87,7 +87,8 @@ i.e. the derived class can specify its own group name or dataset and apply speci
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html">s100py.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102.html">s100py.s102.s102_utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102.html#module-s100py.s102.s102">s100py.s102.s102 Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>

@@ -5,7 +5,7 @@ import os
 import numpy
 from osgeo import gdal, osr
 
-from .s1xx import s1xx_sequence
+from ..s1xx import s1xx_sequence
 from .s102 import DEPTH, UNCERTAINTY, S102File, S102Exception
 
 
@@ -105,7 +105,7 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
         bathy_01 = root.bathymetry_coverage.bathymetry_coverage[0]
     except IndexError:
         bathy_01 = root.bathymetry_coverage.bathymetry_coverage.append_new_item()
-    bathy_01.initialize_properties(fill_empty=True, overwrite=overwrite)
+    bathy_01.initialize_properties(recursively_create_children=True, overwrite=overwrite)
 
     del bathy_01.grid_spacing_vertical
     del bathy_01.grid_origin_vertical

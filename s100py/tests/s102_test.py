@@ -4,7 +4,8 @@ import os
 import logging
 import tempfile
 
-from s100py import s100, s102, bag_to_s102
+from s100py import s100, s102
+from s100py.s102 import bag_to_s102
 
 @pytest.fixture(scope="module")
 def s102_file():
