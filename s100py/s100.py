@@ -19,6 +19,9 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 
 from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_WritesOwnGroup_base, S1XXFile
 
+class S100Exception(Exception):
+    pass
+
 H5T_CLASS_T = {
     h5py.h5t.NO_CLASS: 'H5T_NO_CLASS',
     h5py.h5t.INTEGER: 'H5T_INTEGER',

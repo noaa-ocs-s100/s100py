@@ -18,7 +18,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="S1XX_MetadataList_base" href="s100py.s1xx.S1XX_MetadataList_base.html" />
+    <link rel="next" title="S1XX_Grids_base" href="s100py.s1xx.S1XX_Grids_base.html" />
     <link rel="prev" title="S1XX_Attributes_base" href="s100py.s1xx.S1XX_Attributes_base.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -31,7 +31,7 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="s100py.s1xx.S1XX_MetadataList_base.html" title="S1XX_MetadataList_base"
+          <a href="s100py.s1xx.S1XX_Grids_base.html" title="S1XX_Grids_base"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="s100py.s1xx.S1XX_Attributes_base.html" title="S1XX_Attributes_base"
@@ -83,7 +83,7 @@ So for the FeatureInformation class that would be feat[0].name = “depth” and
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Dataset_base.append_new_item" title="s100py.s1xx.S1XX_Dataset_base.append_new_item"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append_new_item</span></code></a>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Dataset_base.read" title="s100py.s1xx.S1XX_Dataset_base.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(group_object[, indent])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_Dataset_base.read" title="s100py.s1xx.S1XX_Dataset_base.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(group_object_parent[, indent])</p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">param group_object</dt>
 <dd class="field-odd"><p>The group (an h5py.File is a group too) to read from.</p>
@@ -118,7 +118,7 @@ So for the FeatureInformation class that would be feat[0].name = “depth” and
 
 <dl class="method">
 <dt id="s100py.s1xx.S1XX_Dataset_base.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">group_object</em>, <em class="sig-param">indent=0</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Dataset_base.read" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">group_object_parent</em>, <em class="sig-param">indent=0</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_Dataset_base.read" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>group_object</strong> – The group (an h5py.File is a group too) to read from.</p>
@@ -174,6 +174,7 @@ So for the FeatureInformation class that would be feat[0].name = “depth” and
 <li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XXFile.html">S1XXFile</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html">S1XX_Attributes_base</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">S1XX_Dataset_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_Grids_base.html">S1XX_Grids_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_MetadataList_base.html">S1XX_MetadataList_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html">S1XX_WritesOwnGroup_base</a></li>
 </ul>
@@ -186,14 +187,15 @@ So for the FeatureInformation class that would be feat[0].name = “depth” and
 <li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="s100py.s1xx.S1XX_Attributes_base.html"
                         title="previous chapter">S1XX_Attributes_base</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="s100py.s1xx.S1XX_MetadataList_base.html"
-                        title="next chapter">S1XX_MetadataList_base</a></p>
+  <p class="topless"><a href="s100py.s1xx.S1XX_Grids_base.html"
+                        title="next chapter">S1XX_Grids_base</a></p>
 <div id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
@@ -218,7 +220,7 @@ So for the FeatureInformation class that would be feat[0].name = “depth” and
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="s100py.s1xx.S1XX_MetadataList_base.html" title="S1XX_MetadataList_base"
+          <a href="s100py.s1xx.S1XX_Grids_base.html" title="S1XX_Grids_base"
              >next</a> |</li>
         <li class="right" >
           <a href="s100py.s1xx.S1XX_Attributes_base.html" title="S1XX_Attributes_base"

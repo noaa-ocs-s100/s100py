@@ -7,10 +7,19 @@ import logging
 import numpy
 
 from .s102 import S102File, DEPTH, UNCERTAINTY
+from . import s102_utils
 from fuse.raw_read.noaa import bag  # this is from NBS (National Bathymetric Source)
 
-
 def sr_bag_to_s102(input_bag, output_path=""):
+    try:
+        os.remove(output_path+".auto_epsg.h5")
+    except FileNotFoundError:
+        pass
+    s102_utils.from_gdal(input_bag, output_path+".auto_epsg.h5")
+
+    s102_utils.from_bag(input_bag, output_path)
+
+def old_sr_bag_to_s102(input_bag, output_path=""):
     use_gdal = True
     use_hdf5 = False
     use_fuse = True

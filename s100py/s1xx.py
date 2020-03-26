@@ -306,7 +306,7 @@ class S1XX_Attributes_base(ABC):
             s100_to_property[self.__getattribute__(prop + self._attr_name_suffix)] = prop
         return s100_to_property
 
-    def initialize_properties(self, fill_empty=False):
+    def initialize_properties(self, fill_empty=False, overwrite=True):
         """ Calls the create function for all the properties of the class.
 
         Returns
@@ -314,10 +314,11 @@ class S1XX_Attributes_base(ABC):
         None
         """
         for prop in self.get_standard_properties():
-            exec("self.{}_create()".format(prop))
-            o = eval("self.{}".format(prop))
-            if fill_empty and isinstance(o, S1XX_Attributes_base):
-                o.initialize_properties(fill_empty)
+            if overwrite or not self.__getattribute__(prop):
+                exec("self.{}_create()".format(prop))
+                o = eval("self.{}".format(prop))
+                if fill_empty and isinstance(o, S1XX_Attributes_base):
+                    o.initialize_properties(fill_empty, overwrite)
 
     @classmethod
     def get_standard_properties(cls):

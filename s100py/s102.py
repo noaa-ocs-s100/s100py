@@ -18,7 +18,10 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 
 from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_Grids_base, S1XXFile
 from .s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint
-from .s100 import FeatureInformation, S100_FeatureContainer, S100Root, FeatureInstance_Format_2
+from .s100 import FeatureInformation, S100_FeatureContainer, S100Root, FeatureInstance_Format_2, S100Exception
+
+class S102Exception(S100Exception):
+    pass
 
 BATHY_COVERAGE = "BathymetryCoverage"
 TRACKING_COVERAGE = "TrackingListCoverage"
@@ -45,7 +48,14 @@ START_SEQUENCE: Starting location of the scan.
 # S100 doc part 10C has HDF5 layout information as well.
 # S100 doc 10C-7 has some representation guidelines
 
-# As an example and to test compatibility a derived attributes class is made for an older NAVO format
+def get_valid_epsg() -> list:
+    """
+    Create and return the list of valid EPSG codes for S-102 version 2.0.
+    """
+    valid_epsg = [4326, 5041, 5042]
+    valid_epsg += list(numpy.arange(32601, 32660 + 1))
+    valid_epsg += list(numpy.arange(32701, 32760 + 1))
+    return valid_epsg
 
 
 # override the basic S100 spec that says to use an underscore and use a dot instead
