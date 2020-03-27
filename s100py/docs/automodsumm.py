@@ -154,7 +154,7 @@ class Automodsumm(Autosummary):
             for localnm, fqnm, obj in zip(localnames, fqns, objs):
                 # print("checkign ion", localnm)
                 keep = True
-                skip_user = self.env.app.emit_firstresult('autodoc-skip-member', obj, localnm, fqnm, False, [])
+                skip_user = self.env.app.emit_firstresult('autodoc-skip-member', [obj, modname], localnm, fqnm, False, {"meth":"run", "funcs":funconly, "cls":clsonly, "vars":varonly})
                 if skip_user is not None:
                     if skip_user:
                         skipnames.append(localnm)
@@ -172,19 +172,25 @@ class Automodsumm(Autosummary):
 
             if funconly:
                 cont = []
-                for nm, obj in zip(localnames, objs):
+                for nm, fqnm, obj in zip(localnames, fqns, objs):
                     if nm not in skipnames and inspect.isroutine(obj):
+                        if modname not in fqnm:
+                            continue
                         cont.append(nm)
             elif clsonly:
                 cont = []
-                for nm, obj in zip(localnames, objs):
+                for nm, fqnm, obj in zip(localnames, fqns, objs):
                     if nm not in skipnames and inspect.isclass(obj):
+                        if modname not in fqnm:
+                            continue
                         cont.append(nm)
             elif varonly:
                 cont = []
-                for nm, obj in zip(localnames, objs):
+                for nm, fqnm, obj in zip(localnames, fqns, objs):
                     if nm not in skipnames and not (inspect.isclass(obj) or
                                                     inspect.isroutine(obj)):
+                        if modname not in fqnm:
+                            continue
                         cont.append(nm)
             else:
                 cont = [nm for nm in localnames if nm not in skipnames]
@@ -235,7 +241,7 @@ class Automoddiagram(InheritanceDiagram):
 
         for localnm, fqnm, obj in zip(localnames, nms, objs):
             keep = True
-            skip_user = self.env.app.emit_firstresult('autodoc-skip-member', obj, localnm, fqnm, False, [])
+            skip_user = self.env.app.emit_firstresult('autodoc-skip-member', [obj, self.arguments[0]], localnm, fqnm, False, ["automoddiagram"])
             if skip_user is not None:
                 if skip_user:
                     skip.append(fqnm)
@@ -248,7 +254,11 @@ class Automoddiagram(InheritanceDiagram):
 
             if inspect.isclass(o):
                 clsnms.append(n)
-
+        # pydro addition
+        try:
+            self.options['top-classes'] = ",".join([self.options.get('top-classes', ""), self.config.top_classes])
+        except Exception:
+            print("FYI, No top_classes defined in config, skipping")
         oldargs = self.arguments
         try:
             if len(clsnms) > 0:
@@ -408,7 +418,7 @@ def automodsumm_to_autosummary_lines(fn, app):
         ols = True if len(allowedpkgnms) == 0 else allowedpkgnms
         for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=ols)):
             keep = True
-            skip_user = app.emit_firstresult('autodoc-skip-member', obj, nm, fqn, False, [])
+            skip_user = app.emit_firstresult('autodoc-skip-member', [obj, fullfn], nm, fqn, False, ["automodsumm_to_autosummary_lines"])
             if skip_user is not None:
                 if skip_user:
                     continue
@@ -533,7 +543,7 @@ def generate_automodsumm_docs(lines, srcfn, app=None, suffix='.rst',
 
             def skip_member(obj, name, objtype) -> bool:
                 try:
-                    return app.emit_firstresult('autodoc-skip-member', objtype, name, obj, False, {})
+                    return app.emit_firstresult('autodoc-skip-member', [srcfn, objtype], "what"+name, obj, False, ["generate_automodsumm_docs"])
                 except Exception as exc:
                     print('autosummary: failed to determine %r to be documented. the following exception was raised:\n%s',
                                    name, exc, type='autosummary')
@@ -709,6 +719,7 @@ def setup(app):
 
     app.add_config_value('automodsumm_writereprocessed', False, True)
     app.add_config_value('automodsumm_inherited_members', False, 'env')
+    app.add_config_value('top_classes', "", '')
 
     return {'parallel_read_safe': True,
             'parallel_write_safe': True}

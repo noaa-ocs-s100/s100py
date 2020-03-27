@@ -51,7 +51,7 @@ an instance of the data with an appropriate default.
 import tempfile
 import os
 from enum import Enum
-from typing import Callable, Iterator, Union, Optional, List, Type
+from typing import Iterator, Union, Optional, List, Type
 # 3rd party
 import h5py
 import numpy

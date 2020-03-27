@@ -18,7 +18,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 
 from ..s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_Grids_base, S1XXFile
 from ..s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
-    FeatureInformation, S100_FeatureContainer, S100Root, FeatureInstance_Format_2, S100Exception
+    FeatureInformation, S100_FeatureContainer, S100Root, S100Exception, FeatureInstance_Format_2
 
 class S102Exception(S100Exception):
     pass
@@ -864,6 +864,7 @@ class BathymetryContainer(S100_FeatureContainer):
     @property
     def bathymetry_coverage_attribute_name(self) -> str:
         """ attribute name will be automatically determined based on the array position of the S102_MetadataList
+
         Returns
         -------
         Basic template for the name of the attribute
@@ -880,6 +881,7 @@ class BathymetryContainer(S100_FeatureContainer):
     @property
     def bathymetry_coverage(self) -> S102_MetadataList_base:
         """ The bathymetry data, a list of BathymetryCoverage
+
         Returns
         -------
         S102_MetadataList_base

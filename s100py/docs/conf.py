@@ -55,6 +55,12 @@ sys.path.insert(0, os.path.abspath("..\\.."))
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # html_favicon = '%s/_static/pydro.ico' % root_p
 
+import inspect
+
+top_classes = "s100py.s1xx.S1XX_Attributes_base, s100py.s1xx.S1XXFile"
+
+# watch out, used ratio (without reading spec) and it made the image go to two pages which fails with sphinx
+inheritance_graph_attrs = dict(rankdir="LR", size='"24.0 36.0"')  # make the pictures bigger, default is "8.0 12.0"
 
 def check_to_skip(app, what, name, obj, skip, options):
     """ The member is excluded if a handler returns True. It is included if the handler returns False.
@@ -63,7 +69,21 @@ def check_to_skip(app, what, name, obj, skip, options):
     Handlers should return None to fall back to the skipping behavior of autodoc and other enabled extensions."""
     # print()
     # print()
-    # print(what, name, type(obj), obj, skip, options)
+    # if "Callable" in name or "S100_FeatureContainer" in name or "s102.s102" in name:
+    #     print(what, name, type(obj), obj, skip, options)
+    #     print()
+    # if isinstance(options, dict):
+    #     if options.get("meth", "") == "run":
+    #         modname = ""
+    #         if isinstance(what, (list, tuple)):
+    #             if len(what) == 2:
+    #                 what, modname = what
+    #         if options.get("cls", False) == True:
+    #             if modname not in obj:
+    #                 print("skipping")
+    #                 print()
+    #                 return True
+
     if isinstance(obj, property) or "property" in str(obj):
         # class bathymetry_coverage < property object at 0x0000019161C07278 > False {'members': <object object at 0x000001915FFC3110 >, 'undoc-members': True, 'show-inheritance': True}
         if name.endswith("_type") or name.endswith("attribute_name"):  # re.search("_type", name):
@@ -77,7 +97,9 @@ def check_to_skip(app, what, name, obj, skip, options):
 
 
 def source_read_handler(app, docname, source):
-    # print('do something here...')
+    # print("<source read handler>")
+    # print(docname, source)
+    # print("</source read handler>")
     pass
 
 def setup(app):
@@ -127,7 +149,7 @@ extensions = ['sphinx.ext.imgmath',
               ]
 
 automodsumm_inherited_members = False
-automodsumm_inherited_members = False
+automodapi_inheritance_diagram = True
 numpydoc_show_class_members = False  # orevents duplication per automodapi docs
 graphviz_dot = os.path.normpath(os.path.join(root_p, r"..\..\..\..\..\envs\Pydro367\Library\bin\graphviz\dot.exe"))
 # autosummary_generate = True
@@ -267,6 +289,7 @@ html_theme_options = {
     'linkcolor': "#0098DA",
     'visitedlinkcolor': "#054698",
     'sidebarlinkcolor': "#E0F2FF",
+    'body_max_width':'none',
     # 'relbarlinkcolor' : "#0098DA",
     # bgcolor
 }
