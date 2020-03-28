@@ -596,10 +596,9 @@ class VertexPoint(S1XX_Attributes_base):
         self.value = self.value_type([2, ], numpy.float)
 
 
-class FeatureInstance(GeographicBoundingBox):
-    @property
-    def __version__(self) -> int:
-        return 1
+class FeatureInstance_base(GeographicBoundingBox):
+    """ The feature instance group attributes from table 10c-12 in S100 spec
+    """
 
     @property
     def vertical_extent_minimum_z_attribute_name(self) -> str:
@@ -680,11 +679,6 @@ class FeatureInstance(GeographicBoundingBox):
     def instance_chunking_create(self):
         """ Creates a blank, empty or zero value for instance_chunking"""
         self.instance_chunking = self.instance_chunking_type()
-
-
-class FeatureInstanceTimeSeries(FeatureInstance):
-    """ The feature instance group attributes from table 10c-12 in S100 spec
-    """
 
     @property
     def number_of_times_attribute_name(self) -> str:
@@ -768,8 +762,8 @@ class FeatureInstanceTimeSeries(FeatureInstance):
         self.date_time_of_last_record = self.date_time_of_last_record_type()
 
 
-class FeatureInstance_Format_2(FeatureInstance):
-    """ Format 2 is the grid format of S100 used in S102 for example.
+class FeatureInstance_DCF2(FeatureInstance_base):
+    """ Data Coding Format 2 is the grid format from table 10c-12 in S100 spec.  Used in S102 for example.
     """
 
     @property

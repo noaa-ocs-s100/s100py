@@ -109,6 +109,10 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
 
     del bathy_01.grid_spacing_vertical
     del bathy_01.grid_origin_vertical
+    del bathy_01.number_of_times
+    del bathy_01.time_record_interval
+    del bathy_01.date_time_of_last_record
+    del bathy_01.date_time_of_first_record
     bathy_01.num_grp = 1
 
     try:

@@ -7,7 +7,7 @@ from enum import Enum
 import numpy
 
 from s100py.s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_Grids_base, S1XXFile
-from s100py.s100 import S100_FeatureContainer, S100Root, FeatureInstance_Format_2
+from s100py.s100 import S100_FeatureContainer, S100Root, FeatureInstance_DCF2
 
 SURFACE_CURRENT = "SurfaceCurrent"
 
@@ -531,7 +531,7 @@ class FeatureInformation(S1XX_Attributes_base, ABC):
         self.closure = self.closure_type()
 
 
-class SurfaceCurrentFeatureInstance(FeatureInstance_Format_2, ABC):
+class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, ABC):
     @property
     def surface_current_group_attribute_name(self) -> str:
         """ Attribute name will be automatically determined based on the array position of the S111_MetadataList
