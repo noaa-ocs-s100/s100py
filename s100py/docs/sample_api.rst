@@ -8,7 +8,7 @@ Let's create a new sample api to show the basic pieces of the s100py framework. 
 data spec and then create the code and classes to make it work.  The basic data types are:
 
     - basic attribute (string, int, float, enum)
-    - named dataset
+    - named 'compound array' dataset
     - grid dataset
     - named sub group
     - variable number of occurrence subgroup (e.g. Group_01, Group_02...)

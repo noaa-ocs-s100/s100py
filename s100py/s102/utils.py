@@ -29,6 +29,22 @@ def _get_S102File(output_file):
 
 
 def create_s102(output_file, overwrite=True) -> S102File:
+    """ Creates or updates an S102File object.
+    Default values are set for any data that don't have options or are mandatory to be filled in the S102 spec.
+
+    Parameters
+    ----------
+    output_file
+        Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+    overwrite
+        If updating an existing file then set this option to False in order to retain data (not sure this is needed).
+
+    Returns
+    -------
+    S102File
+        The object created or updated by this function.
+
+    """
     data_file = _get_S102File(output_file)
     # @fixme @todo -- I think this will overwrite no matter what, need to look into that
     data_file.create_empty_metadata()  # init the root with a fully filled out empty metadata set
@@ -98,6 +114,31 @@ def create_s102(output_file, overwrite=True) -> S102File:
 
 def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_file, nodata_value=None,
                 overwrite: bool = True) -> S102File:  # num_array, or list of lists accepted
+    """  Creates or updates an S102File object based on numpy array/h5py datasets.
+    Calls :any:`create_s102` then fills in the HDF5 datasets with the supplied depth_grid and uncert_grid.
+    Fills the number of points areas and any other appropriate places in the HDF5 file per the S102 spec.
+
+    Raises an S102Exception if the shapes of the depth and uncertainty (if not None) grids are not equal.
+
+    Parameters
+    ----------
+    depth_grid
+    uncert_grid
+        The uncertainty dataset to embed in the object.
+        If None then a numpy.zeros array will be created in the appropriate shape to be stored in the file.
+    output_file
+        Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+    nodata_value
+        Value used to denote an empty cell in the grid.  Used in
+    overwrite
+        If updating an existing file then set this option to False in order to retain data (not sure this is needed).
+
+    Returns
+    -------
+    S102File
+        The object created or updated by this function.
+
+    """
     # @todo -- Add logic that if the grids are gdal raster bands then read in blocks and use h5py slicing to write in blocks.  Slower but saves resources
     data_file = create_s102(output_file)
     root = data_file.root

@@ -4,8 +4,11 @@ can be accesses easier: e.g.::
     from s100py import s102
     s102.from_gdal()
     # or
-    from s100py.s102 import s102_utils
+    from s100py.s102 import utils
     s102_utils.from_gdal()
 
-..  automodapi:: s100py.s102.api
-..  automodapi:: s100py.s102.utils
+.. toctree::
+    :maxdepth: 4
+
+    s102_utils
+    s102_api
