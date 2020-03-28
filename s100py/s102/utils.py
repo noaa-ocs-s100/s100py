@@ -6,7 +6,7 @@ import numpy
 from osgeo import gdal, osr
 
 from ..s1xx import s1xx_sequence
-from .s102 import DEPTH, UNCERTAINTY, S102File, S102Exception
+from .api import DEPTH, UNCERTAINTY, S102File, S102Exception
 
 
 # @todo create a friendly name mapping to s102 nested location, then add s102 functions for "to dictionary" and "from dictionary" to api

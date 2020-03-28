@@ -7,5 +7,5 @@ can be accesses easier: e.g.::
     from s100py.s102 import s102_utils
     s102_utils.from_gdal()
 
-..  automodapi:: s100py.s102.s102_utils
-..  automodapi:: s100py.s102.s102
+..  automodapi:: s100py.s102.api
+..  automodapi:: s100py.s102.utils
