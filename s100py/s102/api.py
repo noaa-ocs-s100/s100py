@@ -835,7 +835,7 @@ class BathymetryContainer(S100_FeatureContainer):
 
     def data_coding_format_create(self):
         """ Creates a blank, empty or zero value for data_coding_format"""
-        self.data_coding_format = self.data_coding_format_type(2)
+        self.data_coding_format = self.data_coding_format_type(2)  # regular grid
 
     def dimension_create(self):
         """ Creates a blank, empty or zero value for dimension"""
@@ -853,6 +853,9 @@ class TrackingListContainer(S100_FeatureContainer):
     def __version__(self) -> int:
         return 1
 
+    def data_coding_format_create(self):
+        """ Creates a blank, empty or zero value for data_coding_format"""
+        self.data_coding_format = self.data_coding_format_type(1)  # point set
 
     @property
     def tracking_list_coverage_type(self):

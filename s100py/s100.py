@@ -98,8 +98,13 @@ class VERTICAL_DATUM(Enum):
 HORIZONTAL_DATUM_REFERENCE = numpy.string_('EPSG')
 DATA_CODING_FORMAT = Enum(value="DATA_CODING_FORMAT",
                           names=[
-                              ('Point Set', 1),
-                              ('Regular Grid', 2),
+                              ('Time series at fixed stations', 1),
+                              ('Regularly-gridded arrays', 2),
+                              ('Ungeorectified gridded arrays', 3),
+                              ('Moving platform', 4),
+                              ('Irregular grid', 5),
+                              ('Variable cell size', 6),
+                              ('TIN', 7),
                           ]
                           )
 
@@ -1092,6 +1097,10 @@ class S100_FeatureContainer(S1XX_Attributes_base):
     sequencing_rule_scan_direction_attribute_name = "sequencingRule.scanDirection"
     interpolation_type_attribute_name = "interpolationType"
 
+    def __init__(self, *args, **opts):
+        super().__init__(*args, **opts)
+        self.data_coding_format_create()  # this is defined by the subclass and is constant, so we will automatically set it here
+
     @property
     def axis_names(self) -> s1xx_sequence:
         """sequence of character strings"""
@@ -1127,9 +1136,10 @@ class S100_FeatureContainer(S1XX_Attributes_base):
     def data_coding_format_type(self) -> DATA_CODING_FORMAT:
         return DATA_CODING_FORMAT
 
+    @abstractmethod
     def data_coding_format_create(self):
         """ Creates a blank, empty or zero value for data_coding_format"""
-        self.data_coding_format = self.data_coding_format_type["Regular Grid"]
+        raise NotImplementedError("each s100+ spec implementation must override this  data coding format with the correct default")
 
     @property
     def dimension(self) -> int:
