@@ -50,11 +50,11 @@ START_SEQUENCE: Starting location of the scan.
 """
 
 
-class S111_MetadataList_base(S1XX_MetadataList_base, ABC):
+class S111_MetadataList_base(S1XX_MetadataList_base):
     pass
 
 
-class SurfaceCurrentUncertaintyInformation(S1XX_Attributes_base, ABC):
+class SurfaceCurrentUncertaintyInformation(S1XX_Attributes_base):
     name_attribute_name = "name"  #: HDF5 naming
     value_attribute_name = "value"  #: HDF5 naming
 
@@ -100,7 +100,7 @@ class SurfaceCurrentUncertaintyInformation(S1XX_Attributes_base, ABC):
         self.value = self.value_type()
 
 
-class SurfaceCurrentUncertaintyDataset(S1XX_Dataset_base, ABC):
+class SurfaceCurrentUncertaintyDataset(S1XX_Dataset_base):
 
     @property
     def __version__(self) -> int:
@@ -115,76 +115,7 @@ class SurfaceCurrentUncertaintyDataset(S1XX_Dataset_base, ABC):
         return SurfaceCurrentUncertaintyInformation
 
 
-class SurfaceCurrentValueRecord(S1XX_Attributes_base, ABC):
-    """ 10.2.5 of v1.0.1
-    The class S111_SurfaceCurrentValues is related to SurfaceCurrent by a composition relationship in which
-    an ordered sequence of surface current speed/direction values provide data values for each grid cell.
-    The class S111_SurfaceCurrentValues inherits from S100_Grid.
-    """
-
-    surface_current_speed_attribute_name = "surface_current_speed"  #: HDF5 naming
-    surface_current_direction_attribute_name = "surface_current_direction"  #: HDF5 naming
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def surface_current_speed_type(self):
-        return numpy.ndarray
-
-    def surface_current_speed_create(self):
-        self.surface_current_speed = self.surface_current_speed_type([], numpy.float)
-
-    @property
-    def surface_current_speed(self) -> float:
-        return self._attributes[self.surface_current_speed_attribute_name]
-
-    @surface_current_speed.setter
-    def surface_current_speed(self, val: float):
-        self._attributes[self.surface_current_speed_attribute_name] = val
-
-    @property
-    def surface_current_direction_type(self):
-        return numpy.ndarray
-
-    def surface_current_direction_create(self):
-        self.surface_current_direction = self.surface_current_direction_type([], numpy.float)
-
-    @property
-    def surface_current_direction(self) -> float:
-        return self._attributes[self.surface_current_direction_attribute_name]
-
-    @surface_current_direction.setter
-    def surface_current_direction(self, val: float):
-        self._attributes[self.surface_current_direction_attribute_name] = val
-
-
-class SurfaceCurrentValuesList(S111_MetadataList_base, ABC):
-    """ 10.2.5 of v1.0.1
-    The class S111_SurfaceCurrentValues is related to SurfaceCurrent by a composition relationship in which
-    an ordered sequence of depth values provide data values for each grid cell.
-    The class S111_SurfaceCurrentValues inherits from S100_Grid.
-    """
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_name(self) -> str:
-        return "values"
-
-    @property
-    def metadata_type(self) -> type:
-        return SurfaceCurrentValueRecord
-
-
-class SurfaceCurrentValues(S1XX_Grids_base, ABC):
+class SurfaceCurrentValues(S1XX_Grids_base):
     surface_current_speed_attribute_name = "surfaceCurrentSpeed"  #: HDF5 naming
     surface_current_direction_attribute_name = "surfaceCurrentDirection"  #: HDF5 naming
 
@@ -232,7 +163,7 @@ class SurfaceCurrentValues(S1XX_Grids_base, ABC):
         return [self.surface_current_speed_attribute_name, self.surface_current_direction_attribute_name]
 
 
-class SurfaceCurrentGroup(S1XX_Attributes_base, ABC):
+class SurfaceCurrentGroup(S1XX_Attributes_base):
     """ 10.2.5 of v1.0.1
     also see section 12.3 and table 12.5
 
@@ -279,7 +210,7 @@ class SurfaceCurrentGroup(S1XX_Attributes_base, ABC):
         return 1
 
 
-class SurfaceCurrentGroupList(S111_MetadataList_base, ABC):
+class SurfaceCurrentGroupList(S111_MetadataList_base):
     """ This is the list of Group.NNN that are held as a list.
     Each Group.NNN has a dataset of depth and uncertainty.
     """
@@ -297,7 +228,243 @@ class SurfaceCurrentGroupList(S111_MetadataList_base, ABC):
         return SurfaceCurrentGroup
 
 
-class FeatureInformation(S1XX_Attributes_base, ABC):
+class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2):
+    surface_current_group_attribute_name = "Group" + r"\.\d+"
+    """ Basic template for the name of the attribute
+    Attribute name will be automatically determined based on the array position of the S111_MetadataList
+    """
+
+    number_of_times_attribute_name = "numberOfTimes"
+    time_record_interval_attribute_name = "timeRecordInterval"
+    datetime_first_record_attribute_name = "dateTimeOfFirstRecord"
+    datetime_last_record_attribute_name = "dateTimeOfLastRecord"
+    uncertainty_dataset_attribute_name = "uncertainty"
+
+    @property
+    def surface_current_group_type(self):
+        return SurfaceCurrentGroupList
+
+    def surface_current_group_create(self):
+        self.surface_current_group = self.surface_current_group_type()
+
+    @property
+    def surface_current_group(self) -> S111_MetadataList_base:
+        """ The surface current data, a list of SurfaceCurrentGroup
+        Returns
+        -------
+        S1011_MetadataList_base
+            Contains a list of SurfaceCurrent objects via the SurfaceCurrent_List class
+        """
+        return self._attributes[self.surface_current_group_attribute_name]
+
+    @surface_current_group.setter
+    def surface_current_group(self, val: S111_MetadataList_base):
+        self._attributes[self.surface_current_group_attribute_name] = val
+
+    @property
+    def number_of_times(self) -> S1XX_Attributes_base:
+        return self._attributes[self.number_of_times_attribute_name]
+
+    @number_of_times.setter
+    def number_of_times(self, val: S1XX_Attributes_base):
+        self._attributes[self.number_of_times_attribute_name] = val
+
+    @property
+    def number_of_times_type(self) -> Type[numpy.int32]:
+        return numpy.int32
+
+    def number_of_times_create(self):
+        """ Creates a blank, empty or zero value for number_of_times"""
+        self.number_of_times = self.number_of_times_type()
+
+    @property
+    def time_record_interval(self) -> S1XX_Attributes_base:
+        return self._attributes[self.time_record_interval_attribute_name]
+
+    @time_record_interval.setter
+    def time_record_interval(self, val: S1XX_Attributes_base):
+        self._attributes[self.time_record_interval_attribute_name] = val
+
+    @property
+    def time_record_interval_type(self) -> Type[numpy.int32]:
+        return numpy.int32
+
+    def time_record_interval_create(self):
+        """ Creates a blank, empty or zero value for time_record_interval"""
+        self.time_record_interval = self.time_record_interval_type()
+
+    @property
+    def datetime_first_record(self) -> S1XX_Attributes_base:
+        return self._attributes[self.datetime_first_record_attribute_name]
+
+    @datetime_first_record.setter
+    def datetime_first_record(self, val: S1XX_Attributes_base):
+        self._attributes[self.datetime_first_record_attribute_name] = val
+
+    @property
+    def datetime_first_record_type(self) -> Type[str]:
+        return str
+
+    def datetime_first_record_create(self):
+        """ Creates a blank, empty or zero value for datetime_first_record"""
+        self.datetime_first_record = self.datetime_first_record_type()
+
+    @property
+    def datetime_last_record(self) -> S1XX_Attributes_base:
+        return self._attributes[self.datetime_last_record_attribute_name]
+
+    @datetime_last_record.setter
+    def datetime_last_record(self, val: S1XX_Attributes_base):
+        self._attributes[self.datetime_last_record_attribute_name] = val
+
+    @property
+    def datetime_last_record_type(self) -> Type[str]:
+        return str
+
+    def datetime_last_record_create(self):
+        """ Creates a blank, empty or zero value for datetime_last_record"""
+        self.datetime_last_record = self.datetime_last_record_type()
+
+    @property
+    def uncertainty_dataset(self) -> S1XX_Dataset_base:
+        return self._attributes[self.uncertainty_dataset_attribute_name]
+
+    @uncertainty_dataset.setter
+    def uncertainty_dataset(self, val: S1XX_Dataset_base):
+        self._attributes[self.uncertainty_dataset_attribute_name] = val
+
+    @property
+    def uncertainty_dataset_type(self) -> Type[SurfaceCurrentUncertaintyDataset]:
+        return SurfaceCurrentUncertaintyDataset
+
+    def uncertainty_dataset_create(self):
+        """ Creates a blank, empty or zero value for uncertainty_dataset"""
+        self.uncertainty_dataset = self.uncertainty_dataset_type()
+
+
+class SurfaceCurrentList(S111_MetadataList_base):
+    """ Sect 10.2.4 and Table 12.3 of v1.0.1
+    This is the set of SurfaceCurrent.NN that act like a list here.
+    They will contain a list of Groups.NNN as well as other attributes etc.
+    """
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def metadata_name(self) -> str:
+        return SURFACE_CURRENT
+
+    @property
+    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstance]:
+        return SurfaceCurrentFeatureInstance
+
+
+class SurfaceCurrentContainer(S100_FeatureContainer):
+    """ This is the SurfaceCurrent right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
+    This will hold child groups named SurfaceCurrent.NN
+    """
+
+    #: Basic template for the name of the attribute
+    #: Attribute name will be automatically determined based on the containing list's index
+    surface_current_attribute_name = SURFACE_CURRENT + r"\.\d+"
+    min_dataset_current_speed_attribute_name = "minDatasetCurrentSpeed"
+    max_dataset_current_speed_attribute_name = "maxDatasetCurrentSpeed"
+    method_currents_product_attribute_name = "methodCurrentsProduct"
+    type_of_current_data_attribute_name = "typeOfCurrentData"
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def surface_current_type(self):
+        return SurfaceCurrentList
+
+    def surface_current_create(self):
+        self.surface_current = self.surface_current_type()
+
+    @property
+    def surface_current(self) -> S111_MetadataList_base:
+        """ The surface current data, a list of SurfaceCurrent
+        Returns
+        -------
+        S111_MetadataList_base
+            Contains a list of SurfaceCurrent objects via the SurfaceCurrent_List class
+        """
+        return self._attributes[self.surface_current_attribute_name]
+
+    @surface_current.setter
+    def surface_current(self, val: S111_MetadataList_base):
+        self._attributes[self.surface_current_attribute_name] = val
+
+    @property
+    def min_dataset_current_speed(self) -> S1XX_Attributes_base:
+        return self._attributes[self.min_dataset_current_speed_attribute_name]
+
+    @min_dataset_current_speed.setter
+    def min_dataset_current_speed(self, val: S1XX_Attributes_base):
+        self._attributes[self.min_dataset_current_speed_attribute_name] = val
+
+    @property
+    def min_dataset_current_speed_type(self) -> Type[float]:
+        return float
+
+    def min_dataset_current_speed_create(self):
+        """ Creates a blank, empty or zero value for min_dataset_current_speed"""
+        self.min_dataset_current_speed = self.min_dataset_current_speed_type()
+
+    @property
+    def max_dataset_current_speed(self) -> S1XX_Attributes_base:
+        return self._attributes[self.max_dataset_current_speed_attribute_name]
+
+    @max_dataset_current_speed.setter
+    def max_dataset_current_speed(self, val: S1XX_Attributes_base):
+        self._attributes[self.max_dataset_current_speed_attribute_name] = val
+
+    @property
+    def max_dataset_current_speed_type(self) -> Type[numpy.float32]:
+        return numpy.float32
+
+    def max_dataset_current_speed_create(self):
+        """ Creates a blank, empty or zero value for max_dataset_current_speed"""
+        self.max_dataset_current_speed = self.max_dataset_current_speed_type()
+
+    @property
+    def method_currents_product(self) -> S1XX_Attributes_base:
+        return self._attributes[self.method_currents_product_attribute_name]
+
+    @method_currents_product.setter
+    def method_currents_product(self, val: S1XX_Attributes_base):
+        self._attributes[self.method_currents_product_attribute_name] = val
+
+    @property
+    def method_currents_product_type(self) -> Type[str]:
+        return str
+
+    def method_currents_product_create(self):
+        """ Creates a blank, empty or zero value for method_currents_product"""
+        self.method_currents_product = self.method_currents_product_type()
+
+    @property
+    def type_of_current_data(self) -> TYPE_OF_CURRENT_DATA:
+        return self._attributes[self.type_of_current_data_attribute_name]
+
+    @type_of_current_data.setter
+    def type_of_current_data(self, val: Union[int, str, TYPE_OF_CURRENT_DATA]):
+        self.set_enum_attribute(val, self.type_of_current_data_attribute_name, self.type_of_current_data_type)
+
+    @property
+    def type_of_current_data_type(self) -> Type[TYPE_OF_CURRENT_DATA]:
+        return TYPE_OF_CURRENT_DATA
+
+    def type_of_current_data_create(self):
+        """ Creates a value using the first item in the enumeration of type_of_current_data"""
+        self.type_of_current_data = list(self.type_of_current_data_type)[0]
+
+
+class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
     """ S111 10.2.2 and Table 10.3 of v1.0.1 and S100 Table 10c-8 v4.0.0
     This is used to describe the SurfaceCurrent within the GroupF feature listing.
     The features described under GroupF have a matching named entry parallel to GroupF (top level).
@@ -487,126 +654,7 @@ class FeatureInformation(S1XX_Attributes_base, ABC):
         self.closure = self.closure_type()
 
 
-class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, ABC):
-    surface_current_group_attribute_name = "Group" + r"\.\d+"
-    """ Basic template for the name of the attribute
-    Attribute name will be automatically determined based on the array position of the S111_MetadataList
-    """
-
-    number_of_times_attribute_name = "numberOfTimes"
-    time_record_interval_attribute_name = "timeRecordInterval"
-    datetime_first_record_attribute_name = "dateTimeOfFirstRecord"
-    datetime_last_record_attribute_name = "dateTimeOfLastRecord"
-    uncertainty_dataset_attribute_name = "uncertainty"
-
-    @property
-    def surface_current_group_type(self):
-        return SurfaceCurrentGroupList
-
-    def surface_current_group_create(self):
-        self.surface_current_group = self.surface_current_group_type()
-
-    @property
-    def surface_current_group(self) -> S111_MetadataList_base:
-        """ The surface current data, a list of SurfaceCurrentGroup
-        Returns
-        -------
-        S1011_MetadataList_base
-            Contains a list of SurfaceCurrent objects via the SurfaceCurrent_List class
-        """
-        return self._attributes[self.surface_current_group_attribute_name]
-
-    @surface_current_group.setter
-    def surface_current_group(self, val: S111_MetadataList_base):
-        self._attributes[self.surface_current_group_attribute_name] = val
-
-    @property
-    def number_of_times(self) -> S1XX_Attributes_base:
-        return self._attributes[self.number_of_times_attribute_name]
-
-    @number_of_times.setter
-    def number_of_times(self, val: S1XX_Attributes_base):
-        self._attributes[self.number_of_times_attribute_name] = val
-
-    @property
-    def number_of_times_type(self) -> Type[numpy.int32]:
-        return numpy.int32
-
-    def number_of_times_create(self):
-        """ Creates a blank, empty or zero value for number_of_times"""
-        self.number_of_times = self.number_of_times_type()
-
-    @property
-    def time_record_interval(self) -> S1XX_Attributes_base:
-        return self._attributes[self.time_record_interval_attribute_name]
-
-    @time_record_interval.setter
-    def time_record_interval(self, val: S1XX_Attributes_base):
-        self._attributes[self.time_record_interval_attribute_name] = val
-
-    @property
-    def time_record_interval_type(self) -> Type[numpy.int32]:
-        return numpy.int32
-
-    def time_record_interval_create(self):
-        """ Creates a blank, empty or zero value for time_record_interval"""
-        self.time_record_interval = self.time_record_interval_type()
-
-    @property
-    def datetime_first_record(self) -> S1XX_Attributes_base:
-        return self._attributes[self.datetime_first_record_attribute_name]
-
-    @datetime_first_record.setter
-    def datetime_first_record(self, val: S1XX_Attributes_base):
-        self._attributes[self.datetime_first_record_attribute_name] = val
-
-    @property
-    def datetime_first_record_type(self) -> Type[str]:
-        return str
-
-    def datetime_first_record_create(self):
-        """ Creates a blank, empty or zero value for datetime_first_record"""
-        self.datetime_first_record = self.datetime_first_record_type()
-
-    @property
-    def datetime_last_record(self) -> S1XX_Attributes_base:
-        return self._attributes[self.datetime_last_record_attribute_name]
-
-    @datetime_last_record.setter
-    def datetime_last_record(self, val: S1XX_Attributes_base):
-        self._attributes[self.datetime_last_record_attribute_name] = val
-
-    @property
-    def datetime_last_record_type(self) -> Type[str]:
-        return str
-
-    def datetime_last_record_create(self):
-        """ Creates a blank, empty or zero value for datetime_last_record"""
-        self.datetime_last_record = self.datetime_last_record_type()
-
-    @property
-    def uncertainty_dataset(self) -> S1XX_Dataset_base:
-        return self._attributes[self.uncertainty_dataset_attribute_name]
-
-    @uncertainty_dataset.setter
-    def uncertainty_dataset(self, val: S1XX_Dataset_base):
-        self._attributes[self.uncertainty_dataset_attribute_name] = val
-
-    @property
-    def uncertainty_dataset_type(self) -> Type[SurfaceCurrentUncertaintyDataset]:
-        return SurfaceCurrentUncertaintyDataset
-
-    def uncertainty_dataset_create(self):
-        """ Creates a blank, empty or zero value for uncertainty_dataset"""
-        self.uncertainty_dataset = self.uncertainty_dataset_type()
-
-
-class SurfaceCurrentList(S111_MetadataList_base, ABC):
-    """ Sect 10.2.4 and Table 12.3 of v1.0.1
-    This is the set of SurfaceCurrent.NN that act like a list here.
-    They will contain a list of Groups.NNN as well as other attributes etc.
-    """
-
+class SurfaceCurrentFeatureDataset(S1XX_Dataset_base):
     @property
     def __version__(self) -> int:
         return 1
@@ -616,135 +664,35 @@ class SurfaceCurrentList(S111_MetadataList_base, ABC):
         return SURFACE_CURRENT
 
     @property
-    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstance]:
-        return SurfaceCurrentFeatureInstance
-
-
-class SurfaceCurrentContainer(S100_FeatureContainer, ABC):
-    """ This is the SurfaceCurrent right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
-    This will hold child groups named SurfaceCurrent.NN
-    """
-
-    #: Basic template for the name of the attribute
-    #: Attribute name will be automatically determined based on the containing list's index
-    surface_current_attribute_name = SURFACE_CURRENT + r"\.\d+"
-    min_dataset_current_speed_attribute_name = "minDatasetCurrentSpeed"
-    max_dataset_current_speed_attribute_name = "maxDatasetCurrentSpeed"
-    method_currents_product_attribute_name = "methodCurrentsProduct"
-    type_of_current_data_attribute_name = "typeOfCurrentData"
+    def metadata_type(self) -> Type[SurfaceCurrentFeatureInformation]:
+        return SurfaceCurrentFeatureInformation
 
     @property
-    def __version__(self) -> int:
-        return 1
+    def chunking_attribute_name(self) -> str:
+        return "chunking"
 
     @property
-    def surface_current_type(self):
-        return SurfaceCurrentList
+    def chunking(self) -> S1XX_Attributes_base:
+        return self._attributes[self.chunking_attribute_name]
 
-    def surface_current_create(self):
-        self.surface_current = self.surface_current_type()
-
-    @property
-    def surface_current(self) -> S111_MetadataList_base:
-        """ The surface current data, a list of SurfaceCurrent
-        Returns
-        -------
-        S111_MetadataList_base
-            Contains a list of SurfaceCurrent objects via the SurfaceCurrent_List class
-        """
-        return self._attributes[self.surface_current_attribute_name]
-
-    @surface_current.setter
-    def surface_current(self, val: S111_MetadataList_base):
-        self._attributes[self.surface_current_attribute_name] = val
+    @chunking.setter
+    def chunking(self, val: S1XX_Attributes_base):
+        self._attributes[self.chunking_attribute_name] = val
 
     @property
-    def min_dataset_current_speed(self) -> S1XX_Attributes_base:
-        return self._attributes[self.min_dataset_current_speed_attribute_name]
-
-    @min_dataset_current_speed.setter
-    def min_dataset_current_speed(self, val: S1XX_Attributes_base):
-        self._attributes[self.min_dataset_current_speed_attribute_name] = val
-
-    @property
-    def min_dataset_current_speed_type(self) -> Type[float]:
-        return float
-
-    def min_dataset_current_speed_create(self):
-        """ Creates a blank, empty or zero value for min_dataset_current_speed"""
-        self.min_dataset_current_speed = self.min_dataset_current_speed_type()
-
-    @property
-    def max_dataset_current_speed(self) -> S1XX_Attributes_base:
-        return self._attributes[self.max_dataset_current_speed_attribute_name]
-
-    @max_dataset_current_speed.setter
-    def max_dataset_current_speed(self, val: S1XX_Attributes_base):
-        self._attributes[self.max_dataset_current_speed_attribute_name] = val
-
-    @property
-    def max_dataset_current_speed_type(self) -> Type[numpy.float32]:
-        return numpy.float32
-
-    def max_dataset_current_speed_create(self):
-        """ Creates a blank, empty or zero value for max_dataset_current_speed"""
-        self.max_dataset_current_speed = self.max_dataset_current_speed_type()
-
-    @property
-    def method_currents_product(self) -> S1XX_Attributes_base:
-        return self._attributes[self.method_currents_product_attribute_name]
-
-    @method_currents_product.setter
-    def method_currents_product(self, val: S1XX_Attributes_base):
-        self._attributes[self.method_currents_product_attribute_name] = val
-
-    @property
-    def method_currents_product_type(self) -> Type[str]:
+    def chunking_type(self) -> Type[str]:
         return str
 
-    def method_currents_product_create(self):
-        """ Creates a blank, empty or zero value for method_currents_product"""
-        self.method_currents_product = self.method_currents_product_type()
-
-    @property
-    def type_of_current_data(self) -> TYPE_OF_CURRENT_DATA:
-        return self._attributes[self.type_of_current_data_attribute_name]
-
-    @type_of_current_data.setter
-    def type_of_current_data(self, val: Union[int, str, TYPE_OF_CURRENT_DATA]):
-        self.set_enum_attribute(val, self.type_of_current_data_attribute_name, self.type_of_current_data_type)
-
-    @property
-    def type_of_current_data_type(self) -> Type[TYPE_OF_CURRENT_DATA]:
-        return TYPE_OF_CURRENT_DATA
-
-    def type_of_current_data_create(self):
-        """ Creates a value using the first item in the enumeration of type_of_current_data"""
-        self.type_of_current_data = list(self.type_of_current_data_type)[0]
+    def chunking_create(self):
+        """ Creates a blank, empty or zero value for chunking"""
+        self.chunking = self.chunking_type()
 
 
-class FeatureInformationDataset(S1XX_Dataset_base, ABC):
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_type(self) -> Type[FeatureInformation]:
-        return FeatureInformation
-
-
-class SurfaceCurrentDataset(FeatureInformationDataset, ABC):
-    @property
-    def metadata_name(self) -> str:
-        return SURFACE_CURRENT
-
-
-class FeatureCodes(S1XX_Attributes_base, ABC):
+class GroupF(S1XX_Attributes_base):
     """ Table 10.3 and sect 10.2.2 of v1.0.1
     """
     feature_code_attribute_name = "featureCode"
-    surface_current_dataset_attribute_name = SURFACE_CURRENT
+    surface_current_feature_dataset_attribute_name = SURFACE_CURRENT
 
     @property
     def __version__(self) -> int:
@@ -766,22 +714,22 @@ class FeatureCodes(S1XX_Attributes_base, ABC):
         self._attributes[self.feature_code_attribute_name] = val
 
     @property
-    def surface_current_dataset_type(self):
-        return SurfaceCurrentDataset
+    def surface_current_feature_dataset_type(self):
+        return SurfaceCurrentFeatureDataset
 
-    def surface_current_dataset_create(self):
-        self.surface_current_dataset = self.surface_current_dataset_type()
+    def surface_current_feature_dataset_create(self):
+        self.surface_current_feature_dataset = self.surface_current_feature_dataset_type()
 
     @property
-    def surface_current_dataset(self) -> SurfaceCurrentDataset:
-        return self._attributes[self.surface_current_dataset_attribute_name]
+    def surface_current_feature_dataset(self) -> SurfaceCurrentFeatureDataset:
+        return self._attributes[self.surface_current_feature_dataset_attribute_name]
 
-    @surface_current_dataset.setter
-    def surface_current_dataset(self, val: SurfaceCurrentDataset):
-        self._attributes[self.surface_current_dataset_attribute_name] = val
+    @surface_current_feature_dataset.setter
+    def surface_current_feature_dataset(self, val: SurfaceCurrentFeatureDataset):
+        self._attributes[self.surface_current_feature_dataset_attribute_name] = val
 
 
-class S111Root(S100Root, ABC):
+class S111Root(S100Root):
     """The root group contains a feature information group and N feature containers.
     In S111 there is one feature container 'surface current'.
     The coverage names are determined from the matching CoveragesAttributes
@@ -797,16 +745,16 @@ class S111Root(S100Root, ABC):
         return 1
 
     @property
-    def feature_information(self) -> FeatureCodes:
+    def feature_information(self) -> GroupF:
         return self._attributes[self.feature_information_attribute_name]
 
     @feature_information.setter
-    def feature_information(self, val: FeatureCodes):
+    def feature_information(self, val: GroupF):
         self._attributes[self.feature_information_attribute_name] = val
 
     @property
     def feature_information_type(self):
-        return FeatureCodes
+        return GroupF
 
     def feature_information_create(self):
         self.feature_information = self.feature_information_type()
@@ -859,7 +807,7 @@ class S111Root(S100Root, ABC):
         self.surface_current_depth = self.surface_current_depth_type()
 
 
-class DiscoveryMetadata(S1XX_Attributes_base, ABC):
+class DiscoveryMetadata(S1XX_Attributes_base):
     """ 12.2.6 of v1.0.1
     """
 
