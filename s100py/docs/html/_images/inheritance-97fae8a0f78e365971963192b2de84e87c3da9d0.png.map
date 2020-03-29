@@ -1,0 +1,7 @@
+<map id="inheritanceb807274dd9" name="inheritanceb807274dd9">
+<area shape="rect" id="node1" href="s100py.s102.api.S102_MetadataList_base.html#s100py.s102.api.S102_MetadataList_base" target="_top" title="s100py.s102.api.S102_MetadataList_base" alt="" coords="895,5,1163,31"/>
+<area shape="rect" id="node3" href="#s100py.s102.api.TrackingListCoverages_List" target="_top" title="4.2.1.1.9 and Figure 4.4 and Table 10.1 of v2.0.0" alt="" coords="1211,5,1489,31"/>
+<area shape="rect" id="node2" href="s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5." alt="" coords="600,5,847,31"/>
+<area shape="rect" id="node4" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+<area shape="rect" id="node5" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="281,5,552,31"/>
+</map>

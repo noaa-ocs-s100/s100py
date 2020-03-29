@@ -54,7 +54,11 @@
 <dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1XX_Attributes_base</span></code></a></p>
 <p>4.2.1.1.11 of v2.0.0
 The class GM_Point is taken from ISO 19107 and is the basic data type for a geometric object consisting of one and only one point.</p>
-<p class="rubric">Attributes Summary</p>
+<div class="graphviz"><img src="../_images/inheritance-585160928c35d7064fb566ae04df341c141e0b75.png" alt="Inheritance diagram of Point" usemap="#inheritancee3c1ea55ee" class="inheritance graphviz" /></div>
+<map id="inheritancee3c1ea55ee" name="inheritancee3c1ea55ee">
+<area shape="rect" id="node1" href="#s100py.s100.Point" target="_top" title="4.2.1.1.11 of v2.0.0" alt="" coords="281,5,412,31"/>
+<area shape="rect" id="node2" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+</map><p class="rubric">Attributes Summary</p>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -63,6 +67,9 @@ The class GM_Point is taken from ISO 19107 and is the basic data type for a geom
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.Point.position" title="s100py.s100.Point.position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">position</span></code></a></p></td>
 <td><p>DirectPosition - see Figure 7-3 in S100 v4.0.0</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.Point.position_attribute_name" title="s100py.s100.Point.position_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">position_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
 </tr>
 </tbody>
 </table>
@@ -76,6 +83,12 @@ The class GM_Point is taken from ISO 19107 and is the basic data type for a geom
 <dd class="field-odd"><p><a class="reference internal" href="s100py.s100.DirectPosition.html#s100py.s100.DirectPosition" title="s100py.s100.DirectPosition"><code class="xref py py-class docutils literal notranslate"><span class="pre">DirectPosition</span></code></a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.Point.position_attribute_name">
+<code class="sig-name descname">position_attribute_name</code><em class="property"> = 'position'</em><a class="headerlink" href="#s100py.s100.Point.position_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
 </dd></dl>
 
 <dl class="method">
@@ -96,16 +109,17 @@ The class GM_Point is taken from ISO 19107 and is the basic data type for a geom
         <div class="sphinxsidebarwrapper">
   <h3><a href="../s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../s100.html">s100py.s100 Module</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../s100.html#classes">Classes</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.DirectPosition.html">DirectPosition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance.html">FeatureInstance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstanceTimeSeries.html">FeatureInstanceTimeSeries</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_Format_2.html">FeatureInstance_Format_2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_DCF2.html">FeatureInstance_DCF2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_base.html">FeatureInstance_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicExtent.html">GeographicExtent</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
@@ -125,8 +139,7 @@ The class GM_Point is taken from ISO 19107 and is the basic data type for a geom
 <li class="toctree-l2"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html">s100py.s102.s102_utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html#module-s100py.s102.s102">s100py.s102.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>

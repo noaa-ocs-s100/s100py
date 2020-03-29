@@ -1,0 +1,9 @@
+<map id="inheritancebe1c9f9d5f" name="inheritancebe1c9f9d5f">
+<area shape="rect" id="node1" title="Helper class that provides a standard way to create an ABC using" alt="" coords="1179,5,1254,31"/>
+<area shape="rect" id="node7" href="#s100py.s111.SurfaceCurrentFeatureInstance" target="_top" title="s100py.s111.SurfaceCurrentFeatureInstance" alt="" coords="1381,31,1660,56"/>
+<area shape="rect" id="node2" href="s100py.s100.FeatureInstance_DCF2.html#s100py.s100.FeatureInstance_DCF2" target="_top" title="Data Coding Format 2 is the grid format from table 10c&#45;12 in S100 spec. &#160;Used in S102 for example." alt="" coords="1100,55,1333,80"/>
+<area shape="rect" id="node3" href="s100py.s100.FeatureInstance_base.html#s100py.s100.FeatureInstance_base" target="_top" title="The feature instance group attributes from table 10c&#45;12 in S100 spec" alt="" coords="824,55,1052,80"/>
+<area shape="rect" id="node4" href="s100py.s100.GeographicBoundingBox.html#s100py.s100.GeographicBoundingBox" target="_top" title="4.2.1.1.13 of v2.0.0" alt="" coords="533,55,776,80"/>
+<area shape="rect" id="node5" href="s100py.s100.GeographicExtent.html#s100py.s100.GeographicExtent" target="_top" title="4.2.1.1.12 of v2.0.0" alt="" coords="281,55,485,80"/>
+<area shape="rect" id="node6" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,55,233,80"/>
+</map>

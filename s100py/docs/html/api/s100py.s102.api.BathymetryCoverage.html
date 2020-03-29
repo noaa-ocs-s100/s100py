@@ -1,0 +1,558 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>BathymetryCoverage &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BathymetryCoverage_dataset" href="s100py.s102.api.BathymetryCoverage_dataset.html" />
+    <link rel="prev" title="BathymetryContainer" href="s100py.s102.api.BathymetryContainer.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s102.api.BathymetryCoverage_dataset.html" title="BathymetryCoverage_dataset"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s102.api.BathymetryContainer.html" title="BathymetryContainer"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s102/s102.html" >&lt;no title&gt;</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../s102/s102_api.html" accesskey="U">s100py.s102.api Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="bathymetrycoverage">
+<h1>BathymetryCoverage<a class="headerlink" href="#bathymetrycoverage" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s100py.s102.api.BathymetryCoverage">
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s102.api.</code><code class="sig-name descname">BathymetryCoverage</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1XX_Attributes_base</span></code></a></p>
+<p>4.2.1.1.1 and Figure 4.4 of v2.0.0
+also see section 12.3 and table 12.5</p>
+<div class="graphviz"><img src="../_images/inheritance-f8762435edc0dcab969b0ca1fe2fa71eef2dc7c6.png" alt="Inheritance diagram of BathymetryCoverage" usemap="#inheritance3bf945094e" class="inheritance graphviz" /></div>
+<map id="inheritance3bf945094e" name="inheritance3bf945094e">
+<area shape="rect" id="node1" href="#s100py.s102.api.BathymetryCoverage" target="_top" title="4.2.1.1.1 and Figure 4.4 of v2.0.0" alt="" coords="281,5,523,31"/>
+<area shape="rect" id="node2" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+</map><p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.axis_names" title="s100py.s102.api.BathymetryCoverage.axis_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">axis_names</span></code></a></p></td>
+<td><p>sequence of character strings</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.axis_names_attribute_name" title="s100py.s102.api.BathymetryCoverage.axis_names_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">axis_names_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.dimension" title="s100py.s102.api.BathymetryCoverage.dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dimension</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.dimension_attribute_name" title="s100py.s102.api.BathymetryCoverage.dimension_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dimension_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.extent" title="s100py.s102.api.BathymetryCoverage.extent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extent</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s100.GridEnvelope.html#s100py.s100.GridEnvelope" title="s100py.s100.GridEnvelope"><code class="xref py py-class docutils literal notranslate"><span class="pre">GridEnvelope</span></code></a></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.extent_attribute_name" title="s100py.s102.api.BathymetryCoverage.extent_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extent_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.maximimum_display_scale" title="s100py.s102.api.BathymetryCoverage.maximimum_display_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maximimum_display_scale</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.maximum_depth" title="s100py.s102.api.BathymetryCoverage.maximum_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maximum_depth</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.maximum_depth_attribute_name" title="s100py.s102.api.BathymetryCoverage.maximum_depth_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maximum_depth_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.maximum_display_scale_attribute_name" title="s100py.s102.api.BathymetryCoverage.maximum_display_scale_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maximum_display_scale_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.maximum_uncertainty" title="s100py.s102.api.BathymetryCoverage.maximum_uncertainty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maximum_uncertainty</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.maximum_uncertainty_attribute_name" title="s100py.s102.api.BathymetryCoverage.maximum_uncertainty_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maximum_uncertainty_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.minimum_depth" title="s100py.s102.api.BathymetryCoverage.minimum_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum_depth</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.minimum_depth_attribute_name" title="s100py.s102.api.BathymetryCoverage.minimum_depth_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum_depth_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.minimum_display_scale" title="s100py.s102.api.BathymetryCoverage.minimum_display_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum_display_scale</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.minimum_display_scale_attribute_name" title="s100py.s102.api.BathymetryCoverage.minimum_display_scale_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum_display_scale_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.minimum_uncertainty" title="s100py.s102.api.BathymetryCoverage.minimum_uncertainty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum_uncertainty</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.minimum_uncertainty_attribute_name" title="s100py.s102.api.BathymetryCoverage.minimum_uncertainty_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum_uncertainty_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.offset_vectors" title="s100py.s102.api.BathymetryCoverage.offset_vectors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">offset_vectors</span></code></a></p></td>
+<td><p>sequence of s102 Vectors  4.2.1.1.1.9 in S102 v2.0.0 The attribute offsetVectors has the value class Sequence&lt;Vector&gt; that shall be a sequence of offset vector elements that determine the grid spacing in each direction.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.offset_vectors_attribute_name" title="s100py.s102.api.BathymetryCoverage.offset_vectors_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">offset_vectors_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.origin" title="s100py.s102.api.BathymetryCoverage.origin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">origin</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s100.DirectPosition.html#s100py.s100.DirectPosition" title="s100py.s100.DirectPosition"><code class="xref py py-class docutils literal notranslate"><span class="pre">DirectPosition</span></code></a></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.origin_attribute_name" title="s100py.s102.api.BathymetryCoverage.origin_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">origin_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.sequencing_rule" title="s100py.s102.api.BathymetryCoverage.sequencing_rule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sequencing_rule</span></code></a></p></td>
+<td><p>The attribute sequencingRule has the value class CV_SequenceRule (ISO 19123) that shall describe how the grid points are ordered for association to the elements of the sequence values.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.sequencing_rule_attribute_name" title="s100py.s102.api.BathymetryCoverage.sequencing_rule_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sequencing_rule_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.start_sequence" title="s100py.s102.api.BathymetryCoverage.start_sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start_sequence</span></code></a></p></td>
+<td><p>The attribute startSequence has the value class CV_GridCoordinate that shall identify the grid point to be associated with the first record in the values sequence.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.start_sequence_attribute_name" title="s100py.s102.api.BathymetryCoverage.start_sequence_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start_sequence_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.values" title="s100py.s102.api.BathymetryCoverage.values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">values</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s102.api.BathymetryValues.html#s100py.s102.api.BathymetryValues" title="s100py.s102.api.BathymetryValues"><code class="xref py py-class docutils literal notranslate"><span class="pre">BathymetryValues</span></code></a></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.values_attribute_name" title="s100py.s102.api.BathymetryCoverage.values_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">values_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s102.api.BathymetryCoverage.write_format_str" title="s100py.s102.api.BathymetryCoverage.write_format_str"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_format_str</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.axis_names">
+<code class="sig-name descname">axis_names</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.axis_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>sequence of character strings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.axis_names_attribute_name">
+<code class="sig-name descname">axis_names_attribute_name</code><em class="property"> = 'axisNames'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.axis_names_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.dimension">
+<code class="sig-name descname">dimension</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.dimension" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.dimension_attribute_name">
+<code class="sig-name descname">dimension_attribute_name</code><em class="property"> = 'dimension'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.dimension_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.extent">
+<code class="sig-name descname">extent</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.extent" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s100.GridEnvelope.html#s100py.s100.GridEnvelope" title="s100py.s100.GridEnvelope"><code class="xref py py-class docutils literal notranslate"><span class="pre">GridEnvelope</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.extent_attribute_name">
+<code class="sig-name descname">extent_attribute_name</code><em class="property"> = 'extent'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.extent_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.maximimum_display_scale">
+<code class="sig-name descname">maximimum_display_scale</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.maximimum_display_scale" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.maximum_depth">
+<code class="sig-name descname">maximum_depth</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.maximum_depth" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.maximum_depth_attribute_name">
+<code class="sig-name descname">maximum_depth_attribute_name</code><em class="property"> = 'maximumDepth'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.maximum_depth_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.maximum_display_scale_attribute_name">
+<code class="sig-name descname">maximum_display_scale_attribute_name</code><em class="property"> = 'maximumDisplayScale'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.maximum_display_scale_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.maximum_uncertainty">
+<code class="sig-name descname">maximum_uncertainty</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.maximum_uncertainty" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.maximum_uncertainty_attribute_name">
+<code class="sig-name descname">maximum_uncertainty_attribute_name</code><em class="property"> = 'maximumUncertainty'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.maximum_uncertainty_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.minimum_depth">
+<code class="sig-name descname">minimum_depth</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.minimum_depth" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.minimum_depth_attribute_name">
+<code class="sig-name descname">minimum_depth_attribute_name</code><em class="property"> = 'minimumDepth'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.minimum_depth_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.minimum_display_scale">
+<code class="sig-name descname">minimum_display_scale</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.minimum_display_scale" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.minimum_display_scale_attribute_name">
+<code class="sig-name descname">minimum_display_scale_attribute_name</code><em class="property"> = 'minimumDisplayScale'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.minimum_display_scale_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.minimum_uncertainty">
+<code class="sig-name descname">minimum_uncertainty</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.minimum_uncertainty" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.minimum_uncertainty_attribute_name">
+<code class="sig-name descname">minimum_uncertainty_attribute_name</code><em class="property"> = 'minimumUncertainty'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.minimum_uncertainty_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.offset_vectors">
+<code class="sig-name descname">offset_vectors</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.offset_vectors" title="Permalink to this definition">¶</a></dt>
+<dd><p>sequence of s102 Vectors  4.2.1.1.1.9 in S102 v2.0.0
+The attribute offsetVectors has the value class Sequence&lt;Vector&gt; that shall be a sequence of offset vector elements
+that determine the grid spacing in each direction.
+The data type Vector is specified in ISO/TS 19103. This attribute is required.
+There is no default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.offset_vectors_attribute_name">
+<code class="sig-name descname">offset_vectors_attribute_name</code><em class="property"> = 'offsetVectors'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.offset_vectors_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.origin">
+<code class="sig-name descname">origin</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.origin" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s100.DirectPosition.html#s100py.s100.DirectPosition" title="s100py.s100.DirectPosition"><code class="xref py py-class docutils literal notranslate"><span class="pre">DirectPosition</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.origin_attribute_name">
+<code class="sig-name descname">origin_attribute_name</code><em class="property"> = 'origin'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.origin_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.sequencing_rule">
+<code class="sig-name descname">sequencing_rule</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.sequencing_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>The attribute sequencingRule has the value class CV_SequenceRule (ISO 19123) that shall
+describe how the grid points are ordered for association to the elements of the sequence values.
+The default value is “Linear”.
+No other options are allowed.
+(note that for S100: Only the values “linear” (for a simple regular cell size grid) and “Morton” (for a
+Quad Tree Grid) shall be used for data that conforms to this standard.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s100.SequenceRule.html#s100py.s100.SequenceRule" title="s100py.s100.SequenceRule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceRule</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.sequencing_rule_attribute_name">
+<code class="sig-name descname">sequencing_rule_attribute_name</code><em class="property"> = 'sequencingRule'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.sequencing_rule_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.start_sequence">
+<code class="sig-name descname">start_sequence</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.start_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>The attribute startSequence has the value class CV_GridCoordinate that shall identify the grid
+point to be associated with the first record in the values sequence.
+The default value is the lower left corner of the grid.
+No other options are allowed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s100.GridCoordinate.html#s100py.s100.GridCoordinate" title="s100py.s100.GridCoordinate"><code class="xref py py-class docutils literal notranslate"><span class="pre">GridCoordinate</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.start_sequence_attribute_name">
+<code class="sig-name descname">start_sequence_attribute_name</code><em class="property"> = 'startSequence'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.start_sequence_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.values">
+<code class="sig-name descname">values</code><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.values" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s102.api.BathymetryValues.html#s100py.s102.api.BathymetryValues" title="s100py.s102.api.BathymetryValues"><code class="xref py py-class docutils literal notranslate"><span class="pre">BathymetryValues</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.values_attribute_name">
+<code class="sig-name descname">values_attribute_name</code><em class="property"> = 'values'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.values_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s102.api.BathymetryCoverage.write_format_str">
+<code class="sig-name descname">write_format_str</code><em class="property"> = '.%03d'</em><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.write_format_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s102.api.BathymetryCoverage.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s102.api.BathymetryCoverage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../s102/s102_api.html#functions">Functions</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../s102/s102_api.html#classes">Classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.BathymetryContainer.html">BathymetryContainer</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">BathymetryCoverage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.BathymetryCoverage_dataset.html">BathymetryCoverage_dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.BathymetryCoverages_List.html">BathymetryCoverages_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.BathymetryFeatureInstance.html">BathymetryFeatureInstance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.BathymetryGroup_List.html">BathymetryGroup_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.BathymetryValues.html">BathymetryValues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.FeatureCodes.html">FeatureCodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.FeatureInformation_dataset.html">FeatureInformation_dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.S102Exception.html">S102Exception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.S102File.html">S102File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.S102Root.html">S102Root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.S102_MetadataList_base.html">S102_MetadataList_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.SurfaceCorrectionValues.html">SurfaceCorrectionValues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.TilingScheme.html">TilingScheme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.TrackingListContainer.html">TrackingListContainer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.TrackingListCoverage.html">TrackingListCoverage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.TrackingListCoverage_dataset.html">TrackingListCoverage_dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.TrackingListCoverages_List.html">TrackingListCoverages_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.TrackingListGroup_List.html">TrackingListGroup_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.TrackingListSet_List.html">TrackingListSet_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.TrackingListValues.html">TrackingListValues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s102.api.TrackingListValues_List.html">TrackingListValues_List</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../s102/s102_api.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s100py.s102.api.BathymetryContainer.html"
+                        title="previous chapter">BathymetryContainer</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s100py.s102.api.BathymetryCoverage_dataset.html"
+                        title="next chapter">BathymetryCoverage_dataset</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s102.api.BathymetryCoverage_dataset.html" title="BathymetryCoverage_dataset"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s102.api.BathymetryContainer.html" title="BathymetryContainer"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s102/s102.html" >&lt;no title&gt;</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../s102/s102_api.html" >s100py.s102.api Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

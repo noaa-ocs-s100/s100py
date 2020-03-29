@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>SurfaceCurrentDataset &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SurfaceCurrentFeatureInstance" href="s100py.s111.SurfaceCurrentFeatureInstance.html" />
+    <link rel="prev" title="SurfaceCurrentContainer" href="s100py.s111.SurfaceCurrentContainer.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s111.SurfaceCurrentFeatureInstance.html" title="SurfaceCurrentFeatureInstance"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s111.SurfaceCurrentContainer.html" title="SurfaceCurrentContainer"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s111.html" accesskey="U">s100py.s111 Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="surfacecurrentdataset">
+<h1>SurfaceCurrentDataset<a class="headerlink" href="#surfacecurrentdataset" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s100py.s111.SurfaceCurrentDataset">
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s111.</code><code class="sig-name descname">SurfaceCurrentDataset</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s111.SurfaceCurrentDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s100py.s111.FeatureInformationDataset.html#s100py.s111.FeatureInformationDataset" title="s100py.s111.FeatureInformationDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s111.FeatureInformationDataset</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<div class="graphviz"><img src="../_images/inheritance-ac02edbea6b075ac325d7c255ad25f6f8ada9fb2.png" alt="Inheritance diagram of SurfaceCurrentDataset" usemap="#inheritancef8fd0937b1" class="inheritance graphviz" /></div>
+<map id="inheritancef8fd0937b1" name="inheritancef8fd0937b1">
+<area shape="rect" id="node2" href="s100py.s111.FeatureInformationDataset.html#s100py.s111.FeatureInformationDataset" target="_top" title="s100py.s111.FeatureInformationDataset" alt="" coords="865,5,1117,31"/>
+<area shape="rect" id="node4" href="#s100py.s111.SurfaceCurrentDataset" target="_top" title="s100py.s111.SurfaceCurrentDataset" alt="" coords="1165,31,1396,56"/>
+<area shape="rect" id="node3" href="s100py.s1xx.S1XX_Dataset_base.html#s100py.s1xx.S1XX_Dataset_base" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes." alt="" coords="600,5,817,31"/>
+<area shape="rect" id="node5" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+<area shape="rect" id="node6" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="281,5,552,31"/>
+</map><p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentDataset.metadata_name" title="s100py.s111.SurfaceCurrentDataset.metadata_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata_name</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s100py.s111.SurfaceCurrentDataset.metadata_name">
+<code class="sig-name descname">metadata_name</code><a class="headerlink" href="#s100py.s111.SurfaceCurrentDataset.metadata_name" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s100py.s111.SurfaceCurrentDataset.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s111.SurfaceCurrentDataset.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../s111.html">s100py.s111 Module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s111.html#classes">Classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.DEPTH_TYPE_INDEX.html">DEPTH_TYPE_INDEX</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.FeatureCodes.html">FeatureCodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.FeatureInformation.html">FeatureInformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.FeatureInformationDataset.html">FeatureInformationDataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.S111File.html">S111File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.S111Root.html">S111Root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.S111_MetadataList_base.html">S111_MetadataList_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentContainer.html">SurfaceCurrentContainer</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceCurrentDataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentFeatureInstance.html">SurfaceCurrentFeatureInstance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroup.html">SurfaceCurrentGroup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroupList.html">SurfaceCurrentGroupList</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentList.html">SurfaceCurrentList</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyDataset.html">SurfaceCurrentUncertaintyDataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyInformation.html">SurfaceCurrentUncertaintyInformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentValueRecord.html">SurfaceCurrentValueRecord</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentValues.html">SurfaceCurrentValues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentValuesList.html">SurfaceCurrentValuesList</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s111.TYPE_OF_CURRENT_DATA.html">TYPE_OF_CURRENT_DATA</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../s111.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s100py.s111.SurfaceCurrentContainer.html"
+                        title="previous chapter">SurfaceCurrentContainer</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s100py.s111.SurfaceCurrentFeatureInstance.html"
+                        title="next chapter">SurfaceCurrentFeatureInstance</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s111.SurfaceCurrentFeatureInstance.html" title="SurfaceCurrentFeatureInstance"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s111.SurfaceCurrentContainer.html" title="SurfaceCurrentContainer"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s111.html" >s100py.s111 Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

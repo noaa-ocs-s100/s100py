@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="An Example API" href="sample_api.html" />
-    <link rel="prev" title="TrackingListValues_List" href="api/s100py.s102.s102.TrackingListValues_List.html" /> 
+    <link rel="prev" title="S1XX_WritesOwnGroup_base" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +34,7 @@
           <a href="sample_api.html" title="An Example API"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="api/s100py.s102.s102.TrackingListValues_List.html" title="TrackingListValues_List"
+          <a href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html" title="S1XX_WritesOwnGroup_base"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
       </ul>
@@ -47,16 +47,21 @@
             
   <div class="section" id="extending-the-api">
 <h1>Extending the API<a class="headerlink" href="#extending-the-api" title="Permalink to this headline">¶</a></h1>
-<p>To create a new api from this framework or modify an existing one, use the classes below.
-S1XX_Attributes_base for hdf5 groups with attributes, datasets and sub-groups.
-S1XX_Dataset_base for datasets (numpy arrays).
-S1XX_MetadataList_base for groups that have multiple occurrences using the S100 naming scheme (Group_NNN)</p>
+<p>To create a new api from this framework or modify an existing one, use the following classes from <a class="reference internal" href="s1xx.html#module-s100py.s1xx" title="s100py.s1xx"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">s100py.s1xx</span></code></a>
+as well as the ones in <a class="reference internal" href="s100.html#module-s100py.s100" title="s100py.s100"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">s100py.s100</span></code></a>.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>S1XX_Attributes_base for hdf5 groups with attributes, datasets and sub-groups.</p></li>
+<li><p>S1XX_Dataset_base for datasets (numpy arrays).</p></li>
+<li><p>S1XX_MetadataList_base for groups that have multiple occurrences using the S100 naming scheme (Group_NNN)</p></li>
+</ul>
+</div></blockquote>
 <p>To make data members for one of the above classes, here is how to make a template in PyCharm to
 speed creation:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>File-Settings-Editor-LiveTemplates</p></li>
-<li><p>create a new template (hit the plus button on the side) and name it S102 and give it a description
+<li><p>Create a new template (hit the plus button on the side) and name it S102 and give it a description
 paste in the code below (&#64;property lines)</p></li>
 <li><p>Click the Edit Variables and for $attr$ under expression put: snakeCase(SELECTION)
 at the bottom is a line that says “applicable in” and has a hyperlinked word (define or change) – click that and select Python</p></li>
@@ -65,7 +70,7 @@ at the bottom is a line that says “applicable in” and has a hyperlinked word
 <p>To use, highlight the camel case S102 attribute name and press ctrl-alt-J (or ctrl-alt-T) and select your S102 from the list
 It will fill in the names and then put the cursor in the right place to specify the type</p>
 <dl class="simple">
-<dt>what it does:</dt><dd><ul class="simple">
+<dt>What it does:</dt><dd><ul class="simple">
 <li><p>take the selected text (name from the S102 doc) and:</p></li>
 <li><p>make a read only property returning the S102 HDF5 attribute name</p></li>
 <li><p>make a read/write property to contain the data</p></li>
@@ -75,9 +80,7 @@ It will fill in the names and then put the cursor in the right place to specify 
 </dd>
 </dl>
 <p>Code to put in your live template</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>@property
-def $attr$_attribute_name(self) -&gt; str:
-    return &quot;$SELECTION$&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$attr$_attribute_name = return &quot;$SELECTION$&quot;  #: HDF5 naming
 
 @property
 def $attr$(self) -&gt; $type$:
@@ -103,9 +106,7 @@ at the bottom is a line that says “applicable in” and has a hyperlinked word
 </ul>
 </dd>
 </dl>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>@property
-def $attr$_attribute_name(self) -&gt; str:
-    return &quot;$SELECTION$&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$attr$_attribute_name = return &quot;$SELECTION$&quot;  #: HDF5 naming
 
 @property
 def $attr$(self) -&gt; $type$:
@@ -140,9 +141,7 @@ Put the HDF5 name from the S100+ spec first followed by an arrow (-&gt;) then th
 </div>
 <p>Types can be basic python types or custom created classes.</p>
 <p>Ex:  eastBoundLongitude-&gt;float</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>@property
-def $attr$_attribute_name(self) -&gt; str:
-    return &quot;$HDF5NAME$&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$attr$_attribute_name = return &quot;$HDF5NAME$&quot;  #: HDF5 naming
 
 @property
 def $attr$(self) -&gt; $type$:
@@ -175,9 +174,7 @@ Same syntax or HDF5 name followed by the Enumeration name.</p>
 </dd>
 </dl>
 <p>If you used the enumeration ‘MONTY’ from the sample api, this would look like   dataName-&gt;MONTY</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>@property
-def $attr$_attribute_name(self) -&gt; str:
-    return &quot;$HDF5NAME$&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$attr$_attribute_name = return &quot;$HDF5NAME$&quot;  #: HDF5 naming
 
 @property
 def $attr$(self) -&gt; $type$:
@@ -208,10 +205,11 @@ def $attr$_create(self):
         <div class="sphinxsidebarwrapper">
   <h3><a href="s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102_api.html">s100py.s102.api Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102.html">s100py.s102.s102_utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102.html#module-s100py.s102.s102">s100py.s102.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
@@ -219,8 +217,8 @@ def $attr$_create(self):
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="api/s100py.s102.s102.TrackingListValues_List.html"
-                        title="previous chapter">TrackingListValues_List</a></p>
+  <p class="topless"><a href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html"
+                        title="previous chapter">S1XX_WritesOwnGroup_base</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="sample_api.html"
                         title="next chapter">An Example API</a></p>
@@ -251,7 +249,7 @@ def $attr$_create(self):
           <a href="sample_api.html" title="An Example API"
              >next</a> |</li>
         <li class="right" >
-          <a href="api/s100py.s102.s102.TrackingListValues_List.html" title="TrackingListValues_List"
+          <a href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html" title="S1XX_WritesOwnGroup_base"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
       </ul>

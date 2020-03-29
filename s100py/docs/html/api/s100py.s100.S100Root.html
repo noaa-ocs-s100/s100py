@@ -53,7 +53,13 @@
 <em class="property">class </em><code class="sig-prename descclassname">s100py.s100.</code><code class="sig-name descname">S100Root</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.S100Root" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s100py.s100.GeographicBoundingBox.html#s100py.s100.GeographicBoundingBox" title="s100py.s100.GeographicBoundingBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s100.GeographicBoundingBox</span></code></a></p>
 <p>From table 10c-6 in S100 spec.</p>
-<p class="rubric">Attributes Summary</p>
+<div class="graphviz"><img src="../_images/inheritance-79dd5af46c8c929a52aff0ca5bfb0af5a2b918f9.png" alt="Inheritance diagram of S100Root" usemap="#inheritance9396ab8d4f" class="inheritance graphviz" /></div>
+<map id="inheritance9396ab8d4f" name="inheritance9396ab8d4f">
+<area shape="rect" id="node1" href="s100py.s100.GeographicBoundingBox.html#s100py.s100.GeographicBoundingBox" target="_top" title="4.2.1.1.13 of v2.0.0" alt="" coords="533,5,776,31"/>
+<area shape="rect" id="node4" href="#s100py.s100.S100Root" target="_top" title="From table 10c&#45;6 in S100 spec." alt="" coords="824,5,981,31"/>
+<area shape="rect" id="node2" href="s100py.s100.GeographicExtent.html#s100py.s100.GeographicExtent" target="_top" title="4.2.1.1.12 of v2.0.0" alt="" coords="281,5,485,31"/>
+<area shape="rect" id="node3" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+</map><p class="rubric">Attributes Summary</p>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -68,13 +74,19 @@
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.geographic_identifier" title="s100py.s100.S100Root.geographic_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geographic_identifier</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.epoch_attribute_name" title="s100py.s100.S100Root.epoch_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">epoch_attribute_name</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.S100Root.geographic_identifier" title="s100py.s100.S100Root.geographic_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geographic_identifier</span></code></a></p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">rtype</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
 </dd>
 </dl>
 </p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.geographic_identifier_attribute_name" title="s100py.s100.S100Root.geographic_identifier_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geographic_identifier_attribute_name</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.S100Root.horizontal_datum_reference" title="s100py.s100.S100Root.horizontal_datum_reference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">horizontal_datum_reference</span></code></a></p></td>
 <td><p><dl class="field-list simple">
@@ -84,13 +96,19 @@
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.horizontal_datum_value" title="s100py.s100.S100Root.horizontal_datum_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">horizontal_datum_value</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.horizontal_datum_reference_attribute_name" title="s100py.s100.S100Root.horizontal_datum_reference_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">horizontal_datum_reference_attribute_name</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.S100Root.horizontal_datum_value" title="s100py.s100.S100Root.horizontal_datum_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">horizontal_datum_value</span></code></a></p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">rtype</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
 </dd>
 </dl>
 </p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.horizontal_datum_value_attribute_name" title="s100py.s100.S100Root.horizontal_datum_value_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">horizontal_datum_value_attribute_name</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.S100Root.issue_date" title="s100py.s100.S100Root.issue_date"><code class="xref py py-obj docutils literal notranslate"><span class="pre">issue_date</span></code></a></p></td>
 <td><p><dl class="field-list simple">
@@ -100,13 +118,19 @@
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.issue_time" title="s100py.s100.S100Root.issue_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">issue_time</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.issue_date_attribute_name" title="s100py.s100.S100Root.issue_date_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">issue_date_attribute_name</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.S100Root.issue_time" title="s100py.s100.S100Root.issue_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">issue_time</span></code></a></p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">rtype</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
 </dd>
 </dl>
 </p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.issue_time_attribute_name" title="s100py.s100.S100Root.issue_time_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">issue_time_attribute_name</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.S100Root.meta_features" title="s100py.s100.S100Root.meta_features"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meta_features</span></code></a></p></td>
 <td><p><dl class="field-list simple">
@@ -116,13 +140,19 @@
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.metadata" title="s100py.s100.S100Root.metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.meta_features_attribute_name" title="s100py.s100.S100Root.meta_features_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meta_features_attribute_name</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.S100Root.metadata" title="s100py.s100.S100Root.metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata</span></code></a></p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">rtype</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
 </dd>
 </dl>
 </p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.metadata_attribute_name" title="s100py.s100.S100Root.metadata_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata_attribute_name</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.S100Root.product_specification" title="s100py.s100.S100Root.product_specification"><code class="xref py py-obj docutils literal notranslate"><span class="pre">product_specification</span></code></a></p></td>
 <td><p><dl class="field-list simple">
@@ -132,13 +162,19 @@
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.vertical_datum" title="s100py.s100.S100Root.vertical_datum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vertical_datum</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.product_specification_attribute_name" title="s100py.s100.S100Root.product_specification_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">product_specification_attribute_name</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.S100Root.vertical_datum" title="s100py.s100.S100Root.vertical_datum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vertical_datum</span></code></a></p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">rtype</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
 </dd>
 </dl>
 </p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.S100Root.vertical_datum_attribute_name" title="s100py.s100.S100Root.vertical_datum_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vertical_datum_attribute_name</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -154,6 +190,11 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="s100py.s100.S100Root.epoch_attribute_name">
+<code class="sig-name descname">epoch_attribute_name</code><em class="property"> = 'epoch'</em><a class="headerlink" href="#s100py.s100.S100Root.epoch_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="s100py.s100.S100Root.geographic_identifier">
 <code class="sig-name descname">geographic_identifier</code><a class="headerlink" href="#s100py.s100.S100Root.geographic_identifier" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -162,6 +203,11 @@
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.S100Root.geographic_identifier_attribute_name">
+<code class="sig-name descname">geographic_identifier_attribute_name</code><em class="property"> = 'geographicIdentifier'</em><a class="headerlink" href="#s100py.s100.S100Root.geographic_identifier_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="s100py.s100.S100Root.horizontal_datum_reference">
@@ -174,6 +220,11 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="s100py.s100.S100Root.horizontal_datum_reference_attribute_name">
+<code class="sig-name descname">horizontal_datum_reference_attribute_name</code><em class="property"> = 'horizontalDatumReference'</em><a class="headerlink" href="#s100py.s100.S100Root.horizontal_datum_reference_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="s100py.s100.S100Root.horizontal_datum_value">
 <code class="sig-name descname">horizontal_datum_value</code><a class="headerlink" href="#s100py.s100.S100Root.horizontal_datum_value" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -182,6 +233,11 @@
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.S100Root.horizontal_datum_value_attribute_name">
+<code class="sig-name descname">horizontal_datum_value_attribute_name</code><em class="property"> = 'horizontalDatumValue'</em><a class="headerlink" href="#s100py.s100.S100Root.horizontal_datum_value_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="s100py.s100.S100Root.issue_date">
@@ -194,6 +250,11 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="s100py.s100.S100Root.issue_date_attribute_name">
+<code class="sig-name descname">issue_date_attribute_name</code><em class="property"> = 'issueDate'</em><a class="headerlink" href="#s100py.s100.S100Root.issue_date_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="s100py.s100.S100Root.issue_time">
 <code class="sig-name descname">issue_time</code><a class="headerlink" href="#s100py.s100.S100Root.issue_time" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -202,6 +263,11 @@
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.S100Root.issue_time_attribute_name">
+<code class="sig-name descname">issue_time_attribute_name</code><em class="property"> = 'issueTime'</em><a class="headerlink" href="#s100py.s100.S100Root.issue_time_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="s100py.s100.S100Root.meta_features">
@@ -214,6 +280,11 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="s100py.s100.S100Root.meta_features_attribute_name">
+<code class="sig-name descname">meta_features_attribute_name</code><em class="property"> = 'metaFeatures'</em><a class="headerlink" href="#s100py.s100.S100Root.meta_features_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="s100py.s100.S100Root.metadata">
 <code class="sig-name descname">metadata</code><a class="headerlink" href="#s100py.s100.S100Root.metadata" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -222,6 +293,11 @@
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.S100Root.metadata_attribute_name">
+<code class="sig-name descname">metadata_attribute_name</code><em class="property"> = 'metadata'</em><a class="headerlink" href="#s100py.s100.S100Root.metadata_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="s100py.s100.S100Root.product_specification">
@@ -234,6 +310,11 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="s100py.s100.S100Root.product_specification_attribute_name">
+<code class="sig-name descname">product_specification_attribute_name</code><em class="property"> = 'productSpecification'</em><a class="headerlink" href="#s100py.s100.S100Root.product_specification_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="s100py.s100.S100Root.vertical_datum">
 <code class="sig-name descname">vertical_datum</code><a class="headerlink" href="#s100py.s100.S100Root.vertical_datum" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -242,6 +323,11 @@
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.S100Root.vertical_datum_attribute_name">
+<code class="sig-name descname">vertical_datum_attribute_name</code><em class="property"> = 'verticalDatum'</em><a class="headerlink" href="#s100py.s100.S100Root.vertical_datum_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="s100py.s100.S100Root.__init__">
@@ -261,16 +347,17 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="../s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../s100.html">s100py.s100 Module</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../s100.html#classes">Classes</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.DirectPosition.html">DirectPosition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance.html">FeatureInstance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstanceTimeSeries.html">FeatureInstanceTimeSeries</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_Format_2.html">FeatureInstance_Format_2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_DCF2.html">FeatureInstance_DCF2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_base.html">FeatureInstance_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicExtent.html">GeographicExtent</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
@@ -290,8 +377,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html">s100py.s102.s102_utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html#module-s100py.s102.s102">s100py.s102.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>

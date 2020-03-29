@@ -20,8 +20,10 @@ from ..s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, 
 from ..s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, S100_FeatureContainer, S100Root, S100Exception, FeatureInstance_DCF2
 
+
 class S102Exception(S100Exception):
     pass
+
 
 BATHY_COVERAGE = "BathymetryCoverage"
 TRACKING_COVERAGE = "TrackingListCoverage"
@@ -73,6 +75,8 @@ class S102_MetadataList_base(S1XX_MetadataList_base):
 #     The definition of the type of data in the values record is defined by the verticalUncertaintyType attribute in the
 #     S102_DataIdentification class.
 #     """
+#     depth_attribute_name = "depth"  #: HDF5 naming
+#     uncertainty_attribute_name = "uncertainty"  #: HDF5 naming
 #
 #     @property
 #     def __version__(self) -> int:
@@ -82,9 +86,6 @@ class S102_MetadataList_base(S1XX_MetadataList_base):
 #     def __version__(self) -> int:
 #         return 1
 #
-#     @property
-#     def depth_attribute_name(self) -> str:
-#         return "depth"
 #
 #     @property
 #     def depth_type(self):
@@ -101,9 +102,6 @@ class S102_MetadataList_base(S1XX_MetadataList_base):
 #     def depth(self, val: float):
 #         self._attributes[self.depth_attribute_name] = val
 #
-#     @property
-#     def uncertainty_attribute_name(self) -> str:
-#         return "uncertainty"
 #
 #     @property
 #     def uncertainty_type(self):
@@ -142,6 +140,8 @@ class S102_MetadataList_base(S1XX_MetadataList_base):
 
 
 class BathymetryValues(S1XX_Grids_base):
+    depth_attribute_name = "depth"  #: HDF5 naming
+    uncertainty_attribute_name = "uncertainty"  #: HDF5 naming
     @property
     def __version__(self) -> int:
         return 1
@@ -150,9 +150,6 @@ class BathymetryValues(S1XX_Grids_base):
     def metadata_name(self) -> str:
         return "values"
 
-    @property
-    def depth_attribute_name(self) -> str:
-        return "depth"
 
     @property
     def depth(self) -> s1xx_sequence:
@@ -170,9 +167,6 @@ class BathymetryValues(S1XX_Grids_base):
         """ Creates a blank, empty or zero value for depth"""
         self.depth = self.depth_type([], numpy.float)
 
-    @property
-    def uncertainty_attribute_name(self) -> str:
-        return "uncertainty"
 
     @property
     def uncertainty(self) -> s1xx_sequence:
@@ -206,9 +200,20 @@ class BathymetryCoverage(S1XX_Attributes_base):
     """
     write_format_str = ".%03d"
 
-    @property
-    def values_attribute_name(self) -> str:
-        return "values"
+    values_attribute_name = "values"  #: HDF5 naming
+    minimum_depth_attribute_name = "minimumDepth"  #: HDF5 naming
+    maximum_depth_attribute_name = "maximumDepth"  #: HDF5 naming
+    maximum_display_scale_attribute_name = "maximumDisplayScale"  #: HDF5 naming
+    minimum_display_scale_attribute_name = "minimumDisplayScale"  #: HDF5 naming
+    minimum_uncertainty_attribute_name = "minimumUncertainty"  #: HDF5 naming
+    maximum_uncertainty_attribute_name = "maximumUncertainty"  #: HDF5 naming
+    origin_attribute_name = "origin"  #: HDF5 naming
+    offset_vectors_attribute_name = "offsetVectors"  #: HDF5 naming
+    dimension_attribute_name = "dimension"  #: HDF5 naming
+    axis_names_attribute_name = "axisNames"  #: HDF5 naming
+    extent_attribute_name = "extent"  #: HDF5 naming
+    sequencing_rule_attribute_name = "sequencingRule"  #: HDF5 naming
+    start_sequence_attribute_name = "startSequence"  #: HDF5 naming
 
     @property
     def values(self) -> BathymetryValues:
@@ -230,9 +235,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def __version__(self) -> int:
         return 1
 
-    @property
-    def minimum_depth_attribute_name(self) -> str:
-        return "minimumDepth"
 
     @property
     def minimum_depth_type(self):
@@ -249,9 +251,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def minimum_depth(self, val: float):
         self._attributes[self.minimum_depth_attribute_name] = val
 
-    @property
-    def maximum_depth_attribute_name(self) -> str:
-        return "maximumDepth"
 
     @property
     def maximum_depth_type(self):
@@ -276,9 +275,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def minimum_display_scale(self, val: int):
         self._attributes[self.minimum_display_scale_attribute_name] = val
 
-    @property
-    def maximum_display_scale_attribute_name(self) -> str:
-        return "maximumDisplayScale"
 
     @property
     def maximum_display_scale_type(self):
@@ -295,9 +291,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def maximimum_display_scale(self, val: int):
         self._attributes[self.maximimum_display_scale_attribute_name] = val
 
-    @property
-    def minimum_display_scale_attribute_name(self) -> str:
-        return "minimumDisplayScale"
 
     @property
     def minimum_display_scale_type(self):
@@ -314,9 +307,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def minimum_uncertainty(self, val: float):
         self._attributes[self.minimum_uncertainty_attribute_name] = val
 
-    @property
-    def minimum_uncertainty_attribute_name(self) -> str:
-        return "minimumUncertainty"
 
     @property
     def minimum_uncertainty_type(self):
@@ -333,9 +323,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def maximum_uncertainty(self, val: float):
         self._attributes[self.maximum_uncertainty_attribute_name] = val
 
-    @property
-    def maximum_uncertainty_attribute_name(self) -> str:
-        return "maximumUncertainty"
 
     @property
     def maximum_uncertainty_type(self):
@@ -352,9 +339,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def origin(self, val: DirectPosition):
         self._attributes[self.origin_attribute_name] = val
 
-    @property
-    def origin_attribute_name(self) -> str:
-        return "origin"
 
     @property
     def origin_type(self):
@@ -381,9 +365,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def offset_vectors(self, val: s1xx_sequence):
         self._attributes[self.offset_vectors_attribute_name] = val
 
-    @property
-    def offset_vectors_attribute_name(self) -> str:
-        return "offsetVectors"
 
     @property
     def offset_vectors_type(self):
@@ -400,9 +381,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def dimension(self, val: int):
         self._attributes[self.dimension_attribute_name] = val
 
-    @property
-    def dimension_attribute_name(self) -> str:
-        return "dimension"
 
     @property
     def dimension_type(self):
@@ -420,9 +398,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def axis_names(self, val: s1xx_sequence):
         self._attributes[self.axis_names_attribute_name] = val
 
-    @property
-    def axis_names_attribute_name(self) -> str:
-        return "axisNames"
 
     @property
     def axis_names_type(self) -> Type[str]:
@@ -446,9 +421,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def extent(self, val: GridEnvelope):
         self._attributes[self.extent_attribute_name] = val
 
-    @property
-    def extent_attribute_name(self) -> str:
-        return "extent"
 
     @property
     def extent_type(self) -> Type[str]:
@@ -475,9 +447,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def sequencing_rule(self, val: SequenceRule):
         self._attributes[self.sequencing_rule_attribute_name] = val
 
-    @property
-    def sequencing_rule_attribute_name(self) -> str:
-        return "sequencingRule"
 
     @property
     def sequencing_rule_type(self):
@@ -503,9 +472,6 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def start_sequence(self, val: GridCoordinate):
         self._attributes[self.start_sequence_attribute_name] = val
 
-    @property
-    def start_sequence_attribute_name(self) -> str:
-        return "startSequence"
 
     @property
     def start_sequence_type(self):
@@ -514,9 +480,7 @@ class BathymetryCoverage(S1XX_Attributes_base):
     def start_sequence_create(self):
         self.start_sequence = self.start_sequence_type()
 
-    # @property
-    # def grid_matrix_attribute_name(self) -> str:
-    #     return "gridMatrix"
+    # grid_matrix_attribute_name = "gridMatrix"  #: HDF5 naming
     #
     # @property
     # def grid_matrix_type(self):
@@ -551,6 +515,8 @@ class SurfaceCorrectionValues(VertexPoint):
 class TrackingListValues(SurfaceCorrectionValues):
     """ 4.2.1.1.10 of v2.0.0
     """
+    track_code_attribute_name = "trackCode"  #: HDF5 naming
+    list_series_attribute_name = "listSeries"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -572,9 +538,6 @@ class TrackingListValues(SurfaceCorrectionValues):
     def track_code(self, val: str):
         self._attributes[self.track_code_attribute_name] = val
 
-    @property
-    def track_code_attribute_name(self) -> str:
-        return "trackCode"
 
     @property
     def track_code_type(self):
@@ -598,9 +561,6 @@ class TrackingListValues(SurfaceCorrectionValues):
     def list_series(self, val: int):
         self._attributes[self.list_series_attribute_name] = val
 
-    @property
-    def list_series_attribute_name(self) -> str:
-        return "listSeries"
 
     @property
     def list_series_type(self):
@@ -646,6 +606,10 @@ class TrackingListCoverage(S1XX_Attributes_base):
     """
     write_format_str = ".%02d"
 
+    domain_extent_attribute_name = "domainExtent"  #: HDF5 naming
+    common_point_rule_attribute_name = "commonPointRule"  #: HDF5 naming
+    set_attribute_name = "set"  #: HDF5 naming
+
     @property
     def __version__(self) -> int:
         return 1
@@ -658,9 +622,6 @@ class TrackingListCoverage(S1XX_Attributes_base):
     def domain_extent(self, val: S102_MetadataList_base):
         self._attributes[self.domain_extent_attribute_name] = val
 
-    @property
-    def domain_extent_attribute_name(self) -> str:
-        return "domainExtent"
 
     @property
     def domain_extent_type(self):
@@ -669,9 +630,6 @@ class TrackingListCoverage(S1XX_Attributes_base):
     def domain_extent_create(self):
         self.domain_extent = self.domain_extent_type()
 
-    @property
-    def common_point_rule_attribute_name(self) -> str:
-        return "commonPointRule"
 
     @property
     def common_point_rule_type(self):
@@ -702,10 +660,6 @@ class TrackingListCoverage(S1XX_Attributes_base):
         self._attributes[self.common_point_rule_attribute_name] = val
 
     @property
-    def set_attribute_name(self) -> str:
-        return "set"
-
-    @property
     def set_type(self):
         return TrackingListSet_List
 
@@ -727,9 +681,8 @@ class TrackingListCoverage(S1XX_Attributes_base):
         self._attributes[self.set_attribute_name] = val
 
     # @TODO  I don't think this is right, but not sure where I found it
-    # @property
-    # def geometry_attribute_name(self) -> str:
-    #     return "geometry"
+    #
+    # geometry_attribute_name = "geometry"  #: HDF5 naming
     #
     # @property
     # def geometry(self) -> S1XX_Attributes_base:
@@ -739,9 +692,7 @@ class TrackingListCoverage(S1XX_Attributes_base):
     # def geometry(self, val: S1XX_Attributes_base):
     #     self._attributes[self.geometry_attribute_name] = val
     #
-    # @property
-    # def value_attribute_name(self) -> str:
-    #     return "value"
+    # value_attribute_name = "value"  #: HDF5 naming
     #
     # @property
     # def value(self) -> s1xx_sequence:
@@ -802,14 +753,10 @@ class TrackingListCoverages_List(S102_MetadataList_base):
 
 
 class BathymetryFeatureInstance(FeatureInstance_DCF2):
-    @property
-    def bathymetry_group_attribute_name(self) -> str:
-        """ attribute name will be automatically determined based on the array position of the S102_MetadataList
-        Returns
-        -------
-        Basic template for the name of the attribute
-        """
-        return "Group" + r"\.\d+"
+    bathymetry_group_attribute_name = "Group" + r"\.\d+"
+    """ Basic template for HDF5 naming of the attribute.  
+    Attribute name will be automatically determined based on the list's index of the data. 
+    """
 
     @property
     def bathymetry_group_type(self):
@@ -856,20 +803,13 @@ class BathymetryContainer(S100_FeatureContainer):
     """ This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named BathymetryCoverage.NN
     """
+    #: attribute name will be automatically determined based on the containing list's index
+    bathymetry_coverage_attribute_name = BATHY_COVERAGE + r"\.\d+"
 
     @property
     def __version__(self) -> int:
         return 1
 
-    @property
-    def bathymetry_coverage_attribute_name(self) -> str:
-        """ attribute name will be automatically determined based on the array position of the S102_MetadataList
-
-        Returns
-        -------
-        Basic template for the name of the attribute
-        """
-        return BATHY_COVERAGE + r"\.\d+"
 
     @property
     def bathymetry_coverage_type(self):
@@ -907,13 +847,12 @@ class TrackingListContainer(S100_FeatureContainer):
     Table 10.1 of v2.0.0
     """
 
+    tracking_list_coverage_attribute_name = TRACKING_COVERAGE + r"\.\d+"
+
     @property
     def __version__(self) -> int:
         return 1
 
-    @property
-    def tracking_list_coverage_attribute_name(self) -> str:
-        return TRACKING_COVERAGE + r"\.\d+"
 
     @property
     def tracking_list_coverage_type(self):
@@ -971,13 +910,15 @@ class FeatureCodes(S1XX_Attributes_base):
     """ Table 10.1 and sect 10.2.1 of v2.0.0
     """
 
+    feature_name_attribute_name = "featureName"  #: HDF5 naming
+    feature_code_attribute_name = "featureCode"  #: HDF5 naming
+    bathymetry_coverage_dataset_attribute_name = BATHY_COVERAGE
+    tracking_list_coverage_attribute_name = TRACKING_COVERAGE
+
     @property
     def __version__(self) -> int:
         return 1
 
-    @property
-    def feature_name_attribute_name(self) -> str:
-        return "featureName"
 
     @property
     def feature_name_type(self):
@@ -994,9 +935,6 @@ class FeatureCodes(S1XX_Attributes_base):
     def feature_name(self, val: s1xx_sequence):
         self._attributes[self.feature_name_attribute_name] = val
 
-    @property
-    def feature_code_attribute_name(self) -> str:
-        return "featureCode"
 
     @property
     def feature_code_type(self):
@@ -1016,9 +954,6 @@ class FeatureCodes(S1XX_Attributes_base):
     def feature_code(self, val: s1xx_sequence):
         self._attributes[self.feature_code_attribute_name] = val
 
-    @property
-    def bathymetry_coverage_dataset_attribute_name(self) -> str:
-        return BATHY_COVERAGE
 
     @property
     def bathymetry_coverage_dataset_type(self):
@@ -1035,9 +970,6 @@ class FeatureCodes(S1XX_Attributes_base):
     def bathymetry_coverage_dataset(self, val: BathymetryCoverage_dataset):
         self._attributes[self.bathymetry_coverage_dataset_attribute_name] = val
 
-    @property
-    def tracking_list_coverage_attribute_name(self) -> str:
-        return TRACKING_COVERAGE
 
     @property
     def tracking_list_coverage_type(self):
@@ -1061,6 +993,9 @@ class S102Root(S100Root):
     The coverage names are determined from the matching CoveragesAttributes
     10.2 and Figure 10.1 of v2.0.0
     """
+    feature_information_attribute_name = "Group_F"  #: HDF5 naming
+    bathymetry_coverage_attribute_name = BATHY_COVERAGE
+    tracking_list_coverage_attribute_name = TRACKING_COVERAGE
 
     @property
     def __version__(self) -> int:
@@ -1081,13 +1016,6 @@ class S102Root(S100Root):
     def feature_information_create(self):
         self.feature_information = self.feature_information_type()
 
-    @property
-    def feature_information_attribute_name(self) -> str:
-        return "Group_F"
-
-    @property
-    def bathymetry_coverage_attribute_name(self) -> str:
-        return BATHY_COVERAGE
 
     @property
     def bathymetry_coverage(self) -> S1XX_Attributes_base:
@@ -1104,9 +1032,6 @@ class S102Root(S100Root):
     def bathymetry_coverage(self, val: S1XX_Attributes_base):
         self._attributes[self.bathymetry_coverage_attribute_name] = val
 
-    @property
-    def tracking_list_coverage_attribute_name(self) -> str:
-        return TRACKING_COVERAGE
 
     @property
     def tracking_list_coverage_type(self):
@@ -1127,6 +1052,19 @@ class S102Root(S100Root):
 class TilingScheme(S1XX_Attributes_base):
     """ 4.2.2, table 4.1 in v2.0.0
     """
+    tiling_scheme_type_attribute_name = "tilingSchemeType"  #: HDF5 naming
+    domain_extent_attribute_name = "domainExtent"  #: HDF5 naming
+    range_type_attribute_name = "rangeType"  #: HDF5 naming
+    common_point_rule_attribute_name = "commonPointRule"  #: HDF5 naming
+    geometry_attribute_name = "geometry"  #: HDF5 naming
+    interpolation_type_attribute_name = "interpolationType"  #: HDF5 naming
+    dimension_attribute_name = "dimension"  #: HDF5 naming
+    axis_names_attribute_name = "axisNames"  #: HDF5 naming
+    origin_attribute_name = "origin"  #: HDF5 naming
+    offset_vectors_attribute_name = "offsetVectors"  #: HDF5 naming
+    extent_attribute_name = "extent"  #: HDF5 naming
+    sequencing_rule_attribute_name = "sequencingRule"  #: HDF5 naming
+    start_sequence_attribute_name = "startSequence"  #: HDF5 naming
 
     @property
     def tiling_scheme_type(self) -> Type[str]:
@@ -1136,57 +1074,6 @@ class TilingScheme(S1XX_Attributes_base):
     def tiling_scheme_type(self, val: str):
         self._attributes[self.tiling_scheme_type_attribute_name] = val
 
-    @property
-    def tiling_scheme_type_attribute_name(self) -> str:
-        return "tilingSchemeType"
-
-    @property
-    def domain_extent_attribute_name(self) -> str:
-        return "domainExtent"
-
-    @property
-    def range_type_attribute_name(self) -> str:
-        return "rangeType"
-
-    @property
-    def common_point_rule_attribute_name(self) -> str:
-        return "commonPointRule"
-
-    @property
-    def geometry_attribute_name(self) -> str:
-        return "geometry"
-
-    @property
-    def interpolation_type_attribute_name(self) -> str:
-        return "interpolationType"
-
-    @property
-    def dimension_attribute_name(self) -> str:
-        return "dimension"
-
-    @property
-    def axis_names_attribute_name(self) -> str:
-        return "axisNames"
-
-    @property
-    def origin_attribute_name(self) -> str:
-        return "origin"
-
-    @property
-    def offset_vectors_attribute_name(self) -> str:
-        return "offsetVectors"
-
-    @property
-    def extent_attribute_name(self) -> str:
-        return "extent"
-
-    @property
-    def sequencing_rule_attribute_name(self) -> str:
-        return "sequencingRule"
-
-    @property
-    def start_sequence_attribute_name(self) -> str:
-        return "startSequence"
 
 
 class DiscoveryMetadata(S1XX_Attributes_base):
@@ -1211,7 +1098,6 @@ class S102File(S1XXFile):
     value_level_keys = ("values",)
     depth_keys = ("depth", "depths", 'elevation', "elevations", "S102_Elevation")
 
-
     def __init__(self, *args, **kywrds):
         super().__init__(*args, root=S102Root, **kywrds)
 
@@ -1223,7 +1109,6 @@ class S102File(S1XXFile):
             r = max(x, y)
             step = int(r / display_nodes)
             print(depths[::step, ::step])
-
 
     def print_depth_attributes(self):
         hdf5 = self.get_depth_dataset()

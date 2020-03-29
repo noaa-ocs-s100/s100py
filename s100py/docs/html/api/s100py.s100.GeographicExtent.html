@@ -59,7 +59,11 @@ The use of EX_GeographicExtent is optional.
 When used it describes the spatial boundaries of the Tracking List elements within the bounds established by CV_GridEnvelope for the BathymetryCoverage.
 That is, the tracking list may carry information corresponding only to a portion of the spatial extent covered by the BathymetryCoverage.
 There is one attribute and one subtype.</p>
-<p class="rubric">Attributes Summary</p>
+<div class="graphviz"><img src="../_images/inheritance-bf383076e7d3ff8ce081d2c42015b6d174dcb579.png" alt="Inheritance diagram of GeographicExtent" usemap="#inheritance4bd49561c2" class="inheritance graphviz" /></div>
+<map id="inheritance4bd49561c2" name="inheritance4bd49561c2">
+<area shape="rect" id="node1" href="#s100py.s100.GeographicExtent" target="_top" title="4.2.1.1.12 of v2.0.0" alt="" coords="281,5,485,31"/>
+<area shape="rect" id="node2" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+</map><p class="rubric">Attributes Summary</p>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -68,6 +72,9 @@ There is one attribute and one subtype.</p>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.GeographicExtent.extent_type_code" title="s100py.s100.GeographicExtent.extent_type_code"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extent_type_code</span></code></a></p></td>
 <td><p>The attribute extentTypeCode is a Boolean value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.GeographicExtent.extent_type_code_attribute_name" title="s100py.s100.GeographicExtent.extent_type_code_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extent_type_code_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
 </tr>
 </tbody>
 </table>
@@ -83,6 +90,12 @@ In S-102 it is set to 1.</p>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.GeographicExtent.extent_type_code_attribute_name">
+<code class="sig-name descname">extent_type_code_attribute_name</code><em class="property"> = 'extentTypeCode'</em><a class="headerlink" href="#s100py.s100.GeographicExtent.extent_type_code_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
 </dd></dl>
 
 <dl class="method">
@@ -103,16 +116,17 @@ In S-102 it is set to 1.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../s100.html">s100py.s100 Module</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../s100.html#classes">Classes</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.DirectPosition.html">DirectPosition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance.html">FeatureInstance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstanceTimeSeries.html">FeatureInstanceTimeSeries</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_Format_2.html">FeatureInstance_Format_2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_DCF2.html">FeatureInstance_DCF2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_base.html">FeatureInstance_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">GeographicExtent</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
@@ -132,8 +146,7 @@ In S-102 it is set to 1.</p>
 <li class="toctree-l2"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html">s100py.s102.s102_utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html#module-s100py.s102.s102">s100py.s102.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>

@@ -18,7 +18,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="s100py.s102.s102_utils Module" href="../s102.html" />
+    <link rel="next" title="s100py.s1xx Module" href="../s1xx.html" />
     <link rel="prev" title="VERTICAL_DATUM" href="s100py.s100.VERTICAL_DATUM.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -31,7 +31,7 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="../s102.html" title="s100py.s102.s102_utils Module"
+          <a href="../s1xx.html" title="s100py.s1xx Module"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="s100py.s100.VERTICAL_DATUM.html" title="VERTICAL_DATUM"
@@ -53,7 +53,11 @@
 <em class="property">class </em><code class="sig-prename descclassname">s100py.s100.</code><code class="sig-name descname">VertexPoint</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.VertexPoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1XX_Attributes_base</span></code></a></p>
 <p>From Figure 8-21 in S100 v4.0.0</p>
-<p class="rubric">Attributes Summary</p>
+<div class="graphviz"><img src="../_images/inheritance-b12ec49f3aeeb025e6d3fdaa11c9770de4af5749.png" alt="Inheritance diagram of VertexPoint" usemap="#inheritance8006485e46" class="inheritance graphviz" /></div>
+<map id="inheritance8006485e46" name="inheritance8006485e46">
+<area shape="rect" id="node1" href="#s100py.s100.VertexPoint" target="_top" title="From Figure 8&#45;21 in S100 v4.0.0" alt="" coords="281,5,449,31"/>
+<area shape="rect" id="node2" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+</map><p class="rubric">Attributes Summary</p>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -63,8 +67,14 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.VertexPoint.geometry" title="s100py.s100.VertexPoint.geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geometry</span></code></a></p></td>
 <td><p>Derived from ISO 19107, referenced figure 7-3 and 8-A-5 of S100 v4.0.0</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.VertexPoint.value" title="s100py.s100.VertexPoint.value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.VertexPoint.geometry_attribute_name" title="s100py.s100.VertexPoint.geometry_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geometry_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.VertexPoint.value" title="s100py.s100.VertexPoint.value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">value</span></code></a></p></td>
 <td><p>The attribute value has the value class Record which is a sequence of value items that shall assign values to the discrete grid point.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.VertexPoint.value_attribute_name" title="s100py.s100.VertexPoint.value_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">value_attribute_name</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -81,6 +91,12 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="s100py.s100.VertexPoint.geometry_attribute_name">
+<code class="sig-name descname">geometry_attribute_name</code><em class="property"> = 'geometry'</em><a class="headerlink" href="#s100py.s100.VertexPoint.geometry_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="s100py.s100.VertexPoint.value">
 <code class="sig-name descname">value</code><a class="headerlink" href="#s100py.s100.VertexPoint.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>The attribute value has the value class Record which is a sequence of value items that shall assign values to the discrete grid point.
@@ -88,12 +104,18 @@ There are two values in each record in the S102_TrackingListValues class.
 These are the depth and the uncertainty values that were overridden in corresponding grid coverages</p>
 <p>‘value’ in tracking list should be HDF5 dataset of (depth, uncertainty)
 which are matched to the listSeries which holds the indices of the data locations</p>
+<p>It is an ISO 19103 class Record</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code>]</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.VertexPoint.value_attribute_name">
+<code class="sig-name descname">value_attribute_name</code><em class="property"> = 'value'</em><a class="headerlink" href="#s100py.s100.VertexPoint.value_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="s100py.s100.VertexPoint.__init__">
@@ -113,16 +135,17 @@ which are matched to the listSeries which holds the indices of the data location
         <div class="sphinxsidebarwrapper">
   <h3><a href="../s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../s100.html">s100py.s100 Module</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../s100.html#classes">Classes</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.DirectPosition.html">DirectPosition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance.html">FeatureInstance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstanceTimeSeries.html">FeatureInstanceTimeSeries</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_Format_2.html">FeatureInstance_Format_2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_DCF2.html">FeatureInstance_DCF2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_base.html">FeatureInstance_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicExtent.html">GeographicExtent</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
@@ -142,8 +165,7 @@ which are matched to the listSeries which holds the indices of the data location
 <li class="toctree-l2"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html">s100py.s102.s102_utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html#module-s100py.s102.s102">s100py.s102.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
@@ -154,8 +176,8 @@ which are matched to the listSeries which holds the indices of the data location
   <p class="topless"><a href="s100py.s100.VERTICAL_DATUM.html"
                         title="previous chapter">VERTICAL_DATUM</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="../s102.html"
-                        title="next chapter">s100py.s102.s102_utils Module</a></p>
+  <p class="topless"><a href="../s1xx.html"
+                        title="next chapter">s100py.s1xx Module</a></p>
 <div id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
@@ -180,7 +202,7 @@ which are matched to the listSeries which holds the indices of the data location
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="../s102.html" title="s100py.s102.s102_utils Module"
+          <a href="../s1xx.html" title="s100py.s1xx Module"
              >next</a> |</li>
         <li class="right" >
           <a href="s100py.s100.VERTICAL_DATUM.html" title="VERTICAL_DATUM"

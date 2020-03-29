@@ -85,9 +85,7 @@ of myFirstObject::
         def __version__(self) -> int:
             return 1
 
-        @property
-        def data_value_attribute_name(self) -> str:
-            return "dataValue"
+        data_value_attribute_name = "dataValue"  #: HDF5 naming
 
         @property
         def data_value(self) -> str:
@@ -131,9 +129,7 @@ make 'empty_zone' the default for the utm_zone::
         def __version__(self) -> int:
             return 1
 
-        @property
-        def utm_zone_attribute_name(self) -> str:
-            return "utmZone"
+        utm_zone_attribute_name = "utmZone"  #: HDF5 naming
 
         @property
         def utm_zone(self) -> int:
@@ -186,9 +182,7 @@ the standard template, so there is a second one just for enumerations in :any:`e
         def __version__(self) -> int:
             return 1
 
-        @property
-        def name_of_data_attribute_name(self) -> str:
-            return "nameOfData"
+        name_of_data_attribute_name = "nameOfData"  #: HDF5 naming
 
         @property
         def name_of_data(self) -> MONTY:
@@ -206,9 +200,7 @@ the standard template, so there is a second one just for enumerations in :any:`e
             """ Creates an enumerated value of 'spam' (because it's first in the list) """
             self.name_of_data = list(self.name_of_data_type)[0]
 
-        @property
-        def data_grid_attribute_name(self) -> str:
-            return "dataGrid"
+        data_grid_attribute_name = "dataGrid"  #: HDF5 naming
 
         @property
         def data_grid(self) -> s1xx.s1xx_sequence:
@@ -264,9 +256,7 @@ we want and not just by name.::
         def __version__(self) -> int:
             return 1
 
-        @property
-        def attr_int_attribute_name(self) -> str:
-            return "attrInt"
+        attr_int_attribute_name = "attrInt"  #: HDF5 naming
 
         @property
         def attr_int(self) -> int:
@@ -285,9 +275,7 @@ we want and not just by name.::
             self.attr_int = self.attr_int_type()
 
 
-        @property
-        def attr_float_attribute_name(self) -> str:
-            return "attrFloat"
+        attr_float_attribute_name = "attrFloat"  #: HDF5 naming
 
         @property
         def attr_float(self) -> float:
@@ -306,9 +294,7 @@ we want and not just by name.::
             self.attr_float = self.attr_float_type()
 
 
-        @property
-        def attr_str_attribute_name(self) -> str:
-            return "attrStr"
+        attr_str_attribute_name = "attrStr"  #: HDF5 naming
 
         @property
         def attr_str(self) -> str:
@@ -345,9 +331,7 @@ class derived from :any:`s1xx.S1XX_Attributes_base`.::
 
 
     class S999Root(s1xx.S1XX_Attributes_base):
-        @property
-        def dataset_with_names_attribute_name(self) -> str:
-            return "datasetWithNames"
+        dataset_with_names_attribute_name = "datasetWithNames"  #: HDF5 naming
 
         @property
         def dataset_with_names(self) -> DatasetWithNames_List:
@@ -365,9 +349,7 @@ class derived from :any:`s1xx.S1XX_Attributes_base`.::
             """ Creates a blank, empty or zero value for dataset_with_names"""
             self.dataset_with_names = self.dataset_with_names_type()
 
-        @property
-        def data_group_attribute_name(self) -> str:
-            return "dataGroup"
+        data_group_attribute_name = "dataGroup"  #: HDF5 naming
 
         @property
         def data_group(self) -> DataGroups:
@@ -385,9 +367,7 @@ class derived from :any:`s1xx.S1XX_Attributes_base`.::
             """ Creates a blank, empty or zero value for data_group"""
             self.data_group = self.data_group_type()
 
-        @property
-        def my_location_group_attribute_name(self) -> str:
-            return "myLocationGroup"
+        my_location_group_attribute_name = "myLocationGroup"  #: HDF5 naming
 
         @property
         def my_location_group(self) -> MyLocation:
@@ -405,9 +385,7 @@ class derived from :any:`s1xx.S1XX_Attributes_base`.::
             """ Creates a blank, empty or zero value for my_location_group"""
             self.my_location_group = self.my_location_group_type()
 
-        @property
-        def my_first_object_attribute_name(self) -> str:
-            return "myFirstObject"
+        my_first_object_attribute_name = "myFirstObject"  #: HDF5 naming
 
         @property
         def my_first_object(self) -> MyObject:

@@ -52,7 +52,7 @@ data spec and then create the code and classes to make it work.  The basic data 
 <blockquote>
 <div><ul class="simple">
 <li><p>basic attribute (string, int, float, enum)</p></li>
-<li><p>named dataset</p></li>
+<li><p>named ‘compound array’ dataset</p></li>
 <li><p>grid dataset</p></li>
 <li><p>named sub group</p></li>
 <li><p>variable number of occurrence subgroup (e.g. Group_01, Group_02…)</p></li>
@@ -125,9 +125,7 @@ of myFirstObject:</p>
     <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">1</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">data_value_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;dataValue&quot;</span>
+    <span class="n">data_value_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;dataValue&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -172,9 +170,7 @@ make ‘empty_zone’ the default for the utm_zone:</p>
     <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">1</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">utm_zone_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;utmZone&quot;</span>
+    <span class="n">utm_zone_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;utmZone&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">utm_zone</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -227,9 +223,7 @@ the standard template, so there is a second one just for enumerations in <a href
     <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">1</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">name_of_data_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;nameOfData&quot;</span>
+    <span class="n">name_of_data_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;nameOfData&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name_of_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MONTY</span><span class="p">:</span>
@@ -247,9 +241,7 @@ the standard template, so there is a second one just for enumerations in <a href
         <span class="sd">&quot;&quot;&quot; Creates an enumerated value of &#39;spam&#39; (because it&#39;s first in the list) &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name_of_data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_of_data_type</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">data_grid_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;dataGrid&quot;</span>
+    <span class="n">data_grid_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;dataGrid&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s1xx</span><span class="o">.</span><span class="n">s1xx_sequence</span><span class="p">:</span>
@@ -304,9 +296,7 @@ we want and not just by name.:</p>
     <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">1</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">attr_int_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;attrInt&quot;</span>
+    <span class="n">attr_int_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;attrInt&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">attr_int</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -325,9 +315,7 @@ we want and not just by name.:</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">attr_int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_int_type</span><span class="p">()</span>
 
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">attr_float_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;attrFloat&quot;</span>
+    <span class="n">attr_float_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;attrFloat&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">attr_float</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -346,9 +334,7 @@ we want and not just by name.:</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">attr_float</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_float_type</span><span class="p">()</span>
 
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">attr_str_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;attrStr&quot;</span>
+    <span class="n">attr_str_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;attrStr&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">attr_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -384,9 +370,7 @@ and can be accessed as a python list.:</p>
 file object (which is derived from an h5py File).  The root object itself is just another
 class derived from <a class="reference internal" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1XX_Attributes_base</span></code></a>.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">S999Root</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Attributes_base</span><span class="p">):</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dataset_with_names_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;datasetWithNames&quot;</span>
+    <span class="n">dataset_with_names_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;datasetWithNames&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dataset_with_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DatasetWithNames_List</span><span class="p">:</span>
@@ -404,9 +388,7 @@ class derived from <a class="reference internal" href="api/s100py.s1xx.S1XX_Attr
         <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for dataset_with_names&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset_with_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_with_names_type</span><span class="p">()</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">data_group_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;dataGroup&quot;</span>
+    <span class="n">data_group_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;dataGroup&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data_group</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataGroups</span><span class="p">:</span>
@@ -424,9 +406,7 @@ class derived from <a class="reference internal" href="api/s100py.s1xx.S1XX_Attr
         <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for data_group&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_group_type</span><span class="p">()</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">my_location_group_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;myLocationGroup&quot;</span>
+    <span class="n">my_location_group_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;myLocationGroup&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">my_location_group</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyLocation</span><span class="p">:</span>
@@ -444,9 +424,7 @@ class derived from <a class="reference internal" href="api/s100py.s1xx.S1XX_Attr
         <span class="sd">&quot;&quot;&quot; Creates a blank, empty or zero value for my_location_group&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">my_location_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_location_group_type</span><span class="p">()</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">my_first_object_attribute_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;myFirstObject&quot;</span>
+    <span class="n">my_first_object_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;myFirstObject&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">my_first_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MyObject</span><span class="p">:</span>
@@ -487,10 +465,11 @@ All we need to do is add a product specification string and add a ‘root’ key
         <div class="sphinxsidebarwrapper">
   <h3><a href="s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102_api.html">s100py.s102.api Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102.html">s100py.s102.s102_utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102.html#module-s100py.s102.s102">s100py.s102.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>

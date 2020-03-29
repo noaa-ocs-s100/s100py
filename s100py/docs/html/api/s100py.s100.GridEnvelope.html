@@ -58,7 +58,11 @@ in the docs it describes the envelope as specifying the row/column offsets for t
 coordinates using the integer indices (S100 and ISO 19123 sec. 8.3).  The real world coordinates are in the origin and offsetVectors instead.
 So this seems unnecessary since the value seems the same as the size of the matrix held, which can be gotten by reading that instead.</p>
 <p><a class="reference external" href="https://www.fgdc.gov/standards/projects/frameword-data-standard/GI_FrameworkDataStandard_Part3_Elevation.doc/at_download/file&amp;usg=AOvVaw07QEsNy5urachwIO1e4ALU">https://www.fgdc.gov/standards/projects/frameword-data-standard/GI_FrameworkDataStandard_Part3_Elevation.doc/at_download/file&amp;usg=AOvVaw07QEsNy5urachwIO1e4ALU</a></p>
-<p class="rubric">Attributes Summary</p>
+<div class="graphviz"><img src="../_images/inheritance-24da3caeaf8b6ae231e4e30981617a79f55de6cf.png" alt="Inheritance diagram of GridEnvelope" usemap="#inheritance5e2f52f060" class="inheritance graphviz" /></div>
+<map id="inheritance5e2f52f060" name="inheritance5e2f52f060">
+<area shape="rect" id="node1" href="#s100py.s100.GridEnvelope" target="_top" title="4.2.1.1.5 of v2.0.0" alt="" coords="281,5,457,31"/>
+<area shape="rect" id="node2" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+</map><p class="rubric">Attributes Summary</p>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -73,13 +77,19 @@ So this seems unnecessary since the value seems the same as the size of the matr
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.GridEnvelope.low" title="s100py.s100.GridEnvelope.low"><code class="xref py py-obj docutils literal notranslate"><span class="pre">low</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.GridEnvelope.high_attribute_name" title="s100py.s100.GridEnvelope.high_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">high_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.GridEnvelope.low" title="s100py.s100.GridEnvelope.low"><code class="xref py py-obj docutils literal notranslate"><span class="pre">low</span></code></a></p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">rtype</dt>
 <dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a></p>
 </dd>
 </dl>
 </p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.GridEnvelope.low_attribute_name" title="s100py.s100.GridEnvelope.low_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">low_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
 </tr>
 </tbody>
 </table>
@@ -95,6 +105,12 @@ So this seems unnecessary since the value seems the same as the size of the matr
 </dd></dl>
 
 <dl class="attribute">
+<dt id="s100py.s100.GridEnvelope.high_attribute_name">
+<code class="sig-name descname">high_attribute_name</code><em class="property"> = 'high'</em><a class="headerlink" href="#s100py.s100.GridEnvelope.high_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="s100py.s100.GridEnvelope.low">
 <code class="sig-name descname">low</code><a class="headerlink" href="#s100py.s100.GridEnvelope.low" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -102,6 +118,12 @@ So this seems unnecessary since the value seems the same as the size of the matr
 <dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.GridEnvelope.low_attribute_name">
+<code class="sig-name descname">low_attribute_name</code><em class="property"> = 'low'</em><a class="headerlink" href="#s100py.s100.GridEnvelope.low_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
 </dd></dl>
 
 <dl class="method">
@@ -122,16 +144,17 @@ So this seems unnecessary since the value seems the same as the size of the matr
         <div class="sphinxsidebarwrapper">
   <h3><a href="../s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../s100.html">s100py.s100 Module</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../s100.html#classes">Classes</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.DirectPosition.html">DirectPosition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance.html">FeatureInstance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstanceTimeSeries.html">FeatureInstanceTimeSeries</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_Format_2.html">FeatureInstance_Format_2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_DCF2.html">FeatureInstance_DCF2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_base.html">FeatureInstance_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicExtent.html">GeographicExtent</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
@@ -151,8 +174,7 @@ So this seems unnecessary since the value seems the same as the size of the matr
 <li class="toctree-l2"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html">s100py.s102.s102_utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102.html#module-s100py.s102.s102">s100py.s102.s102 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>

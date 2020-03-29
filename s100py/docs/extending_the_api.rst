@@ -29,7 +29,7 @@ What it does:
 
 Code to put in your live template ::
 
-    $attr$_attribute_name = return "$SELECTION$"  # move this line to top of class
+    $attr$_attribute_name = return "$SELECTION$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
@@ -52,7 +52,7 @@ For enumeration data types use this template which is very similar
       at the bottom is a line that says "applicable in" and has a hyperlinked word (define or change) -- click that and select Python
 ::
 
-    $attr$_attribute_name = return "$SELECTION$"  # move this line to top of class
+    $attr$_attribute_name = return "$SELECTION$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
@@ -89,7 +89,7 @@ Types can be basic python types or custom created classes.
 
 Ex:  eastBoundLongitude->float ::
 
-    $attr$_attribute_name = return "$HDF5NAME$"  # move this line to top of class
+    $attr$_attribute_name = return "$HDF5NAME$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
@@ -120,7 +120,7 @@ Click the Edit Variables and:
 
 If you used the enumeration 'MONTY' from the sample api, this would look like   dataName->MONTY ::
 
-    $attr$_attribute_name = return "$HDF5NAME$"  # move this line to top of class
+    $attr$_attribute_name = return "$HDF5NAME$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:

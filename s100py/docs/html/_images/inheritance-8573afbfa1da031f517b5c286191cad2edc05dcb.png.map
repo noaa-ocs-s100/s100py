@@ -1,0 +1,6 @@
+<map id="inheritanced964824454" name="inheritanced964824454">
+<area shape="rect" id="node1" title="Helper class that provides a standard way to create an ABC using" alt="" coords="362,5,437,31"/>
+<area shape="rect" id="node4" href="#s100py.s111.SurfaceCurrentContainer" target="_top" title="This is the SurfaceCurrent right off the root of the HDF5 which has possible attributes from S100 spec table 10c&#45;10" alt="" coords="565,31,807,56"/>
+<area shape="rect" id="node2" href="s100py.s100.S100_FeatureContainer.html#s100py.s100.S100_FeatureContainer" target="_top" title="s100py.s100.S100_FeatureContainer" alt="" coords="281,55,517,80"/>
+<area shape="rect" id="node3" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,55,233,80"/>
+</map>

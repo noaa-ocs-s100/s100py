@@ -19,8 +19,10 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 
 from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_WritesOwnGroup_base, S1XXFile
 
+
 class S100Exception(Exception):
     pass
+
 
 H5T_CLASS_T = {
     h5py.h5t.NO_CLASS: 'H5T_NO_CLASS',
@@ -185,6 +187,8 @@ START_SEQUENCE = numpy.string_('0,0')
 class DirectPosition(S1XX_Attributes_base):
     """ 4.2.1.1.4 of v2.0.0
     """
+    coordinate_attribute_name = "coordinate"  #: HDF5 naming
+    dimension_attribute_name = "dimension"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -197,10 +201,6 @@ class DirectPosition(S1XX_Attributes_base):
     @coordinate.setter
     def coordinate(self, val: s1xx_sequence):
         self._attributes[self.coordinate_attribute_name] = val
-
-    @property
-    def coordinate_attribute_name(self) -> str:
-        return "coordinate"
 
     @property
     def coordinate_type(self):
@@ -218,10 +218,6 @@ class DirectPosition(S1XX_Attributes_base):
         self._attributes[self.dimension_attribute_name] = val
 
     @property
-    def dimension_attribute_name(self) -> str:
-        return "dimension"
-
-    @property
     def dimension_type(self):
         return int
 
@@ -232,6 +228,8 @@ class DirectPosition(S1XX_Attributes_base):
 class GridCoordinate(S1XX_Attributes_base):
     """ 4.2.1.1.6 of v2.0.0
     """
+
+    coord_values_attribute_name = "coordValues"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -247,10 +245,6 @@ class GridCoordinate(S1XX_Attributes_base):
     @coord_values.setter
     def coord_values(self, val: s1xx_sequence):
         self._attributes[self.coord_values_attribute_name] = val
-
-    @property
-    def coord_values_attribute_name(self) -> str:
-        return "coordValues"
 
     @property
     def coord_values_type(self):
@@ -270,6 +264,9 @@ class GridEnvelope(S1XX_Attributes_base):
     https://www.fgdc.gov/standards/projects/frameword-data-standard/GI_FrameworkDataStandard_Part3_Elevation.doc/at_download/file&usg=AOvVaw07QEsNy5urachwIO1e4ALU
     """
 
+    low_attribute_name = "low"  #: HDF5 naming
+    high_attribute_name = "high"  #: HDF5 naming
+
     @property
     def __version__(self) -> int:
         return 1
@@ -281,10 +278,6 @@ class GridEnvelope(S1XX_Attributes_base):
     @low.setter
     def low(self, val: S1XX_Attributes_base):
         self._attributes[self.low_attribute_name] = val
-
-    @property
-    def low_attribute_name(self) -> str:
-        return "low"
 
     @property
     def low_type(self):
@@ -302,10 +295,6 @@ class GridEnvelope(S1XX_Attributes_base):
         self._attributes[self.high_attribute_name] = val
 
     @property
-    def high_attribute_name(self) -> str:
-        return "high"
-
-    @property
     def high_type(self):
         return GridCoordinate
 
@@ -317,6 +306,9 @@ class SequenceRule(S1XX_Attributes_base):
     """ 4.2.1.1.7 (and .8) of v2.0.0
     CV_SequenceRule specified in ISO 19123
     """
+
+    type_attribute_name = "type"  #: HDF5 naming
+    scan_direction_attribute_name = "scanDirection"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -338,10 +330,6 @@ class SequenceRule(S1XX_Attributes_base):
         self._attributes[self.type_attribute_name] = val
 
     @property
-    def type_attribute_name(self) -> str:
-        return "type"
-
-    @property
     def type_type(self):
         return str
 
@@ -361,10 +349,6 @@ class SequenceRule(S1XX_Attributes_base):
         self._attributes[self.scan_direction_attribute_name] = val
 
     @property
-    def scan_direction_attribute_name(self) -> str:
-        return "scanDirection"
-
-    @property
     def scan_direction_type(self):
         return str
 
@@ -376,6 +360,7 @@ class Point(S1XX_Attributes_base):
     """ 4.2.1.1.11 of v2.0.0
     The class GM_Point is taken from ISO 19107 and is the basic data type for a geometric object consisting of one and only one point.
     """
+    position_attribute_name = "position"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -395,10 +380,6 @@ class Point(S1XX_Attributes_base):
         self._attributes[self.position_attribute_name] = val
 
     @property
-    def position_attribute_name(self) -> str:
-        return "position"
-
-    @property
     def position_type(self):
         return DirectPosition
 
@@ -415,6 +396,8 @@ class GeographicExtent(S1XX_Attributes_base):
     That is, the tracking list may carry information corresponding only to a portion of the spatial extent covered by the BathymetryCoverage.
     There is one attribute and one subtype.
     """
+
+    extent_type_code_attribute_name = "extentTypeCode"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -433,10 +416,6 @@ class GeographicExtent(S1XX_Attributes_base):
         self._attributes[self.extent_type_code_attribute_name] = val
 
     @property
-    def extent_type_code_attribute_name(self) -> str:
-        return "extentTypeCode"
-
-    @property
     def extent_type_code_type(self):
         return bool
 
@@ -453,6 +432,11 @@ class GeographicBoundingBox(GeographicExtent):
     bounds established by CV_GridEnvelope for the BathymetryCoverage.
     """
 
+    west_bound_longitude_attribute_name = "westBoundLongitude"  #: HDF5 naming
+    east_bound_longitude_attribute_name = "eastBoundLongitude"  #: HDF5 naming
+    south_bound_latitude_attribute_name = "southBoundLatitude"  #: HDF5 naming
+    north_bound_latitude_attribute_name = "northBoundLatitude"  #: HDF5 naming
+
     @property
     def __version__(self) -> int:
         return 1
@@ -464,10 +448,6 @@ class GeographicBoundingBox(GeographicExtent):
     @west_bound_longitude.setter
     def west_bound_longitude(self, val: float):
         self._attributes[self.west_bound_longitude_attribute_name] = val
-
-    @property
-    def west_bound_longitude_attribute_name(self) -> str:
-        return "westBoundLongitude"
 
     @property
     def west_bound_longitude_type(self):
@@ -485,10 +465,6 @@ class GeographicBoundingBox(GeographicExtent):
         self._attributes[self.east_bound_longitude_attribute_name] = val
 
     @property
-    def east_bound_longitude_attribute_name(self) -> str:
-        return "eastBoundLongitude"
-
-    @property
     def east_bound_longitude_type(self):
         return float
 
@@ -502,10 +478,6 @@ class GeographicBoundingBox(GeographicExtent):
     @south_bound_latitude.setter
     def south_bound_latitude(self, val: float):
         self._attributes[self.south_bound_latitude_attribute_name] = val
-
-    @property
-    def south_bound_latitude_attribute_name(self) -> str:
-        return "southBoundLatitude"
 
     @property
     def south_bound_latitude_type(self):
@@ -523,10 +495,6 @@ class GeographicBoundingBox(GeographicExtent):
         self._attributes[self.north_bound_latitude_attribute_name] = val
 
     @property
-    def north_bound_latitude_attribute_name(self) -> str:
-        return "northBoundLatitude"
-
-    @property
     def north_bound_latitude_type(self):
         return float
 
@@ -538,6 +506,9 @@ class VertexPoint(S1XX_Attributes_base):
     """ From Figure 8-21 in S100 v4.0.0
 
     """
+
+    geometry_attribute_name = "geometry"  #: HDF5 naming
+    value_attribute_name = "value"  # HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -557,10 +528,6 @@ class VertexPoint(S1XX_Attributes_base):
         self._attributes[self.geometry_attribute_name] = val
 
     @property
-    def geometry_attribute_name(self) -> str:
-        return "geometry"
-
-    @property
     def geometry_type(self):
         return Point
 
@@ -575,18 +542,14 @@ class VertexPoint(S1XX_Attributes_base):
 
         'value' in tracking list should be HDF5 dataset of (depth, uncertainty)
         which are matched to the listSeries which holds the indices of the data locations
+
+        It is an ISO 19103 class Record
         """
         return self._attributes[self.value_attribute_name]
 
     @value.setter
     def value(self, val: s1xx_sequence):
         self._attributes[self.value_attribute_name] = val
-
-    @property
-    def value_attribute_name(self) -> str:
-        """ISO 19103 class Record
-        """
-        return "value"
 
     @property
     def value_type(self):
@@ -600,9 +563,15 @@ class FeatureInstance_base(GeographicBoundingBox):
     """ The feature instance group attributes from table 10c-12 in S100 spec
     """
 
-    @property
-    def vertical_extent_minimum_z_attribute_name(self) -> str:
-        return "verticalExtent.minimumZ"
+    vertical_extent_minimum_z_attribute_name = "verticalExtent.minimumZ"
+    vertical_extent_maximum_z_attribute_name = "verticalExtent.maximumZ"
+    num_grp_attribute_name = "numGRP"
+    instance_chunking_attribute_name = "instanceChunking"
+    number_of_times_attribute_name = "numberOfTimes"
+    time_record_interval_attribute_name = "timeRecordInterval"
+    # @TODO  @FIXME -- first and last records are supposed to be datetime but S100 doc says 'character'  Need to create a datetime handler
+    date_time_of_first_record_attribute_name = "dateTimeOfFirstRecord"
+    date_time_of_last_record_attribute_name = "dateTimeOfLastRecord"
 
     @property
     def vertical_extent_minimum_z(self) -> float:
@@ -621,10 +590,6 @@ class FeatureInstance_base(GeographicBoundingBox):
         self.vertical_extent_minimum_z = self.vertical_extent_minimum_z_type()
 
     @property
-    def vertical_extent_maximum_z_attribute_name(self) -> str:
-        return "verticalExtent.maximumZ"
-
-    @property
     def vertical_extent_maximum_z(self) -> float:
         return self._attributes[self.vertical_extent_maximum_z_attribute_name]
 
@@ -639,10 +604,6 @@ class FeatureInstance_base(GeographicBoundingBox):
     def vertical_extent_maximum_z_create(self):
         """ Creates a blank, empty or zero value for vertical_extent_maximum_z"""
         self.vertical_extent_maximum_z = self.vertical_extent_maximum_z_type()
-
-    @property
-    def num_grp_attribute_name(self) -> str:
-        return "numGRP"
 
     @property
     def num_grp(self) -> int:
@@ -661,10 +622,6 @@ class FeatureInstance_base(GeographicBoundingBox):
         self.num_grp = self.num_grp_type()
 
     @property
-    def instance_chunking_attribute_name(self) -> str:
-        return "instanceChunking"
-
-    @property
     def instance_chunking(self) -> str:
         return self._attributes[self.instance_chunking_attribute_name]
 
@@ -679,10 +636,6 @@ class FeatureInstance_base(GeographicBoundingBox):
     def instance_chunking_create(self):
         """ Creates a blank, empty or zero value for instance_chunking"""
         self.instance_chunking = self.instance_chunking_type()
-
-    @property
-    def number_of_times_attribute_name(self) -> str:
-        return "numberOfTimes"
 
     @property
     def number_of_times(self) -> int:
@@ -701,10 +654,6 @@ class FeatureInstance_base(GeographicBoundingBox):
         self.number_of_times = self.number_of_times_type()
 
     @property
-    def time_record_interval_attribute_name(self) -> str:
-        return "timeRecordInterval"
-
-    @property
     def time_record_interval(self) -> int:
         return self._attributes[self.time_record_interval_attribute_name]
 
@@ -719,11 +668,6 @@ class FeatureInstance_base(GeographicBoundingBox):
     def time_record_interval_create(self):
         """ Creates a blank, empty or zero value for time_record_interval"""
         self.time_record_interval = self.time_record_interval_type()
-
-    # @TODO  @FIXME -- first and last records are supposed to be datetime but S100 doc says 'character'  Need to create a datetime handler
-    @property
-    def date_time_of_first_record_attribute_name(self) -> str:
-        return "dateTimeOfFirstRecord"
 
     @property
     def date_time_of_first_record(self) -> str:
@@ -740,10 +684,6 @@ class FeatureInstance_base(GeographicBoundingBox):
     def date_time_of_first_record_create(self):
         """ Creates a blank, empty or zero value for date_time_of_first_record"""
         self.date_time_of_first_record = self.date_time_of_first_record_type()
-
-    @property
-    def date_time_of_last_record_attribute_name(self) -> str:
-        return "dateTimeOfLastRecord"
 
     @property
     def date_time_of_last_record(self) -> str:
@@ -766,9 +706,16 @@ class FeatureInstance_DCF2(FeatureInstance_base):
     """ Data Coding Format 2 is the grid format from table 10c-12 in S100 spec.  Used in S102 for example.
     """
 
-    @property
-    def grid_origin_longitude_attribute_name(self) -> str:
-        return "gridOriginLongitude"
+    grid_origin_longitude_attribute_name = "gridOriginLongitude"
+    grid_origin_latitude_attribute_name = "gridOriginLatitude"
+    grid_origin_vertical_attribute_name = "gridOriginVertical"
+    grid_spacing_longitudinal_attribute_name = "gridSpacingLongitudinal"
+    grid_spacing_latitudinal_attribute_name = "gridSpacingLatitudinal"
+    grid_spacing_vertical_attribute_name = "gridSpacingVertical"
+    num_points_longitudinal_attribute_name = "numPointsLongitudinal"
+    num_points_latitudinal_attribute_name = "numPointsLatitudinal"
+    num_points_vertical_attribute_name = "numPointsVertical"
+    start_sequence_attribute_name = "startSequence"
 
     @property
     def grid_origin_longitude(self) -> float:
@@ -787,10 +734,6 @@ class FeatureInstance_DCF2(FeatureInstance_base):
         self.grid_origin_longitude = self.grid_origin_longitude_type()
 
     @property
-    def grid_origin_latitude_attribute_name(self) -> str:
-        return "gridOriginLatitude"
-
-    @property
     def grid_origin_latitude(self) -> float:
         return self._attributes[self.grid_origin_latitude_attribute_name]
 
@@ -805,10 +748,6 @@ class FeatureInstance_DCF2(FeatureInstance_base):
     def grid_origin_latitude_create(self):
         """ Creates a blank, empty or zero value for grid_origin_latitude"""
         self.grid_origin_latitude = self.grid_origin_latitude_type()
-
-    @property
-    def grid_origin_vertical_attribute_name(self) -> str:
-        return "gridOriginVertical"
 
     @property
     def grid_origin_vertical(self) -> float:
@@ -827,10 +766,6 @@ class FeatureInstance_DCF2(FeatureInstance_base):
         self.grid_origin_vertical = self.grid_origin_vertical_type()
 
     @property
-    def grid_spacing_longitudinal_attribute_name(self) -> str:
-        return "gridSpacingLongitudinal"
-
-    @property
     def grid_spacing_longitudinal(self) -> float:
         return self._attributes[self.grid_spacing_longitudinal_attribute_name]
 
@@ -845,10 +780,6 @@ class FeatureInstance_DCF2(FeatureInstance_base):
     def grid_spacing_longitudinal_create(self):
         """ Creates a blank, empty or zero value for grid_spacing_longitudinal"""
         self.grid_spacing_longitudinal = self.grid_spacing_longitudinal_type()
-
-    @property
-    def grid_spacing_latitudinal_attribute_name(self) -> str:
-        return "gridSpacingLatitudinal"
 
     @property
     def grid_spacing_latitudinal(self) -> float:
@@ -867,10 +798,6 @@ class FeatureInstance_DCF2(FeatureInstance_base):
         self.grid_spacing_latitudinal = self.grid_spacing_latitudinal_type()
 
     @property
-    def grid_spacing_vertical_attribute_name(self) -> str:
-        return "gridSpacingVertical"
-
-    @property
     def grid_spacing_vertical(self) -> float:
         return self._attributes[self.grid_spacing_vertical_attribute_name]
 
@@ -885,10 +812,6 @@ class FeatureInstance_DCF2(FeatureInstance_base):
     def grid_spacing_vertical_create(self):
         """ Creates a blank, empty or zero value for grid_spacing_vertical"""
         self.grid_spacing_vertical = self.grid_spacing_vertical_type()
-
-    @property
-    def num_points_longitudinal_attribute_name(self) -> str:
-        return "numPointsLongitudinal"
 
     @property
     def num_points_longitudinal(self) -> int:
@@ -907,10 +830,6 @@ class FeatureInstance_DCF2(FeatureInstance_base):
         self.num_points_longitudinal = self.num_points_longitudinal_type()
 
     @property
-    def num_points_latitudinal_attribute_name(self) -> str:
-        return "numPointsLatitudinal"
-
-    @property
     def num_points_latitudinal(self) -> int:
         return self._attributes[self.num_points_latitudinal_attribute_name]
 
@@ -927,10 +846,6 @@ class FeatureInstance_DCF2(FeatureInstance_base):
         self.num_points_latitudinal = self.num_points_latitudinal_type()
 
     @property
-    def num_points_vertical_attribute_name(self) -> str:
-        return "numPointsVertical"
-
-    @property
     def num_points_vertical(self) -> int:
         return self._attributes[self.num_points_vertical_attribute_name]
 
@@ -945,10 +860,6 @@ class FeatureInstance_DCF2(FeatureInstance_base):
     def num_points_vertical_create(self):
         """ Creates a blank, empty or zero value for num_points_vertical"""
         self.num_points_vertical = self.num_points_vertical_type()
-
-    @property
-    def start_sequence_attribute_name(self) -> str:
-        return "startSequence"
 
     @property
     def start_sequence(self) -> str:
@@ -975,6 +886,14 @@ class FeatureInformation(S1XX_Attributes_base):
     The features described under GroupF have a matching named entry parallel to GroupF (top level).
     The actual data (depths etc) is stored in the top level element while basic metadata is stored in this element.
     """
+    code_attribute_name = "code"
+    name_attribute_name = "name"
+    unit_of_measure_attribute_name = "uom.name"
+    fill_value_attribute_name = "fillValue"
+    datatype_attribute_name = "datatype"
+    lower_attribute_name = "lower"
+    upper_attribute_name = "upper"
+    closure_attribute_name = "closure"
 
     @property
     def __version__(self) -> int:
@@ -1006,10 +925,6 @@ class FeatureInformation(S1XX_Attributes_base):
         self._attributes[self.code_attribute_name] = val
 
     @property
-    def code_attribute_name(self) -> str:
-        return "code"
-
-    @property
     def code_type(self):
         return str
 
@@ -1029,10 +944,6 @@ class FeatureInformation(S1XX_Attributes_base):
     @name.setter
     def name(self, val: str):
         self._attributes[self.name_attribute_name] = val
-
-    @property
-    def name_attribute_name(self) -> str:
-        return "name"
 
     @property
     def name_type(self):
@@ -1056,10 +967,6 @@ class FeatureInformation(S1XX_Attributes_base):
         self._attributes[self.unit_of_measure_attribute_name] = val
 
     @property
-    def unit_of_measure_attribute_name(self) -> str:
-        return "uom.name"
-
-    @property
     def unit_of_measure_type(self):
         return str
 
@@ -1079,10 +986,6 @@ class FeatureInformation(S1XX_Attributes_base):
     @fill_value.setter
     def fill_value(self, val: float):
         self._attributes[self.fill_value_attribute_name] = val
-
-    @property
-    def fill_value_attribute_name(self) -> str:
-        return "fillValue"
 
     @property
     def fill_value_type(self):
@@ -1106,10 +1009,6 @@ class FeatureInformation(S1XX_Attributes_base):
         self._attributes[self.datatype_attribute_name] = val
 
     @property
-    def datatype_attribute_name(self) -> str:
-        return "datatype"
-
-    @property
     def datatype_type(self):
         return str
 
@@ -1129,10 +1028,6 @@ class FeatureInformation(S1XX_Attributes_base):
     @lower.setter
     def lower(self, val: float):
         self._attributes[self.lower_attribute_name] = val
-
-    @property
-    def lower_attribute_name(self) -> str:
-        return "lower"
 
     @property
     def lower_type(self):
@@ -1156,10 +1051,6 @@ class FeatureInformation(S1XX_Attributes_base):
         self._attributes[self.upper_attribute_name] = val
 
     @property
-    def upper_attribute_name(self) -> str:
-        return "upper"
-
-    @property
     def upper_type(self):
         return float
 
@@ -1181,10 +1072,6 @@ class FeatureInformation(S1XX_Attributes_base):
         self._attributes[self.closure_attribute_name] = val
 
     @property
-    def closure_attribute_name(self) -> str:
-        return "closure"
-
-    @property
     def closure_type(self):
         return str
 
@@ -1193,6 +1080,17 @@ class FeatureInformation(S1XX_Attributes_base):
 
 
 class S100_FeatureContainer(S1XX_Attributes_base):
+    axis_names_attribute_name = "axisNames"
+    data_coding_format_attribute_name = "dataCodingFormat"
+    dimension_attribute_name = "dimension"
+    common_point_rule_attribute_name = "commonPointRule"
+    horizontal_position_uncertainty_attribute_name = "horizontalPositionUncertainty"
+    vertical_uncertainty_attribute_name = "verticalUncertainty"
+    time_uncertainty_attribute_name = "timeUncertainty"
+    num_instances_attribute_name = "numInstances"
+    sequencing_rule_type_attribute_name = "sequencingRule.type"
+    sequencing_rule_scan_direction_attribute_name = "sequencingRule.scanDirection"
+    interpolation_type_attribute_name = "interpolationType"
 
     @property
     def axis_names(self) -> s1xx_sequence:
@@ -1202,10 +1100,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
     @axis_names.setter
     def axis_names(self, val: s1xx_sequence):
         self._attributes[self.axis_names_attribute_name] = val
-
-    @property
-    def axis_names_attribute_name(self) -> str:
-        return "axisNames"
 
     @property
     def axis_names_type(self) -> Type[str]:
@@ -1220,10 +1114,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 
         """
         self.axis_names = self.axis_names_type([2], dtype='S')
-
-    @property
-    def data_coding_format_attribute_name(self) -> str:
-        return "dataCodingFormat"
 
     @property
     def data_coding_format(self) -> DATA_CODING_FORMAT:
@@ -1242,10 +1132,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         self.data_coding_format = self.data_coding_format_type["Regular Grid"]
 
     @property
-    def dimension_attribute_name(self) -> str:
-        return "dimension"
-
-    @property
     def dimension(self) -> int:
         return self._attributes[self.dimension_attribute_name]
 
@@ -1260,10 +1146,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
     def dimension_create(self):
         """ Creates a blank, empty or zero value for dimension"""
         self.dimension = self.dimension_type()
-
-    @property
-    def common_point_rule_attribute_name(self) -> str:
-        return "commonPointRule"
 
     @property
     def common_point_rule(self) -> COMMON_POINT_RULE:
@@ -1282,10 +1164,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         self.common_point_rule = self.common_point_rule_type["average"]
 
     @property
-    def horizontal_position_uncertainty_attribute_name(self) -> str:
-        return "horizontalPositionUncertainty"
-
-    @property
     def horizontal_position_uncertainty(self) -> float:
         return self._attributes[self.horizontal_position_uncertainty_attribute_name]
 
@@ -1300,10 +1178,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
     def horizontal_position_uncertainty_create(self):
         """ Creates a blank, empty or zero value for horizontal_position_uncertainty"""
         self.horizontal_position_uncertainty = self.horizontal_position_uncertainty_type()
-
-    @property
-    def vertical_uncertainty_attribute_name(self) -> str:
-        return "verticalUncertainty"
 
     @property
     def vertical_uncertainty(self) -> float:
@@ -1322,10 +1196,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         self.vertical_uncertainty = self.vertical_uncertainty_type()
 
     @property
-    def time_uncertainty_attribute_name(self) -> str:
-        return "timeUncertainty"
-
-    @property
     def time_uncertainty(self) -> float:
         return self._attributes[self.time_uncertainty_attribute_name]
 
@@ -1342,10 +1212,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         self.time_uncertainty = self.time_uncertainty_type()
 
     @property
-    def num_instances_attribute_name(self) -> str:
-        return "numInstances"
-
-    @property
     def num_instances(self) -> int:
         return self._attributes[self.num_instances_attribute_name]
 
@@ -1360,10 +1226,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
     def num_instances_create(self):
         """ Creates a blank, empty or zero value for num_instances"""
         self.num_instances = self.num_instances_type()
-
-    @property
-    def sequencing_rule_type_attribute_name(self) -> str:
-        return "sequencingRule.type"
 
     @property
     def sequencing_rule_type(self) -> SEQUENCING_RULE_TYPE:
@@ -1415,10 +1277,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         self.sequencing_rule_type = self.sequencing_rule_type_type["linear"]
 
     @property
-    def sequencing_rule_scan_direction_attribute_name(self) -> str:
-        return "sequencingRule.scanDirection"
-
-    @property
     def sequencing_rule_scan_direction(self) -> str:
         return self._attributes[self.sequencing_rule_scan_direction_attribute_name]
 
@@ -1433,10 +1291,6 @@ class S100_FeatureContainer(S1XX_Attributes_base):
     def sequencing_rule_scan_direction_create(self):
         """ Creates a blank, empty or zero value for sequencing_rule_scan_direction"""
         self.sequencing_rule_scan_direction = self.sequencing_rule_scan_direction_type()
-
-    @property
-    def interpolation_type_attribute_name(self) -> str:
-        return "interpolationType"
 
     @property
     def interpolation_type(self) -> Type[int]:
@@ -1464,14 +1318,20 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 class S100Root(GeographicBoundingBox):
     """ From table 10c-6 in S100 spec.
     """
+    horizontal_datum_reference_attribute_name = "horizontalDatumReference"
+    horizontal_datum_value_attribute_name = "horizontalDatumValue"
+    epoch_attribute_name = "epoch"
+    geographic_identifier_attribute_name = "geographicIdentifier"
+    vertical_datum_attribute_name = "verticalDatum"
+    meta_features_attribute_name = "metaFeatures"
+    metadata_attribute_name = "metadata"
+    product_specification_attribute_name = "productSpecification"
+    issue_time_attribute_name = "issueTime"
+    issue_date_attribute_name = "issueDate"
 
     @property
     def __version__(self) -> int:
         return 1
-
-    @property
-    def product_specification_attribute_name(self) -> str:
-        return "productSpecification"
 
     @property
     def product_specification(self) -> str:
@@ -1490,10 +1350,6 @@ class S100Root(GeographicBoundingBox):
         self.product_specification = self.product_specification_type()
 
     @property
-    def issue_time_attribute_name(self) -> str:
-        return "issueTime"
-
-    @property
     def issue_time(self) -> str:
         return self._attributes[self.issue_time_attribute_name]
 
@@ -1508,10 +1364,6 @@ class S100Root(GeographicBoundingBox):
     def issue_time_create(self):
         """ Creates a blank, empty or zero value for issue_time"""
         self.issue_time = self.issue_time_type()
-
-    @property
-    def issue_date_attribute_name(self) -> str:
-        return "issueDate"
 
     @property
     def issue_date(self) -> str:
@@ -1530,10 +1382,6 @@ class S100Root(GeographicBoundingBox):
         self.issue_date = self.issue_date_type()
 
     @property
-    def horizontal_datum_reference_attribute_name(self) -> str:
-        return "horizontalDatumReference"
-
-    @property
     def horizontal_datum_reference(self) -> str:
         return self._attributes[self.horizontal_datum_reference_attribute_name]
 
@@ -1548,10 +1396,6 @@ class S100Root(GeographicBoundingBox):
     def horizontal_datum_reference_create(self):
         """ Creates a blank, empty or zero value for horizontal_datum_reference"""
         self.horizontal_datum_reference = self.horizontal_datum_reference_type()
-
-    @property
-    def horizontal_datum_value_attribute_name(self) -> str:
-        return "horizontalDatumValue"
 
     @property
     def horizontal_datum_value(self) -> int:
@@ -1570,10 +1414,6 @@ class S100Root(GeographicBoundingBox):
         self.horizontal_datum_value = self.horizontal_datum_value_type()
 
     @property
-    def epoch_attribute_name(self) -> str:
-        return "epoch"
-
-    @property
     def epoch(self) -> str:
         return self._attributes[self.epoch_attribute_name]
 
@@ -1588,10 +1428,6 @@ class S100Root(GeographicBoundingBox):
     def epoch_create(self):
         """ Creates a blank, empty or zero value for epoch"""
         self.epoch = self.epoch_type()
-
-    @property
-    def geographic_identifier_attribute_name(self) -> str:
-        return "geographicIdentifier"
 
     @property
     def geographic_identifier(self) -> str:
@@ -1610,10 +1446,6 @@ class S100Root(GeographicBoundingBox):
         self.geographic_identifier = self.geographic_identifier_type()
 
     @property
-    def metadata_attribute_name(self) -> str:
-        return "metadata"
-
-    @property
     def metadata(self) -> str:
         return self._attributes[self.metadata_attribute_name]
 
@@ -1628,10 +1460,6 @@ class S100Root(GeographicBoundingBox):
     def metadata_create(self):
         """ Creates a blank, empty or zero value for metadata"""
         self.metadata = self.metadata_type()
-
-    @property
-    def vertical_datum_attribute_name(self) -> str:
-        return "verticalDatum"
 
     @property
     def vertical_datum(self) -> Enum:
@@ -1653,10 +1481,6 @@ class S100Root(GeographicBoundingBox):
     def vertical_datum_create(self):
         """ Creates a blank, empty or zero value for vertical_datum"""
         self.vertical_datum = self.vertical_datum_type["MLLW"]
-
-    @property
-    def meta_features_attribute_name(self) -> str:
-        return "metaFeatures"
 
     @property
     def meta_features(self) -> str:
