@@ -131,8 +131,50 @@ class CLI:
 
             with S111File(f'{s111_path_prefix}.h5', "w", driver=None) as s111_file:
 
-                s111_file.create_empty_metadata()
                 root = s111_file.root
+
+                root.surface_current_create()
+                surface_current_feature = root.surface_current
+
+                surface_current_feature.surface_current_create()
+                surface_current_feature_instance_01 = surface_current_feature.surface_current.append_new_item()
+
+                surface_current_feature_instance_01.surface_current_group_create()
+
+                surface_current_feature_instance_01.uncertainty_dataset_create()
+                speed_uncertainty = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+                speed_uncertainty.name = "surfaceCurrentSpeed"
+                speed_uncertainty.value = -1.0
+                direction_uncertainty = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+                direction_uncertainty.name = "surfaceCurrentDirection"
+                direction_uncertainty.value = -1.0
+
+                root.feature_information_create()
+                group_f = root.feature_information
+                group_f.feature_code_create()
+                group_f.surface_current_feature_dataset_create()
+
+                surface_current_feature_dataset = root.feature_information.surface_current_feature_dataset
+
+                surface_current_speed_info = surface_current_feature_dataset.append_new_item()
+                surface_current_speed_info.code = "surfaceCurrentSpeed"
+                surface_current_speed_info.name = "Surface current speed"
+                surface_current_speed_info.unit_of_measure = "knots"
+                surface_current_speed_info.datatype = "H5T_FLOAT"
+                surface_current_speed_info.fill_value = FILLVALUE
+                surface_current_speed_info.lower = "0.0"
+                surface_current_speed_info.upper = ""
+                surface_current_speed_info.closure = "geSemiInterval"
+
+                surface_current_direction_info = surface_current_feature_dataset.append_new_item()
+                surface_current_direction_info.code = "surfaceCurrentDirection"
+                surface_current_direction_info.name = "Surface current direction"
+                surface_current_direction_info.unit_of_measure = "arc-degrees"
+                surface_current_direction_info.datatype = "H5T_FLOAT"
+                surface_current_direction_info.fill_value = FILLVALUE
+                surface_current_direction_info.lower = "0"
+                surface_current_direction_info.upper = "360"
+                surface_current_direction_info.closure = "geLtInterval"
 
                 root.product_specification = "INT.IHO.S-111.1.0"
                 root.metadata = 'MD_{}.XML'.format(os.path.split(s111_path_prefix)[-1])
@@ -143,75 +185,28 @@ class CLI:
                 now = datetime.datetime.now()
                 root.issue_date = now.strftime('%Y%m%d')
                 root.issue_time = now.strftime('%H%M%SZ')
-
-                # Additional S-111 root metadata
                 root.surface_current_depth = -1 * DEFAULT_TARGET_DEPTH
                 root.depth_type_index = 2
 
-                del root.vertical_datum
-                del root.extent_type_code
-                del root.meta_features
+                surface_current_feature.axis_names = numpy.array(["longitude", "latitude"])
+                surface_current_feature.common_point_rule = 3
+                surface_current_feature.data_coding_format = 2
+                surface_current_feature.dimension = 2
+                surface_current_feature.sequencing_rule_scan_direction = "Longitude, Latitude"
+                surface_current_feature.interpolation_type = 10
+                surface_current_feature.num_instances = 1
+                surface_current_feature.sequencing_rule_type = 1
+                surface_current_feature.time_uncertainty = -1.0
+                surface_current_feature.vertical_uncertainty = -1.0
+                surface_current_feature.horizontal_position_uncertainty = -1.0
+                surface_current_feature.type_of_current_data = 6
+                surface_current_feature.method_currents_product = MODELS[model_name]['product']
 
-                # Add Group_F, featureCode, and SurfaceCurrent feature information dataset
-                surf_current_feature = root.feature_information.surface_current_dataset
-
-                surface_current_speed_info = surf_current_feature.append_new_item()
-                surface_current_speed_info.initialize_properties(True)
-                surface_current_speed_info.code = "surfaceCurrentSpeed"
-                surface_current_speed_info.name = "Surface current speed"
-                surface_current_speed_info.unit_of_measure = "knots"
-                surface_current_speed_info.lower = "0.0"
-                surface_current_speed_info.upper = ""
-                surface_current_speed_info.closure = "geSemiInterval"
-
-                surface_current_direction_info = surf_current_feature.append_new_item()
-                surface_current_direction_info.initialize_properties(True)
-                surface_current_direction_info.code = "surfaceCurrentDirection"
-                surface_current_direction_info.name = "Surface current direction"
-                surface_current_direction_info.unit_of_measure = "arc-degrees"
-                surface_current_speed_info.lower = "0"
-                surface_current_direction_info.upper = "360"
-                surface_current_direction_info.closure = "geLtInterval"
-
-                root.surface_current.axis_names = numpy.array(["longitude", "latitude"])
-                root.surface_current.common_point_rule = 3
-                root.surface_current.data_coding_format = 2
-                root.surface_current.dimension = 2
-                root.surface_current.sequencing_rule_scan_direction = "Longitude, Latitude"
-                root.surface_current.interpolation_type = 10
-                root.surface_current.num_instances = 1
-                root.surface_current.sequencing_rule_type = 1
-                root.surface_current.time_uncertainty = -1.0
-                root.surface_current.vertical_uncertainty = -1.0
-                root.surface_current.horizontal_position_uncertainty = -1.0
-
-                # Additional SurfaceCurrentContainer Class Metadata
-                root.surface_current.type_of_current_data = 6
-                root.surface_current.method_currents_product = MODELS[model_name]['product']
-
-                # Add Feature Instance
-                surface_current_01 = root.surface_current.surface_current.append_new_item()
-                surface_current_01.initialize_properties(True)
-
-                # Feature Instance Uncertainty Dataset
-                speed_uncertainty = surface_current_01.uncertainty_dataset.append_new_item()
-                speed_uncertainty.name = "surfaceCurrentSpeed"
-                speed_uncertainty.value = -1.0
-                direction_uncertainty = surface_current_01.uncertainty_dataset.append_new_item()
-                direction_uncertainty.name = "surfaceCurrentDirection"
-                direction_uncertainty.value = -1.0
-
-                del surface_current_01.grid_spacing_vertical
-                del surface_current_01.grid_origin_vertical
-                del surface_current_01.extent_type_code
-                del surface_current_01.num_points_vertical
-                del surface_current_01.vertical_extent_maximum_z
-                del surface_current_01.vertical_extent_minimum_z
-
-                # Additional Feature Instance Attributes
-                surface_current_01.start_sequence = "0,0"
+                surface_current_feature_instance_01.start_sequence = "0,0"
                 time_str = model_file.datetime_values[0].strftime('%Y%m%dT%H%M%SZ')
-                surface_current_01.datetime_first_record = numpy.string_(time_str)
+                surface_current_feature_instance_01.datetime_first_record = numpy.string_(time_str)
+                surface_current_feature.min_dataset_current_speed = 0
+                surface_current_feature.max_dataset_current_speed = 0
 
                 for time_index in range(len(model_file.datetime_values)):
                     # Get native-grid output with invalid/masked values removed
@@ -267,48 +262,49 @@ class CLI:
                     root.south_bound_latitude = miny
                     root.north_bound_latitude = maxy
 
-                    if min_speed < root.surface_current.min_dataset_current_speed:
-                        root.surface_current.min_dataset_current_speed = min_speed
+                    if min_speed < surface_current_feature.min_dataset_current_speed:
+                        surface_current_feature.min_dataset_current_speed = min_speed
 
-                    if max_speed > root.surface_current.max_dataset_current_speed:
-                        root.surface_current.max_dataset_current_speed = max_speed
+                    if max_speed > surface_current_feature.max_dataset_current_speed:
+                        surface_current_feature.max_dataset_current_speed = max_speed
 
-                    surface_current_01.datetime_last_record = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
+                    surface_current_feature_instance_01.datetime_last_record = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
 
-                    surface_current_01.num_grp = len(model_file.datetime_values)
-                    surface_current_01.number_of_times = len(model_file.datetime_values)
+                    surface_current_feature_instance_01.num_grp = len(model_file.datetime_values)
+                    surface_current_feature_instance_01.number_of_times = len(model_file.datetime_values)
 
                     interval = model_file.datetime_values[1] - model_file.datetime_values[0]
-                    surface_current_01.time_record_interval = interval.total_seconds()
+                    surface_current_feature_instance_01.time_record_interval = interval.total_seconds()
 
-                    surface_current_01.east_bound_longitude = minx
-                    surface_current_01.west_bound_longitude = maxx
-                    surface_current_01.south_bound_latitude = miny
-                    surface_current_01.north_bound_latitude = maxy
-                    surface_current_01.grid_origin_latitude = miny
+                    surface_current_feature_instance_01.east_bound_longitude = minx
+                    surface_current_feature_instance_01.west_bound_longitude = maxx
+                    surface_current_feature_instance_01.south_bound_latitude = miny
+                    surface_current_feature_instance_01.north_bound_latitude = maxy
+                    surface_current_feature_instance_01.grid_origin_latitude = miny
 
-                    surface_current_01.grid_origin_longitude = minx
-                    surface_current_01.grid_origin_latitude = miny
-                    surface_current_01.grid_spacing_longitudinal = cellsize_x
-                    surface_current_01.grid_spacing_latitudinal = cellsize_y
+                    surface_current_feature_instance_01.grid_origin_longitude = minx
+                    surface_current_feature_instance_01.grid_origin_latitude = miny
+                    surface_current_feature_instance_01.grid_spacing_longitudinal = cellsize_x
+                    surface_current_feature_instance_01.grid_spacing_latitudinal = cellsize_y
 
-                    surface_current_01.num_points_latitudinal = ny
-                    surface_current_01.num_points_longitudinal = nx
+                    surface_current_feature_instance_01.num_points_latitudinal = ny
+                    surface_current_feature_instance_01.num_points_longitudinal = nx
 
-                    # Add Group(s)
-                    surface_current_group_object = surface_current_01.surface_current_group.append_new_item()
+                    surface_current_group_object = surface_current_feature_instance_01.surface_current_group.append_new_item()
                     surface_current_group_object.values_create()
                     grid = surface_current_group_object.values
                     grid.surface_current_speed = speed
                     grid.surface_current_direction = direction
-                    # Add Group(s) Attribute
+
                     surface_current_group_object.time_point = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
+
+                    # TODO Fix Group F/SurfaceCurrent/Attribute Chunking and populate chunking attributes
+                    surface_current_feature_dataset.chunking = ""
 
                     # TODO: Determine group values dataset chunk sizes(e.g grid.chunks)
                     # chunks = values_dset.chunks
                     # chunking_str = ','.join(str(x) for x in chunks)
-                    # groupF_dset.attrs.create('chunking', chunking_str, dtype=h5py.special_dtype(vlen=str))
-                    # feature_instance.attrs.create('instanceChunking', numpy.string_(chunking_str))
+                    surface_current_feature_instance_01.instance_chunking = ""
 
                 s111_file.write()
 
