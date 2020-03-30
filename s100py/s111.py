@@ -7,7 +7,7 @@ from enum import Enum
 import numpy
 
 from s100py.s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_Grids_base, S1XXFile
-from s100py.s100 import S100_FeatureContainer, S100Root, FeatureInstance_DCF2
+from s100py.s100 import S100_FeatureContainer, S100Root, FeatureInstance_DCF2, FeatureInstance_base
 
 SURFACE_CURRENT = "SurfaceCurrent"
 
@@ -113,6 +113,87 @@ class SurfaceCurrentUncertaintyDataset(S1XX_Dataset_base):
     @property
     def metadata_type(self) -> Type[SurfaceCurrentUncertaintyInformation]:
         return SurfaceCurrentUncertaintyInformation
+
+
+class GeometryValuesDataset(S1XX_Grids_base):
+    longitude_attribute_name = "longitude"
+    latitude_attribute_name = "latitude"
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def metadata_name(self) -> str:
+        return "geometryValues"
+
+    @property
+    def longitude(self) -> s1xx_sequence:
+        return self._attributes[self.longitude_attribute_name]
+
+    @longitude.setter
+    def longitude(self, val: s1xx_sequence):
+        self._attributes[self.longitude_attribute_name] = val
+
+    @property
+    def longitude_type(self) -> s1xx_sequence:
+        return numpy.ndarray
+
+    def longitude_create(self):
+        """ Creates a blank, empty or zero value for longitude"""
+        self.longitude = self.longitude_type([], numpy.float)
+
+    @property
+    def latitude(self) -> s1xx_sequence:
+        return self._attributes[self.latitude_attribute_name]
+
+    @latitude.setter
+    def latitude(self, val: s1xx_sequence):
+        self._attributes[self.latitude_attribute_name] = val
+
+    @property
+    def latitude_type(self) -> s1xx_sequence:
+        return numpy.ndarray
+
+    def latitude_create(self):
+        """ Creates a blank, empty or zero value for latitude"""
+        self.latitude = self.latitude_type([], numpy.float)
+
+    def get_write_order(self):
+        return [self.longitude_attribute_name, self.latitude_attribute_name]
+
+
+class PositioningGroup(S1XX_Attributes_base):
+
+    geometry_values_attribute_name = "geometry_values"
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def metadata_name(self) -> str:
+        return "Positioning"
+
+    @property
+    def metadata_type(self) -> type:
+        return GeometryValuesDataset
+
+    @property
+    def geometry_values(self) -> GeometryValuesDataset:
+        return self._attributes[self.geometry_values_attribute_name]
+
+    @geometry_values.setter
+    def geometry_values(self, val: GeometryValuesDataset):
+        self._attributes[self.geometry_values_attribute_name] = val
+
+    @property
+    def geometry_values_type(self) -> Type[GeometryValuesDataset]:
+        return GeometryValuesDataset
+
+    def geometry_values_create(self):
+        """ Creates a blank, empty or zero value for geometry_values"""
+        self.geometry_values = self.geometry_values_type()
 
 
 class SurfaceCurrentValues(S1XX_Grids_base):
@@ -228,17 +309,16 @@ class SurfaceCurrentGroupList(S111_MetadataList_base):
         return SurfaceCurrentGroup
 
 
-class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2):
+class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, FeatureInstance_base):
     surface_current_group_attribute_name = "Group" + r"\.\d+"
     """ Basic template for the name of the attribute
     Attribute name will be automatically determined based on the array position of the S111_MetadataList
     """
 
-    number_of_times_attribute_name = "numberOfTimes"
-    time_record_interval_attribute_name = "timeRecordInterval"
+    uncertainty_dataset_attribute_name = "uncertainty"
+    number_of_nodes_attribute_name = "numberOfNodes"
     datetime_first_record_attribute_name = "dateTimeOfFirstRecord"
     datetime_last_record_attribute_name = "dateTimeOfLastRecord"
-    uncertainty_dataset_attribute_name = "uncertainty"
 
     @property
     def surface_current_group_type(self):
@@ -249,12 +329,6 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2):
 
     @property
     def surface_current_group(self) -> S111_MetadataList_base:
-        """ The surface current data, a list of SurfaceCurrentGroup
-        Returns
-        -------
-        S1011_MetadataList_base
-            Contains a list of SurfaceCurrent objects via the SurfaceCurrent_List class
-        """
         return self._attributes[self.surface_current_group_attribute_name]
 
     @surface_current_group.setter
@@ -262,36 +336,19 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2):
         self._attributes[self.surface_current_group_attribute_name] = val
 
     @property
-    def number_of_times(self) -> S1XX_Attributes_base:
-        return self._attributes[self.number_of_times_attribute_name]
+    def number_of_nodes(self) -> S1XX_Attributes_base:
+        return self._attributes[self.number_of_nodes_attribute_name]
 
-    @number_of_times.setter
-    def number_of_times(self, val: S1XX_Attributes_base):
-        self._attributes[self.number_of_times_attribute_name] = val
+    @number_of_nodes.setter
+    def number_of_nodes(self, val: S1XX_Attributes_base):
+        self._attributes[self.number_of_nodes_attribute_name] = val
 
     @property
-    def number_of_times_type(self) -> Type[numpy.int32]:
+    def number_of_nodes_type(self) -> Type[numpy.int32]:
         return numpy.int32
 
-    def number_of_times_create(self):
-        """ Creates a blank, empty or zero value for number_of_times"""
-        self.number_of_times = self.number_of_times_type()
-
-    @property
-    def time_record_interval(self) -> S1XX_Attributes_base:
-        return self._attributes[self.time_record_interval_attribute_name]
-
-    @time_record_interval.setter
-    def time_record_interval(self, val: S1XX_Attributes_base):
-        self._attributes[self.time_record_interval_attribute_name] = val
-
-    @property
-    def time_record_interval_type(self) -> Type[numpy.int32]:
-        return numpy.int32
-
-    def time_record_interval_create(self):
-        """ Creates a blank, empty or zero value for time_record_interval"""
-        self.time_record_interval = self.time_record_interval_type()
+    def number_of_nodes_create(self):
+        self.number_of_nodes = self.number_of_nodes_type()
 
     @property
     def datetime_first_record(self) -> S1XX_Attributes_base:
@@ -306,7 +363,6 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2):
         return str
 
     def datetime_first_record_create(self):
-        """ Creates a blank, empty or zero value for datetime_first_record"""
         self.datetime_first_record = self.datetime_first_record_type()
 
     @property
@@ -322,7 +378,6 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2):
         return str
 
     def datetime_last_record_create(self):
-        """ Creates a blank, empty or zero value for datetime_last_record"""
         self.datetime_last_record = self.datetime_last_record_type()
 
     @property
@@ -338,8 +393,27 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2):
         return SurfaceCurrentUncertaintyDataset
 
     def uncertainty_dataset_create(self):
-        """ Creates a blank, empty or zero value for uncertainty_dataset"""
         self.uncertainty_dataset = self.uncertainty_dataset_type()
+
+    @property
+    def positioning_group_attribute_name(self) -> str:
+        return "Positioning"
+
+    @property
+    def positioning_group(self) -> S1XX_Attributes_base:
+        return self._attributes[self.positioning_group_attribute_name]
+
+    @positioning_group.setter
+    def positioning_group(self, val: S1XX_Attributes_base):
+        self._attributes[self.positioning_group_attribute_name] = val
+
+    @property
+    def positioning_group_type(self):
+        return PositioningGroup
+
+    def positioning_group_create(self):
+        """ Creates a blank, empty or zero value for positioning_group"""
+        self.positioning_group = self.positioning_group_type()
 
 
 class SurfaceCurrentList(S111_MetadataList_base):
@@ -462,6 +536,10 @@ class SurfaceCurrentContainer(S100_FeatureContainer):
     def type_of_current_data_create(self):
         """ Creates a value using the first item in the enumeration of type_of_current_data"""
         self.type_of_current_data = list(self.type_of_current_data_type)[0]
+
+    def data_coding_format_create(self):
+        """ Creates a blank, empty or zero value for data_coding_format"""
+        self.data_coding_format = self.data_coding_format_type(2)  # default
 
 
 class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
@@ -655,6 +733,8 @@ class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
 
 
 class SurfaceCurrentFeatureDataset(S1XX_Dataset_base):
+    chunking_attribute_name = "chunking"
+
     @property
     def __version__(self) -> int:
         return 1
@@ -666,10 +746,6 @@ class SurfaceCurrentFeatureDataset(S1XX_Dataset_base):
     @property
     def metadata_type(self) -> Type[SurfaceCurrentFeatureInformation]:
         return SurfaceCurrentFeatureInformation
-
-    @property
-    def chunking_attribute_name(self) -> str:
-        return "chunking"
 
     @property
     def chunking(self) -> S1XX_Attributes_base:
@@ -684,7 +760,6 @@ class SurfaceCurrentFeatureDataset(S1XX_Dataset_base):
         return str
 
     def chunking_create(self):
-        """ Creates a blank, empty or zero value for chunking"""
         self.chunking = self.chunking_type()
 
 
