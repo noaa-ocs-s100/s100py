@@ -4,9 +4,9 @@ Extending the API
 
 To create a new api from this framework or modify an existing one, use the following classes from :any:`s100py.s1xx`
 as well as the ones in :any:`s100py.s100`.
-    - S1XX_Attributes_base for hdf5 groups with attributes, datasets and sub-groups.
-    - S1XX_Dataset_base for datasets (numpy arrays).
-    - S1XX_MetadataList_base for groups that have multiple occurrences using the S100 naming scheme (Group_NNN)
+    - S1xxAttributesBase for hdf5 groups with attributes, datasets and sub-groups.
+    - S1xxDatasetBase for datasets (numpy arrays).
+    - S1xxMetadataListBase for groups that have multiple occurrences using the S100 naming scheme (Group_NNN)
 
 To make data members for one of the above classes, here is how to make a template in PyCharm to
 speed creation:
@@ -45,6 +45,8 @@ Code to put in your live template ::
 
     def $attr$_create(self):
         """ Creates a blank, empty or zero value for $attr$"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.$attr$ = self.$attr$_type()
 
 For enumeration data types use this template which is very similar
@@ -68,6 +70,8 @@ For enumeration data types use this template which is very similar
 
     def $attr$_create(self):
         """ Creates a value using the first item in the enumeration of $attr$"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.$attr$ = list(self.$attr$_type)[0]
 
 
@@ -107,6 +111,8 @@ Ex:  eastBoundLongitude->float ::
         """ Creates a blank, empty or zero value for $attr$
         $SELECTION$
         """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.$attr$ = self.$attr$_type()
 
 And finally a similar one for enumerations.
@@ -138,5 +144,7 @@ If you used the enumeration 'MONTY' from the sample api, this would look like   
         """ Creates a blank, empty or zero value for $attr$
         $SELECTION$
         """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.$attr$ = list(self.$attr$_type)[0]
 

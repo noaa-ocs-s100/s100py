@@ -10,10 +10,10 @@ Each data specification should create it's own S100 type file object but there i
 which can read the general top level metadata that pertains to all data specifications.
 
 The three primary data types in HDF5 attributes, datasets and groups.  s100py encapsulates groups
-(which can have attributes) with the s1xx.S1XX_Attributes_base class (should we refactor this name?).
-Datasets are derived from s100py.S1XX_Dataset_base.
+(which can have attributes) with the s1xx.S1xxAttributesBase class (should we refactor this name?).
+Datasets are derived from s100py.S1xxDatasetBase.
 S100 also adds groups that have a trailing number and can have an arbitrary number of occurrences.
-These objects are managed with the s1xx.S1XX_MetadataList_base class.
+These objects are managed with the s1xx.S1xxMetadataListBase class.
 
 Each S100 data class has data and some methods to determine what data is expected to be contained therein.
 The function get_standard_properties() will show what child data is referenced in the specs.
@@ -68,7 +68,7 @@ because S102 also is different than S100 which uses an underscore. You can see t
 We have to create the list then populate it ::
 
     >>> bathy.bathymetry_coverage_type
-    s100py.s102.BathymetryCoverages_List
+    s100py.s102.BathymetryCoveragesList
     >>> bathy.bathymetry_coverage_attribute_name  #
     'BathymetryCoverage\\.\\d+'
     >>> bathy.bathymetry_coverage_create()

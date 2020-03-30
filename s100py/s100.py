@@ -1,4 +1,4 @@
-import collections
+# import collections
 from abc import ABC, abstractmethod
 from typing import Callable, Iterator, Union, Optional, List, Type
 import re
@@ -17,7 +17,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py"
 
-from .s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_WritesOwnGroup_base, S1XXFile
+from .s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxWritesOwnGroupBase, S1XXFile
 
 
 class S100Exception(Exception):
@@ -189,7 +189,7 @@ SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
 START_SEQUENCE = numpy.string_('0,0')
 
 
-class DirectPosition(S1XX_Attributes_base):
+class DirectPosition(S1xxAttributesBase):
     """ 4.2.1.1.4 of v2.0.0
     """
     coordinate_attribute_name = "coordinate"  #: HDF5 naming
@@ -212,6 +212,8 @@ class DirectPosition(S1XX_Attributes_base):
         return numpy.ndarray
 
     def coordinate_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.coordinate = self.coordinate_type([2], numpy.float64)
 
     @property
@@ -227,10 +229,12 @@ class DirectPosition(S1XX_Attributes_base):
         return int
 
     def dimension_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.dimension = self.dimension_type()
 
 
-class GridCoordinate(S1XX_Attributes_base):
+class GridCoordinate(S1xxAttributesBase):
     """ 4.2.1.1.6 of v2.0.0
     """
 
@@ -256,10 +260,12 @@ class GridCoordinate(S1XX_Attributes_base):
         return numpy.ndarray
 
     def coord_values_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.coord_values = self.coord_values_type([2], numpy.int)
 
 
-class GridEnvelope(S1XX_Attributes_base):
+class GridEnvelope(S1xxAttributesBase):
     """ 4.2.1.1.5 of v2.0.0
     While I would think that the envelope would describe the real world extents of the grid,
     in the docs it describes the envelope as specifying the row/column offsets for the lower left and upper right
@@ -277,11 +283,11 @@ class GridEnvelope(S1XX_Attributes_base):
         return 1
 
     @property
-    def low(self) -> S1XX_Attributes_base:
+    def low(self) -> S1xxAttributesBase:
         return self._attributes[self.low_attribute_name]
 
     @low.setter
-    def low(self, val: S1XX_Attributes_base):
+    def low(self, val: S1xxAttributesBase):
         self._attributes[self.low_attribute_name] = val
 
     @property
@@ -289,14 +295,16 @@ class GridEnvelope(S1XX_Attributes_base):
         return GridCoordinate
 
     def low_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.low = self.low_type()
 
     @property
-    def high(self) -> S1XX_Attributes_base:
+    def high(self) -> S1xxAttributesBase:
         return self._attributes[self.high_attribute_name]
 
     @high.setter
-    def high(self, val: S1XX_Attributes_base):
+    def high(self, val: S1xxAttributesBase):
         self._attributes[self.high_attribute_name] = val
 
     @property
@@ -304,10 +312,12 @@ class GridEnvelope(S1XX_Attributes_base):
         return GridCoordinate
 
     def high_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.high = self.high_type()
 
 
-class SequenceRule(S1XX_Attributes_base):
+class SequenceRule(S1xxAttributesBase):
     """ 4.2.1.1.7 (and .8) of v2.0.0
     CV_SequenceRule specified in ISO 19123
     """
@@ -339,6 +349,8 @@ class SequenceRule(S1XX_Attributes_base):
         return str
 
     def type_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.type = self.type_type("linear")
 
     @property
@@ -358,10 +370,12 @@ class SequenceRule(S1XX_Attributes_base):
         return str
 
     def scan_direction_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.scan_direction = self.scan_direction_type("Longitude, Latitude")
 
 
-class Point(S1XX_Attributes_base):
+class Point(S1xxAttributesBase):
     """ 4.2.1.1.11 of v2.0.0
     The class GM_Point is taken from ISO 19107 and is the basic data type for a geometric object consisting of one and only one point.
     """
@@ -389,10 +403,12 @@ class Point(S1XX_Attributes_base):
         return DirectPosition
 
     def position_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.position = self.position_type()
 
 
-class GeographicExtent(S1XX_Attributes_base):
+class GeographicExtent(S1xxAttributesBase):
     """ 4.2.1.1.12 of v2.0.0
     The class EX_GeographicExtent is a metadata class from ISO 19115.
     It is a component of the metaclass EX_Extent.
@@ -425,6 +441,8 @@ class GeographicExtent(S1XX_Attributes_base):
         return bool
 
     def extent_type_code_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.extent_type_code = self.extent_type_code_type()
 
 
@@ -459,6 +477,8 @@ class GeographicBoundingBox(GeographicExtent):
         return float
 
     def west_bound_longitude_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.west_bound_longitude = self.west_bound_longitude_type()
 
     @property
@@ -474,6 +494,8 @@ class GeographicBoundingBox(GeographicExtent):
         return float
 
     def east_bound_longitude_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.east_bound_longitude = self.east_bound_longitude_type()
 
     @property
@@ -489,6 +511,8 @@ class GeographicBoundingBox(GeographicExtent):
         return float
 
     def south_bound_latitude_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.south_bound_latitude = self.south_bound_latitude_type()
 
     @property
@@ -504,10 +528,12 @@ class GeographicBoundingBox(GeographicExtent):
         return float
 
     def north_bound_latitude_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.north_bound_latitude = self.north_bound_latitude_type()
 
 
-class VertexPoint(S1XX_Attributes_base):
+class VertexPoint(S1xxAttributesBase):
     """ From Figure 8-21 in S100 v4.0.0
 
     """
@@ -537,6 +563,8 @@ class VertexPoint(S1XX_Attributes_base):
         return Point
 
     def geometry_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.geometry = self.geometry_type()
 
     @property
@@ -561,10 +589,12 @@ class VertexPoint(S1XX_Attributes_base):
         return numpy.ndarray
 
     def value_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.value = self.value_type([2, ], numpy.float)
 
 
-class FeatureInstance_base(GeographicBoundingBox):
+class FeatureInstanceBase(GeographicBoundingBox):
     """ The feature instance group attributes from table 10c-12 in S100 spec
     """
 
@@ -592,6 +622,8 @@ class FeatureInstance_base(GeographicBoundingBox):
 
     def vertical_extent_minimum_z_create(self):
         """ Creates a blank, empty or zero value for vertical_extent_minimum_z"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.vertical_extent_minimum_z = self.vertical_extent_minimum_z_type()
 
     @property
@@ -608,6 +640,8 @@ class FeatureInstance_base(GeographicBoundingBox):
 
     def vertical_extent_maximum_z_create(self):
         """ Creates a blank, empty or zero value for vertical_extent_maximum_z"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.vertical_extent_maximum_z = self.vertical_extent_maximum_z_type()
 
     @property
@@ -624,6 +658,8 @@ class FeatureInstance_base(GeographicBoundingBox):
 
     def num_grp_create(self):
         """ Creates a blank, empty or zero value for num_grp"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.num_grp = self.num_grp_type()
 
     @property
@@ -640,6 +676,8 @@ class FeatureInstance_base(GeographicBoundingBox):
 
     def instance_chunking_create(self):
         """ Creates a blank, empty or zero value for instance_chunking"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.instance_chunking = self.instance_chunking_type()
 
     @property
@@ -656,6 +694,8 @@ class FeatureInstance_base(GeographicBoundingBox):
 
     def number_of_times_create(self):
         """ Creates a blank, empty or zero value for number_of_times"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.number_of_times = self.number_of_times_type()
 
     @property
@@ -672,6 +712,8 @@ class FeatureInstance_base(GeographicBoundingBox):
 
     def time_record_interval_create(self):
         """ Creates a blank, empty or zero value for time_record_interval"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.time_record_interval = self.time_record_interval_type()
 
     @property
@@ -688,6 +730,8 @@ class FeatureInstance_base(GeographicBoundingBox):
 
     def date_time_of_first_record_create(self):
         """ Creates a blank, empty or zero value for date_time_of_first_record"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.date_time_of_first_record = self.date_time_of_first_record_type()
 
     @property
@@ -704,10 +748,12 @@ class FeatureInstance_base(GeographicBoundingBox):
 
     def date_time_of_last_record_create(self):
         """ Creates a blank, empty or zero value for date_time_of_last_record"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.date_time_of_last_record = self.date_time_of_last_record_type()
 
 
-class FeatureInstance_DCF2(FeatureInstance_base):
+class FeatureInstanceDCF2(FeatureInstanceBase):
     """ Data Coding Format 2 is the grid format from table 10c-12 in S100 spec.  Used in S102 for example.
     """
 
@@ -736,6 +782,8 @@ class FeatureInstance_DCF2(FeatureInstance_base):
 
     def grid_origin_longitude_create(self):
         """ Creates a blank, empty or zero value for grid_origin_longitude"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.grid_origin_longitude = self.grid_origin_longitude_type()
 
     @property
@@ -752,6 +800,8 @@ class FeatureInstance_DCF2(FeatureInstance_base):
 
     def grid_origin_latitude_create(self):
         """ Creates a blank, empty or zero value for grid_origin_latitude"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.grid_origin_latitude = self.grid_origin_latitude_type()
 
     @property
@@ -768,6 +818,8 @@ class FeatureInstance_DCF2(FeatureInstance_base):
 
     def grid_origin_vertical_create(self):
         """ Creates a blank, empty or zero value for grid_origin_vertical"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.grid_origin_vertical = self.grid_origin_vertical_type()
 
     @property
@@ -784,6 +836,8 @@ class FeatureInstance_DCF2(FeatureInstance_base):
 
     def grid_spacing_longitudinal_create(self):
         """ Creates a blank, empty or zero value for grid_spacing_longitudinal"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.grid_spacing_longitudinal = self.grid_spacing_longitudinal_type()
 
     @property
@@ -800,6 +854,8 @@ class FeatureInstance_DCF2(FeatureInstance_base):
 
     def grid_spacing_latitudinal_create(self):
         """ Creates a blank, empty or zero value for grid_spacing_latitudinal"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.grid_spacing_latitudinal = self.grid_spacing_latitudinal_type()
 
     @property
@@ -816,6 +872,8 @@ class FeatureInstance_DCF2(FeatureInstance_base):
 
     def grid_spacing_vertical_create(self):
         """ Creates a blank, empty or zero value for grid_spacing_vertical"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.grid_spacing_vertical = self.grid_spacing_vertical_type()
 
     @property
@@ -832,6 +890,8 @@ class FeatureInstance_DCF2(FeatureInstance_base):
 
     def num_points_longitudinal_create(self):
         """ Creates a blank, empty or zero value for num_points_longitudinal"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.num_points_longitudinal = self.num_points_longitudinal_type()
 
     @property
@@ -848,6 +908,8 @@ class FeatureInstance_DCF2(FeatureInstance_base):
 
     def num_points_latitudinal_create(self):
         """ Creates a blank, empty or zero value for num_points_latitudinal"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.num_points_latitudinal = self.num_points_latitudinal_type()
 
     @property
@@ -864,6 +926,8 @@ class FeatureInstance_DCF2(FeatureInstance_base):
 
     def num_points_vertical_create(self):
         """ Creates a blank, empty or zero value for num_points_vertical"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.num_points_vertical = self.num_points_vertical_type()
 
     @property
@@ -880,10 +944,12 @@ class FeatureInstance_DCF2(FeatureInstance_base):
 
     def start_sequence_create(self):
         """ Creates a blank, empty or zero value for start_sequence"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.start_sequence = self.start_sequence_type()
 
 
-class FeatureInformation(S1XX_Attributes_base):
+class FeatureInformation(S1xxAttributesBase):
     """  In S100, table 10c-8.
     In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0
 
@@ -934,6 +1000,8 @@ class FeatureInformation(S1XX_Attributes_base):
         return str
 
     def code_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.code = self.code_type()
 
     @property
@@ -955,6 +1023,8 @@ class FeatureInformation(S1XX_Attributes_base):
         return str
 
     def name_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.name = self.name_type()
 
     @property
@@ -976,6 +1046,8 @@ class FeatureInformation(S1XX_Attributes_base):
         return str
 
     def unit_of_measure_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.unit_of_measure = self.unit_of_measure_type("metres")
 
     @property
@@ -997,6 +1069,8 @@ class FeatureInformation(S1XX_Attributes_base):
         return float
 
     def fill_value_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.fill_value = self.fill_value_type(1000000)
 
     @property
@@ -1018,6 +1092,8 @@ class FeatureInformation(S1XX_Attributes_base):
         return str
 
     def datatype_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.datatype = self.datatype_type("H5T_NATIVE_FLOAT")
 
     @property
@@ -1039,6 +1115,8 @@ class FeatureInformation(S1XX_Attributes_base):
         return float
 
     def lower_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.lower = self.lower_type(-12000)
 
     @property
@@ -1060,6 +1138,8 @@ class FeatureInformation(S1XX_Attributes_base):
         return float
 
     def upper_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.upper = self.upper_type(12000)
 
     @property
@@ -1081,10 +1161,12 @@ class FeatureInformation(S1XX_Attributes_base):
         return str
 
     def closure_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.closure = self.closure_type("closedInterval")
 
 
-class S100_FeatureContainer(S1XX_Attributes_base):
+class FeatureContainer(S1xxAttributesBase):
     axis_names_attribute_name = "axisNames"
     data_coding_format_attribute_name = "dataCodingFormat"
     dimension_attribute_name = "dimension"
@@ -1122,6 +1204,8 @@ class S100_FeatureContainer(S1XX_Attributes_base):
         -------
 
         """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.axis_names = self.axis_names_type([2], dtype='S')
 
     @property
@@ -1155,6 +1239,8 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 
     def dimension_create(self):
         """ Creates a blank, empty or zero value for dimension"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.dimension = self.dimension_type()
 
     @property
@@ -1171,6 +1257,8 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 
     def common_point_rule_create(self):
         """ Creates a blank, empty or zero value for common_point_rule"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.common_point_rule = self.common_point_rule_type["average"]
 
     @property
@@ -1187,6 +1275,8 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 
     def horizontal_position_uncertainty_create(self):
         """ Creates a blank, empty or zero value for horizontal_position_uncertainty"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.horizontal_position_uncertainty = self.horizontal_position_uncertainty_type()
 
     @property
@@ -1203,6 +1293,8 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 
     def vertical_uncertainty_create(self):
         """ Creates a blank, empty or zero value for vertical_uncertainty"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.vertical_uncertainty = self.vertical_uncertainty_type()
 
     @property
@@ -1219,6 +1311,8 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 
     def time_uncertainty_create(self):
         """ Creates a blank, empty or zero value for time_uncertainty"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.time_uncertainty = self.time_uncertainty_type()
 
     @property
@@ -1235,6 +1329,8 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 
     def num_instances_create(self):
         """ Creates a blank, empty or zero value for num_instances"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.num_instances = self.num_instances_type()
 
     @property
@@ -1284,6 +1380,8 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 
     def sequencing_rule_type_create(self):
         """ Creates a blank, empty or zero value for sequencing_rule_type"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.sequencing_rule_type = self.sequencing_rule_type_type["linear"]
 
     @property
@@ -1300,6 +1398,8 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 
     def sequencing_rule_scan_direction_create(self):
         """ Creates a blank, empty or zero value for sequencing_rule_scan_direction"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.sequencing_rule_scan_direction = self.sequencing_rule_scan_direction_type()
 
     @property
@@ -1322,6 +1422,8 @@ class S100_FeatureContainer(S1XX_Attributes_base):
 
     def interpolation_type_create(self):
         """ Creates a blank, empty or zero value for interpolation_type"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.interpolation_type = self.interpolation_type_type['nearestneighbor']
 
 
@@ -1357,6 +1459,8 @@ class S100Root(GeographicBoundingBox):
 
     def product_specification_create(self):
         """ Creates a blank, empty or zero value for product_specification"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.product_specification = self.product_specification_type()
 
     @property
@@ -1373,6 +1477,8 @@ class S100Root(GeographicBoundingBox):
 
     def issue_time_create(self):
         """ Creates a blank, empty or zero value for issue_time"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.issue_time = self.issue_time_type()
 
     @property
@@ -1389,6 +1495,8 @@ class S100Root(GeographicBoundingBox):
 
     def issue_date_create(self):
         """ Creates a blank, empty or zero value for issue_date"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.issue_date = self.issue_date_type()
 
     @property
@@ -1405,6 +1513,8 @@ class S100Root(GeographicBoundingBox):
 
     def horizontal_datum_reference_create(self):
         """ Creates a blank, empty or zero value for horizontal_datum_reference"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.horizontal_datum_reference = self.horizontal_datum_reference_type()
 
     @property
@@ -1421,6 +1531,8 @@ class S100Root(GeographicBoundingBox):
 
     def horizontal_datum_value_create(self):
         """ Creates a blank, empty or zero value for horizontal_datum_value"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.horizontal_datum_value = self.horizontal_datum_value_type()
 
     @property
@@ -1437,6 +1549,8 @@ class S100Root(GeographicBoundingBox):
 
     def epoch_create(self):
         """ Creates a blank, empty or zero value for epoch"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.epoch = self.epoch_type()
 
     @property
@@ -1453,6 +1567,8 @@ class S100Root(GeographicBoundingBox):
 
     def geographic_identifier_create(self):
         """ Creates a blank, empty or zero value for geographic_identifier"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.geographic_identifier = self.geographic_identifier_type()
 
     @property
@@ -1469,6 +1585,8 @@ class S100Root(GeographicBoundingBox):
 
     def metadata_create(self):
         """ Creates a blank, empty or zero value for metadata"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.metadata = self.metadata_type()
 
     @property
@@ -1490,6 +1608,8 @@ class S100Root(GeographicBoundingBox):
 
     def vertical_datum_create(self):
         """ Creates a blank, empty or zero value for vertical_datum"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.vertical_datum = self.vertical_datum_type["MLLW"]
 
     @property
@@ -1506,6 +1626,8 @@ class S100Root(GeographicBoundingBox):
 
     def meta_features_create(self):
         """ Creates a blank, empty or zero value for meta_features"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.meta_features = self.meta_features_type()
 
 

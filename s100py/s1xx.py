@@ -21,12 +21,12 @@ import numpy
 Record = s1xx_sequence = Union[numpy.ndarray, h5py.Dataset]
 
 
-class S1XX_Attributes_base(ABC):
+class S1xxAttributesBase(ABC):
     """ This class implements a general hdf5 group object that has attributes, dataset or sub-groups.
-    Works with S1XX_MetadataList_base if the subgroups have multiple occurences (like Group.01, Group.02)
-    Works with S1XX_Dataset_base for things that are stored like a numpy array (dataset) in hdf5
+    Works with S1xxMetadataListBase if the subgroups have multiple occurences (like Group.01, Group.02)
+    Works with S1xxDatasetBase for things that are stored like a numpy array (dataset) in hdf5
 
-    __version__ and S1XX_version must be overridden.
+    __version__ must be overridden.
     To call a base class property use super().property, e.g. super().__version__
     This base class is built from the version 2.0.0 that was eventually published Nov. 2019
     """
@@ -47,10 +47,6 @@ class S1XX_Attributes_base(ABC):
     @abstractmethod
     def __version__(self) -> int:
         return -1
-
-    @property
-    def S1XX_version(self) -> tuple:
-        return (2, 0, 0)
 
     def read_hdf5_attributes(self, group_object):
         """ Reads the standard simple types (strings, ints, floats) from the given group as specified by the class specs.
@@ -120,10 +116,7 @@ class S1XX_Attributes_base(ABC):
 
         # keys are HDF5 groups or datasets
         group_lists = self.get_standard_list_properties()
-        try:
-            all_keys = list(group_object.keys())
-        except:
-            pass
+        all_keys = list(group_object.keys())
         all_keys.sort()
         basic_keys = []  # basic keys will be a list of the s102 group names to be directly imported
         list_type_keys = {}  # list_type_keys will be a dictionary where the key is the attribute name to fill and the value is a list of the S102 group names that would be found
@@ -150,10 +143,10 @@ class S1XX_Attributes_base(ABC):
 
             # read in the HDF5 attributes etc from the group
             use_type = self.__getattribute__(expected_items[key] + "_type")
-            if issubclass(use_type, S1XX_Attributes_base):
+            if issubclass(use_type, S1xxAttributesBase):
                 self.__getattribute__(expected_items[key] + "_create")()
                 data = self.__getattribute__(expected_items[key])
-                if issubclass(use_type, S1XX_WritesOwnGroup_base):  # pass the parent
+                if issubclass(use_type, S1xxWritesOwnGroupBase):  # pass the parent
                     data.read(group_object)
                 else:  # pass the exact location for the data
                     data.read(group_object[key])
@@ -182,8 +175,8 @@ class S1XX_Attributes_base(ABC):
         """
         # iterate through all the key/values in _attributes and write to hdf5
         # if a value is numpy.array then convert to h5py.Dataset
-        # if a value is a S1XX_Attributes_base instance then create a group and call it's write function
-        # if a value is a S1XX_WritesOwnGroup_base instance then let it create the group and tell it to write into the current group_object
+        # if a value is a S1xxAttributesBase instance then create a group and call it's write function
+        # if a value is a S1xxWritesOwnGroupBase instance then let it create the group and tell it to write into the current group_object
         # if a value is a date, time - convert to character string per S100, section 10C-7 table 10C-1
         # otherwise write as a simple attribute and simple type
         logging.debug("Writing" + " " + str(self))
@@ -197,11 +190,11 @@ class S1XX_Attributes_base(ABC):
                 except KeyError:
                     pass  # didn't exist, no error
                 new_dataset = group_object.create_dataset(key, data=converted_vals)
-            elif isinstance(val, S1XX_WritesOwnGroup_base):
+            elif isinstance(val, S1xxWritesOwnGroupBase):
                 # things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict
                 logging.debug("{}  S100 object - writing itself now...".format(key))
                 val.write(group_object)
-            elif isinstance(val, S1XX_Attributes_base):
+            elif isinstance(val, S1xxAttributesBase):
                 logging.debug(key + " S100 object - writing itself now...")
                 new_group = group_object.require_group(key)
                 val.write(new_group)
@@ -231,8 +224,9 @@ class S1XX_Attributes_base(ABC):
                 group_object.attrs[key] = val
 
     def write_as_xml(self, etree_object):
-        raise NotImplementedError("flesh this out if we want an xml representation of S100+ file")
         # basically add a flag to read/write functions, then everywhere a group, dataset or attribute is written either use xml or hdf5
+        pass  # this pass makes the warnings in PyCharm go away, must be a pattern of if just NotImplemented treats it as abstract
+        raise NotImplementedError("flesh this out if we want an xml representation of S100+ file")
 
     def get_data(self, key):
         return self._attributes[key]
@@ -289,7 +283,7 @@ class S1XX_Attributes_base(ABC):
         return list(self.get_standard_properties_mapping().keys())
 
     def get_standard_list_properties(self):
-        """ Returns a list of properties that are lists (children based on S1XX_MetadataList_base).
+        """ Returns a list of properties that are lists (children based on S1xxMetadataListBase).
         Basically a way of finding which items will be named <name>_001, <name>_002 etc
 
         Returns
@@ -301,7 +295,7 @@ class S1XX_Attributes_base(ABC):
         s100_to_property = self.get_standard_properties_mapping()
         s100_to_property_for_lists = {}
         for s100_attr, prop in s100_to_property.items():
-            if issubclass(self.__getattribute__(prop + "_type"), S1XX_MetadataList_base):
+            if issubclass(self.__getattribute__(prop + "_type"), S1xxMetadataListBase):
                 s100_to_property_for_lists[s100_attr] = prop
         return s100_to_property_for_lists
 
@@ -335,7 +329,7 @@ class S1XX_Attributes_base(ABC):
         """ Calls the create function for all the properties of the class.
         Default values will be created for each attribute that is expected to be contained in this object.
 
-        For example, say a class has simple attributes of ESPG code (int) and locatilty (str) and then a class  made from S1XX_Attributes_base
+        For example, say a class has simple attributes of ESPG code (int) and locatilty (str) and then a class  made from S1xxAttributesBase
         called "extents" which has east and west inside it.
 
         Calling initialize_properties(recursively_create_children=False) would result in EPSG=0, locality="" and
@@ -365,7 +359,7 @@ class S1XX_Attributes_base(ABC):
             if overwrite or not self.__getattribute__(prop):
                 exec("self.{}_create()".format(prop))
                 o = eval("self.{}".format(prop))
-                if recursively_create_children and isinstance(o, S1XX_Attributes_base):
+                if recursively_create_children and isinstance(o, S1xxAttributesBase):
                     o.initialize_properties(recursively_create_children, overwrite)
 
     @classmethod
@@ -410,15 +404,15 @@ class S1XX_Attributes_base(ABC):
         self._attributes[attribute_name] = val
 
 
-class S1XX_WritesOwnGroup_base(S1XX_Attributes_base):
+class S1xxWritesOwnGroupBase(S1xxAttributesBase):
     """ Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict
-    The S1XX_Attributes_base will call the derived class' writer without pre-making group for it.
+    The S1xxAttributesBase will call the derived class' writer without pre-making group for it.
     i.e. the derived class can specify its own group name or dataset and apply specialized logic as needed.
     """
     pass
 
 
-class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
+class S1xxMetadataListBase(list, S1xxWritesOwnGroupBase):
     """ This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5.
     The S100 spec is using a atttribute.NNN to repreent this type of record.
     This class takes the supplied name and type and will make it act like a list in python and read/write the data in HDF5 like S102 wants.
@@ -430,7 +424,7 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
     def __init__(self, *args, **opts):
         # initialize the list in case data was passed in.
         super().__init__(*args, **opts)  # standard init for lists
-        S1XX_Attributes_base.__init__(self)  # initialize the s100 class
+        S1xxAttributesBase.__init__(self)  # initialize the s100 class
 
     @property
     @abstractmethod
@@ -471,7 +465,7 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
         # They should all be the same type but we aren't sure what type they are.
         # Most likely to be another S100_Attribute type.
         # if a value is numpy.array then convert to h5py.Dataset
-        # if a value is a S1XX_Attributes_base instance then create a group and call it's write function
+        # if a value is a S1xxAttributesBase instance then create a group and call it's write function
         # if a value is a date, time - convert to character string per S100, section 10C-7 table 10C-1
         # otherwise write as a simple attribute and simple type
         try:
@@ -481,9 +475,9 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
                 name = self.metadata_name + self.write_format_str % (index + 1)
                 if isinstance(val, s1xx_sequence.__args__):  # this looks inside the typing.Union to see what arrays should be treated like this
                     raise NotImplementedError()
-                # elif isinstance(val, S1XX_MetadataList_base):
+                # elif isinstance(val, S1xxMetadataListBase):
                 #     raise NotImplementedError("Nested Lists")
-                elif isinstance(val, S1XX_Attributes_base):  # Attributes, List and Datasets all work the same (for now)
+                elif isinstance(val, S1xxAttributesBase):  # Attributes, List and Datasets all work the same (for now)
                     new_group = group_object.require_group(name)
                     val.write(new_group)
                 elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
@@ -496,10 +490,8 @@ class S1XX_MetadataList_base(list, S1XX_WritesOwnGroup_base):
         except Exception as e:
             raise e
 
-    def write_as_xml(self, etree_object):
-        raise NotImplementedError("flesh this out if we want an xml representation of S102 bathy file")
 
-class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
+class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
     """ The S102 spec stores some things as attributes that could (or should) be stored as attributes.
     This class reads/writes datasets but stores/accesses them as a list of class instances.
     Data access should then be used as object[index].attribute
@@ -509,7 +501,7 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
     def __init__(self, *args, **opts):
         # initialize the list in case data was passed in.
         super().__init__(*args, **opts)  # standard init for lists
-        S1XX_Attributes_base.__init__(self)  # initialize the s102 class
+        S1xxAttributesBase.__init__(self)  # initialize the s102 class
 
     @property
     @abstractmethod
@@ -526,7 +518,7 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
         return self[-1]
 
     def __repr__(self):
-        s = S1XX_Attributes_base.__repr__(self)
+        s = S1xxAttributesBase.__repr__(self)
         for data_object in self:
             s += str(data_object)
         return s
@@ -593,8 +585,11 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
                         try:
                             v = val._attributes[key]
                         except KeyError as key_err:
-                            raise KeyError("{} in {} is missing data, this would give a mismatched array \n  please fill all data {} for all items in the list/dataset".format(key_err.args[0], self.metadata_name, str(write_keys)))
-                        if isinstance(v, str):  # convert unicode strings into ascii since HDF5 doesn't like the unicode strings that numpy will produce
+                            raise KeyError(
+                                "{} in {} is missing data, this would give a mismatched array \n  please fill all data {} for all items in the list/dataset".format(
+                                    key_err.args[0], self.metadata_name, str(write_keys)))
+                        if isinstance(v,
+                                      str):  # convert unicode strings into ascii since HDF5 doesn't like the unicode strings that numpy will produce
                             v = v.encode("utf-8")
                         elif isinstance(v, Enum):  # convert Enums to integars
                             v = v.value
@@ -620,10 +615,8 @@ class S1XX_Dataset_base(list, S1XX_WritesOwnGroup_base):
         except Exception as e:
             raise e
 
-    def write_as_xml(self, etree_object):
-        raise NotImplementedError("flesh this out if we want an xml representation of S102 bathy file")
 
-class S1XX_Grids_base(S1XX_WritesOwnGroup_base):
+class S1xxGridsBase(S1xxWritesOwnGroupBase):
     @property
     @abstractmethod
     def metadata_name(self) -> str:
@@ -633,7 +626,7 @@ class S1XX_Grids_base(S1XX_WritesOwnGroup_base):
         group_object = group_object_parent[self.metadata_name]
         logging.debug("reading grids")
         for attr in self.get_standard_properties():
-            setattr(self, attr, group_object[getattr(self, attr+self._attr_name_suffix)])
+            setattr(self, attr, group_object[getattr(self, attr + self._attr_name_suffix)])
 
     def write(self, group_object):
         # @todo - is there a bug here if some instances are missing attributes leading to a mismatched array?
@@ -677,6 +670,7 @@ class S1XX_Grids_base(S1XX_WritesOwnGroup_base):
         except Exception as e:
             raise e
 
+
 class S1XXFile(h5py.File):
     """
     hdf5 files have primary creation methods of
@@ -684,9 +678,11 @@ class S1XXFile(h5py.File):
     attrs           a dictionary-like to add/read metadata about the current group
     create_group    to make a group containing datasets and/or metadata
     """
+
     def __init__(self, *args, **kywrds):
         # @TODO: This is the NAVO default setting, have to decide if that is best and handle other options too.
         kywrds.setdefault('root', None)
+        self.root = None
         self.root_type = kywrds.pop('root')
         if "driver" in kywrds:
             if kywrds['driver'] == 'family':  # @todo @fixme -- this is from the NAVO files, figure how to set memb_size automatically.

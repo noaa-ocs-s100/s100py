@@ -55,6 +55,7 @@ from typing import Iterator, Union, Optional, List, Type
 # 3rd party
 import h5py
 import numpy
+
 try:
     import pytest
 except:
@@ -68,13 +69,12 @@ class MONTY(Enum):
     cheese = 2
 
 
-class MyObject(s1xx.S1XX_Attributes_base):
+class MyObject(s1xx.S1xxAttributesBase):
     data_value_attribute_name = "dataValue"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
         return 1
-
 
     @property
     def data_value(self) -> str:
@@ -85,16 +85,19 @@ class MyObject(s1xx.S1XX_Attributes_base):
         self._attributes[self.data_value_attribute_name] = val
 
     @property
-    def data_value_type(self) -> str:
+    def data_value_type(self) -> Type[str]:
         return str
 
     def data_value_create(self):
         """ Creates a blank, empty or zero value for data_value"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.data_value = self.data_value_type()
 
 
 class MyLocation(s100.GeographicBoundingBox):
     empty_zone = 999
+
     @property
     def __version__(self) -> int:
         return 1
@@ -115,15 +118,19 @@ class MyLocation(s100.GeographicBoundingBox):
         self._attributes[self.utm_zone_attribute_name] = val
 
     @property
-    def utm_zone_type(self) -> int:
+    def utm_zone_type(self) -> Type[int]:
         return int
 
     def utm_zone_create(self):
         """ Creates a blank, empty or zero value for utm_zone"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.utm_zone = self.utm_zone_type(self.empty_zone)
 
 
-class DataGroupObject(s1xx.S1XX_Attributes_base):
+class DataGroupObject(s1xx.S1xxAttributesBase):
+    data_grid_attribute_name = "dataGrid"  #: HDF5 naming
+
     @property
     def __version__(self) -> int:
         return 1
@@ -146,8 +153,6 @@ class DataGroupObject(s1xx.S1XX_Attributes_base):
         """ Creates an enumerated value of 'spam' (because it's first in the list) """
         self.name_of_data = list(self.name_of_data_type)[0]
 
-    data_grid_attribute_name = "dataGrid"  #: HDF5 naming
-
     @property
     def data_grid(self) -> s1xx.s1xx_sequence:
         return self._attributes[self.data_grid_attribute_name]
@@ -162,10 +167,12 @@ class DataGroupObject(s1xx.S1XX_Attributes_base):
 
     def data_grid_create(self):
         """ Creates a blank, empty or zero value for data_grid"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.data_grid = self.data_grid_type([2], numpy.float32)
 
 
-class DataGroups(s1xx.S1XX_MetadataList_base):
+class DataGroups(s1xx.S1xxMetadataListBase):
     """ This is the list of dataGroup_NNN that are held as a list.
     Each dataGroup_NNN has a data_grid dataset and name_of_data attribute.
     """
@@ -183,7 +190,7 @@ class DataGroups(s1xx.S1XX_MetadataList_base):
         return DataGroupObject
 
 
-class datasetWithNames(s1xx.S1XX_Attributes_base):
+class DatasetWithNames(s1xx.S1xxAttributesBase):
     attr_int_attribute_name = "attrInt"  #: HDF5 naming
     attr_float_attribute_name = "attrFloat"  #: HDF5 naming
     attr_str_attribute_name = "attrStr"  #: HDF5 naming
@@ -209,6 +216,8 @@ class datasetWithNames(s1xx.S1XX_Attributes_base):
 
     def attr_int_create(self):
         """ Creates a blank, empty or zero value for attr_int"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.attr_int = self.attr_int_type(55)
 
     @property
@@ -225,6 +234,8 @@ class datasetWithNames(s1xx.S1XX_Attributes_base):
 
     def attr_float_create(self):
         """ Creates a blank, empty or zero value for attr_float"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.attr_float = self.attr_float_type(123.4)
 
     @property
@@ -241,10 +252,12 @@ class datasetWithNames(s1xx.S1XX_Attributes_base):
 
     def attr_str_create(self):
         """ Creates a blank, empty or zero value for attr_str"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.attr_str = self.attr_str_type("used a default string")
 
 
-class DatasetWithNames_List(s1xx.S1XX_Dataset_base):
+class DatasetWithNamesList(s1xx.S1xxDatasetBase):
 
     @property
     def __version__(self) -> int:
@@ -252,14 +265,14 @@ class DatasetWithNames_List(s1xx.S1XX_Dataset_base):
 
     @property
     def metadata_type(self) -> Type[type]:
-        return datasetWithNames
+        return DatasetWithNames
 
     @property
     def metadata_name(self) -> str:
         return "datasetWithNames"
 
 
-class S999Root(s1xx.S1XX_Attributes_base):
+class S999Root(s1xx.S1xxAttributesBase):
     dataset_with_names_attribute_name = "datasetWithNames"  #: HDF5 naming
 
     @property
@@ -267,19 +280,21 @@ class S999Root(s1xx.S1XX_Attributes_base):
         return 1
 
     @property
-    def dataset_with_names(self) -> DatasetWithNames_List:
+    def dataset_with_names(self) -> DatasetWithNamesList:
         return self._attributes[self.dataset_with_names_attribute_name]
 
     @dataset_with_names.setter
-    def dataset_with_names(self, val: DatasetWithNames_List):
+    def dataset_with_names(self, val: DatasetWithNamesList):
         self._attributes[self.dataset_with_names_attribute_name] = val
 
     @property
-    def dataset_with_names_type(self) -> Type[DatasetWithNames_List]:
-        return DatasetWithNames_List
+    def dataset_with_names_type(self) -> Type[DatasetWithNamesList]:
+        return DatasetWithNamesList
 
     def dataset_with_names_create(self):
         """ Creates a blank, empty or zero value for dataset_with_names"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.dataset_with_names = self.dataset_with_names_type()
 
     data_group_attribute_name = "dataGroup"  #: HDF5 naming
@@ -298,6 +313,8 @@ class S999Root(s1xx.S1XX_Attributes_base):
 
     def data_group_create(self):
         """ Creates a blank, empty or zero value for data_group"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.data_group = self.data_group_type()
 
     my_location_group_attribute_name = "myLocationGroup"  #: HDF5 naming
@@ -316,6 +333,8 @@ class S999Root(s1xx.S1XX_Attributes_base):
 
     def my_location_group_create(self):
         """ Creates a blank, empty or zero value for my_location_group"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.my_location_group = self.my_location_group_type()
 
     my_first_object_attribute_name = "myFirstObject"  #: HDF5 naming
@@ -334,6 +353,8 @@ class S999Root(s1xx.S1XX_Attributes_base):
 
     def my_first_object_create(self):
         """ Creates a blank, empty or zero value for my_first_object"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.my_first_object = self.my_first_object_type()
 
 
@@ -358,7 +379,8 @@ else:
         try:
             os.remove(fstr)
         except (FileNotFoundError, PermissionError):
-            print("failed to remove "+fstr)
+            print("failed to remove " + fstr)
+
 
     @pytest.fixture(scope="module")
     def revised_filename():
@@ -368,11 +390,10 @@ else:
         try:
             os.remove(fstr)
         except (FileNotFoundError, PermissionError):
-            print("failed to remove "+fstr)
+            print("failed to remove " + fstr)
 
 
 def test_api(filename, revised_filename):
-
     print("running the sample api")
     write_to_file = S999File(filename)
     if not revised_filename:
@@ -463,15 +484,15 @@ def test_api(filename, revised_filename):
 
     write_to_file.root.data_group.append_new_item().name_of_data = MONTY(2)
 
-    attr_1 = datasetWithNames()
+    attr_1 = DatasetWithNames()
     attr_1.initialize_properties(True)
 
-    attr_2 = datasetWithNames()
+    attr_2 = DatasetWithNames()
     attr_2.initialize_properties(True)
     attr_2.attr_str = "A custom string this time"
     attr_2.attr_int = 27
     attr_2.attr_float = 35.0
-    write_to_file.root.dataset_with_names = DatasetWithNames_List((attr_1, attr_2))  # also could have used _create and append/append_new_item
+    write_to_file.root.dataset_with_names = DatasetWithNamesList((attr_1, attr_2))  # also could have used _create and append/append_new_item
 
     write_to_file.write()
     write_to_file.close()
@@ -484,7 +505,7 @@ def test_api(filename, revised_filename):
     assert read_from_file.root.my_location_group.east_bound_longitude == 33.5
     try:
         read_from_file.root.my_location_group.west_bound_longitude
-    except:
+    except Exception:
         pass  # all good, the value shouldn't exist
     else:
         assert read_from_file.root.my_location_group.west_bound_longitude is None  # this should not exist, even as None
@@ -579,10 +600,11 @@ def test_direct_access_list(revised_filename):
 
     h5file.close()
 
+
 def test_direct_access_compound_array(revised_filename):
     h5file = h5py.File(revised_filename)
     obj_location = "/"  # this is the root of the file
-    data = DatasetWithNames_List()
+    data = DatasetWithNamesList()
     data.read(h5file[obj_location])
     data[0].attr_int = 5
     # overwrite
@@ -595,6 +617,7 @@ def test_direct_access_compound_array(revised_filename):
     data.write(h5file["/new_compound_array"])
 
     h5file.close()
+
 
 def test_change_names_on_new_data(revised_filename):
     """ This plays some games with the attribute_name.  Because the data is held in a dictionary based on the hdf5 names,
@@ -637,22 +660,23 @@ def test_change_names_on_new_data(revised_filename):
 
     h5file.close()
 
+
 def test_changing_names_on_existing_data(revised_filename):
     """ Change the attribute names in existing data, this requires re-mapping the old data to the new name or deleting the old."""
     h5file = h5py.File(revised_filename)
     obj_location = "/"  # this is the root of the file
-    data = DatasetWithNames_List()
+    data = DatasetWithNamesList()
     data.read(h5file[obj_location])
 
     # change the names and values of exising data
     for index, compund_arr in enumerate(data):
-        del compund_arr.attr_int  #delete the old data before we rename
+        del compund_arr.attr_int  # delete the old data before we rename
         compund_arr.attr_int_attribute_name = "changed_individual_int"
         compund_arr.attr_int = (index + 5) * 2
 
     # change the name in all the classes in existence at once.  This could corrupt other data in memory, in theory!
-    old_name = datasetWithNames.attr_float_attribute_name
-    datasetWithNames.attr_float_attribute_name = "changed_class_float"
+    old_name = DatasetWithNames.attr_float_attribute_name
+    DatasetWithNames.attr_float_attribute_name = "changed_class_float"
     for index, compund_arr in enumerate(data):
         compund_arr.__delattr__(old_name)
         compund_arr.attr_float = (index + 6) * 3

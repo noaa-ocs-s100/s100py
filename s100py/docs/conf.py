@@ -57,7 +57,7 @@ sys.path.insert(0, os.path.abspath("..\\.."))
 
 import inspect
 
-top_classes = "s100py.s1xx.S1XX_Attributes_base, s100py.s1xx.S1XXFile"
+top_classes = "s100py.s1xx.S1xxAttributesBase, s100py.s1xx.S1XXFile"
 
 # watch out, used ratio (without reading spec) and it made the image go to two pages which fails with sphinx
 inheritance_graph_attrs = dict(rankdir="LR", size='"24.0 36.0"')  # make the pictures bigger, default is "8.0 12.0"
@@ -69,7 +69,7 @@ def check_to_skip(app, what, name, obj, skip, options):
     Handlers should return None to fall back to the skipping behavior of autodoc and other enabled extensions."""
     # print()
     # print()
-    # if "Callable" in name or "S100_FeatureContainer" in name or "s102.s102" in name:
+    # if "Callable" in name or "FeatureContainer" in name or "s102.s102" in name:
     #     print(what, name, type(obj), obj, skip, options)
     #     print()
     # if isinstance(options, dict):

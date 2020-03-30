@@ -6,8 +6,8 @@ from typing import Callable, Iterator, Union, Optional, List, Type
 from enum import Enum
 import numpy
 
-from s100py.s1xx import s1xx_sequence, S1XX_Attributes_base, S1XX_MetadataList_base, S1XX_Dataset_base, S1XX_Grids_base, S1XXFile
-from s100py.s100 import S100_FeatureContainer, S100Root, FeatureInstance_DCF2, FeatureInstance_base
+from s100py.s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile
+from s100py.s100 import FeatureContainer, S100Root, FeatureInstanceDCF2, FeatureInstanceBase
 
 SURFACE_CURRENT = "SurfaceCurrent"
 
@@ -50,11 +50,11 @@ START_SEQUENCE: Starting location of the scan.
 """
 
 
-class S111_MetadataList_base(S1XX_MetadataList_base):
+class S111_MetadataList_base(S1xxMetadataListBase):
     pass
 
 
-class SurfaceCurrentUncertaintyInformation(S1XX_Attributes_base):
+class SurfaceCurrentUncertaintyInformation(S1xxAttributesBase):
     name_attribute_name = "name"  #: HDF5 naming
     value_attribute_name = "value"  #: HDF5 naming
 
@@ -81,6 +81,8 @@ class SurfaceCurrentUncertaintyInformation(S1XX_Attributes_base):
         return str
 
     def name_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.name = self.name_type()
 
     @property
@@ -97,10 +99,12 @@ class SurfaceCurrentUncertaintyInformation(S1XX_Attributes_base):
         return str
 
     def value_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.value = self.value_type()
 
 
-class SurfaceCurrentUncertaintyDataset(S1XX_Dataset_base):
+class SurfaceCurrentUncertaintyDataset(S1xxDatasetBase):
 
     @property
     def __version__(self) -> int:
@@ -115,7 +119,7 @@ class SurfaceCurrentUncertaintyDataset(S1XX_Dataset_base):
         return SurfaceCurrentUncertaintyInformation
 
 
-class GeometryValuesDataset(S1XX_Grids_base):
+class GeometryValuesDataset(S1xxGridsBase):
     longitude_attribute_name = "longitude"
     latitude_attribute_name = "latitude"
 
@@ -141,6 +145,8 @@ class GeometryValuesDataset(S1XX_Grids_base):
 
     def longitude_create(self):
         """ Creates a blank, empty or zero value for longitude"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.longitude = self.longitude_type([], numpy.float)
 
     @property
@@ -157,13 +163,15 @@ class GeometryValuesDataset(S1XX_Grids_base):
 
     def latitude_create(self):
         """ Creates a blank, empty or zero value for latitude"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.latitude = self.latitude_type([], numpy.float)
 
     def get_write_order(self):
         return [self.longitude_attribute_name, self.latitude_attribute_name]
 
 
-class PositioningGroup(S1XX_Attributes_base):
+class PositioningGroup(S1xxAttributesBase):
 
     geometry_values_attribute_name = "geometry_values"
 
@@ -193,10 +201,12 @@ class PositioningGroup(S1XX_Attributes_base):
 
     def geometry_values_create(self):
         """ Creates a blank, empty or zero value for geometry_values"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.geometry_values = self.geometry_values_type()
 
 
-class SurfaceCurrentValues(S1XX_Grids_base):
+class SurfaceCurrentValues(S1xxGridsBase):
     surface_current_speed_attribute_name = "surfaceCurrentSpeed"  #: HDF5 naming
     surface_current_direction_attribute_name = "surfaceCurrentDirection"  #: HDF5 naming
 
@@ -222,6 +232,8 @@ class SurfaceCurrentValues(S1XX_Grids_base):
 
     def surface_current_speed_create(self):
         """ Creates a blank, empty or zero value for surface_current_speed"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.surface_current_speed = self.surface_current_speed_type([], numpy.float)
 
     @property
@@ -238,13 +250,15 @@ class SurfaceCurrentValues(S1XX_Grids_base):
 
     def surface_current_direction_create(self):
         """ Creates a blank, empty or zero value for surface_current_direction"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.surface_current_direction = self.surface_current_direction_type([], numpy.float)
 
     def get_write_order(self):
         return [self.surface_current_speed_attribute_name, self.surface_current_direction_attribute_name]
 
 
-class SurfaceCurrentGroup(S1XX_Attributes_base):
+class SurfaceCurrentGroup(S1xxAttributesBase):
     """ 10.2.5 of v1.0.1
     also see section 12.3 and table 12.5
 
@@ -268,14 +282,16 @@ class SurfaceCurrentGroup(S1XX_Attributes_base):
 
     def values_create(self):
         """ Creates a blank, empty or zero value for values"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.values = self.values_type()
 
     @property
-    def time_point(self) -> S1XX_Attributes_base:
+    def time_point(self) -> S1xxAttributesBase:
         return self._attributes[self.time_point_attribute_name]
 
     @time_point.setter
-    def time_point(self, val: S1XX_Attributes_base):
+    def time_point(self, val: S1xxAttributesBase):
         self._attributes[self.time_point_attribute_name] = val
 
     @property
@@ -284,6 +300,8 @@ class SurfaceCurrentGroup(S1XX_Attributes_base):
 
     def time_point_create(self):
         """ Creates a blank, empty or zero value for time_point"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.time_point = self.time_point_type()
 
     @property
@@ -309,7 +327,7 @@ class SurfaceCurrentGroupList(S111_MetadataList_base):
         return SurfaceCurrentGroup
 
 
-class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, FeatureInstance_base):
+class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2, FeatureInstanceBase):
     surface_current_group_attribute_name = "Group" + r"\.\d+"
     """ Basic template for the name of the attribute
     Attribute name will be automatically determined based on the array position of the S111_MetadataList
@@ -325,6 +343,8 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, FeatureInstance_base):
         return SurfaceCurrentGroupList
 
     def surface_current_group_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.surface_current_group = self.surface_current_group_type()
 
     @property
@@ -336,11 +356,11 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, FeatureInstance_base):
         self._attributes[self.surface_current_group_attribute_name] = val
 
     @property
-    def number_of_nodes(self) -> S1XX_Attributes_base:
+    def number_of_nodes(self) -> S1xxAttributesBase:
         return self._attributes[self.number_of_nodes_attribute_name]
 
     @number_of_nodes.setter
-    def number_of_nodes(self, val: S1XX_Attributes_base):
+    def number_of_nodes(self, val: S1xxAttributesBase):
         self._attributes[self.number_of_nodes_attribute_name] = val
 
     @property
@@ -348,14 +368,16 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, FeatureInstance_base):
         return numpy.int32
 
     def number_of_nodes_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.number_of_nodes = self.number_of_nodes_type()
 
     @property
-    def datetime_first_record(self) -> S1XX_Attributes_base:
+    def datetime_first_record(self) -> S1xxAttributesBase:
         return self._attributes[self.datetime_first_record_attribute_name]
 
     @datetime_first_record.setter
-    def datetime_first_record(self, val: S1XX_Attributes_base):
+    def datetime_first_record(self, val: S1xxAttributesBase):
         self._attributes[self.datetime_first_record_attribute_name] = val
 
     @property
@@ -363,14 +385,16 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, FeatureInstance_base):
         return str
 
     def datetime_first_record_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.datetime_first_record = self.datetime_first_record_type()
 
     @property
-    def datetime_last_record(self) -> S1XX_Attributes_base:
+    def datetime_last_record(self) -> S1xxAttributesBase:
         return self._attributes[self.datetime_last_record_attribute_name]
 
     @datetime_last_record.setter
-    def datetime_last_record(self, val: S1XX_Attributes_base):
+    def datetime_last_record(self, val: S1xxAttributesBase):
         self._attributes[self.datetime_last_record_attribute_name] = val
 
     @property
@@ -378,14 +402,16 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, FeatureInstance_base):
         return str
 
     def datetime_last_record_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.datetime_last_record = self.datetime_last_record_type()
 
     @property
-    def uncertainty_dataset(self) -> S1XX_Dataset_base:
+    def uncertainty_dataset(self) -> S1xxDatasetBase:
         return self._attributes[self.uncertainty_dataset_attribute_name]
 
     @uncertainty_dataset.setter
-    def uncertainty_dataset(self, val: S1XX_Dataset_base):
+    def uncertainty_dataset(self, val: S1xxDatasetBase):
         self._attributes[self.uncertainty_dataset_attribute_name] = val
 
     @property
@@ -393,6 +419,8 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, FeatureInstance_base):
         return SurfaceCurrentUncertaintyDataset
 
     def uncertainty_dataset_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.uncertainty_dataset = self.uncertainty_dataset_type()
 
     @property
@@ -400,11 +428,11 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, FeatureInstance_base):
         return "Positioning"
 
     @property
-    def positioning_group(self) -> S1XX_Attributes_base:
+    def positioning_group(self) -> S1xxAttributesBase:
         return self._attributes[self.positioning_group_attribute_name]
 
     @positioning_group.setter
-    def positioning_group(self, val: S1XX_Attributes_base):
+    def positioning_group(self, val: S1xxAttributesBase):
         self._attributes[self.positioning_group_attribute_name] = val
 
     @property
@@ -413,6 +441,8 @@ class SurfaceCurrentFeatureInstance(FeatureInstance_DCF2, FeatureInstance_base):
 
     def positioning_group_create(self):
         """ Creates a blank, empty or zero value for positioning_group"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.positioning_group = self.positioning_group_type()
 
 
@@ -435,7 +465,7 @@ class SurfaceCurrentList(S111_MetadataList_base):
         return SurfaceCurrentFeatureInstance
 
 
-class SurfaceCurrentContainer(S100_FeatureContainer):
+class SurfaceCurrentContainer(FeatureContainer):
     """ This is the SurfaceCurrent right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named SurfaceCurrent.NN
     """
@@ -457,6 +487,8 @@ class SurfaceCurrentContainer(S100_FeatureContainer):
         return SurfaceCurrentList
 
     def surface_current_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.surface_current = self.surface_current_type()
 
     @property
@@ -474,11 +506,11 @@ class SurfaceCurrentContainer(S100_FeatureContainer):
         self._attributes[self.surface_current_attribute_name] = val
 
     @property
-    def min_dataset_current_speed(self) -> S1XX_Attributes_base:
+    def min_dataset_current_speed(self) -> S1xxAttributesBase:
         return self._attributes[self.min_dataset_current_speed_attribute_name]
 
     @min_dataset_current_speed.setter
-    def min_dataset_current_speed(self, val: S1XX_Attributes_base):
+    def min_dataset_current_speed(self, val: S1xxAttributesBase):
         self._attributes[self.min_dataset_current_speed_attribute_name] = val
 
     @property
@@ -487,14 +519,16 @@ class SurfaceCurrentContainer(S100_FeatureContainer):
 
     def min_dataset_current_speed_create(self):
         """ Creates a blank, empty or zero value for min_dataset_current_speed"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.min_dataset_current_speed = self.min_dataset_current_speed_type()
 
     @property
-    def max_dataset_current_speed(self) -> S1XX_Attributes_base:
+    def max_dataset_current_speed(self) -> S1xxAttributesBase:
         return self._attributes[self.max_dataset_current_speed_attribute_name]
 
     @max_dataset_current_speed.setter
-    def max_dataset_current_speed(self, val: S1XX_Attributes_base):
+    def max_dataset_current_speed(self, val: S1xxAttributesBase):
         self._attributes[self.max_dataset_current_speed_attribute_name] = val
 
     @property
@@ -503,14 +537,16 @@ class SurfaceCurrentContainer(S100_FeatureContainer):
 
     def max_dataset_current_speed_create(self):
         """ Creates a blank, empty or zero value for max_dataset_current_speed"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.max_dataset_current_speed = self.max_dataset_current_speed_type()
 
     @property
-    def method_currents_product(self) -> S1XX_Attributes_base:
+    def method_currents_product(self) -> S1xxAttributesBase:
         return self._attributes[self.method_currents_product_attribute_name]
 
     @method_currents_product.setter
-    def method_currents_product(self, val: S1XX_Attributes_base):
+    def method_currents_product(self, val: S1xxAttributesBase):
         self._attributes[self.method_currents_product_attribute_name] = val
 
     @property
@@ -519,6 +555,8 @@ class SurfaceCurrentContainer(S100_FeatureContainer):
 
     def method_currents_product_create(self):
         """ Creates a blank, empty or zero value for method_currents_product"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.method_currents_product = self.method_currents_product_type()
 
     @property
@@ -539,10 +577,12 @@ class SurfaceCurrentContainer(S100_FeatureContainer):
 
     def data_coding_format_create(self):
         """ Creates a blank, empty or zero value for data_coding_format"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.data_coding_format = self.data_coding_format_type(2)  # default
 
 
-class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
+class SurfaceCurrentFeatureInformation(S1xxAttributesBase):
     """ S111 10.2.2 and Table 10.3 of v1.0.1 and S100 Table 10c-8 v4.0.0
     This is used to describe the SurfaceCurrent within the GroupF feature listing.
     The features described under GroupF have a matching named entry parallel to GroupF (top level).
@@ -582,6 +622,8 @@ class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
         return str
 
     def code_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.code = self.code_type()
 
     @property
@@ -603,6 +645,8 @@ class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
         return str
 
     def name_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.name = self.name_type()
 
     @property
@@ -624,6 +668,8 @@ class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
         return str
 
     def unit_of_measure_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.unit_of_measure = self.unit_of_measure_type()
 
     @property
@@ -645,6 +691,8 @@ class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
         return str
 
     def fill_value_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.fill_value = self.fill_value_type(FILLVALUE)
 
     @property
@@ -666,6 +714,8 @@ class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
         return str
 
     def datatype_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.datatype = self.datatype_type("H5T_FLOAT")
 
     @property
@@ -687,6 +737,8 @@ class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
         return str
 
     def lower_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.lower = self.lower_type()
 
     @property
@@ -708,6 +760,8 @@ class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
         return str
 
     def upper_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.upper = self.upper_type()
 
     @property
@@ -729,10 +783,12 @@ class SurfaceCurrentFeatureInformation(S1XX_Attributes_base):
         return str
 
     def closure_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.closure = self.closure_type()
 
 
-class SurfaceCurrentFeatureDataset(S1XX_Dataset_base):
+class SurfaceCurrentFeatureDataset(S1xxDatasetBase):
     chunking_attribute_name = "chunking"
 
     @property
@@ -748,11 +804,11 @@ class SurfaceCurrentFeatureDataset(S1XX_Dataset_base):
         return SurfaceCurrentFeatureInformation
 
     @property
-    def chunking(self) -> S1XX_Attributes_base:
+    def chunking(self) -> S1xxAttributesBase:
         return self._attributes[self.chunking_attribute_name]
 
     @chunking.setter
-    def chunking(self, val: S1XX_Attributes_base):
+    def chunking(self, val: S1xxAttributesBase):
         self._attributes[self.chunking_attribute_name] = val
 
     @property
@@ -760,10 +816,12 @@ class SurfaceCurrentFeatureDataset(S1XX_Dataset_base):
         return str
 
     def chunking_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.chunking = self.chunking_type()
 
 
-class GroupF(S1XX_Attributes_base):
+class GroupF(S1xxAttributesBase):
     """ Table 10.3 and sect 10.2.2 of v1.0.1
     """
     feature_code_attribute_name = "featureCode"
@@ -778,6 +836,8 @@ class GroupF(S1XX_Attributes_base):
         return numpy.array
 
     def feature_code_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.feature_code = self.feature_code_type([SURFACE_CURRENT], dtype='S')
 
     @property
@@ -793,6 +853,8 @@ class GroupF(S1XX_Attributes_base):
         return SurfaceCurrentFeatureDataset
 
     def surface_current_feature_dataset_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.surface_current_feature_dataset = self.surface_current_feature_dataset_type()
 
     @property
@@ -832,10 +894,12 @@ class S111Root(S100Root):
         return GroupF
 
     def feature_information_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.feature_information = self.feature_information_type()
 
     @property
-    def surface_current(self) -> S1XX_Attributes_base:
+    def surface_current(self) -> S1xxAttributesBase:
         return self._attributes[self.surface_current_attribute_name]
 
     @property
@@ -843,10 +907,12 @@ class S111Root(S100Root):
         return SurfaceCurrentContainer
 
     def surface_current_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.surface_current = self.surface_current_type()
 
     @surface_current.setter
-    def surface_current(self, val: S1XX_Attributes_base):
+    def surface_current(self, val: S1xxAttributesBase):
         self._attributes[self.surface_current_attribute_name] = val
 
     @property
@@ -866,11 +932,11 @@ class S111Root(S100Root):
         self.depth_type_index = list(self.depth_type_index_type)[0]
 
     @property
-    def surface_current_depth(self) -> S1XX_Attributes_base:
+    def surface_current_depth(self) -> S1xxAttributesBase:
         return self._attributes[self.surface_current_depth_attribute_name]
 
     @surface_current_depth.setter
-    def surface_current_depth(self, val: S1XX_Attributes_base):
+    def surface_current_depth(self, val: S1xxAttributesBase):
         self._attributes[self.surface_current_depth_attribute_name] = val
 
     @property
@@ -879,10 +945,12 @@ class S111Root(S100Root):
 
     def surface_current_depth_create(self):
         """ Creates a blank, empty or zero value for surface_current_depth"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.surface_current_depth = self.surface_current_depth_type()
 
 
-class DiscoveryMetadata(S1XX_Attributes_base):
+class DiscoveryMetadata(S1xxAttributesBase):
     """ 12.2.6 of v1.0.1
     """
 
