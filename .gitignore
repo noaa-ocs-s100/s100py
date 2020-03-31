@@ -4,3 +4,5 @@
 *.prj
 *.shx
 *.dbf
+s100py/docs/doctrees
+s100py/docs/api

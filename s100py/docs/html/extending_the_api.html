@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Extending the API &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="An Example API" href="sample_api.html" />
+    <link rel="prev" title="S1XX_WritesOwnGroup_base" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sample_api.html" title="An Example API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html" title="S1XX_WritesOwnGroup_base"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="extending-the-api">
+<h1>Extending the API<a class="headerlink" href="#extending-the-api" title="Permalink to this headline">¶</a></h1>
+<p>To create a new api from this framework or modify an existing one, use the following classes from <a class="reference internal" href="s1xx.html#module-s100py.s1xx" title="s100py.s1xx"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">s100py.s1xx</span></code></a>
+as well as the ones in <a class="reference internal" href="s100.html#module-s100py.s100" title="s100py.s100"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">s100py.s100</span></code></a>.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>S1XX_Attributes_base for hdf5 groups with attributes, datasets and sub-groups.</p></li>
+<li><p>S1XX_Dataset_base for datasets (numpy arrays).</p></li>
+<li><p>S1XX_MetadataList_base for groups that have multiple occurrences using the S100 naming scheme (Group_NNN)</p></li>
+</ul>
+</div></blockquote>
+<p>To make data members for one of the above classes, here is how to make a template in PyCharm to
+speed creation:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>File-Settings-Editor-LiveTemplates</p></li>
+<li><p>Create a new template (hit the plus button on the side) and name it S102 and give it a description
+paste in the code below (&#64;property lines)</p></li>
+<li><p>Click the Edit Variables and for $attr$ under expression put: snakeCase(SELECTION)
+at the bottom is a line that says “applicable in” and has a hyperlinked word (define or change) – click that and select Python</p></li>
+</ul>
+</div></blockquote>
+<p>To use, highlight the camel case S102 attribute name and press ctrl-alt-J (or ctrl-alt-T) and select your S102 from the list
+It will fill in the names and then put the cursor in the right place to specify the type</p>
+<dl class="simple">
+<dt>What it does:</dt><dd><ul class="simple">
+<li><p>take the selected text (name from the S102 doc) and:</p></li>
+<li><p>make a read only property returning the S102 HDF5 attribute name</p></li>
+<li><p>make a read/write property to contain the data</p></li>
+<li><p>make a property to tell the type of the data</p></li>
+<li><p>make a _create() function to make a default value for the attribute</p></li>
+</ul>
+</dd>
+</dl>
+<p>Code to put in your live template</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$attr$_attribute_name = return &quot;$SELECTION$&quot;  #: HDF5 naming
+
+@property
+def $attr$(self) -&gt; $type$:
+    return self._attributes[self.$attr$_attribute_name]
+
+@$attr$.setter
+def $attr$(self, val: $type$):
+    self._attributes[self.$attr$_attribute_name] = val
+
+@property
+def $attr$_type(self) -&gt; Type[$type$]:
+    return $type$
+
+def $attr$_create(self):
+    &quot;&quot;&quot; Creates a blank, empty or zero value for $attr$&quot;&quot;&quot;
+    self.$attr$ = self.$attr$_type()
+</pre></div>
+</div>
+<dl class="simple">
+<dt>For enumeration data types use this template which is very similar</dt><dd><ul class="simple">
+<li><p>Again, click the Edit Variables and for $attr$ under expression put: snakeCase(SELECTION)
+at the bottom is a line that says “applicable in” and has a hyperlinked word (define or change) – click that and select Python</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$attr$_attribute_name = return &quot;$SELECTION$&quot;  #: HDF5 naming
+
+@property
+def $attr$(self) -&gt; $type$:
+    return self._attributes[self.$attr$_attribute_name]
+
+@$attr$.setter
+def $attr$(self, val: Union[int, str, $type$]):
+    self.set_enum_attribute(val, self.$attr$_attribute_name, self.$attr$_type)
+
+@property
+def $attr$_type(self) -&gt; Type[$type$]:
+    return $type$
+
+def $attr$_create(self):
+    &quot;&quot;&quot; Creates a value using the first item in the enumeration of $attr$&quot;&quot;&quot;
+    self.$attr$ = list(self.$attr$_type)[0]
+</pre></div>
+</div>
+<p>This template makes an attribute but specifies the type as well before you run it.
+Put the HDF5 name from the S100+ spec first followed by an arrow (-&gt;) then the type.</p>
+<dl class="simple">
+<dt>Click the Edit Variables and:</dt><dd><ul class="simple">
+<li><p>for “type” under expression put: regularExpression(SELECTION, “.*-&gt;”, “”)</p></li>
+<li><p>for “HDF5NAME” for expression put: regularExpression(SELECTION, “-&gt;.*”, “”)</p></li>
+<li><p>for “attr” under expression put: snakeCase(regularExpression(SELECTION, “-&gt;.*”, “”))</p></li>
+<li><p>at the bottom is a line that says “applicable in” and has a hyperlinked word (define or change) – click that and select Python</p></li>
+</ul>
+</dd>
+</dl>
+<div class="figure align-center" style="width: 85%">
+<img alt="template variable dialog" src="_images/live_template.png" />
+</div>
+<p>Types can be basic python types or custom created classes.</p>
+<p>Ex:  eastBoundLongitude-&gt;float</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$attr$_attribute_name = return &quot;$HDF5NAME$&quot;  #: HDF5 naming
+
+@property
+def $attr$(self) -&gt; $type$:
+    return self._attributes[self.$attr$_attribute_name]
+
+@$attr$.setter
+def $attr$(self, val: $type$):
+    self._attributes[self.$attr$_attribute_name] = val
+
+@property
+def $attr$_type(self) -&gt; Type[$type$]:
+    return $type$
+
+def $attr$_create(self):
+    &quot;&quot;&quot; Creates a blank, empty or zero value for $attr$
+    $SELECTION$
+    &quot;&quot;&quot;
+    self.$attr$ = self.$attr$_type()
+</pre></div>
+</div>
+<p>And finally a similar one for enumerations.
+Same syntax or HDF5 name followed by the Enumeration name.</p>
+<dl class="simple">
+<dt>Click the Edit Variables and:</dt><dd><ul class="simple">
+<li><p>for “type” under expression put: regularExpression(SELECTION, “.*-&gt;”, “”)</p></li>
+<li><p>for “HDF5NAME” for expression put: regularExpression(SELECTION, “-&gt;.*”, “”)</p></li>
+<li><p>for “attr” under expression put: snakeCase(regularExpression(SELECTION, “-&gt;.*”, “”))</p></li>
+<li><p>at the bottom is a line that says “applicable in” and has a hyperlinked word (define or change) – click that and select Python</p></li>
+</ul>
+</dd>
+</dl>
+<p>If you used the enumeration ‘MONTY’ from the sample api, this would look like   dataName-&gt;MONTY</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$attr$_attribute_name = return &quot;$HDF5NAME$&quot;  #: HDF5 naming
+
+@property
+def $attr$(self) -&gt; $type$:
+    return self._attributes[self.$attr$_attribute_name]
+
+@$attr$.setter
+def $attr$(self, val: Union[int, str, $type$]):
+    self.set_enum_attribute(val, self.$attr$_attribute_name, self.$attr$_type)
+
+@property
+def $attr$_type(self) -&gt; Type[$type$]:
+    return $type$
+
+def $attr$_create(self):
+    &quot;&quot;&quot; Creates a blank, empty or zero value for $attr$
+    $SELECTION$
+    &quot;&quot;&quot;
+    self.$attr$ = list(self.$attr$_type)[0]
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102_api.html">s100py.s102.api Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_api.html">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="more_sample_api.html">More Usage of the  API</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html"
+                        title="previous chapter">S1XX_WritesOwnGroup_base</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sample_api.html"
+                        title="next chapter">An Example API</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sample_api.html" title="An Example API"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html" title="S1XX_WritesOwnGroup_base"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

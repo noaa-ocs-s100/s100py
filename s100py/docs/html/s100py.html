@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>s100py &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="s100py.s111 Module" href="s111.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s111.html" title="s100py.s111 Module"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="s100py">
+<h1>s100py<a class="headerlink" href="#s100py" title="Permalink to this headline">¶</a></h1>
+<p>S100 is a family of specifications where each data product has it’s own extensions to the basic format prescribbed
+by S100.  S100 files are HDF5 where data types, names and structure is in the aforementioned specs.  s100py uses pep8 naming for the api itself.</p>
+<p>The s1xx.S1XXFile class handles the top level data management and is derived from the h5py.File class.
+There is a “root” data member for the file object which is where the S100/HDF5 data is held.
+Each data specification should create it’s own S100 type file object but there is a basic s100.S100File class
+which can read the general top level metadata that pertains to all data specifications.</p>
+<p>The three primary data types in HDF5 attributes, datasets and groups.  s100py encapsulates groups
+(which can have attributes) with the s1xx.S1XX_Attributes_base class (should we refactor this name?).
+Datasets are derived from s100py.S1XX_Dataset_base.
+S100 also adds groups that have a trailing number and can have an arbitrary number of occurrences.
+These objects are managed with the s1xx.S1XX_MetadataList_base class.</p>
+<p>Each S100 data class has data and some methods to determine what data is expected to be contained therein.
+The function get_standard_properties() will show what child data is referenced in the specs.
+The initialize_properties() method will create place holder values for all expected child data.
+Using initialize_properties(True) will recurse the data spec and create a skeleton of all children and their children.
+The get_standard_properties_mapping() show the HDF5 names and they pythonic pep8 names that are used with them.</p>
+<p>Inside of each S100 data class are data values and functions related to each data value.
+For a “dataname” value there are two properties, dataname_type and dataname_attribute_name,
+and a function dataname_create.</p>
+<p>When the File is being written any data that has not been set or initialized will be omitted.
+This way optional data will not appear at all.</p>
+<p>Code sample for creating the beginning of an S102 file</p>
+<p>Create a blank file amd see the root object is empty</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">s100py</span> <span class="k">import</span> <span class="n">s102</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">s102</span><span class="o">.</span><span class="n">S102File</span><span class="p">(</span><span class="s2">&quot;c:</span><span class="se">\\</span><span class="s2">temp</span><span class="se">\\</span><span class="s2">test.s102.h5&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+<span class="go">&lt;class &#39;s100py.s102.S102Root&#39;&gt;</span>
+<span class="go">OrderedDict()</span>
+</pre></div>
+</div>
+<p>What properties are allowed in the root?</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_standard_properties</span><span class="p">())</span>
+<span class="go">[&#39;bathymetry_coverage&#39;, &#39;east_bound_longitude&#39;, &#39;epoch&#39;, &#39;extent_type_code&#39;, ..., &#39;west_bound_longitude&#39;]</span>
+</pre></div>
+</div>
+<p>What is the bathymetry name in S102 nomenclature</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bathymetry_coverage_attribute_name</span>
+<span class="go">&#39;BathymetryCoverage&#39;</span>
+</pre></div>
+</div>
+<p>Read the bathymetry_coverage</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bathymetry_coverage</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;C:\PydroTrunk\Miniconda36\NOAA\site-packages\Python3\s100py\s102.py&quot;</span>, line <span class="m">1386</span>, in <span class="n">bathymetry_coverage</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bathymetry_coverage_attribute_name</span><span class="p">]</span>
+<span class="gr">KeyError</span>: <span class="n">&#39;BathymetryCoverage&#39;f.root.feature_information_create()</span>
+</pre></div>
+</div>
+<p>You have to create it first!</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bathymetry_coverage_create</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bathymetry_coverage</span>  <span class="c1"># grab a reference to the data</span>
+</pre></div>
+</div>
+<p>Next is a little more complex, S100 says you can have multiple items and they would be named Name_NNN where _NNN
+is a zero padded number.  The BathmetryCoverage inside the BathymetryCoverage (yes, they duplicated the names)
+is one of these, so it’s going to be BathymetryCoverage/BathymetryCoverage.001 – note the dot –
+because S102 also is different than S100 which uses an underscore. You can see this gets encoded as a “List” type.
+We have to create the list then populate it</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bathy</span><span class="o">.</span><span class="n">bathymetry_coverage_type</span>
+<span class="go">s100py.s102.BathymetryCoverages_List</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy</span><span class="o">.</span><span class="n">bathymetry_coverage_attribute_name</span>  <span class="c1">#</span>
+<span class="go">&#39;BathymetryCoverage\\.\\d+&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy</span><span class="o">.</span><span class="n">bathymetry_coverage_create</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_list</span> <span class="o">=</span> <span class="n">bathy</span><span class="o">.</span><span class="n">bathymetry_coverage</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_01</span> <span class="o">=</span> <span class="n">bathy_list</span><span class="o">.</span><span class="n">append_new_item</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Now we can put in values into its properties</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_01</span><span class="o">.</span><span class="n">north_bound_latitude</span> <span class="o">=</span> <span class="mf">10.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_01</span>
+<span class="go">&lt;class &#39;s100py.s102.BathymetryFeatureInstance&#39;&gt;</span>
+<span class="go">OrderedDict([(&#39;northBoundLatitude&#39;, 10.5)])</span>
+</pre></div>
+</div>
+<p>You can see the latitide above, but you can also access the data using list notation (it is derived from a list really)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">&lt;class &#39;s100py.s102.BathymetryFeatureInstance&#39;&gt;</span>
+<span class="go">OrderedDict([(&#39;northBoundLatitude&#39;, 10.5)])</span>
+</pre></div>
+</div>
+<p>Finally let’s initialize everything in this bathy coverage,  NOTE it overwrites our north latitude,
+so we should have initialized first.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_01</span><span class="o">.</span><span class="n">initialize_properties</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bathy_01</span><span class="p">)</span>
+<span class="go">&lt;class &#39;s100py.s102.BathymetryFeatureInstance&#39;&gt;</span>
+<span class="go">OrderedDict([(&#39;northBoundLatitude&#39;, 0.0), (&#39;Group\\.\\d+&#39;, []), (&#39;eastBoundLongitude&#39;, 0.0),</span>
+<span class="go">(&#39;extentTypeCode&#39;, False), (&#39;gridOriginLatitude&#39;, 0.0), (&#39;gridOriginLongitude&#39;, 0.0), ...])</span>
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="s111.html">s100py.s111 Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="s111.html#classes">Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.DEPTH_TYPE_INDEX.html">DEPTH_TYPE_INDEX</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.FeatureCodes.html">FeatureCodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.FeatureInformation.html">FeatureInformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.FeatureInformationDataset.html">FeatureInformationDataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.S111File.html">S111File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.S111Root.html">S111Root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.S111_MetadataList_base.html">S111_MetadataList_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentContainer.html">SurfaceCurrentContainer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentDataset.html">SurfaceCurrentDataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentFeatureInstance.html">SurfaceCurrentFeatureInstance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentGroup.html">SurfaceCurrentGroup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentGroupList.html">SurfaceCurrentGroupList</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentList.html">SurfaceCurrentList</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentUncertaintyDataset.html">SurfaceCurrentUncertaintyDataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentUncertaintyInformation.html">SurfaceCurrentUncertaintyInformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentValueRecord.html">SurfaceCurrentValueRecord</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentValues.html">SurfaceCurrentValues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.SurfaceCurrentValuesList.html">SurfaceCurrentValuesList</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s111.TYPE_OF_CURRENT_DATA.html">TYPE_OF_CURRENT_DATA</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="s111.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102_utils.html">s100py.s102.utils Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="s102/s102_utils.html#functions">Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.utils.create_s102.html">create_s102</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.utils.from_arrays.html">from_arrays</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.utils.from_arrays_with_metadata.html">from_arrays_with_metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.utils.from_bag.html">from_bag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.utils.from_gdal.html">from_gdal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.utils.read_bag.html">read_bag</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102_api.html">s100py.s102.api Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="s102/s102_api.html#functions">Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.get_valid_epsg.html">get_valid_epsg</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="s102/s102_api.html#classes">Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.BathymetryContainer.html">BathymetryContainer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.BathymetryCoverage.html">BathymetryCoverage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.BathymetryCoverage_dataset.html">BathymetryCoverage_dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.BathymetryCoverages_List.html">BathymetryCoverages_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.BathymetryFeatureInstance.html">BathymetryFeatureInstance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.BathymetryGroup_List.html">BathymetryGroup_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.BathymetryValues.html">BathymetryValues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.FeatureCodes.html">FeatureCodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.FeatureInformation_dataset.html">FeatureInformation_dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.S102Exception.html">S102Exception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.S102File.html">S102File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.S102Root.html">S102Root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.S102_MetadataList_base.html">S102_MetadataList_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.SurfaceCorrectionValues.html">SurfaceCorrectionValues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.TilingScheme.html">TilingScheme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.TrackingListContainer.html">TrackingListContainer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.TrackingListCoverage.html">TrackingListCoverage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.TrackingListCoverage_dataset.html">TrackingListCoverage_dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.TrackingListCoverages_List.html">TrackingListCoverages_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.TrackingListGroup_List.html">TrackingListGroup_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.TrackingListSet_List.html">TrackingListSet_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.TrackingListValues.html">TrackingListValues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s102.api.TrackingListValues_List.html">TrackingListValues_List</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="s102/s102_api.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="s100.html#classes">Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.DirectPosition.html">DirectPosition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.FeatureInstance_DCF2.html">FeatureInstance_DCF2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.FeatureInstance_base.html">FeatureInstance_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.GeographicExtent.html">GeographicExtent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.GridEnvelope.html">GridEnvelope</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.INTERPOLATION_TYPE.html">INTERPOLATION_TYPE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.Point.html">Point</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.S100Exception.html">S100Exception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.S100File.html">S100File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.S100Root.html">S100Root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.S100_FeatureContainer.html">S100_FeatureContainer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.SEQUENCING_RULE_TYPE.html">SEQUENCING_RULE_TYPE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.SequenceRule.html">SequenceRule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.VERTICAL_DATUM.html">VERTICAL_DATUM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s100.VertexPoint.html">VertexPoint</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="s1xx.html#classes">Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XXFile.html">S1XXFile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_Attributes_base.html">S1XX_Attributes_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_Dataset_base.html">S1XX_Dataset_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_Grids_base.html">S1XX_Grids_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_MetadataList_base.html">S1XX_MetadataList_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html">S1XX_WritesOwnGroup_base</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="s1xx.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_api.html">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="more_sample_api.html">More Usage of the  API</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102_api.html">s100py.s102.api Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_api.html">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="more_sample_api.html">More Usage of the  API</a></li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s111.html"
+                        title="next chapter">s100py.s111 Module</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s111.html" title="s100py.s111 Module"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

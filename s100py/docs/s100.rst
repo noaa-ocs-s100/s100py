@@ -1,0 +1,1 @@
+..  automodapi:: s100py.s100

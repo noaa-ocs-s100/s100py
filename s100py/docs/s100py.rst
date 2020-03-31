@@ -1,0 +1,112 @@
+s100py
+======
+
+S100 is a family of specifications where each data product has it's own extensions to the basic format prescribbed
+by S100.  S100 files are HDF5 where data types, names and structure is in the aforementioned specs.  s100py uses pep8 naming for the api itself.
+
+The s1xx.S1XXFile class handles the top level data management and is derived from the h5py.File class.
+There is a "root" data member for the file object which is where the S100/HDF5 data is held.
+Each data specification should create it's own S100 type file object but there is a basic s100.S100File class
+which can read the general top level metadata that pertains to all data specifications.
+
+The three primary data types in HDF5 attributes, datasets and groups.  s100py encapsulates groups
+(which can have attributes) with the s1xx.S1xxAttributesBase class (should we refactor this name?).
+Datasets are derived from s100py.S1xxDatasetBase.
+S100 also adds groups that have a trailing number and can have an arbitrary number of occurrences.
+These objects are managed with the s1xx.S1xxMetadataListBase class.
+
+Each S100 data class has data and some methods to determine what data is expected to be contained therein.
+The function get_standard_properties() will show what child data is referenced in the specs.
+The initialize_properties() method will create place holder values for all expected child data.
+Using initialize_properties(True) will recurse the data spec and create a skeleton of all children and their children.
+The get_standard_properties_mapping() show the HDF5 names and they pythonic pep8 names that are used with them.
+
+Inside of each S100 data class are data values and functions related to each data value.
+For a "dataname" value there are two properties, dataname_type and dataname_attribute_name,
+and a function dataname_create.
+
+When the File is being written any data that has not been set or initialized will be omitted.
+This way optional data will not appear at all.
+
+Code sample for creating the beginning of an S102 file
+
+Create a blank file amd see the root object is empty ::
+
+    >>> from s100py import s102
+    >>> f = s102.S102File("c:\\temp\\test.s102.h5")
+    >>> print(f.root)
+    <class 's100py.s102.S102Root'>
+    OrderedDict()
+
+What properties are allowed in the root? ::
+
+    >>> print(f.root.get_standard_properties())
+    ['bathymetry_coverage', 'east_bound_longitude', 'epoch', 'extent_type_code', ..., 'west_bound_longitude']
+
+What is the bathymetry name in S102 nomenclature ::
+
+    >>> f.root.bathymetry_coverage_attribute_name
+    'BathymetryCoverage'
+
+Read the bathymetry_coverage ::
+
+    >>> f.root.bathymetry_coverage
+    Traceback (most recent call last):
+      File "C:\PydroTrunk\Miniconda36\NOAA\site-packages\Python3\s100py\s102.py", line 1386, in bathymetry_coverage
+        return self._attributes[self.bathymetry_coverage_attribute_name]
+    KeyError: 'BathymetryCoverage'f.root.feature_information_create()
+
+You have to create it first!  ::
+
+    >>> f.root.bathymetry_coverage_create()
+    >>> bathy = f.root.bathymetry_coverage  # grab a reference to the data
+
+Next is a little more complex, S100 says you can have multiple items and they would be named Name_NNN where _NNN
+is a zero padded number.  The BathmetryCoverage inside the BathymetryCoverage (yes, they duplicated the names)
+is one of these, so it's going to be BathymetryCoverage/BathymetryCoverage.001 -- note the dot --
+because S102 also is different than S100 which uses an underscore. You can see this gets encoded as a "List" type.
+We have to create the list then populate it ::
+
+    >>> bathy.bathymetry_coverage_type
+    s100py.s102.BathymetryCoveragesList
+    >>> bathy.bathymetry_coverage_attribute_name  #
+    'BathymetryCoverage\\.\\d+'
+    >>> bathy.bathymetry_coverage_create()
+    >>> bathy_list = bathy.bathymetry_coverage
+    >>> bathy_01 = bathy_list.append_new_item()
+
+Now we can put in values into its properties ::
+
+    >>> bathy_01.north_bound_latitude = 10.5
+    >>> bathy_01
+    <class 's100py.s102.BathymetryFeatureInstance'>
+    OrderedDict([('northBoundLatitude', 10.5)])
+
+You can see the latitide above, but you can also access the data using list notation (it is derived from a list really) ::
+
+    >>> bathy_list[0]
+    <class 's100py.s102.BathymetryFeatureInstance'>
+    OrderedDict([('northBoundLatitude', 10.5)])
+
+Finally let's initialize everything in this bathy coverage,  NOTE it overwrites our north latitude,
+so we should have initialized first. ::
+
+    >>> bathy_01.initialize_properties()
+    >>> print(bathy_01)
+    <class 's100py.s102.BathymetryFeatureInstance'>
+    OrderedDict([('northBoundLatitude', 0.0), ('Group\\.\\d+', []), ('eastBoundLongitude', 0.0),
+    ('extentTypeCode', False), ('gridOriginLatitude', 0.0), ('gridOriginLongitude', 0.0), ...])
+
+.. toctree::
+    :maxdepth: 4
+
+    s111
+    s102/s102
+    s100
+    s1xx
+    extending_the_api
+    sample_api
+    using_sample_api
+    more_sample_api
+
+

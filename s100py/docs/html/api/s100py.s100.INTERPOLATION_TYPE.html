@@ -1,0 +1,275 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>INTERPOLATION_TYPE &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Point" href="s100py.s100.Point.html" />
+    <link rel="prev" title="GridEnvelope" href="s100py.s100.GridEnvelope.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s100.Point.html" title="Point"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s100.GridEnvelope.html" title="GridEnvelope"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s100.html" accesskey="U">s100py.s100 Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="interpolation-type">
+<h1>INTERPOLATION_TYPE<a class="headerlink" href="#interpolation-type" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s100py.s100.INTERPOLATION_TYPE">
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s100.</code><code class="sig-name descname">INTERPOLATION_TYPE</code><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Enumeration S100_CV_InterpolationMethod Codes for interpolation methods between known feature attribute
+values associated with geometric objects in the domain of the discrete coverage
+Extension of ISO 19123
+CV_InterpolationMethod</p>
+<p>Literal nearestneighbor
+Assign the feature attribute value associated with the nearest domain object in the domain of the coverage
+1 Any type of coverage</p>
+<p>Literal linear
+Assign the value computed by a linear function along a line segment connecting two point value pairs, or along a curve with positions are described by values
+of an arc-length parameter
+2 Only segmented curves</p>
+<p>Literal quadratic
+Assign the value computed by a quadratic function of distance along a value segment
+3 Only segmented curves</p>
+<p>Literal cubic
+Assign the value computed by a cubic function of distance along a value segment
+4 Only segmented curves</p>
+<p>Literal bilinear
+Assign a value computed by using a bilinear function of position within the grid cell
+5 Only quadrilateral grids</p>
+<p>Literal biquadratic
+Assign a value computed by using a biquadratic function of position within the grid cell
+6 Only quadrilateral grids</p>
+<p>Literal bicubic
+Assign a value computed by using a bicubic function of position within the grid cell
+7 Only quadrilateral grids</p>
+<p>Literal lostarea
+Assign a value computed by using the lost area method described in ISO 19123
+8 Only Thiessen polygons</p>
+<p>Literal barycentric
+Assign a value computed by using the barycentric method described in ISO 19123
+9 Only TIN</p>
+<p>Literal discrete
+No interpolation method applies to the coverage
+10</p>
+<div class="graphviz"><img src="../_images/inheritance-4ace32183421007248e08b09b0f81a25cb44639a.png" alt="Inheritance diagram of INTERPOLATION_TYPE" usemap="#inheritancec110886149" class="inheritance graphviz" /></div>
+<map id="inheritancec110886149" name="inheritancec110886149">
+<area shape="rect" id="node2" href="#s100py.s100.INTERPOLATION_TYPE" target="_top" title="Enumeration S100_CV_InterpolationMethod Codes for interpolation methods between known feature attribute" alt="" coords="145,5,388,31"/>
+</map><p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.INTERPOLATION_TYPE.barycentric" title="s100py.s100.INTERPOLATION_TYPE.barycentric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">barycentric</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.INTERPOLATION_TYPE.bicubic" title="s100py.s100.INTERPOLATION_TYPE.bicubic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bicubic</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.INTERPOLATION_TYPE.bilinear" title="s100py.s100.INTERPOLATION_TYPE.bilinear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bilinear</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.INTERPOLATION_TYPE.biquadratic" title="s100py.s100.INTERPOLATION_TYPE.biquadratic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">biquadratic</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.INTERPOLATION_TYPE.cubic" title="s100py.s100.INTERPOLATION_TYPE.cubic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cubic</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.INTERPOLATION_TYPE.discrete" title="s100py.s100.INTERPOLATION_TYPE.discrete"><code class="xref py py-obj docutils literal notranslate"><span class="pre">discrete</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.INTERPOLATION_TYPE.linear" title="s100py.s100.INTERPOLATION_TYPE.linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linear</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.INTERPOLATION_TYPE.lostarea" title="s100py.s100.INTERPOLATION_TYPE.lostarea"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lostarea</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.INTERPOLATION_TYPE.nearestneighbor" title="s100py.s100.INTERPOLATION_TYPE.nearestneighbor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nearestneighbor</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.INTERPOLATION_TYPE.quadratic" title="s100py.s100.INTERPOLATION_TYPE.quadratic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quadratic</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s100py.s100.INTERPOLATION_TYPE.barycentric">
+<code class="sig-name descname">barycentric</code><em class="property"> = 9</em><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE.barycentric" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.INTERPOLATION_TYPE.bicubic">
+<code class="sig-name descname">bicubic</code><em class="property"> = 7</em><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE.bicubic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.INTERPOLATION_TYPE.bilinear">
+<code class="sig-name descname">bilinear</code><em class="property"> = 5</em><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE.bilinear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.INTERPOLATION_TYPE.biquadratic">
+<code class="sig-name descname">biquadratic</code><em class="property"> = 6</em><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE.biquadratic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.INTERPOLATION_TYPE.cubic">
+<code class="sig-name descname">cubic</code><em class="property"> = 4</em><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE.cubic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.INTERPOLATION_TYPE.discrete">
+<code class="sig-name descname">discrete</code><em class="property"> = 10</em><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE.discrete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.INTERPOLATION_TYPE.linear">
+<code class="sig-name descname">linear</code><em class="property"> = 2</em><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE.linear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.INTERPOLATION_TYPE.lostarea">
+<code class="sig-name descname">lostarea</code><em class="property"> = 8</em><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE.lostarea" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.INTERPOLATION_TYPE.nearestneighbor">
+<code class="sig-name descname">nearestneighbor</code><em class="property"> = 1</em><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE.nearestneighbor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.INTERPOLATION_TYPE.quadratic">
+<code class="sig-name descname">quadratic</code><em class="property"> = 3</em><a class="headerlink" href="#s100py.s100.INTERPOLATION_TYPE.quadratic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s100.html">s100py.s100 Module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s100.html#classes">Classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.DirectPosition.html">DirectPosition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_DCF2.html">FeatureInstance_DCF2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_base.html">FeatureInstance_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicExtent.html">GeographicExtent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridEnvelope.html">GridEnvelope</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">INTERPOLATION_TYPE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.Point.html">Point</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100Exception.html">S100Exception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100File.html">S100File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100Root.html">S100Root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100_FeatureContainer.html">S100_FeatureContainer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.SEQUENCING_RULE_TYPE.html">SEQUENCING_RULE_TYPE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.SequenceRule.html">SequenceRule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.VERTICAL_DATUM.html">VERTICAL_DATUM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.VertexPoint.html">VertexPoint</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s100py.s100.GridEnvelope.html"
+                        title="previous chapter">GridEnvelope</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s100py.s100.Point.html"
+                        title="next chapter">Point</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s100.Point.html" title="Point"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s100.GridEnvelope.html" title="GridEnvelope"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s100.html" >s100py.s100 Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

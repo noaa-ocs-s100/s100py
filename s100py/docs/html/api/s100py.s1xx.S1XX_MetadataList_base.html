@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>S1XX_MetadataList_base &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="S1XX_WritesOwnGroup_base" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html" />
+    <link rel="prev" title="S1XX_Grids_base" href="s100py.s1xx.S1XX_Grids_base.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s1xx.S1XX_WritesOwnGroup_base.html" title="S1XX_WritesOwnGroup_base"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s1xx.S1XX_Grids_base.html" title="S1XX_Grids_base"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s1xx.html" accesskey="U">s100py.s1xx Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="s1xx-metadatalist-base">
+<h1>S1XX_MetadataList_base<a class="headerlink" href="#s1xx-metadatalist-base" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s100py.s1xx.S1XX_MetadataList_base">
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s1xx.</code><code class="sig-name descname">S1XX_MetadataList_base</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_MetadataList_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, <a class="reference internal" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" title="s100py.s1xx.S1XX_WritesOwnGroup_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1XX_WritesOwnGroup_base</span></code></a></p>
+<p>This class represents arrays (noted in UML as <em>, 1..</em>, 0..* etc) which is not really part of HDF5.
+The S100 spec is using a atttribute.NNN to repreent this type of record.
+This class takes the supplied name and type and will make it act like a list in python and read/write the data in HDF5 like S102 wants.</p>
+<div class="graphviz"><img src="../_images/inheritance-53eb57fe697c86125e10ad2821e0476df750ee32.png" alt="Inheritance diagram of S1XX_MetadataList_base" usemap="#inheritance8efb0ce264" class="inheritance graphviz" /></div>
+<map id="inheritance8efb0ce264" name="inheritance8efb0ce264">
+<area shape="rect" id="node1" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+<area shape="rect" id="node3" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="281,5,552,31"/>
+<area shape="rect" id="node2" href="#s100py.s1xx.S1XX_MetadataList_base" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5." alt="" coords="600,5,847,31"/>
+</map><p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_MetadataList_base.metadata_name" title="s100py.s1xx.S1XX_MetadataList_base.metadata_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata_name</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_MetadataList_base.read_re_pattern" title="s100py.s1xx.S1XX_MetadataList_base.read_re_pattern"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_re_pattern</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_MetadataList_base.write_format_str" title="s100py.s1xx.S1XX_MetadataList_base.write_format_str"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_format_str</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_MetadataList_base.append_new_item" title="s100py.s1xx.S1XX_MetadataList_base.append_new_item"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append_new_item</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_MetadataList_base.read" title="s100py.s1xx.S1XX_MetadataList_base.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(group_object)</p></td>
+<td><p>Given an h5py.File or a h5py group then read the data based on the encoded S100+ spec.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_MetadataList_base.write" title="s100py.s1xx.S1XX_MetadataList_base.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a>(group_object)</p></td>
+<td><p>write the contained data and all it’s children into an HDF5 file using h5py.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1XX_MetadataList_base.write_as_xml" title="s100py.s1xx.S1XX_MetadataList_base.write_as_xml"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_as_xml</span></code></a>(etree_object)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s100py.s1xx.S1XX_MetadataList_base.metadata_name">
+<code class="sig-name descname">metadata_name</code><a class="headerlink" href="#s100py.s1xx.S1XX_MetadataList_base.metadata_name" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s1xx.S1XX_MetadataList_base.read_re_pattern">
+<code class="sig-name descname">read_re_pattern</code><em class="property"> = '[_\\.](\\d+)$'</em><a class="headerlink" href="#s100py.s1xx.S1XX_MetadataList_base.read_re_pattern" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s1xx.S1XX_MetadataList_base.write_format_str">
+<code class="sig-name descname">write_format_str</code><em class="property"> = '_%03d'</em><a class="headerlink" href="#s100py.s1xx.S1XX_MetadataList_base.write_format_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods Documentation</p>
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_MetadataList_base.append_new_item">
+<code class="sig-name descname">append_new_item</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_MetadataList_base.append_new_item" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_MetadataList_base.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">group_object</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_MetadataList_base.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an h5py.File or a h5py group then read the data based on the encoded S100+ spec.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>group_object</strong> – The group (an h5py.File is a group too) to read from.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_MetadataList_base.write">
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">group_object</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_MetadataList_base.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>write the contained data and all it’s children into an HDF5 file using h5py.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>group_object</strong> – An h5py.File or an h5py group object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_MetadataList_base.write_as_xml">
+<code class="sig-name descname">write_as_xml</code><span class="sig-paren">(</span><em class="sig-param">etree_object</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_MetadataList_base.write_as_xml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="s100py.s1xx.S1XX_MetadataList_base.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XX_MetadataList_base.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s1xx.html#classes">Classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XXFile.html">S1XXFile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html">S1XX_Attributes_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_Dataset_base.html">S1XX_Dataset_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_Grids_base.html">S1XX_Grids_base</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">S1XX_MetadataList_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html">S1XX_WritesOwnGroup_base</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../s1xx.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s100py.s1xx.S1XX_Grids_base.html"
+                        title="previous chapter">S1XX_Grids_base</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s100py.s1xx.S1XX_WritesOwnGroup_base.html"
+                        title="next chapter">S1XX_WritesOwnGroup_base</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s1xx.S1XX_WritesOwnGroup_base.html" title="S1XX_WritesOwnGroup_base"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s1xx.S1XX_Grids_base.html" title="S1XX_Grids_base"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s1xx.html" >s100py.s1xx Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

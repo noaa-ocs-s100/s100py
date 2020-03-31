@@ -1,0 +1,5 @@
+<map id="inheritance63b601d06d" name="inheritance63b601d06d">
+<area shape="rect" id="node1" title="Helper class that provides a standard way to create an ABC using" alt="" coords="82,5,157,31"/>
+<area shape="rect" id="node2" href="#s100py.s111.FeatureInformation" target="_top" title="S111 10.2.2 and Table 10.3 of v1.0.1 and S100 Table 10c&#45;8 v4.0.0" alt="" coords="281,31,488,56"/>
+<area shape="rect" id="node3" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,55,233,80"/>
+</map>

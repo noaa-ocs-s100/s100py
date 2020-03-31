@@ -1,0 +1,6 @@
+<map id="inheritance80e0745a60" name="inheritance80e0745a60">
+<area shape="rect" id="node1" href="#s100py.s100.FeatureInstance_base" target="_top" title="The feature instance group attributes from table 10c&#45;12 in S100 spec" alt="" coords="824,5,1052,31"/>
+<area shape="rect" id="node2" href="s100py.s100.GeographicBoundingBox.html#s100py.s100.GeographicBoundingBox" target="_top" title="4.2.1.1.13 of v2.0.0" alt="" coords="533,5,776,31"/>
+<area shape="rect" id="node3" href="s100py.s100.GeographicExtent.html#s100py.s100.GeographicExtent" target="_top" title="4.2.1.1.12 of v2.0.0" alt="" coords="281,5,485,31"/>
+<area shape="rect" id="node4" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+</map>

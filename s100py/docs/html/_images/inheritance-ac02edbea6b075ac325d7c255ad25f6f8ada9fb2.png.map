@@ -1,0 +1,8 @@
+<map id="inheritancef8fd0937b1" name="inheritancef8fd0937b1">
+<area shape="rect" id="node1" title="Helper class that provides a standard way to create an ABC using" alt="" coords="671,56,746,81"/>
+<area shape="rect" id="node2" href="s100py.s111.FeatureInformationDataset.html#s100py.s111.FeatureInformationDataset" target="_top" title="s100py.s111.FeatureInformationDataset" alt="" coords="865,5,1117,31"/>
+<area shape="rect" id="node4" href="#s100py.s111.SurfaceCurrentDataset" target="_top" title="s100py.s111.SurfaceCurrentDataset" alt="" coords="1165,31,1396,56"/>
+<area shape="rect" id="node3" href="s100py.s1xx.S1XX_Dataset_base.html#s100py.s1xx.S1XX_Dataset_base" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes." alt="" coords="600,5,817,31"/>
+<area shape="rect" id="node5" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+<area shape="rect" id="node6" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="281,5,552,31"/>
+</map>

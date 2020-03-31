@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Point &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="S100Exception" href="s100py.s100.S100Exception.html" />
+    <link rel="prev" title="INTERPOLATION_TYPE" href="s100py.s100.INTERPOLATION_TYPE.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s100.S100Exception.html" title="S100Exception"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s100.INTERPOLATION_TYPE.html" title="INTERPOLATION_TYPE"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s100.html" accesskey="U">s100py.s100 Module</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="point">
+<h1>Point<a class="headerlink" href="#point" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s100py.s100.Point">
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s100.</code><code class="sig-name descname">Point</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.Point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1XX_Attributes_base</span></code></a></p>
+<p>4.2.1.1.11 of v2.0.0
+The class GM_Point is taken from ISO 19107 and is the basic data type for a geometric object consisting of one and only one point.</p>
+<div class="graphviz"><img src="../_images/inheritance-585160928c35d7064fb566ae04df341c141e0b75.png" alt="Inheritance diagram of Point" usemap="#inheritancee3c1ea55ee" class="inheritance graphviz" /></div>
+<map id="inheritancee3c1ea55ee" name="inheritancee3c1ea55ee">
+<area shape="rect" id="node1" href="#s100py.s100.Point" target="_top" title="4.2.1.1.11 of v2.0.0" alt="" coords="281,5,412,31"/>
+<area shape="rect" id="node2" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
+</map><p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.Point.position" title="s100py.s100.Point.position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">position</span></code></a></p></td>
+<td><p>DirectPosition - see Figure 7-3 in S100 v4.0.0</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s100.Point.position_attribute_name" title="s100py.s100.Point.position_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">position_attribute_name</span></code></a></p></td>
+<td><p>HDF5 naming</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s100py.s100.Point.position">
+<code class="sig-name descname">position</code><a class="headerlink" href="#s100py.s100.Point.position" title="Permalink to this definition">¶</a></dt>
+<dd><p>DirectPosition - see Figure 7-3 in S100 v4.0.0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s100.DirectPosition.html#s100py.s100.DirectPosition" title="s100py.s100.DirectPosition"><code class="xref py py-class docutils literal notranslate"><span class="pre">DirectPosition</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="s100py.s100.Point.position_attribute_name">
+<code class="sig-name descname">position_attribute_name</code><em class="property"> = 'position'</em><a class="headerlink" href="#s100py.s100.Point.position_attribute_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>HDF5 naming</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="s100py.s100.Point.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.Point.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s100.html">s100py.s100 Module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s100.html#classes">Classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.DirectPosition.html">DirectPosition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_DCF2.html">FeatureInstance_DCF2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_base.html">FeatureInstance_base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicExtent.html">GeographicExtent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridEnvelope.html">GridEnvelope</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.INTERPOLATION_TYPE.html">INTERPOLATION_TYPE</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Point</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100Exception.html">S100Exception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100File.html">S100File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100Root.html">S100Root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100_FeatureContainer.html">S100_FeatureContainer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.SEQUENCING_RULE_TYPE.html">SEQUENCING_RULE_TYPE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.SequenceRule.html">SequenceRule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.VERTICAL_DATUM.html">VERTICAL_DATUM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s100py.s100.VertexPoint.html">VertexPoint</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s100py.s100.INTERPOLATION_TYPE.html"
+                        title="previous chapter">INTERPOLATION_TYPE</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s100py.s100.S100Exception.html"
+                        title="next chapter">S100Exception</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s100py.s100.S100Exception.html" title="S100Exception"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s100py.s100.INTERPOLATION_TYPE.html" title="INTERPOLATION_TYPE"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../s100.html" >s100py.s100 Module</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>

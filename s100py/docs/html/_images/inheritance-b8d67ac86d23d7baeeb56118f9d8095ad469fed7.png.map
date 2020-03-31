@@ -1,0 +1,7 @@
+<map id="inheritancedd2e086520" name="inheritancedd2e086520">
+<area shape="rect" id="node1" title="Helper class that provides a standard way to create an ABC using" alt="" coords="664,5,739,31"/>
+<area shape="rect" id="node2" href="#s100py.s111.SurfaceCurrentValues" target="_top" title="s100py.s111.SurfaceCurrentValues" alt="" coords="851,31,1077,56"/>
+<area shape="rect" id="node3" href="s100py.s1xx.S1XX_Grids_base.html#s100py.s1xx.S1XX_Grids_base" target="_top" title="s100py.s1xx.S1XX_Grids_base" alt="" coords="600,55,803,80"/>
+<area shape="rect" id="node4" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,55,233,80"/>
+<area shape="rect" id="node5" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="281,55,552,80"/>
+</map>
