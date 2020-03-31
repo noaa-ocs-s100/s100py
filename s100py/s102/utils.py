@@ -133,7 +133,7 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
     output_file
         Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
     nodata_value
-        Value used to denote an empty cell in the grid.  Used in
+        Value used to denote an empty cell in the grid.  Used in finding the min/max and then converted to the S102 fillValue.
     flip_x
         boolean if the data should be mirrored on x coordinate (i.e. the original grid is right to left)
         Flips are done here so we can implement a chunked read/write to save memory
@@ -175,7 +175,7 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
     print("fix here -- row/column order?")
     nx, ny = depth_grid.shape
     if uncert_grid is None:
-        uncert_grid = numpy.zeros(depth_grid.shape, dtype=numpy.float32)
+        uncert_grid = numpy.full(depth_grid.shape, nodata_value, dtype=numpy.float32)
     if depth_grid.shape != uncert_grid.shape:
         raise S102Exception("Depth and Uncertainty grids have different shapes")
 
@@ -200,6 +200,7 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
     uncertainty_min = uncert_grid[uncert_grid != nodata_value].min()
     bathy_group_object.minimum_uncertainty = uncertainty_min
     bathy_group_object.maximum_uncertainty = uncertainty_max
+
     bathy_group_object.dimension = 2
 
     bathy_group_object.origin_create()
@@ -216,6 +217,11 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
     if flip_y:
         depth_grid = numpy.flipud(depth_grid)
         uncert_grid = numpy.flipud(uncert_grid)
+    if nodata_value != root.feature_information.bathymetry_coverage_dataset[0].fill_value:
+        depth_grid = numpy.copy(depth_grid)
+        depth_grid[depth_grid == nodata_value] = root.feature_information.bathymetry_coverage_dataset[0].fill_value
+        uncert_grid = numpy.copy(uncert_grid)
+        uncert_grid[uncert_grid == nodata_value] = root.feature_information.bathymetry_coverage_dataset[1].fill_value
 
     grid.depth = depth_grid
     grid.uncertainty = uncert_grid

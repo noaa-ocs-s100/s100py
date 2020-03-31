@@ -19,7 +19,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 
 from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile
 from ..s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
-    FeatureInformation, FeatureContainer, S100Root, S100Exception, FeatureInstanceDCF2
+    FeatureInformation, FeatureInformationDataset, FeatureContainer, S100Root, S100Exception, FeatureInstanceDCF2
 
 
 class S102Exception(S100Exception):
@@ -916,7 +916,7 @@ class TrackingListContainer(FeatureContainer):
         self._attributes[self.tracking_list_coverage_attribute_name] = val
 
 
-class FeatureInformationDataset(S1xxDatasetBase, ABC):
+class S102FeatureInformationDataset(FeatureInformationDataset, ABC):
     """   In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0
 
     This is used to describe the BathymetryCoverage and TrackingListCoverage within the GroupF feature listing.
@@ -934,13 +934,13 @@ class FeatureInformationDataset(S1xxDatasetBase, ABC):
         return FeatureInformation
 
 
-class TrackingListCoverageDataset(FeatureInformationDataset):
+class TrackingListCoverageDataset(S102FeatureInformationDataset):
     @property
     def metadata_name(self) -> str:
         return TRACKING_COVERAGE
 
 
-class BathymetryCoverageDataset(FeatureInformationDataset):
+class BathymetryCoverageDataset(S102FeatureInformationDataset):
     @property
     def metadata_name(self) -> str:
         return BATHY_COVERAGE

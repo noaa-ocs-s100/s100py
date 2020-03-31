@@ -573,6 +573,8 @@ class SurfaceCurrentContainer(FeatureContainer):
 
     def type_of_current_data_create(self):
         """ Creates a value using the first item in the enumeration of type_of_current_data"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.type_of_current_data = list(self.type_of_current_data_type)[0]
 
     def data_coding_format_create(self):
@@ -929,6 +931,8 @@ class S111Root(S100Root):
 
     def depth_type_index_create(self):
         """ Creates a value using the first item in the enumeration of depth_type_index"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
         self.depth_type_index = list(self.depth_type_index_type)[0]
 
     @property

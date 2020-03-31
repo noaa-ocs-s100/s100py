@@ -1166,6 +1166,34 @@ class FeatureInformation(S1xxAttributesBase):
         self.closure = self.closure_type("closedInterval")
 
 
+class FeatureInformationDataset(S1xxDatasetBase, ABC):
+    """ This class comes from S100 -- 10c-9.5 Feature information group.
+
+    metadata_type will likely be overridden with a specific subclass for the s100+ spec
+    """
+    chunking_attribute_name = "chunking"  #: HDF5 naming
+
+    @property
+    def metadata_type(self) -> Type[FeatureInformation]:
+        return FeatureInformation
+
+    @property
+    def chunking(self) -> S1xxAttributesBase:
+        return self._attributes[self.chunking_attribute_name]
+
+    @chunking.setter
+    def chunking(self, val: S1xxAttributesBase):
+        self._attributes[self.chunking_attribute_name] = val
+
+    @property
+    def chunking_type(self) -> Type[str]:
+        return str
+
+    def chunking_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.chunking = self.chunking_type()
+
 class FeatureContainer(S1xxAttributesBase):
     axis_names_attribute_name = "axisNames"
     data_coding_format_attribute_name = "dataCodingFormat"
