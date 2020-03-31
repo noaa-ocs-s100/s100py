@@ -4,14 +4,65 @@ import os
 import logging
 import tempfile
 
+import numpy
+
 from s100py import s100, s102
-from s100py.s102 import bag_to_s102
 
 @pytest.fixture(scope="module")
 def s102_file():
     tf = tempfile.TemporaryFile(suffix=".h5")
     f = s102.S102File(tf)
     return f
+
+@pytest.fixture(scope="module")
+def bagname():
+    fname = "F00788_SR_8m.bag"
+    yield fname
+
+@pytest.fixture(scope="module")
+def output_path(bagname):
+    out_path = bagname + ".s102_output_test.h5"
+    yield out_path
+    try:
+        os.remove(out_path)
+    except (FileNotFoundError, PermissionError):
+        pass
+
+def check_s102_data(s102obj):
+    assert s102obj.root
+    assert s102obj.root.horizontal_datum_reference == "EPSG"
+    assert s102obj.root.horizontal_datum_value == '26910'
+    assert s102obj.root.east_bound_longitude > 523812
+    assert s102obj.root.east_bound_longitude < 523813
+    b = s102obj.root.bathymetry_coverage.bathymetry_coverage[0]
+    assert b.num_points_latitudinal == 179
+    assert b.east_bound_longitude == s102obj.root.east_bound_longitude
+    group = b.bathymetry_group[0]
+    assert group.origin.coordinate[0] == s102obj.root.east_bound_longitude
+    assert group.values.depth.shape == (179, 179)
+    assert numpy.min(group.values.depth) == pytest.approx(-68.44306, 0.0001)
+
+def test_make_from_gdal(bagname, output_path):
+    try:
+        os.remove(output_path)
+    except FileNotFoundError:
+        pass
+    new_s102 = s102.from_gdal(bagname, output_path)
+    check_s102_data(new_s102)
+
+def test_read_s102(output_path):
+    s102_read_test = s102.S102File(output_path, "r", driver=None)
+    check_s102_data(s102_read_test)
+
+def test_copy_s102(output_path):
+    s102_read_test = s102.S102File(output_path, "r", driver=None)
+    check_s102_data(s102_read_test)
+    s102_copy_root_test = s102.S102File(output_path + "copyroot.h5", "w", driver=None)
+    s102_copy_root_test.root = s102_read_test.root
+    s102_copy_root_test.write()
+    check_s102_data(s102_copy_root_test)
+
+        # s102_read_test.read_s102_metadata()
 
 if __name__ == "__main__":
 
@@ -79,30 +130,6 @@ if __name__ == "__main__":
             root.feature_information.feature_name = "Test via _create and getter"
             root.write(None)
         print()
-    if 1:
-        try:
-            bagname
-            output_path = ""
-        except:
-            bagname = r"C:\Data\S57_and_S100_testData\S102\Band5_LALB_4m.bag"
-            if not os.path.exists(bagname):
-                bagname = r"C:\Data\S102 Data\Band5_LALB_4m.bag"
-            output_path = bagname + ".s102_output_test.h5"
-
-        convert = True
-        if convert:
-            try:
-                os.remove(output_path)
-            except FileNotFoundError:
-                pass
-            bag_to_s102.sr_bag_to_s102(bagname, output_path=output_path)
-
-        s102_read_test = s102.S102File(output_path, "r", driver=None)
-        s102_copy_root_test = s102.S102File(output_path + "copyroot.h5", "w", driver=None)
-        s102_copy_root_test.root = s102_read_test.root
-        s102_copy_root_test.write()
-
-        # s102_read_test.read_s102_metadata()
 
     raise Exception("""Questions to answer/raise ----
 

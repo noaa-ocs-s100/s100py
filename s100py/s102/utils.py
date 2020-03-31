@@ -1,3 +1,6 @@
+""" Functions to create S102 data from other sources
+
+"""
 import logging
 import sys
 import os
@@ -43,6 +46,7 @@ def create_s102(output_file, overwrite=True) -> S102File:
     -------
     S102File
         The object created or updated by this function.
+
 
     """
     data_file = _get_S102File(output_file)
@@ -113,7 +117,7 @@ def create_s102(output_file, overwrite=True) -> S102File:
 
 
 def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_file, nodata_value=None,
-                overwrite: bool = True) -> S102File:  # num_array, or list of lists accepted
+                flip_x: bool = False, flip_y: bool = False, overwrite: bool = True) -> S102File:  # num_array, or list of lists accepted
     """  Creates or updates an S102File object based on numpy array/h5py datasets.
     Calls :any:`create_s102` then fills in the HDF5 datasets with the supplied depth_grid and uncert_grid.
     Fills the number of points areas and any other appropriate places in the HDF5 file per the S102 spec.
@@ -130,6 +134,12 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
         Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
     nodata_value
         Value used to denote an empty cell in the grid.  Used in
+    flip_x
+        boolean if the data should be mirrored on x coordinate (i.e. the original grid is right to left)
+        Flips are done here so we can implement a chunked read/write to save memory
+    flip_y
+        boolean if the data should be mirrored on y coordinate (i.e. the original grid is top to bottom)
+        Flips are done here so we can implement a chunked read/write to save memory
     overwrite
         If updating an existing file then set this option to False in order to retain data (not sure this is needed).
 
@@ -200,6 +210,13 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
     grid = bathy_group_object.values
     # @todo -- need to make sure nodata values are correct, especially if converting something other than bag which is supposed to have the same nodata value
     # @todo -- Add logic that if the grids are gdal raster bands then read in blocks and use h5py slicing to write in blocks.  Slower but saves resources
+    if flip_x:
+        depth_grid = numpy.fliplr(depth_grid)
+        uncert_grid = numpy.fliplr(uncert_grid)
+    if flip_y:
+        depth_grid = numpy.flipud(depth_grid)
+        uncert_grid = numpy.flipud(uncert_grid)
+
     grid.depth = depth_grid
     grid.uncertainty = uncert_grid
 
@@ -208,16 +225,59 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
 
 def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, metadata: dict, output_file, nodata_value=None,
                               overwrite: bool = True) -> S102File:  # raw arrays and metadata accepted
+    """ Fills or creates an :any:`S102File` from the given arguments.
+
+    Parameters
+    ----------
+    depth_grid
+        a numpy or hdf5 dataset object of the rectangular grid of depths, lower left corner is the first point
+    uncert_grid
+        a numpy or hdf5 dataset object of the rectangular grid of uncertainties, lower left corner is the first point
+    metadata
+        a dictionary of metadata describing the grids passed in,
+        metadata should have the following key/value pairs:
+            - "cornerPosition"; tuple of the position (x,y) or (lon, lat) for the lower left corner resolutions are positive
+            - "res": tuple of the resolution (cell size) of each grid cell (x, y).
+                If a resolution is negative then the grid will be flipped in that dimension and the cornerPosition adjusted accordingly.
+            - "horizontalDatumReference": See :any:`S102Root` horizontal_datum_reference, ex: "EPSG".
+                "EPSG" is the default value.
+            - "horizontalDatumValue":  The value for the horizontal data such as the EPSG code ex: 32611
+            - "epoch":
+            - "geographicIdentifier": Location of the data, ex: "Long Beach, CA, USA".
+                An empty string ("") is the default.
+            - "issueDate":
+            - "metadataFile": File name for the associated discovery metatadata (xml)
+    output_file
+        Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+    nodata_value
+        the "no data" value used in the grids
+    overwrite
+        if the output_file was an existing S102File then keep any attributes that might have
+    Returns
+    -------
+    S102File
+
+    """
+    # @todo - add logic to see if the coordinate system is lower right, if not then need to mirror the arrays or add flags to do that in from_arrays
+    res_x, res_y = metadata["res"]
+    flip_x = True if res_x < 0 else False
+    flip_y = True if res_y < 0 else False
 
     # @todo @fixme
     print("Need to determine if projected coords or not - assuming UTM right now")
-    minx = min([metadata['bounds'][0][0], metadata['bounds'][1][0]])
-    maxx = max([metadata['bounds'][0][0], metadata['bounds'][1][0]])
-    miny = min([metadata['bounds'][0][1], metadata['bounds'][1][1]])
-    maxy = max([metadata['bounds'][0][1], metadata['bounds'][1][1]])
+    nx, ny = depth_grid.shape
+    corner_x, corner_y = metadata['cornerPosition']
 
-    # @todo - add logic to see if the coordinate system is lower right, if not then need to mirror the arrays or add flags to do that in from_arrays
-    data_file = from_arrays(depth_grid, uncert_grid, output_file, nodata_value=nodata_value, overwrite=overwrite)
+    opposite_corner_x = corner_x + res_x * nx
+    opposite_corner_y = corner_y + res_y * ny
+
+    minx = min((corner_x, opposite_corner_x))
+    maxx = max((corner_x, opposite_corner_x))
+    miny = min((corner_y, opposite_corner_y))
+    maxy = max((corner_y, opposite_corner_y))
+
+    data_file = from_arrays(depth_grid, uncert_grid, output_file, nodata_value=nodata_value, overwrite=overwrite, flip_x=flip_x, flip_y=flip_y)
+
     # now add the additional metadata
     root = data_file.root
     bathy_01 = root.bathymetry_coverage.bathymetry_coverage[0]
@@ -235,8 +295,8 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
 
     bathy_01.grid_origin_longitude = minx
     bathy_01.grid_origin_latitude = miny
-    bathy_01.grid_spacing_longitudinal = metadata["res"][0]
-    bathy_01.grid_spacing_latitudinal = metadata["res"][1]
+    bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
+    bathy_01.grid_spacing_latitudinal = abs(res_y)
 
     # @todo  @FIXME
     print("need to determine if this is degrees/metres and set axisNames accordingly")
@@ -264,6 +324,24 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
 
 
 def from_gdal(input_raster, output_file, metadata: dict = {}) -> S102File:  # gdal instance or filename accepted
+    """ Fills or creates an :any:`S102File` from the given arguments.
+
+    Parameters
+    ----------
+    input_raster
+        Either a path to a raster file that GDAL can open or a gdal.Dataset object.
+    output_file
+        Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+    metadata
+        A dictionary of metadata describing the grids passed in.
+        All the metadata used in :any:`from_from_arrays_with_metadata` can be specified and
+        would override the values that would have been populated based on the GDAL data.
+
+    Returns
+    -------
+    S102File
+
+    """
     if isinstance(input_raster, gdal.Dataset):
         dataset = input_raster
     else:
@@ -285,11 +363,13 @@ def from_gdal(input_raster, output_file, metadata: dict = {}) -> S102File:  # gd
     ulx, dxx, dxy, uly, dyx, dyy = dataset.GetGeoTransform()
     if dxy != 0.0 or dyx != 0.0:
         raise S102Exception("raster is not north up but is rotated, this is not handled at this time")
+
+    # not used now as from_arrays moved to cornerPosition
     lrx = ulx + (nx * dxx) + (ny * dyx)
     lry = uly + (nx * dxy) + (ny * dyy)
 
-    if "bounds" not in metadata:  # gdal convention is upper left -- we need to handle that where we write from arrays
-        metadata["bounds"] = [[ulx, uly], [lrx, lry]]
+    if "cornerPosition" not in metadata:  # gdal convention is upper left -- we need to handle that where we write from arrays
+        metadata["cornerPosition"] = [ulx, uly]
     if "res" not in metadata:
         metadata["res"] = [dxx, dyy]
     s102_data_file = from_arrays_with_metadata(raster_band.ReadAsArray(), uncertainty_band.ReadAsArray(), metadata, output_file,
@@ -299,6 +379,16 @@ def from_gdal(input_raster, output_file, metadata: dict = {}) -> S102File:  # gd
 
 
 def from_bag(bagfile, output_file) -> S102File:
+    """
+    Parameters
+    ----------
+    bagfile
+    output_file
+        Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+    Returns
+    -------
+
+    """
     metadata = {"horizontalDatumValue": 32611,
                 "horizontalDatumReference": "EPSG",
                 "geographicIdentifier": "Long Beach, CA",
@@ -315,6 +405,7 @@ def from_bag(bagfile, output_file) -> S102File:
     raise S102Exception("This function is just for show right now!")
 
 
+# @todo remove this function once we extract any logic for reading epsg etc
 def read_bag(input_bag):
     """
     Extract the required information from the BAG using GDAL and Fuse.  Return
