@@ -236,9 +236,9 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     metadata
         a dictionary of metadata describing the grids passed in,
         metadata should have the following key/value pairs:
-            - "cornerPosition"; tuple of the position (x,y) or (lon, lat) for the lower left corner resolutions are positive
+            - "origin"; tuple of the position (x,y) or (lon, lat) for the lower left corner resolutions are positive
             - "res": tuple of the resolution (cell size) of each grid cell (x, y).
-                If a resolution is negative then the grid will be flipped in that dimension and the cornerPosition adjusted accordingly.
+                If a resolution is negative then the grid will be flipped in that dimension and the origin adjusted accordingly.
             - "horizontalDatumReference": See :any:`S102Root` horizontal_datum_reference, ex: "EPSG".
                 "EPSG" is the default value.
             - "horizontalDatumValue":  The value for the horizontal data such as the EPSG code ex: 32611
@@ -266,7 +266,7 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     # @todo @fixme
     print("Need to determine if projected coords or not - assuming UTM right now")
     nx, ny = depth_grid.shape
-    corner_x, corner_y = metadata['cornerPosition']
+    corner_x, corner_y = metadata['origin']
 
     opposite_corner_x = corner_x + res_x * nx
     opposite_corner_y = corner_y + res_y * ny
@@ -337,6 +337,8 @@ def from_gdal(input_raster, output_file, metadata: dict = {}) -> S102File:  # gd
         All the metadata used in :any:`from_from_arrays_with_metadata` can be specified and
         would override the values that would have been populated based on the GDAL data.
 
+        horizontalDatumReference, horizontalDatumValue, origin, res will be determined from GDAL if not otherwise specified.
+
     Returns
     -------
     S102File
@@ -364,12 +366,12 @@ def from_gdal(input_raster, output_file, metadata: dict = {}) -> S102File:  # gd
     if dxy != 0.0 or dyx != 0.0:
         raise S102Exception("raster is not north up but is rotated, this is not handled at this time")
 
-    # not used now as from_arrays moved to cornerPosition
+    # not used now as from_arrays moved to origin
     lrx = ulx + (nx * dxx) + (ny * dyx)
     lry = uly + (nx * dxy) + (ny * dyy)
 
-    if "cornerPosition" not in metadata:  # gdal convention is upper left -- we need to handle that where we write from arrays
-        metadata["cornerPosition"] = [ulx, uly]
+    if "origin" not in metadata:  # gdal convention is upper left -- we need to handle that where we write from arrays
+        metadata["origin"] = [ulx, uly]
     if "res" not in metadata:
         metadata["res"] = [dxx, dyy]
     s102_data_file = from_arrays_with_metadata(raster_band.ReadAsArray(), uncertainty_band.ReadAsArray(), metadata, output_file,
