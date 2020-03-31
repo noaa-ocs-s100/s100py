@@ -1492,40 +1492,40 @@ class S100Root(GeographicBoundingBox):
         self.product_specification = self.product_specification_type()
 
     @property
-    def issue_time(self) -> str:
+    def issue_time(self) -> datetime.time:
         return self._attributes[self.issue_time_attribute_name]
 
     @issue_time.setter
-    def issue_time(self, val: str):
-        self._attributes[self.issue_time_attribute_name] = val
+    def issue_time(self, val: Union[datetime.time, datetime.datetime, str]):
+        self.set_datetime_attribute(val, self.issue_time_attribute_name, self.issue_time_type)
 
     @property
-    def issue_time_type(self) -> Type[str]:
-        return str
+    def issue_time_type(self) -> Type[datetime.time]:
+        return datetime.time
 
     def issue_time_create(self):
         """ Creates a blank, empty or zero value for issue_time"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.issue_time = self.issue_time_type()
+        self.issue_time = self.issue_time_type(0, 0)  # midnight
 
     @property
-    def issue_date(self) -> str:
+    def issue_date(self) -> datetime.date:
         return self._attributes[self.issue_date_attribute_name]
 
     @issue_date.setter
-    def issue_date(self, val: str):
-        self._attributes[self.issue_date_attribute_name] = val
+    def issue_date(self, val: Union[datetime.date, datetime.datetime, str]):
+        self.set_datetime_attribute(val, self.issue_date_attribute_name, self.issue_date_type)
 
     @property
-    def issue_date_type(self) -> Type[str]:
-        return str
+    def issue_date_type(self) -> Type[datetime.date]:
+        return datetime.date
 
     def issue_date_create(self):
         """ Creates a blank, empty or zero value for issue_date"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.issue_date = self.issue_date_type()
+        self.issue_date = self.issue_date_type(1970, 1, 1)
 
     @property
     def horizontal_datum_reference(self) -> str:
