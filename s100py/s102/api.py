@@ -779,7 +779,7 @@ class TrackingListCoveragesList(S102MetadataListBase):
 
 
 class BathymetryFeatureInstance(FeatureInstanceDCF2):
-    bathymetry_group_attribute_name = "Group" + r"\.\d+"
+    bathymetry_group_attribute_name = "Group" + r"[\._]\d+"
     """ Basic template for HDF5 naming of the attribute.  
     Attribute name will be automatically determined based on the list's index of the data. 
     """
@@ -832,7 +832,7 @@ class BathymetryContainer(FeatureContainer):
     This will hold child groups named BathymetryCoverage.NN
     """
     #: attribute name will be automatically determined based on the containing list's index
-    bathymetry_coverage_attribute_name = BATHY_COVERAGE + r"\.\d+"
+    bathymetry_coverage_attribute_name = BATHY_COVERAGE + r"[\._]\d+"
 
     @property
     def __version__(self) -> int:
@@ -880,7 +880,7 @@ class TrackingListContainer(FeatureContainer):
     Table 10.1 of v2.0.0
     """
 
-    tracking_list_coverage_attribute_name = TRACKING_COVERAGE + r"\.\d+"
+    tracking_list_coverage_attribute_name = TRACKING_COVERAGE + r"[\._]\d+"
 
     @property
     def __version__(self) -> int:
