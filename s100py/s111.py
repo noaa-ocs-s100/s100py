@@ -51,7 +51,7 @@ START_SEQUENCE: Starting location of the scan.
 
 
 class S111MetadataListBase(S1xxMetadataListBase):
-    pass
+    write_format_str = ".%02d"
 
 
 class SurfaceCurrentUncertaintyInformation(S1xxAttributesBase):
@@ -263,7 +263,6 @@ class SurfaceCurrentGroup(S1xxAttributesBase):
     also see section 12.3 and table 12.5
 
     """
-
     values_attribute_name = "values"  #: HDF5 naming
     time_point_attribute_name = "timePoint"  #: HDF5 naming
 
@@ -411,7 +410,7 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
         self.positioning_group = self.positioning_group_type()
 
 
-class SurfaceCurrentList(S1xxMetadataListBase):
+class SurfaceCurrentList(S111MetadataListBase):
     """ Sect 10.2.4 and Table 12.3 of v1.0.1
     This is the set of SurfaceCurrent.NN that act like a list here.
     They will contain a list of Groups.NNN as well as other attributes etc.
@@ -457,7 +456,7 @@ class SurfaceCurrentContainer(FeatureContainer):
         self.surface_current = self.surface_current_type()
 
     @property
-    def surface_current(self) -> S1xxMetadataListBase:
+    def surface_current(self) -> S111MetadataListBase:
         """ The surface current data, a list of SurfaceCurrent
         Returns
         -------
@@ -467,7 +466,7 @@ class SurfaceCurrentContainer(FeatureContainer):
         return self._attributes[self.surface_current_attribute_name]
 
     @surface_current.setter
-    def surface_current(self, val: S1xxMetadataListBase):
+    def surface_current(self, val: S111MetadataListBase):
         self._attributes[self.surface_current_attribute_name] = val
 
     @property
