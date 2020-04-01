@@ -467,33 +467,32 @@ class S1xxAttributesBase(ABC):
             return z
 
         if isinstance(val, str):
-            try:  # python 3.7+ has fromisoformat() builtin
-                val = datetime.datetime.fromisoformat(val)
-            except AttributeError:
-                # read as a full datetime first.
-                match = re.match(re_full_datetime, val)
-                if match:
-                    decimal_sec = int(float(match['decimal_sec']) * 1000000) if match['decimal_sec'] else 0
-                    zone = _tz(match)
-                    val = datetime.datetime(int(match['year']), int(match['month']), int(match['day']),
-                                            int(match['hour']), int(match['minute']), int(match['second']),
+            # turns out the python fromisofomrat only reads the same format it would write using datetime.isoformat()
+            # try:  # python 3.7+ has fromisoformat() builtin
+            #    val = datetime.datetime.fromisoformat(val)
+            # except AttributeError:
+            # read as a full datetime first.
+            match = re.match(re_full_datetime, val)
+            if match:
+                decimal_sec = int(float(match['decimal_sec']) * 1000000) if match['decimal_sec'] else 0
+                zone = _tz(match)
+                val = datetime.datetime(int(match['year']), int(match['month']), int(match['day']),
+                                        int(match['hour']), int(match['minute']), int(match['second']),
+                                        decimal_sec, tzinfo=zone)
+            else:
+                if issubclass(date_type, datetime.date):
+                    match = re.match(re_date, val)
+                    if match:
+                        val = datetime.date(int(match['year']), int(match['month']), int(match['day']))
+                elif issubclass(date_type, datetime.time):
+                    match = re.match(re_time_with_zone, val)
+                    if match:
+                        decimal_sec = int(float(match['decimal_sec']) * 1000000) if match['decimal_sec'] else 0
+                        zone = _tz(match)
+                        val = datetime.time(int(match['hour']), int(match['minute']), int(match['second']),
                                             decimal_sec, tzinfo=zone)
-                else:
-                    if issubclass(date_type, datetime.date):
-                        match = re.match(re_date, val)
-                        if match:
-                            val = datetime.date(int(match['year']), int(match['month']), int(match['day']))
-                    elif issubclass(date_type, datetime.time):
-                        match = re.match(re_time_with_zone, val)
-                        if match:
-                            decimal_sec = int(float(match['decimal_sec']) * 1000000) if match['decimal_sec'] else 0
-                            zone = _tz(match)
-                            val = datetime.time(int(match['hour']), int(match['minute']), int(match['second']),
-                                                decimal_sec, tzinfo=zone)
 
-                if not match:
-                    print("failed to parse date and/or time from '" + val + "' storing as string in ", attribute_name)
-            except Exception:
+            if not match:
                 print("failed to parse date and/or time from '" + val + "' storing as string in ", attribute_name)
 
         if isinstance(val, (datetime.datetime, datetime.date, datetime.time)):
