@@ -361,7 +361,7 @@ def from_gdal(input_raster, output_file, metadata: dict = {}) -> S102File:  # gd
     if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
         metadata["horizontalDatumReference"] = "EPSG"
         epsg = osr.SpatialReference(dataset.GetProjection()).GetAttrValue("AUTHORITY", 1)
-        metadata["horizontalDatumValue"] = epsg
+        metadata["horizontalDatumValue"] = int(epsg)
 
     raster_band = dataset.GetRasterBand(1)
     depth_nodata_value = raster_band.GetNoDataValue()
