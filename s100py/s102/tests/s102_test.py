@@ -56,7 +56,7 @@ def copy_path(bagname):
 def check_s102_data(s102obj):
     assert s102obj.root
     assert s102obj.root.horizontal_datum_reference == "EPSG"
-    assert s102obj.root.horizontal_datum_value == '26910'
+    assert s102obj.root.horizontal_datum_value == 26910
     assert s102obj.root.east_bound_longitude > 523812
     assert s102obj.root.east_bound_longitude < 523813
     b = s102obj.root.bathymetry_coverage.bathymetry_coverage[0]
