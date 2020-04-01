@@ -492,9 +492,9 @@ class S1xxAttributesBase(ABC):
                                                 decimal_sec, tzinfo=zone)
 
                 if not match:
-                    print("failed to parse", val, " storing as string")
+                    print("failed to parse date and/or time from '" + val + "' storing as string in ", attribute_name)
             except Exception:
-                print("failed to parse", val, " storing as string")
+                print("failed to parse date and/or time from '" + val + "' storing as string in ", attribute_name)
 
         if isinstance(val, (datetime.datetime, datetime.date, datetime.time)):
             if isinstance(val, datetime.datetime):
