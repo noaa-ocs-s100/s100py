@@ -7,7 +7,7 @@ from enum import Enum
 import numpy
 
 from s100py.s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile
-from s100py.s100 import FeatureContainer, S100Root, FeatureInstanceDCF2, FeatureInstanceBase
+from s100py.s100 import FeatureContainer, S100Root, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset
 
 SURFACE_CURRENT = "SurfaceCurrent"
 
@@ -50,7 +50,7 @@ START_SEQUENCE: Starting location of the scan.
 """
 
 
-class S111_MetadataList_base(S1xxMetadataListBase):
+class S111MetadataListBase(S1xxMetadataListBase):
     pass
 
 
@@ -263,7 +263,6 @@ class SurfaceCurrentGroup(S1xxAttributesBase):
     also see section 12.3 and table 12.5
 
     """
-    write_format_str = "_%02d"
 
     values_attribute_name = "values"  #: HDF5 naming
     time_point_attribute_name = "timePoint"  #: HDF5 naming
@@ -309,7 +308,7 @@ class SurfaceCurrentGroup(S1xxAttributesBase):
         return 1
 
 
-class SurfaceCurrentGroupList(S111_MetadataList_base):
+class SurfaceCurrentGroupList(S1xxMetadataListBase):
     """ This is the list of Group.NNN that are held as a list.
     Each Group.NNN has a dataset of depth and uncertainty.
     """
@@ -327,7 +326,7 @@ class SurfaceCurrentGroupList(S111_MetadataList_base):
         return SurfaceCurrentGroup
 
 
-class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2, FeatureInstanceBase):
+class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
     surface_current_group_attribute_name = "Group" + r"[\._]\d+"
     """ Basic template for the name of the attribute
     Attribute name will be automatically determined based on the array position of the S111_MetadataList
@@ -348,11 +347,11 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2, FeatureInstanceBase):
         self.surface_current_group = self.surface_current_group_type()
 
     @property
-    def surface_current_group(self) -> S111_MetadataList_base:
+    def surface_current_group(self) -> S1xxMetadataListBase:
         return self._attributes[self.surface_current_group_attribute_name]
 
     @surface_current_group.setter
-    def surface_current_group(self, val: S111_MetadataList_base):
+    def surface_current_group(self, val: S1xxMetadataListBase):
         self._attributes[self.surface_current_group_attribute_name] = val
 
     @property
@@ -371,40 +370,6 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2, FeatureInstanceBase):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.number_of_nodes = self.number_of_nodes_type()
-
-    @property
-    def datetime_first_record(self) -> S1xxAttributesBase:
-        return self._attributes[self.datetime_first_record_attribute_name]
-
-    @datetime_first_record.setter
-    def datetime_first_record(self, val: S1xxAttributesBase):
-        self._attributes[self.datetime_first_record_attribute_name] = val
-
-    @property
-    def datetime_first_record_type(self) -> Type[str]:
-        return str
-
-    def datetime_first_record_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.datetime_first_record = self.datetime_first_record_type()
-
-    @property
-    def datetime_last_record(self) -> S1xxAttributesBase:
-        return self._attributes[self.datetime_last_record_attribute_name]
-
-    @datetime_last_record.setter
-    def datetime_last_record(self, val: S1xxAttributesBase):
-        self._attributes[self.datetime_last_record_attribute_name] = val
-
-    @property
-    def datetime_last_record_type(self) -> Type[str]:
-        return str
-
-    def datetime_last_record_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.datetime_last_record = self.datetime_last_record_type()
 
     @property
     def uncertainty_dataset(self) -> S1xxDatasetBase:
@@ -446,7 +411,7 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2, FeatureInstanceBase):
         self.positioning_group = self.positioning_group_type()
 
 
-class SurfaceCurrentList(S111_MetadataList_base):
+class SurfaceCurrentList(S1xxMetadataListBase):
     """ Sect 10.2.4 and Table 12.3 of v1.0.1
     This is the set of SurfaceCurrent.NN that act like a list here.
     They will contain a list of Groups.NNN as well as other attributes etc.
@@ -492,7 +457,7 @@ class SurfaceCurrentContainer(FeatureContainer):
         self.surface_current = self.surface_current_type()
 
     @property
-    def surface_current(self) -> S111_MetadataList_base:
+    def surface_current(self) -> S1xxMetadataListBase:
         """ The surface current data, a list of SurfaceCurrent
         Returns
         -------
@@ -502,7 +467,7 @@ class SurfaceCurrentContainer(FeatureContainer):
         return self._attributes[self.surface_current_attribute_name]
 
     @surface_current.setter
-    def surface_current(self, val: S111_MetadataList_base):
+    def surface_current(self, val: S1xxMetadataListBase):
         self._attributes[self.surface_current_attribute_name] = val
 
     @property
@@ -584,214 +549,7 @@ class SurfaceCurrentContainer(FeatureContainer):
         self.data_coding_format = self.data_coding_format_type(2)  # default
 
 
-class SurfaceCurrentFeatureInformation(S1xxAttributesBase):
-    """ S111 10.2.2 and Table 10.3 of v1.0.1 and S100 Table 10c-8 v4.0.0
-    This is used to describe the SurfaceCurrent within the GroupF feature listing.
-    The features described under GroupF have a matching named entry parallel to GroupF (top level).
-    The actual data (surfaceCurrentSpeed etc) is stored in the top level element while basic metadata is stored in this element.
-    """
-
-    code_attribute_name = "code"  #: HDF5 naming
-    name_attribute_name = "name"  #: HDF5 naming
-    unit_of_measure_attribute_name = "uom.name"  #: HDF5 naming
-    fill_value_attribute_name = "fillValue"  #: HDF5 naming
-    datatype_attribute_name = "datatype"  #: HDF5 naming
-    lower_attribute_name = "lower"
-    upper_attribute_name = "upper"
-    closure_attribute_name = "closure"
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def code(self) -> str:
-        """ The camel case name of the data
-
-        Returns
-        -------
-        str
-            The name of the dataset ("surfaceCurrentSpeed" or "surfaceCurrentDirection")
-        """
-        return self._attributes[self.code_attribute_name]
-
-    @code.setter
-    def code(self, val: str):
-        self._attributes[self.code_attribute_name] = val
-
-    @property
-    def code_type(self):
-        return str
-
-    def code_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.code = self.code_type()
-
-    @property
-    def name(self) -> str:
-        """ The plain text name of the data
-        Returns
-        -------
-        str
-            Name of the dataset ("Surface current speed" or "Surface current direction")
-        """
-        return self._attributes[self.name_attribute_name]
-
-    @name.setter
-    def name(self, val: str):
-        self._attributes[self.name_attribute_name] = val
-
-    @property
-    def name_type(self):
-        return str
-
-    def name_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.name = self.name_type()
-
-    @property
-    def unit_of_measure(self) -> str:
-        """ Units of measurement for the dataset
-        Returns
-        -------
-        str
-            "knots" or "arc-degrees"
-        """
-        return self._attributes[self.unit_of_measure_attribute_name]
-
-    @unit_of_measure.setter
-    def unit_of_measure(self, val: str):
-        self._attributes[self.unit_of_measure_attribute_name] = val
-
-    @property
-    def unit_of_measure_type(self):
-        return str
-
-    def unit_of_measure_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.unit_of_measure = self.unit_of_measure_type()
-
-    @property
-    def fill_value(self) -> str:
-        """ Value denoting missing data
-        Returns
-        -------
-        float
-            -9999.0
-        """
-        return self._attributes[self.fill_value_attribute_name]
-
-    @fill_value.setter
-    def fill_value(self, val: str):
-        self._attributes[self.fill_value_attribute_name] = val
-
-    @property
-    def fill_value_type(self):
-        return str
-
-    def fill_value_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.fill_value = self.fill_value_type(FILLVALUE)
-
-    @property
-    def datatype(self) -> str:
-        """
-        Returns
-        -------
-        string
-            H5T_NATIVE_FLOAT
-        """
-        return self._attributes[self.datatype_attribute_name]
-
-    @datatype.setter
-    def datatype(self, val: str):
-        self._attributes[self.datatype_attribute_name] = val
-
-    @property
-    def datatype_type(self):
-        return str
-
-    def datatype_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.datatype = self.datatype_type("H5T_FLOAT")
-
-    @property
-    def lower(self) -> str:
-        """
-        Returns
-        -------
-        str
-            ("0.0")
-        """
-        return self._attributes[self.lower_attribute_name]
-
-    @lower.setter
-    def lower(self, val: str):
-        self._attributes[self.lower_attribute_name] = val
-
-    @property
-    def lower_type(self):
-        return str
-
-    def lower_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.lower = self.lower_type()
-
-    @property
-    def upper(self) -> str:
-        """
-        Returns
-        -------
-        str
-            ("" or "360")
-        """
-        return self._attributes[self.upper_attribute_name]
-
-    @upper.setter
-    def upper(self, val: str):
-        self._attributes[self.upper_attribute_name] = val
-
-    @property
-    def upper_type(self):
-        return str
-
-    def upper_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.upper = self.upper_type()
-
-    @property
-    def closure(self) -> str:
-        """
-        Returns
-        -------
-        str
-            ("geSemiInterval" or "geLtInterval")
-        """
-        return self._attributes[self.closure_attribute_name]
-
-    @closure.setter
-    def closure(self, val: str):
-        self._attributes[self.closure_attribute_name] = val
-
-    @property
-    def closure_type(self):
-        return str
-
-    def closure_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.closure = self.closure_type()
-
-
-class SurfaceCurrentFeatureDataset(S1xxDatasetBase):
-    chunking_attribute_name = "chunking"
+class SurfaceCurrentFeatureDataset(FeatureInformationDataset):
 
     @property
     def __version__(self) -> int:
@@ -802,25 +560,8 @@ class SurfaceCurrentFeatureDataset(S1xxDatasetBase):
         return SURFACE_CURRENT
 
     @property
-    def metadata_type(self) -> Type[SurfaceCurrentFeatureInformation]:
-        return SurfaceCurrentFeatureInformation
-
-    @property
-    def chunking(self) -> S1xxAttributesBase:
-        return self._attributes[self.chunking_attribute_name]
-
-    @chunking.setter
-    def chunking(self, val: S1xxAttributesBase):
-        self._attributes[self.chunking_attribute_name] = val
-
-    @property
-    def chunking_type(self) -> Type[str]:
-        return str
-
-    def chunking_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.chunking = self.chunking_type()
+    def metadata_type(self) -> Type[FeatureInformation]:
+        return FeatureInformation
 
 
 class GroupF(S1xxAttributesBase):

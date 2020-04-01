@@ -281,8 +281,8 @@ class CLI:
                 surface_current_feature.type_of_current_data = 6
                 surface_current_feature.method_currents_product = MODELS[model_name]['product']
 
-                time_str = model_file.datetime_values[0].strftime('%Y%m%dT%H%M%SZ')
-                surface_current_feature_instance_01.datetime_first_record = numpy.string_(time_str)
+                first_record = model_file.datetime_values[0].strftime('%Y%m%dT%H%M%SZ')
+                surface_current_feature_instance_01.date_time_of_first_record = numpy.string_(first_record)
                 surface_current_feature.min_dataset_current_speed = 0
                 surface_current_feature.max_dataset_current_speed = 0
 
@@ -338,13 +338,17 @@ class CLI:
                     if max_speed > surface_current_feature.max_dataset_current_speed:
                         surface_current_feature.max_dataset_current_speed = max_speed
 
-                    surface_current_feature_instance_01.datetime_last_record = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
+                    last_record = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
+                    surface_current_feature_instance_01.date_time_of_last_record = numpy.string_(last_record)
 
                     surface_current_feature_instance_01.num_grp = len(model_file.datetime_values)
                     surface_current_feature_instance_01.number_of_times = len(model_file.datetime_values)
 
-                    interval = model_file.datetime_values[1] - model_file.datetime_values[0]
-                    surface_current_feature_instance_01.time_record_interval = interval.total_seconds()
+                    if len(model_file.datetime_values) == 1:
+                        surface_current_feature_instance_01.time_record_interval = 0
+                    else:
+                        interval = model_file.datetime_values[1] - model_file.datetime_values[0]
+                        surface_current_feature_instance_01.time_record_interval = interval.total_seconds()
 
                     surface_current_feature_instance_01.east_bound_longitude = minx
                     surface_current_feature_instance_01.west_bound_longitude = maxx
