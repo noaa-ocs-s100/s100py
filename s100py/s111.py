@@ -263,7 +263,7 @@ class SurfaceCurrentGroup(S1xxAttributesBase):
     also see section 12.3 and table 12.5
 
     """
-    write_format_str = ".%03d"
+    write_format_str = "_%02d"
 
     values_attribute_name = "values"  #: HDF5 naming
     time_point_attribute_name = "timePoint"  #: HDF5 naming
@@ -328,7 +328,7 @@ class SurfaceCurrentGroupList(S111_MetadataList_base):
 
 
 class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2, FeatureInstanceBase):
-    surface_current_group_attribute_name = "Group" + r"\.\d+"
+    surface_current_group_attribute_name = "Group" + r"[\._]\d+"
     """ Basic template for the name of the attribute
     Attribute name will be automatically determined based on the array position of the S111_MetadataList
     """
@@ -472,7 +472,7 @@ class SurfaceCurrentContainer(FeatureContainer):
 
     #: Basic template for the name of the attribute
     #: Attribute name will be automatically determined based on the containing list's index
-    surface_current_attribute_name = SURFACE_CURRENT + r"\.\d+"
+    surface_current_attribute_name = SURFACE_CURRENT + r"[\._]\d+"
     min_dataset_current_speed_attribute_name = "minDatasetCurrentSpeed"
     max_dataset_current_speed_attribute_name = "maxDatasetCurrentSpeed"
     method_currents_product_attribute_name = "methodCurrentsProduct"
