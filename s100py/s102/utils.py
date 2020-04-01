@@ -103,11 +103,11 @@ def create_s102(output_file, overwrite=True) -> S102File:
     track_info.name = "List Series"
     track_info.unit_of_measure = "N/A"
 
-    root.bathymetry_coverage.axis_names = numpy.array(["longitude", "latitude"])  # row major order means X/longitude first
+    root.bathymetry_coverage.axis_names = numpy.array(["Longitude", "Latitude"])  # row major order means X/longitude first
+    root.bathymetry_coverage.sequencing_rule_scan_direction = "Longitude, Latitude"
     root.bathymetry_coverage.common_point_rule = 1  # average
     # root.bathymetry_coverage.data_coding_format = 2  # default
     # root.bathymetry_coverage.dimension = 2  # default value
-    root.bathymetry_coverage.sequencing_rule_scan_direction = "Longitude, Latitude"
     root.bathymetry_coverage.interpolation_type = 1  # nearest neighbor
     root.bathymetry_coverage.num_instances = 1  # how many Bathycoverages
     root.bathymetry_coverage.sequencing_rule_type = 1  # linear
@@ -269,8 +269,6 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     flip_x = True if res_x < 0 else False
     flip_y = True if res_y < 0 else False
 
-    # @todo @fixme
-    print("Need to determine if projected coords or not - assuming UTM right now")
     nx, ny = depth_grid.shape
     corner_x, corner_y = metadata['origin']
 
@@ -304,9 +302,6 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
     bathy_01.grid_spacing_latitudinal = abs(res_y)
 
-    # @todo  @FIXME
-    print("need to determine if this is degrees/metres and set axisNames accordingly")
-    # bathy_group_object.axis_names = numpy.array(["longitude", "latitude"])  # row major order means X/longitude first
 
     bathy_group_object.origin.coordinate = numpy.array([minx, miny])
 
@@ -315,7 +310,17 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     if "horizontalDatumReference" in metadata or overwrite:
         root.horizontal_datum_reference = metadata.get("horizontalDatumReference", "EPSG")
     if "horizontalDatumValue" in metadata or overwrite:
-        root.horizontal_datum_value = metadata.get("horizontalDatumValue", 0)
+        root.horizontal_datum_value = int(metadata.get("horizontalDatumValue", 0))
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(root.horizontal_datum_value)
+    if srs.IsProjected():
+        axes = ["Easting", "Northing"]
+    else:
+        axes = ["Longitude", "Latitude"]
+    bathy_group_object.axis_names = numpy.array(axes)  # row major order means X/longitude first
+    root.bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
+    root.bathymetry_coverage.sequencing_rule_scan_direction = ", ".join(axes)
+
     if "epoch" in metadata or overwrite:
         root.epoch = metadata.get("epoch", "")  # e.g. "G1762"  this is the 2013-10-16 WGS84 used by CRS
     if "geographicIdentifier" in metadata or overwrite:
