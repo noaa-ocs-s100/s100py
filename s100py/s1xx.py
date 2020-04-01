@@ -631,7 +631,10 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
 
     def read(self, group_object_parent):
         group_object = group_object_parent[self.metadata_name]
-        self.read_hdf5_attributes(group_object)  # put any attributes from the dataset obect into the overall _attributes
+        self.read_hdf5_attributes(group_object)  # put any attributes from the dataset object into the overall _attributes
+        # @fixme -- I think below is more correct, but should be functionally the same as above
+        # S1xxAttributesBase.read(self, group_object)
+        # del self._attributes[self.metadata_name]  # remove the dataset since we are going to interpret it as a list instead
 
         list_length = group_object.shape[0]
         has_extra_dimension = False  # NAVO (and maybe the spec) wrote data as shape (2,1) instead of (2,) so we have to use an extra index - data[0][0]
@@ -671,7 +674,6 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
         try:
             # First determine the write order of the keys
             logging.debug("Writing" + " " + str(self))
-
             dataset = None
             if len(self) > 0:
                 val = self[0]
@@ -717,6 +719,7 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
                 except KeyError:
                     pass  # didn't exist, no error
                 dataset = group_object.create_dataset(self.metadata_name, data=rec_array)
+                S1xxAttributesBase.write(self, dataset)
             return dataset
         except Exception as e:
             raise e
