@@ -172,7 +172,7 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
         bathy_group_object = bathy_01.bathymetry_group.append_new_item()
     # bathy_group_object.initialize_properties()  # Not creating everything as I'm not sure if the grid attributes should be there
 
-    print("fix here -- row/column order?")
+    # @todo @fixme fix here -- row/column order?
     nx, ny = depth_grid.shape
     if uncert_grid is None:
         uncert_grid = numpy.full(depth_grid.shape, nodata_value, dtype=numpy.float32)
@@ -272,6 +272,7 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     nx, ny = depth_grid.shape
     corner_x, corner_y = metadata['origin']
 
+    # @todo Confirm this is correct.  This is cell (pixel is area) math, but S-102 is node (pixel is node) based (right?).
     opposite_corner_x = corner_x + res_x * nx
     opposite_corner_y = corner_y + res_y * ny
 
@@ -310,7 +311,11 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     if "horizontalDatumReference" in metadata or overwrite:
         root.horizontal_datum_reference = metadata.get("horizontalDatumReference", "EPSG")
     if "horizontalDatumValue" in metadata or overwrite:
-        root.horizontal_datum_value = int(metadata.get("horizontalDatumValue", 0))
+        source_epsg = int(metadata.get("horizontalDatumValue", 0))
+        if source_epsg in get_valid_epsg():
+            root.horizontal_datum_value = source_epsg
+        else:
+            raise ValueError('The provided EPSG code is not within the S102 specified values')
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(root.horizontal_datum_value)
     if srs.IsProjected():
@@ -362,24 +367,23 @@ def from_gdal(input_raster, output_file, metadata: dict = {}) -> S102File:  # gd
 
     # @todo @fixme -- transform the coordinate system to a WGS84.  Strictly this may not end up being square, so how do we handle
     #  transform = osr.CoordinateTransformation( src_srs, tgt_srs)
-    print("Glen, how do you want to transform coordinates?")
+    # Until we have a working datum engine this module should not do datum transformations - GR 20200402
     if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
         metadata["horizontalDatumReference"] = "EPSG"
         epsg = osr.SpatialReference(dataset.GetProjection()).GetAttrValue("AUTHORITY", 1)
         metadata["horizontalDatumValue"] = int(epsg)
 
+    if "epoch" not in metadata:
+        # @todo We should be able to pull this from the WKT
+        pass
+
     raster_band = dataset.GetRasterBand(1)
     depth_nodata_value = raster_band.GetNoDataValue()
     uncertainty_band = dataset.GetRasterBand(2)
 
-    nx, ny = raster_band.XSize, raster_band.YSize
     ulx, dxx, dxy, uly, dyx, dyy = dataset.GetGeoTransform()
     if dxy != 0.0 or dyx != 0.0:
         raise S102Exception("raster is not north up but is rotated, this is not handled at this time")
-
-    # not used now as from_arrays moved to origin
-    lrx = ulx + (nx * dxx) + (ny * dyx)
-    lry = uly + (nx * dxy) + (ny * dyy)
 
     if "origin" not in metadata:  # gdal convention is upper left -- we need to handle that where we write from arrays
         metadata["origin"] = [ulx, uly]
@@ -391,7 +395,7 @@ def from_gdal(input_raster, output_file, metadata: dict = {}) -> S102File:  # gd
     return s102_data_file
 
 
-def from_bag(bagfile, output_file) -> S102File:
+def from_bag(bagfile, output_file, metadata: dict = {}) -> S102File:
     """
     Parameters
     ----------
@@ -402,63 +406,21 @@ def from_bag(bagfile, output_file) -> S102File:
     -------
 
     """
-    metadata = {"horizontalDatumValue": 32611,
-                "horizontalDatumReference": "EPSG",
-                "geographicIdentifier": "Long Beach, CA",
-                "epoch": "G1762",
-                }
-    try:
-        pth = os.path.splitext(os.path.basename(output_file))[0] + ".xml"
-    except Exception:
-        pth = "None"
-    metadata["metadataFile"] = pth
+    if 'issueDate' not in metadata:
+        # @todo hack this out of the BAG XML
+        # metadata['issueDate'] = ''
+        pass
 
     s102_data_file = from_gdal(bagfile, output_file, metadata=metadata)
 
-    raise S102Exception("This function is just for show right now!")
+    return s102_data_file
 
 
-# @todo remove this function once we extract any logic for reading epsg etc
-def read_bag(input_bag):
+def get_valid_epsg() -> list:
     """
-    Extract the required information from the BAG using GDAL and Fuse.  Return
-    the metadata in a dictionary and the arrays.
+    Create and return the list of valid EPSG codes for S-102 version 2.0.
     """
-    # check to see if VR
-    # if VR, resample at specific resolution
-    # if not return the stuff.
-    metadata = dict()
-    # use gdal to get the rasters and horizontal georeferencing
-    bagfile = gdal.Open(input_bag)
-    raster_band = bagfile.GetRasterBand(1)
-    uncertainty_band = bagfile.GetRasterBand(2)
-    raster_band.XSize, raster_band.YSize
-    bagfile.GetProjection()
-    bagfile.GetMetadata()
-    epsg = osr.SpatialReference(bagfile.GetProjection()).GetAttrValue("AUTHORITY", 1)
-    if epsg is None:
-        raise ValueError('No EPSG code discernible from BAG read with GDAL')
-    else:
-        if epsg in get_valid_epsg():
-            metadata['epsg'] = epsg
-        else:
-            raise ValueError(f'BAG EPSG code is not within those allowd by S-102 spec: {epsg}')
-    bagfile.GetMetadataDomainList()  # ['', 'IMAGE_STRUCTURE', 'DERIVED_SUBDATASETS', 'xml:BAG']
-    meta_dict = bagfile.GetMetadata_Dict("xml:BAG")
-    print(meta_dict)
-
-    # use fuse to read the XML and get the
-    #   Date
-    #   resolution (x and y)
-    #   bounds (x and y, but lat lon or utm?)
-    #   vertical datum
-    fuse_bag = bag.BAGSurvey("")
-    meta_gdal, bag_version = fuse_bag._parse_bag_gdal(input_bag)
-    meta_bagxml = fuse_bag._parse_bag_xml(input_bag, bag_version)
-    metadata = {**metadata, **meta_bagxml}
-
-    depth_raster_data = raster_band.ReadAsArray()
-    metadata['nodata'] = raster_band.GetNoDataValue()
-    uncertainty_raster_data = uncertainty_band.ReadAsArray()
-
-    return depth_raster_data, uncertainty_raster_data, metadata
+    valid_epsg = [4326, 5041, 5042]
+    valid_epsg += list(numpy.arange(32601, 32660 + 1))
+    valid_epsg += list(numpy.arange(32701, 32760 + 1))
+    return valid_epsg
