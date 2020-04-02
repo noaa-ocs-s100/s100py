@@ -17,7 +17,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s102"
 
-from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile
+from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxGridsBase, S1XXFile
 from ..s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainer, S100Root, S100Exception, FeatureInstanceDCF2
 
