@@ -1,10 +1,6 @@
-# import collections
 from abc import ABC, abstractmethod
 from typing import Callable, Iterator, Union, Optional, List, Type
-import re
 import logging
-import inspect
-import traceback
 import datetime
 from enum import Enum
 
@@ -17,7 +13,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py"
 
-from .s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxWritesOwnGroupBase, S1XXFile
+from .s1xx import s1xx_sequence, S1xxAttributesBase, S1xxDatasetBase, S1XXFile, Chunking
 
 
 class S100Exception(Exception):
@@ -1166,33 +1162,33 @@ class FeatureInformation(S1xxAttributesBase):
         self.closure = self.closure_type("closedInterval")
 
 
-class FeatureInformationDataset(S1xxDatasetBase, ABC):
+class FeatureInformationDataset(Chunking, S1xxDatasetBase, ABC):
     """ This class comes from S100 -- 10c-9.5 Feature information group.
 
     metadata_type will likely be overridden with a specific subclass for the s100+ spec
     """
-    chunking_attribute_name = "chunking"  #: HDF5 naming
 
     @property
     def metadata_type(self) -> Type[FeatureInformation]:
         return FeatureInformation
 
-    @property
-    def chunking(self) -> S1xxAttributesBase:
-        return self._attributes[self.chunking_attribute_name]
-
-    @chunking.setter
-    def chunking(self, val: S1xxAttributesBase):
-        self._attributes[self.chunking_attribute_name] = val
-
-    @property
-    def chunking_type(self) -> Type[str]:
-        return str
-
-    def chunking_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.chunking = self.chunking_type()
+    # chunking_attribute_name = "chunking"  #: HDF5 naming
+    # @property
+    # def chunking(self) -> str:
+    #     return self._attributes[self.chunking_attribute_name]
+    #
+    # @chunking.setter
+    # def chunking(self, val: str):
+    #     self._attributes[self.chunking_attribute_name] = val
+    #
+    # @property
+    # def chunking_type(self) -> Type[str]:
+    #     return str
+    #
+    # def chunking_create(self):
+    #     # noinspection PyAttributeOutsideInit
+    #     # pylint: disable=attribute-defined-outside-init
+    #     self.chunking = self.chunking_type()
 
 class FeatureContainer(S1xxAttributesBase):
     axis_names_attribute_name = "axisNames"
@@ -1550,7 +1546,8 @@ class S100Root(GeographicBoundingBox):
         return self._attributes[self.horizontal_datum_value_attribute_name]
 
     @horizontal_datum_value.setter
-    def horizontal_datum_value(self, val: int):
+    def horizontal_datum_value(self, val: Union[str, int]):
+        val = int(val)
         self._attributes[self.horizontal_datum_value_attribute_name] = val
 
     @property

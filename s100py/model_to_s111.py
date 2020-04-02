@@ -363,15 +363,24 @@ class CLI:
 
                     surface_current_group_object.time_point = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
 
-                    # TODO Fix Group F/SurfaceCurrent/Attribute Chunking and populate chunking attributes
-                    surface_current_feature_dataset.chunking = ""
-
-                    # TODO: Determine group values dataset chunk sizes(e.g grid.chunks)
-                    # chunks = values_dset.chunks
-                    # chunking_str = ','.join(str(x) for x in chunks)
-                    surface_current_feature_instance_01.instance_chunking = ""
-
                 s111_file.write()
+                # now that all the chunking is filled in for each grid we can fill the overall attribute
+                all_chunks = []
+                for sc in root.surface_current.surface_current:  # iterate all the surface currents
+                    for grp in sc.surface_current_group:  # and all their groups
+                        try:
+                            chunk = eval(grp.values.chunking)  # grab the individual chunks
+                            all_chunks.append(chunk)
+                        except AttributeError:
+                            print("failed to find chunking attr")
+                all_chunks_array = numpy.array(all_chunks)  # now figure out the minimum chunk sizes and write that out.  Not sure what we should actually do here though.
+                min_chunks = (all_chunks_array[:,0].min(), all_chunks_array[:,1].min())
+                surface_current_feature_dataset.chunking = min_chunks
+                # just write out the surface_current_feature_dataset rather than the whole file.
+                # this requires that the surface_current_feature_dataset had either been read from or written to hdf5 once already
+                # datasets need to create their dataset, which means they need the parent and not just the hdf5 object
+                surface_current_feature_dataset.write(surface_current_feature_dataset.get_hdf5_from_file(s111_file).parent)
+                # s111_file.write()
 
         finally:
             model_file.close()

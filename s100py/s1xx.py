@@ -757,8 +757,32 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
         except Exception as e:
             raise e
 
+class Chunking:
+    """ This is a mixin to supply chunking attributes to any other class """
+    chunking_attribute_name = "chunking"  #: HDF5 naming
 
-class S1xxGridsBase(S1xxWritesOwnGroupBase):
+    @property
+    def chunking(self) -> str:
+        return self._attributes[self.chunking_attribute_name]
+
+    @chunking.setter
+    def chunking(self, val: Union[str, list, tuple]):
+        if isinstance(val, str):
+            pass
+        else:
+            val = ",".join(str(a) for a in val)
+        self._attributes[self.chunking_attribute_name] = val
+
+    @property
+    def chunking_type(self) -> Type[str]:
+        return str
+
+    def chunking_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.chunking = self.chunking_type()
+
+class S1xxGridsBase(Chunking, S1xxWritesOwnGroupBase):
     @property
     @abstractmethod
     def metadata_name(self) -> str:
@@ -811,6 +835,9 @@ class S1xxGridsBase(S1xxWritesOwnGroupBase):
             # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
             rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, 'f4') for name in write_keys])
             dataset = group_object.create_dataset(self.metadata_name, data=rec_array, chunks=True, compression='gzip', compression_opts=9)
+            # noinspection PyAttributeOutsideInit
+            # pylint: disable=attribute-defined-outside-init
+            self.chunking = dataset.chunks
             self.write_simple_attributes(dataset)
 
         except Exception as e:
