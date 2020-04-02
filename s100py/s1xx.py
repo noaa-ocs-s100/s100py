@@ -21,6 +21,7 @@ import numpy
 Record = s1xx_sequence = Union[numpy.ndarray, h5py.Dataset]
 s1xx_sequence_types = s1xx_sequence.__args__
 
+
 class FixedTimeZones(datetime.tzinfo):
     """Fixed offset in minutes east from UTC."""
 
@@ -529,6 +530,13 @@ class S1xxAttributesBase(ABC):
                         val = val.replace(tzinfo=tz)
 
         self._attributes[attribute_name] = val
+
+    def get_hdf5_from_file(self, file_obj):
+        if self._hdf5_path:
+            obj = file_obj[self._hdf5_path]
+        else:
+            obj = None
+        return obj
 
 
 class S1xxWritesOwnGroupBase(S1xxAttributesBase):
