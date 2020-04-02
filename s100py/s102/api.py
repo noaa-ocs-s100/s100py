@@ -51,15 +51,6 @@ START_SEQUENCE: Starting location of the scan.
 # S100 doc part 10C has HDF5 layout information as well.
 # S100 doc 10C-7 has some representation guidelines
 
-def get_valid_epsg() -> list:
-    """
-    Create and return the list of valid EPSG codes for S-102 version 2.0.
-    """
-    valid_epsg = [4326, 5041, 5042]
-    valid_epsg += list(numpy.arange(32601, 32660 + 1))
-    valid_epsg += list(numpy.arange(32701, 32760 + 1))
-    return valid_epsg
-
 
 # override the basic S100 spec that says to use an underscore and use a dot instead
 class S102MetadataListBase(S1xxMetadataListBase):
