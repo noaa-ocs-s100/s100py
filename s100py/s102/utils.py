@@ -336,6 +336,8 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
         root.metadata = metadata.get('metadataFile', "")  # datetime.date.today().isoformat()
 
     data_file.write()
+    data_file.flush()
+    
     return data_file
 
 
@@ -422,7 +424,8 @@ def from_bag(bagfile, output_file, metadata: dict = {}) -> S102File:
             metadata['issueDate'] = date
 
     s102_data_file = from_gdal(bag, output_file, metadata=metadata)
-    s102_data_file.close()
+    
+    return s102_data_file
 
 
 def get_valid_epsg() -> list:
