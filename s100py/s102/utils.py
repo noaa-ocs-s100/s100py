@@ -241,7 +241,8 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     metadata
         a dictionary of metadata describing the grids passed in,
         metadata should have the following key/value pairs:
-            - "origin"; tuple of the position (x,y) or (lon, lat) for the lower left corner resolutions are positive
+            - "origin": tuple of the position (x,y) or (lon, lat) for the reference corner node.
+                Other corners are calulated from this corner using the resolution and size of the data array.
             - "res": tuple of the resolution (cell size) of each grid cell (x, y).
                 If a resolution is negative then the grid will be flipped in that dimension and the origin adjusted accordingly.
             - "horizontalDatumReference": See :any:`S102Root` horizontal_datum_reference, ex: "EPSG".
@@ -271,9 +272,9 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     nx, ny = depth_grid.shape
     corner_x, corner_y = metadata['origin']
 
-    # @todo Confirm this is correct.  This is cell (pixel is area) math, but S-102 is node (pixel is node) based (right?).
-    opposite_corner_x = corner_x + res_x * nx
-    opposite_corner_y = corner_y + res_y * ny
+    # S-102 is node based, so distance to far corner is res * (n -1)
+    opposite_corner_x = corner_x + res_x * (nx - 1)
+    opposite_corner_y = corner_y + res_y * (ny - 1)
 
     minx = min((corner_x, opposite_corner_x))
     maxx = max((corner_x, opposite_corner_x))
@@ -384,8 +385,9 @@ def from_gdal(input_raster, output_file, metadata: dict = {}) -> S102File:  # gd
     if dxy != 0.0 or dyx != 0.0:
         raise S102Exception("raster is not north up but is rotated, this is not handled at this time")
 
-    if "origin" not in metadata:  # gdal convention is upper left -- we need to handle that where we write from arrays
-        metadata["origin"] = [ulx, uly]
+    if "origin" not in metadata:
+        # shift the gdal geotransform corner point to reference the node (pixel is center) rather than cell (pixel is area)
+        metadata["origin"] = [ulx + dxx/2, uly - dyy/2]
     if "res" not in metadata:
         metadata["res"] = [dxx, dyy]
     s102_data_file = from_arrays_with_metadata(raster_band.ReadAsArray(), uncertainty_band.ReadAsArray(), metadata, output_file,
@@ -419,9 +421,8 @@ def from_bag(bagfile, output_file, metadata: dict = {}) -> S102File:
             date = xml_str[date_idx:date_idx + 10]
             metadata['issueDate'] = date
 
-    s102_data_file = from_gdal(bagfile, output_file, metadata=metadata)
-
-    return s102_data_file
+    s102_data_file = from_gdal(bag, output_file, metadata=metadata)
+    s102_data_file.close()
 
 
 def get_valid_epsg() -> list:
