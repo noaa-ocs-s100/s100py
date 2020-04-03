@@ -19,9 +19,10 @@ services for hydrographic, maritime, and GIS communities, comprised of
 multiple data encoding formats designed for interoperability with
 Electronic Navigational Charts (ENCs).
 
-The initial focus of this package is on two of the S-100 encoding
+The initial focus of this package is on three of the S-100 encoding
 formats:
 
+-   S-102 Bathymetry
 -   S-104 Water Level Information for Surface Navigation
 -   S-111 Surface Currents
 
@@ -228,14 +229,14 @@ Authors
 
 -   Erin Nagel (UCAR), <erin.nagel@noaa.gov>
 -   Jason Greenlaw (ERT), <jason.greenlaw@noaa.gov>
+-   Barry Gallagher, <barry.gallagher@noaa.gov>
+-   Glen Rice, <glen.rice@noaa.gov>
 
 License
 -------
 
-This work, as a whole, is licensed under the BSD 2-Clause License (see
-[LICENSE](LICENSE)), however it contains major contributions from the
-U.S. National Oceanic and Atmospheric Administration (NOAA), 2017 -
-2019, which are individually dedicated to the public domain.
+This work, as a whole, falls under Creative Commons Zero (see
+[LICENSE](LICENSE)).
 
 Disclaimer
 ----------
@@ -266,5 +267,3 @@ CSDL wishes to thank the following entities for their assistance:
 
 -   NOAA/NOS/Center for Operational Oceanographic Products and Services
     (CO-OPS)
--   Canadian Hydrographic Service (CHS)
--   Teledyne CARIS
