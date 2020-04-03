@@ -387,7 +387,7 @@ def from_gdal(input_raster, output_file, metadata: dict = {}) -> S102File:  # gd
 
     if "origin" not in metadata:
         # shift the gdal geotransform corner point to reference the node (pixel is center) rather than cell (pixel is area)
-        metadata["origin"] = [ulx + dxx/2, uly - dyy/2]
+        metadata["origin"] = [ulx + dxx/2, uly + dyy/2]
     if "res" not in metadata:
         metadata["res"] = [dxx, dyy]
     s102_data_file = from_arrays_with_metadata(raster_band.ReadAsArray(), uncertainty_band.ReadAsArray(), metadata, output_file,
