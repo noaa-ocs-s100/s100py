@@ -281,8 +281,8 @@ class CLI:
                 surface_current_feature.type_of_current_data = 6
                 surface_current_feature.method_currents_product = MODELS[model_name]['product']
 
-                time_str = model_file.datetime_values[0].strftime('%Y%m%dT%H%M%SZ')
-                surface_current_feature_instance_01.datetime_first_record = numpy.string_(time_str)
+                first_record = model_file.datetime_values[0].strftime('%Y%m%dT%H%M%SZ')
+                surface_current_feature_instance_01.date_time_of_first_record = numpy.string_(first_record)
                 surface_current_feature.min_dataset_current_speed = 0
                 surface_current_feature.max_dataset_current_speed = 0
 
@@ -338,13 +338,17 @@ class CLI:
                     if max_speed > surface_current_feature.max_dataset_current_speed:
                         surface_current_feature.max_dataset_current_speed = max_speed
 
-                    surface_current_feature_instance_01.datetime_last_record = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
+                    last_record = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
+                    surface_current_feature_instance_01.date_time_of_last_record = numpy.string_(last_record)
 
                     surface_current_feature_instance_01.num_grp = len(model_file.datetime_values)
                     surface_current_feature_instance_01.number_of_times = len(model_file.datetime_values)
 
-                    interval = model_file.datetime_values[1] - model_file.datetime_values[0]
-                    surface_current_feature_instance_01.time_record_interval = interval.total_seconds()
+                    if len(model_file.datetime_values) == 1:
+                        surface_current_feature_instance_01.time_record_interval = 0
+                    else:
+                        interval = model_file.datetime_values[1] - model_file.datetime_values[0]
+                        surface_current_feature_instance_01.time_record_interval = interval.total_seconds()
 
                     surface_current_feature_instance_01.east_bound_longitude = minx
                     surface_current_feature_instance_01.west_bound_longitude = maxx
@@ -359,15 +363,24 @@ class CLI:
 
                     surface_current_group_object.time_point = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
 
-                    # TODO Fix Group F/SurfaceCurrent/Attribute Chunking and populate chunking attributes
-                    surface_current_feature_dataset.chunking = ""
-
-                    # TODO: Determine group values dataset chunk sizes(e.g grid.chunks)
-                    # chunks = values_dset.chunks
-                    # chunking_str = ','.join(str(x) for x in chunks)
-                    surface_current_feature_instance_01.instance_chunking = ""
-
                 s111_file.write()
+                # now that all the chunking is filled in for each grid we can fill the overall attribute
+                all_chunks = []
+                for sc in root.surface_current.surface_current:  # iterate all the surface currents
+                    for grp in sc.surface_current_group:  # and all their groups
+                        try:
+                            chunk = eval(grp.values.chunking)  # grab the individual chunks
+                            all_chunks.append(chunk)
+                        except AttributeError:
+                            print("failed to find chunking attr")
+                all_chunks_array = numpy.array(all_chunks)  # now figure out the minimum chunk sizes and write that out.  Not sure what we should actually do here though.
+                min_chunks = (all_chunks_array[:,0].min(), all_chunks_array[:,1].min())
+                surface_current_feature_dataset.chunking = min_chunks
+                # just write out the surface_current_feature_dataset rather than the whole file.
+                # this requires that the surface_current_feature_dataset had either been read from or written to hdf5 once already
+                # datasets need to create their dataset, which means they need the parent and not just the hdf5 object
+                surface_current_feature_dataset.write(surface_current_feature_dataset.get_hdf5_from_file(s111_file).parent)
+                # s111_file.write()
 
         finally:
             model_file.close()

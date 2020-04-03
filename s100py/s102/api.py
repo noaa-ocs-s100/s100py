@@ -17,7 +17,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s102"
 
-from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile
+from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxGridsBase, S1XXFile
 from ..s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainer, S100Root, S100Exception, FeatureInstanceDCF2
 
@@ -770,7 +770,7 @@ class TrackingListCoveragesList(S102MetadataListBase):
 
 
 class BathymetryFeatureInstance(FeatureInstanceDCF2):
-    bathymetry_group_attribute_name = "Group" + r"\.\d+"
+    bathymetry_group_attribute_name = "Group" + r"[\._]\d+"
     """ Basic template for HDF5 naming of the attribute.  
     Attribute name will be automatically determined based on the list's index of the data. 
     """
@@ -823,7 +823,7 @@ class BathymetryContainer(FeatureContainer):
     This will hold child groups named BathymetryCoverage.NN
     """
     #: attribute name will be automatically determined based on the containing list's index
-    bathymetry_coverage_attribute_name = BATHY_COVERAGE + r"\.\d+"
+    bathymetry_coverage_attribute_name = BATHY_COVERAGE + r"[\._]\d+"
 
     @property
     def __version__(self) -> int:
@@ -871,7 +871,7 @@ class TrackingListContainer(FeatureContainer):
     Table 10.1 of v2.0.0
     """
 
-    tracking_list_coverage_attribute_name = TRACKING_COVERAGE + r"\.\d+"
+    tracking_list_coverage_attribute_name = TRACKING_COVERAGE + r"[\._]\d+"
 
     @property
     def __version__(self) -> int:
