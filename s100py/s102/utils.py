@@ -419,9 +419,8 @@ def from_bag(bagfile, output_file, metadata: dict = {}) -> S102File:
             date = xml_str[date_idx:date_idx + 10]
             metadata['issueDate'] = date
 
-    s102_data_file = from_gdal(bagfile, output_file, metadata=metadata)
-
-    return s102_data_file
+    s102_data_file = from_gdal(bag, output_file, metadata=metadata)
+    s102_data_file.close()
 
 
 def get_valid_epsg() -> list:
