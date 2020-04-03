@@ -3,6 +3,7 @@
 """
 import logging
 import sys
+import warnings
 
 import numpy
 from osgeo import gdal, osr
@@ -409,11 +410,25 @@ def from_bag(bagfile, output_file, metadata: dict = {}) -> S102File:
     -------
 
     """
+    # @todo update method docstring for possible metadata fields
+    
     if isinstance(bagfile, gdal.Dataset):
         bag = bagfile
     else:
         bag = gdal.Open(bagfile)
         
+    # check for and resample variable resolution BAG if able
+    gdal_metadata = bag.GetMetadata()
+    if 'HAS_SUPERGRIDS' in gdal_metadata and gdal_metadata['HAS_SUPERGRIDS'] == 'TRUE':
+        bag_filename = bag.GetFileList()[0]
+        if "resample_resolution" in metadata:
+            res = metadata["resample_resolution"]
+            bag = None
+            bag = gdal.OpenEx(bag_filename, open_options=['MODE=RESAMPLED_GRID', f'RESX={res}',f'RESY={res}'])
+        else:
+            warnings.warn(f'No resampling resolution provided for variable resolution bag {bag_filename}.  Using overview resolution.', category=RuntimeWarning)
+
+    # populate the issueDate if possible from a simple string search
     xml_str = bag.GetMetadata('xml:BAG')[0]
     if 'issueDate' not in metadata:
         date_key = '<gmd:dateStamp>\n    <gco:Date>'
