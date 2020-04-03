@@ -3,7 +3,6 @@
 """
 import logging
 import sys
-import os
 
 import numpy
 from osgeo import gdal, osr
@@ -315,7 +314,7 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
         if source_epsg in get_valid_epsg():
             root.horizontal_datum_value = source_epsg
         else:
-            raise ValueError('The provided EPSG code is not within the S102 specified values')
+            raise ValueError(f'The provided EPSG code {source_epsg} is not within the S102 specified values.')
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(root.horizontal_datum_value)
     if srs.IsProjected():
@@ -406,10 +405,19 @@ def from_bag(bagfile, output_file, metadata: dict = {}) -> S102File:
     -------
 
     """
+    if isinstance(bagfile, gdal.Dataset):
+        bag = bagfile
+    else:
+        bag = gdal.Open(bagfile)
+        
+    xml_str = bag.GetMetadata('xml:BAG')[0]
     if 'issueDate' not in metadata:
-        # @todo hack this out of the BAG XML
-        # metadata['issueDate'] = ''
-        pass
+        date_key = '<gmd:dateStamp>\n    <gco:Date>'
+        date_idx = xml_str.find(date_key)
+        if date_idx > 0:
+            date_idx += len(date_key)
+            date = xml_str[date_idx:date_idx + 10]
+            metadata['issueDate'] = date
 
     s102_data_file = from_gdal(bagfile, output_file, metadata=metadata)
 
