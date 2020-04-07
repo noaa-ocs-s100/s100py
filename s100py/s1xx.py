@@ -605,29 +605,26 @@ class S1xxMetadataListBase(list, S1xxWritesOwnGroupBase):
         # if a value is a S1xxAttributesBase instance then create a group and call it's write function
         # if a value is a date, time - convert to character string per S100, section 10C-7 table 10C-1
         # otherwise write as a simple attribute and simple type
-        try:
-            self._hdf5_path = group_object.name
+        self._hdf5_path = group_object.name
 
-            logging.debug("Writing" + " " + str(self))
-            # create N new group objects named as metadata_name.NNN
-            for index, val in enumerate(self):
-                name = self.metadata_name + self.write_format_str % (index + 1)
-                if isinstance(val, s1xx_sequence_types):  # this looks inside the typing.Union to see what arrays should be treated like this
-                    raise NotImplementedError()
-                # elif isinstance(val, S1xxMetadataListBase):
-                #     raise NotImplementedError("Nested Lists")
-                elif isinstance(val, S1xxAttributesBase):  # Attributes, List and Datasets all work the same (for now)
-                    new_group = group_object.require_group(name)
-                    val.write(new_group)
-                elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
-                    logging.debug(name + " datetime: {}", val)
-                    # @TODO: figure out how to write datetimes
-                    raise NotImplementedError("DateTimes not supported yet")
-                else:
-                    logging.debug(name + " simple type: " + str(val))
-                    group_object[name] = val
-        except Exception as e:
-            raise e
+        logging.debug("Writing" + " " + str(self))
+        # create N new group objects named as metadata_name.NNN
+        for index, val in enumerate(self):
+            name = self.metadata_name + self.write_format_str % (index + 1)
+            if isinstance(val, s1xx_sequence_types):  # this looks inside the typing.Union to see what arrays should be treated like this
+                raise NotImplementedError()
+            # elif isinstance(val, S1xxMetadataListBase):
+            #     raise NotImplementedError("Nested Lists")
+            elif isinstance(val, S1xxAttributesBase):  # Attributes, List and Datasets all work the same (for now)
+                new_group = group_object.require_group(name)
+                val.write(new_group)
+            elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
+                logging.debug(name + " datetime: {}", val)
+                # @TODO: figure out how to write datetimes
+                raise NotImplementedError("DateTimes not supported yet")
+            else:
+                logging.debug(name + " simple type: " + str(val))
+                group_object[name] = val
 
 
 class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
@@ -704,58 +701,55 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
         HDF5 dataset created during the write method
 
         """
-        try:
-            # First determine the write order of the keys
-            logging.debug("Writing" + " " + str(self))
-            dataset = None
-            if len(self) > 0:
-                val = self[0]
-                write_keys = []
-                if val.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
-                    write_keys.extend(val.get_write_order())
+        # First determine the write order of the keys
+        logging.debug("Writing" + " " + str(self))
+        dataset = None
+        if len(self) > 0:
+            val = self[0]
+            write_keys = []
+            if val.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
+                write_keys.extend(val.get_write_order())
 
-                # to preserve order of other keys - iterate instead of using set logic
-                for key in val._attributes:
-                    if key not in write_keys:
-                        write_keys.append(key)
-                # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
-                write_array = []
-                for val in self:
-                    list_vals = []
-                    for key in write_keys:
-                        try:
-                            v = val._attributes[key]
-                        except KeyError as key_err:
-                            raise KeyError(
-                                "{} in {} is missing data, this would give a mismatched array \n  please fill all data {} for all items in the list/dataset".format(
-                                    key_err.args[0], self.metadata_name, str(write_keys)))
-                        if isinstance(v,
-                                      str):  # convert unicode strings into ascii since HDF5 doesn't like the unicode strings that numpy will produce
-                            v = v.encode("utf-8")
-                        elif isinstance(v, Enum):  # convert Enums to integars
-                            v = v.value
-                        list_vals.append(v)
+            # to preserve order of other keys - iterate instead of using set logic
+            for key in val._attributes:
+                if key not in write_keys:
+                    write_keys.append(key)
+            # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
+            write_array = []
+            for val in self:
+                list_vals = []
+                for key in write_keys:
+                    try:
+                        v = val._attributes[key]
+                    except KeyError as key_err:
+                        raise KeyError(
+                            "{} in {} is missing data, this would give a mismatched array \n  please fill all data {} for all items in the list/dataset".format(
+                                key_err.args[0], self.metadata_name, str(write_keys)))
+                    if isinstance(v,
+                                  str):  # convert unicode strings into ascii since HDF5 doesn't like the unicode strings that numpy will produce
+                        v = v.encode("utf-8")
+                    elif isinstance(v, Enum):  # convert Enums to integars
+                        v = v.value
+                    list_vals.append(v)
 
-                    # list_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in list_vals]
-                    write_array.append(list_vals)
+                # list_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in list_vals]
+                write_array.append(list_vals)
 
-                # hdf5 needs names to the columns which is done in a record array or structured array.
-                # but to create that without specifying type we need to transpose first then call 'fromarrays'
-                transposed_array = list(map(list, zip(*write_array)))
-                if write_keys:
-                    rec_array = numpy.core.records.fromarrays(transposed_array, names=write_keys)
-                else:
-                    rec_array = h5py.Empty("")
-                    raise ValueError(self.metadata_name + " had no data fields defined to write - this would create an h5py.Empty dataset")
-                try:
-                    del group_object[self.metadata_name]
-                except KeyError:
-                    pass  # didn't exist, no error
-                dataset = group_object.create_dataset(self.metadata_name, data=rec_array)
-                self.write_simple_attributes(dataset)
-            return dataset
-        except Exception as e:
-            raise e
+            # hdf5 needs names to the columns which is done in a record array or structured array.
+            # but to create that without specifying type we need to transpose first then call 'fromarrays'
+            transposed_array = list(map(list, zip(*write_array)))
+            if write_keys:
+                rec_array = numpy.core.records.fromarrays(transposed_array, names=write_keys)
+            else:
+                rec_array = h5py.Empty("")
+                raise ValueError(self.metadata_name + " had no data fields defined to write - this would create an h5py.Empty dataset")
+            try:
+                del group_object[self.metadata_name]
+            except KeyError:
+                pass  # didn't exist, no error
+            dataset = group_object.create_dataset(self.metadata_name, data=rec_array)
+            self.write_simple_attributes(dataset)
+        return dataset
 
 class Chunking:
     """ This is a mixin to supply chunking attributes to any other class """
@@ -782,7 +776,7 @@ class Chunking:
         # pylint: disable=attribute-defined-outside-init
         self.chunking = self.chunking_type()
 
-class S1xxGridsBase(Chunking, S1xxWritesOwnGroupBase):
+class S1xxGridsBase(S1xxWritesOwnGroupBase):  # Chunking,
     @property
     @abstractmethod
     def metadata_name(self) -> str:
@@ -811,37 +805,33 @@ class S1xxGridsBase(Chunking, S1xxWritesOwnGroupBase):
         HDF5 dataset created during the write method
         """
 
-        try:
-            # First determine the write order of the keys
-            logging.debug("Writing" + " " + str(self))
+        # First determine the write order of the keys
+        logging.debug("Writing" + " " + str(self))
 
-            dataset = None
+        dataset = None
 
-            write_keys = []
-            if self.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
-                write_keys.extend(self.get_write_order())
+        write_keys = []
+        if self.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
+            write_keys.extend(self.get_write_order())
 
-            # to preserve order of other keys - iterate instead of using set logic
-            for key, val in self._attributes.items():
-                if key not in write_keys and isinstance(val, s1xx_sequence_types):
-                    write_keys.append(key)
-            # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
-            write_array = [self._attributes[key] for key in write_keys]
+        # to preserve order of other keys - iterate instead of using set logic
+        for key, val in self._attributes.items():
+            if key not in write_keys and isinstance(val, s1xx_sequence_types):
+                write_keys.append(key)
+        # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
+        write_array = [self._attributes[key] for key in write_keys]
 
-            # hdf5 needs names to the columns which is done in a record array or structured array.
-            # but to create that without specifying type we need to transpose first then call 'fromarrays'
+        # hdf5 needs names to the columns which is done in a record array or structured array.
+        # but to create that without specifying type we need to transpose first then call 'fromarrays'
 
-            # numpy.array is coming out with wrong (at least different) shape and fromarrays is working -- not sure why right now.
-            # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
-            rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, 'f4') for name in write_keys])
-            dataset = group_object.create_dataset(self.metadata_name, data=rec_array, chunks=True, compression='gzip', compression_opts=9)
-            # noinspection PyAttributeOutsideInit
-            # pylint: disable=attribute-defined-outside-init
-            self.chunking = dataset.chunks
-            self.write_simple_attributes(dataset)
-
-        except Exception as e:
-            raise e
+        # numpy.array is coming out with wrong (at least different) shape and fromarrays is working -- not sure why right now.
+        # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
+        rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, 'f4') for name in write_keys])
+        dataset = group_object.create_dataset(self.metadata_name, data=rec_array, chunks=True, compression='gzip', compression_opts=9)
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        # self.chunking = dataset.chunks
+        self.write_simple_attributes(dataset)
 
 
 class S1XXFile(h5py.File):

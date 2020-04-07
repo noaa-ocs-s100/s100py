@@ -604,6 +604,26 @@ class FeatureInstanceBase(GeographicBoundingBox):
     date_time_of_first_record_attribute_name = "dateTimeOfFirstRecord"
     date_time_of_last_record_attribute_name = "dateTimeOfLastRecord"
 
+
+    def write(self, hdf5_object):
+        super().write(hdf5_object)
+        # find any group_NNN objects
+        chunking = None
+        for _pattern, group_attrib in self.get_standard_list_properties().items():
+            group_list = self.__getattribute__(group_attrib)
+            for grp in group_list:
+                # now we are going to take advantage of the h5py interface to get the chunks attribute from each dataset
+                # the S100 spec says things should be written with datasets named 'values'
+                # if this does not hold true in the future then we could search for datasets generically here
+                try:
+                    chunking = hdf5_object[grp._hdf5_path.split("/")[-1] + '/values'].chunks
+                except KeyError:
+                    pass
+        if chunking is not None:
+            self.instance_chunking = chunking
+            # now that we updated the chunking attribute we need to re-write them (but not the datasets etc)
+            self.write_simple_attributes(hdf5_object)
+
     @property
     def vertical_extent_minimum_z(self) -> float:
         return self._attributes[self.vertical_extent_minimum_z_attribute_name]
@@ -663,7 +683,11 @@ class FeatureInstanceBase(GeographicBoundingBox):
         return self._attributes[self.instance_chunking_attribute_name]
 
     @instance_chunking.setter
-    def instance_chunking(self, val: str):
+    def instance_chunking(self, val: Union[str, list, tuple]):
+        if isinstance(val, str):
+            pass
+        else:
+            val = ",".join(str(a) for a in val)
         self._attributes[self.instance_chunking_attribute_name] = val
 
     @property
