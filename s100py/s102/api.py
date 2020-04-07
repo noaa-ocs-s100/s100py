@@ -19,7 +19,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 
 from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxGridsBase, S1XXFile
 from ..s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
-    FeatureInformation, FeatureInformationDataset, FeatureContainer, S100Root, S100Exception, FeatureInstanceDCF2
+    FeatureInformation, FeatureInformationDataset, FeatureContainer, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase
 
 
 class S102Exception(S100Exception):
@@ -937,12 +937,11 @@ class BathymetryCoverageDataset(S102FeatureInformationDataset):
         return BATHY_COVERAGE
 
 
-class FeatureCodes(S1xxAttributesBase):
+class FeatureCodes(GroupFBase):
     """ Table 10.1 and sect 10.2.1 of v2.0.0
     """
 
     feature_name_attribute_name = "featureName"  #: HDF5 naming
-    feature_code_attribute_name = "featureCode"  #: HDF5 naming
     bathymetry_coverage_dataset_attribute_name = BATHY_COVERAGE
     tracking_list_coverage_attribute_name = TRACKING_COVERAGE
 
@@ -967,25 +966,10 @@ class FeatureCodes(S1xxAttributesBase):
     def feature_name(self, val: s1xx_sequence):
         self._attributes[self.feature_name_attribute_name] = val
 
-    @property
-    def feature_code_type(self):
-        return numpy.array
-
     def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.feature_code = self.feature_code_type([BATHY_COVERAGE, TRACKING_COVERAGE], dtype='S')
-
-    @property
-    def feature_code(self) -> s1xx_sequence:
-        """  This is most likely an error in the NAVO software -- I believe it should be named 'featureName' instead.
-        This code should be removed if that is correct.  Otherwise remove the featureName code.
-        """
-        return self._attributes[self.feature_code_attribute_name]
-
-    @feature_code.setter
-    def feature_code(self, val: s1xx_sequence):
-        self._attributes[self.feature_code_attribute_name] = val
 
     @property
     def bathymetry_coverage_dataset_type(self):
@@ -1086,41 +1070,6 @@ class S102Root(S100Root):
     @tracking_list_coverage.setter
     def tracking_list_coverage(self, val: S1xxAttributesBase):
         self._attributes[self.tracking_list_coverage_attribute_name] = val
-
-
-class TilingScheme(S1xxAttributesBase):
-    """ 4.2.2, table 4.1 in v2.0.0
-    """
-    tiling_scheme_type_attribute_name = "tilingSchemeType"  #: HDF5 naming
-    domain_extent_attribute_name = "domainExtent"  #: HDF5 naming
-    range_type_attribute_name = "rangeType"  #: HDF5 naming
-    common_point_rule_attribute_name = "commonPointRule"  #: HDF5 naming
-    geometry_attribute_name = "geometry"  #: HDF5 naming
-    interpolation_type_attribute_name = "interpolationType"  #: HDF5 naming
-    dimension_attribute_name = "dimension"  #: HDF5 naming
-    axis_names_attribute_name = "axisNames"  #: HDF5 naming
-    origin_attribute_name = "origin"  #: HDF5 naming
-    offset_vectors_attribute_name = "offsetVectors"  #: HDF5 naming
-    extent_attribute_name = "extent"  #: HDF5 naming
-    sequencing_rule_attribute_name = "sequencingRule"  #: HDF5 naming
-    start_sequence_attribute_name = "startSequence"  #: HDF5 naming
-
-    @property
-    def tiling_scheme_type(self) -> Type[str]:
-        return self._attributes[self.tiling_scheme_type_attribute_name]
-
-    @tiling_scheme_type.setter
-    def tiling_scheme_type(self, val: str):
-        self._attributes[self.tiling_scheme_type_attribute_name] = val
-
-
-class DiscoveryMetadata(S1xxAttributesBase):
-    """ 12.1 of v2.0.0
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        raise NotImplementedError()
 
 
 class S102File(S1XXFile):

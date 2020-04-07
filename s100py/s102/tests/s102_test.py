@@ -56,9 +56,9 @@ def copy_path(bagname):
 def check_s102_data(s102obj):
     assert s102obj.root
     assert s102obj.root.horizontal_datum_reference == "EPSG"
-    assert s102obj.root.horizontal_datum_value == 26910
-    assert s102obj.root.east_bound_longitude > 523812
-    assert s102obj.root.east_bound_longitude < 523813
+    assert s102obj.root.horizontal_datum_value == 32610
+    assert s102obj.root.east_bound_longitude > 523816
+    assert s102obj.root.east_bound_longitude < 523817
     b = s102obj.root.bathymetry_coverage.bathymetry_coverage[0]
     assert b.num_points_latitudinal == 179
     assert b.east_bound_longitude == s102obj.root.east_bound_longitude
@@ -72,7 +72,13 @@ def test_make_from_gdal(bagname, output_path):
         os.remove(output_path)
     except FileNotFoundError:
         pass
-    new_s102 = s102.from_gdal(bagname, output_path)
+    # the sample data is in NAD83 so does not meet spec - test that it's caught
+    pytest.raises(ValueError, s102.from_gdal, *(bagname, output_path))
+
+    # override the metadata for the datum to WGS84 zone 10N and go from there
+    metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+    new_s102 = s102.from_gdal(bagname, output_path, metadata=metadata)
+
     check_s102_data(new_s102)
 
 def test_read_s102(output_path):
@@ -118,7 +124,8 @@ def test_tif_conversion(tifname, temp_bagname):
         min_col = cols - 1 - min_col
         empty_col = -1
     assert depth_raster.GetNoDataValue() == 9999
-    new_s102 = s102.from_gdal(gdal_data, temp_bagname)
+    metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+    new_s102 = s102.from_gdal(gdal_data, temp_bagname, metadata=metadata)
     empty_corner = new_s102.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.depth[empty_row, empty_col]
     assert new_s102.root.feature_information.bathymetry_coverage_dataset[0].fill_value == empty_corner
     assert orig[-1][0] == depth_raster.GetNoDataValue()

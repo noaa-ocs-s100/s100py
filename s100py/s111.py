@@ -7,7 +7,7 @@ from enum import Enum
 import numpy
 
 from s100py.s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile
-from s100py.s100 import FeatureContainer, S100Root, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset
+from s100py.s100 import FeatureContainer, S100Root, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
 
 SURFACE_CURRENT = "SurfaceCurrent"
 
@@ -563,32 +563,19 @@ class SurfaceCurrentFeatureDataset(FeatureInformationDataset):
         return FeatureInformation
 
 
-class GroupF(S1xxAttributesBase):
+class GroupF(GroupFBase):
     """ Table 10.3 and sect 10.2.2 of v1.0.1
     """
-    feature_code_attribute_name = "featureCode"
     surface_current_feature_dataset_attribute_name = SURFACE_CURRENT
 
     @property
     def __version__(self) -> int:
         return 1
 
-    @property
-    def feature_code_type(self):
-        return numpy.array
-
     def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.feature_code = self.feature_code_type([SURFACE_CURRENT], dtype='S')
-
-    @property
-    def feature_code(self) -> s1xx_sequence:
-        return self._attributes[self.feature_code_attribute_name]
-
-    @feature_code.setter
-    def feature_code(self, val: s1xx_sequence):
-        self._attributes[self.feature_code_attribute_name] = val
 
     @property
     def surface_current_feature_dataset_type(self):
@@ -614,7 +601,6 @@ class S111Root(S100Root):
     The coverage names are determined from the matching CoveragesAttributes
     10.2.1, 10.2.2 and Table 12.1 of v1.0.1
     """
-    feature_information_attribute_name = "Group_F"
     surface_current_attribute_name = SURFACE_CURRENT
     depth_type_index_attribute_name = "depthTypeIndex"
     surface_current_depth_attribute_name = "surfaceCurrentDepth"
@@ -624,21 +610,8 @@ class S111Root(S100Root):
         return 1
 
     @property
-    def feature_information(self) -> GroupF:
-        return self._attributes[self.feature_information_attribute_name]
-
-    @feature_information.setter
-    def feature_information(self, val: GroupF):
-        self._attributes[self.feature_information_attribute_name] = val
-
-    @property
     def feature_information_type(self):
         return GroupF
-
-    def feature_information_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.feature_information = self.feature_information_type()
 
     @property
     def surface_current(self) -> S1xxAttributesBase:
