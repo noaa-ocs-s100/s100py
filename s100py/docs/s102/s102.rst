@@ -1,3 +1,6 @@
+S102
+====
+
 Figure out how to show the namespace magic performed in __init__ since the functions in the two modules below
 can be accesses easier: e.g.::
 

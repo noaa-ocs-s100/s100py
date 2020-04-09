@@ -60,7 +60,7 @@ import inspect
 top_classes = "s100py.s1xx.S1xxAttributesBase, s100py.s1xx.S1XXFile"
 
 # watch out, used ratio (without reading spec) and it made the image go to two pages which fails with sphinx
-inheritance_graph_attrs = dict(rankdir="LR", size='"24.0 36.0"')  # make the pictures bigger, default is "8.0 12.0"
+inheritance_graph_attrs = dict(rankdir="TB", size='"24.0 36.0"')  # make the pictures bigger, default is "8.0 12.0"
 
 def check_to_skip(app, what, name, obj, skip, options):
     """ The member is excluded if a handler returns True. It is included if the handler returns False.
@@ -83,10 +83,13 @@ def check_to_skip(app, what, name, obj, skip, options):
     #                 print("skipping")
     #                 print()
     #                 return True
-
     if isinstance(obj, property) or "property" in str(obj):
         # class bathymetry_coverage < property object at 0x0000019161C07278 > False {'members': <object object at 0x000001915FFC3110 >, 'undoc-members': True, 'show-inheritance': True}
-        if name.endswith("_type") or name.endswith("attribute_name"):  # re.search("_type", name):
+        if name.endswith("_type") or name.endswith("_attribute_name"):  # re.search("_type", name):
+            return True
+    if "<class 'str'>" in str(obj):
+        # class bathymetry_coverage < property object at 0x0000019161C07278 > False {'members': <object object at 0x000001915FFC3110 >, 'undoc-members': True, 'show-inheritance': True}
+        if name.endswith("_attribute_name"):  # re.search("_type", name):
             return True
 
     if isinstance(obj, types.FunctionType) or "function" in str(obj):

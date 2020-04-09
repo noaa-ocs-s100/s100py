@@ -52,6 +52,7 @@ Code to put in your live template ::
 For enumeration data types use this template which is very similar
     - Again, click the Edit Variables and for $attr$ under expression put: snakeCase(SELECTION)
       at the bottom is a line that says "applicable in" and has a hyperlinked word (define or change) -- click that and select Python
+
 ::
 
     $attr$_attribute_name = return "$SELECTION$"  #: HDF5 naming
