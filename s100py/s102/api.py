@@ -907,6 +907,45 @@ class TrackingListContainer(FeatureContainer):
         self._attributes[self.tracking_list_coverage_attribute_name] = val
 
 
+class S102FeatureInformation(FeatureInformation):
+    def __init__(self, *args, **kwrds):
+        super().__init__(*args, **kwrds)
+        self.datatype_create()  # make this first so anyone who tries to set values before the datatype isn't surprised by an exception
+        self.initialize_properties()  # initialize everything since there aren't any choices except name and code
+        del self.name
+        del self.code
+
+    def unit_of_measure_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.unit_of_measure = self.unit_of_measure_type("metres")
+
+    def fill_value_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.fill_value = self.fill_value_type(1000000)
+
+    def datatype_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.datatype = self.datatype_type("H5T_NATIVE_FLOAT")
+
+    def lower_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.lower = self.lower_type(-12000)
+
+    def upper_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.upper = self.upper_type(12000)
+
+    def closure_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.closure = self.closure_type("closedInterval")
+
+
 class S102FeatureInformationDataset(FeatureInformationDataset, ABC):
     """   In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0
 
@@ -921,8 +960,8 @@ class S102FeatureInformationDataset(FeatureInformationDataset, ABC):
         return 1
 
     @property
-    def metadata_type(self) -> Type[FeatureInformation]:
-        return FeatureInformation
+    def metadata_type(self) -> Type[S102FeatureInformation]:
+        return S102FeatureInformation
 
 
 class TrackingListCoverageDataset(S102FeatureInformationDataset):

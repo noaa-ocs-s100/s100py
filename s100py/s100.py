@@ -13,7 +13,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py"
 
-from .s1xx import s1xx_sequence, S1xxAttributesBase, S1xxDatasetBase, S1XXFile, Chunking
+from .s1xx import s1xx_sequence, S1xxAttributesBase, S1xxDatasetBase, S1XXFile
 
 
 class S100Exception(Exception):
@@ -23,7 +23,7 @@ class S100Exception(Exception):
 H5T_CLASS_T = {
     h5py.h5t.NO_CLASS: 'H5T_NO_CLASS',
     h5py.h5t.INTEGER: 'H5T_INTEGER',
-    h5py.h5t.FLOAT: 'H5T_FLOAT',
+    h5py.h5t.FLOAT: 'H5T_NATIVE_FLOAT',
     h5py.h5t.TIME: 'H5T_TIME',
     h5py.h5t.STRING: 'H5T_STRING',
     h5py.h5t.BITFIELD: 'H5T_BITFIELD',
@@ -42,6 +42,14 @@ H5T_CLASS_T = {
     h5py.h5t.NATIVE_INT64: 'H5T_NATIVE_INT64',
     h5py.h5t.NATIVE_UINT64: 'H5T_NATIVE_UINT64',
     h5py.h5t.C_S1: 'H5T_C_S1'
+}
+
+# a dictionary of what python type each string representation of an HDF5 type goes to.  e.g. h5py.h5t.INTEGER -> int
+_H5T_Types = {
+    int: [H5T_CLASS_T[v] for v in (h5py.h5t.INTEGER, h5py.h5t.NATIVE_INT8, h5py.h5t.NATIVE_UINT8, h5py.h5t.NATIVE_INT16, h5py.h5t.NATIVE_UINT16,
+                                   h5py.h5t.NATIVE_INT32, h5py.h5t.NATIVE_UINT32, h5py.h5t.NATIVE_INT64, h5py.h5t.NATIVE_UINT64)],
+    float: [H5T_CLASS_T[v] for v in (h5py.h5t.FLOAT,)] + ["H5T_FLOAT"],
+    str: [H5T_CLASS_T[v] for v in (h5py.h5t.C_S1, h5py.h5t.STRING)],
 }
 
 
@@ -183,6 +191,32 @@ class SEQUENCING_RULE_TYPE(Enum):
 
 SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
 START_SEQUENCE = numpy.string_('0,0')
+
+
+class Chunking:
+    """ This is a mixin to supply chunking attributes to any other class """
+    chunking_attribute_name = "chunking"  #: HDF5 naming
+
+    @property
+    def chunking(self) -> str:
+        return self._attributes[self.chunking_attribute_name]
+
+    @chunking.setter
+    def chunking(self, val: Union[str, list, tuple]):
+        if isinstance(val, str):
+            pass
+        else:
+            val = ",".join(str(a) for a in val)
+        self._attributes[self.chunking_attribute_name] = val
+
+    @property
+    def chunking_type(self) -> Type[str]:
+        return str
+
+    def chunking_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.chunking = self.chunking_type()
 
 
 class DirectPosition(S1xxAttributesBase):
@@ -604,7 +638,6 @@ class FeatureInstanceBase(GeographicBoundingBox):
     date_time_of_first_record_attribute_name = "dateTimeOfFirstRecord"
     date_time_of_last_record_attribute_name = "dateTimeOfLastRecord"
 
-
     def write(self, hdf5_object):
         super().write(hdf5_object)
         # find any group_NNN objects
@@ -973,9 +1006,13 @@ class FeatureInformation(S1xxAttributesBase):
     """  In S100, table 10c-8.
     In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0
 
-    This is used to describe the BathymetryCoverage and TrackingListCoverage within the GroupF feature listing.
-    The features described under GroupF have a matching named entry parallel to GroupF (top level).
-    The actual data (depths etc) is stored in the top level element while basic metadata is stored in this element.
+    FeatureInformation (GroupF) is used to describe the FeatureInstances at the root of the file,
+    ex: BathymetryCoverage in S102 or SurfaceCurrent in S111.
+
+    The actual data is stored in the top level FeatureInstance element while basic metadata is stored in this FeatureInformation element.
+
+    Note that the data contained in this class are stored in the HDF5 as strings
+    but are translated by s100py to appropriate python types (int, float etc)
     """
     code_attribute_name = "code"
     name_attribute_name = "name"
@@ -1002,12 +1039,7 @@ class FeatureInformation(S1xxAttributesBase):
 
     @property
     def code(self) -> str:
-        """ The camel case name of the data
-
-        Returns
-        -------
-        str
-            The name of the dataset ("depth" or "uncertainty")
+        """ Camel case code of attribute as in feature catalogue.
         """
         return self._attributes[self.code_attribute_name]
 
@@ -1026,11 +1058,7 @@ class FeatureInformation(S1xxAttributesBase):
 
     @property
     def name(self) -> str:
-        """ The plain text name of the data
-        Returns
-        -------
-        str
-            Name of the dataset ("depth" or "uncertainty")
+        """ Long name as in feature catalogue
         """
         return self._attributes[self.name_attribute_name]
 
@@ -1049,11 +1077,7 @@ class FeatureInformation(S1xxAttributesBase):
 
     @property
     def unit_of_measure(self) -> str:
-        """ Units of measurement for the dataset
-        Returns
-        -------
-        str
-            "metres"
+        """ Units of measurement for the dataset.  (uom>name from S-100 feature catalogue)
         """
         return self._attributes[self.unit_of_measure_attribute_name]
 
@@ -1068,43 +1092,83 @@ class FeatureInformation(S1xxAttributesBase):
     def unit_of_measure_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.unit_of_measure = self.unit_of_measure_type("metres")
+        self.unit_of_measure = self.unit_of_measure_type()
 
-    @property
-    def fill_value(self) -> float:
-        """ Value denoting missing data
+    def _python_datatype(self):
+        """ Determine what kind of python type best fits the HDF5 type.  For undandled types (like H5T.OPAQUE) returns str.
+
         Returns
         -------
-        float
-            1000000
+        A Python type: int, str, float are supported currently
         """
-        return self._attributes[self.fill_value_attribute_name]
+        try:
+            self.datatype
+        except:  # datatype not set yet, so save as a string by default
+            val = str
+        else:
+            if self.datatype in _H5T_Types[int]:
+                val = int
+            elif self.datatype in _H5T_Types[float]:
+                val = float
+            else:
+                val = str
+        return val
+
+    def _convert_from_string_based_on_datatype(self, str_val):
+        use_datatype = self._python_datatype()
+        if use_datatype is int:
+            val = int(str_val)
+        elif use_datatype is float:
+            val = float(str_val)
+        else:
+            val = str_val
+        return val
+
+    def _convert_to_string_based_on_datatype(self, val):
+        use_datatype = self._python_datatype()
+        if use_datatype is int:
+            str_val = str(int(val))  # this extra conversion gives python a chance to convert scientific notation to standard
+        elif use_datatype is float:
+            str_val = str(float(val))  # this extra conversion gives python a chance to convert scientific notation to standard
+            if str_val[-2:] == ".0":  # remove trailing '.0' so a 12000.0 becomes 12000
+                str_val = str_val[:-2]
+        else:
+            str_val = str(val)
+        return str_val
+
+    @property
+    def fill_value(self) -> Union[float, int, str]:
+        """ Value denoting missing data.  Fill value (integer or float value, string representation)
+        """
+        return self._convert_from_string_based_on_datatype(self._attributes[self.fill_value_attribute_name])
 
     @fill_value.setter
-    def fill_value(self, val: float):
-        self._attributes[self.fill_value_attribute_name] = val
+    def fill_value(self, val: Union[float, int, str]):
+        self._attributes[self.fill_value_attribute_name] = self._convert_to_string_based_on_datatype(val)
 
     @property
     def fill_value_type(self):
-        return float
+        return self._python_datatype()
 
     def fill_value_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.fill_value = self.fill_value_type(1000000)
+        self.fill_value = self.fill_value_type()
 
     @property
-    def datatype(self) -> int:
-        """
-        Returns
-        -------
-        string
-            H5T_NATIVE_FLOAT
-        """
+    def datatype(self) -> str:
         return self._attributes[self.datatype_attribute_name]
 
     @datatype.setter
-    def datatype(self, val: int):
+    def datatype(self, val: Union[str, int]):
+        """
+        Parameters
+        ----------
+        val
+            Either the string name (ex: 'H5T_INTEGER') of the datatype or the h5py constant (ex: h5py.h5t.INTEGER)
+        """
+        if isinstance(val, int):
+            val = H5T_CLASS_T[val]
         self._attributes[self.datatype_attribute_name] = val
 
     @property
@@ -1114,62 +1178,44 @@ class FeatureInformation(S1xxAttributesBase):
     def datatype_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.datatype = self.datatype_type("H5T_NATIVE_FLOAT")
+        self.datatype = self.datatype_type()
 
     @property
-    def lower(self) -> float:
-        """
-        Returns
-        -------
-        float
-            -12000
-        """
-        return self._attributes[self.lower_attribute_name]
+    def lower(self) -> Union[float, int, str]:
+        return self._convert_from_string_based_on_datatype(self._attributes[self.lower_attribute_name])
 
     @lower.setter
-    def lower(self, val: float):
-        self._attributes[self.lower_attribute_name] = val
+    def lower(self, val: Union[float, int, str]):
+        self._attributes[self.lower_attribute_name] = self._convert_to_string_based_on_datatype(val)
 
     @property
     def lower_type(self):
-        return float
+        return self._python_datatype()
 
     def lower_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.lower = self.lower_type(-12000)
+        self.lower = self.lower_type()
 
     @property
-    def upper(self) -> float:
-        """
-        Returns
-        -------
-        float
-            12000
-        """
-        return self._attributes[self.upper_attribute_name]
+    def upper(self) -> Union[float, int, str]:
+        return self._convert_from_string_based_on_datatype(self._attributes[self.upper_attribute_name])
 
     @upper.setter
-    def upper(self, val: float):
-        self._attributes[self.upper_attribute_name] = val
+    def upper(self, val: Union[float, int, str]):
+        self._attributes[self.upper_attribute_name] = self._convert_to_string_based_on_datatype(val)
 
     @property
     def upper_type(self):
-        return float
+        return self._python_datatype()
 
     def upper_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.upper = self.upper_type(12000)
+        self.upper = self.upper_type()
 
     @property
     def closure(self) -> str:
-        """
-        Returns
-        -------
-        str
-            closedInterval
-        """
         return self._attributes[self.closure_attribute_name]
 
     @closure.setter
@@ -1183,7 +1229,7 @@ class FeatureInformation(S1xxAttributesBase):
     def closure_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.closure = self.closure_type("closedInterval")
+        self.closure = self.closure_type()
 
 
 class FeatureInformationDataset(Chunking, S1xxDatasetBase, ABC):
@@ -1213,6 +1259,7 @@ class FeatureInformationDataset(Chunking, S1xxDatasetBase, ABC):
     #     # noinspection PyAttributeOutsideInit
     #     # pylint: disable=attribute-defined-outside-init
     #     self.chunking = self.chunking_type()
+
 
 class FeatureContainer(S1xxAttributesBase):
     axis_names_attribute_name = "axisNames"
@@ -1473,6 +1520,7 @@ class FeatureContainer(S1xxAttributesBase):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.interpolation_type = self.interpolation_type_type['nearestneighbor']
+
 
 class GroupFBase(S1xxAttributesBase):
     """ Table 10.3 and sect 10.2.2 of v1.0.1
