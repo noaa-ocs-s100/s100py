@@ -7,7 +7,7 @@ from enum import Enum
 import numpy
 
 from s100py.s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile
-from s100py.s100 import FeatureContainer, S100Root, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
+from s100py.s100 import FeatureContainerDCF2, S100Root, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
 
 SURFACE_CURRENT = "SurfaceCurrent"
 
@@ -333,8 +333,6 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
 
     uncertainty_dataset_attribute_name = "uncertainty"
     number_of_nodes_attribute_name = "numberOfNodes"
-    datetime_first_record_attribute_name = "dateTimeOfFirstRecord"
-    datetime_last_record_attribute_name = "dateTimeOfLastRecord"
 
     @property
     def surface_current_group_type(self):
@@ -429,7 +427,7 @@ class SurfaceCurrentList(S111MetadataListBase):
         return SurfaceCurrentFeatureInstance
 
 
-class SurfaceCurrentContainer(FeatureContainer):
+class SurfaceCurrentContainer(FeatureContainerDCF2):
     """ This is the SurfaceCurrent right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named SurfaceCurrent.NN
     """
@@ -540,12 +538,6 @@ class SurfaceCurrentContainer(FeatureContainer):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.type_of_current_data = list(self.type_of_current_data_type)[0]
-
-    def data_coding_format_create(self):
-        """ Creates a blank, empty or zero value for data_coding_format"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.data_coding_format = self.data_coding_format_type(2)  # default
 
 
 class SurfaceCurrentFeatureDataset(FeatureInformationDataset):

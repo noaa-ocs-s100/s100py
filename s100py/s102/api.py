@@ -19,7 +19,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 
 from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxGridsBase, S1XXFile
 from ..s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
-    FeatureInformation, FeatureInformationDataset, FeatureContainer, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase
+    FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase
 
 
 class S102Exception(S100Exception):
@@ -183,13 +183,10 @@ class BathymetryValues(S1xxGridsBase):
         return [self.depth_attribute_name, self.uncertainty_attribute_name]
 
 
-# @TODO -- determine where this is supposed to go.
-# @TODO -- in some ways it seems to be the 'feature container' and other ways it's like the 'feature instance'
-# which are the root/BathymetryCoverage and the root/BathymetryCoverage/BathymetryCoverage.01  groups respectively.
-# it looks like NAVO interprets it as the Group.001 datastructure which is also possible.
-# I'll go with Group.001 for now
 class BathymetryCoverage(S1xxAttributesBase):
-    """ 4.2.1.1.1 and Figure 4.4 of v2.0.0
+    """ This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
+
+    4.2.1.1.1 and Figure 4.4 of v2.0.0
     also see section 12.3 and table 12.5
 
     """
@@ -818,7 +815,7 @@ class BathymetryCoveragesList(S102MetadataListBase):
         return BathymetryFeatureInstance
 
 
-class BathymetryContainer(FeatureContainer):
+class BathymetryContainer(FeatureContainerDCF2):
     """ This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named BathymetryCoverage.NN
     """
@@ -866,7 +863,7 @@ class BathymetryContainer(FeatureContainer):
         self.dimension = self.dimension_type(2)
 
 
-class TrackingListContainer(FeatureContainer):
+class TrackingListContainer(FeatureContainerDCF2):
     """
     Table 10.1 of v2.0.0
     """
@@ -908,6 +905,11 @@ class TrackingListContainer(FeatureContainer):
 
 
 class S102FeatureInformation(FeatureInformation):
+    """ S102 specifc version of FeatureInformation.
+    Sets defaults of uom.name to metres, fillValue to 1000000, upper and lower to 12000, -12000 and closure to closedInterval
+    and datatype to H5T_NATIVE_FLOAT.
+    The user should set code and name to 'depth' or 'uncertainty' as needed.
+    """
     def __init__(self, *args, **kwrds):
         super().__init__(*args, **kwrds)
         self.datatype_create()  # make this first so anyone who tries to set values before the datatype isn't surprised by an exception

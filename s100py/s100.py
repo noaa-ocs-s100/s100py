@@ -100,6 +100,7 @@ class VERTICAL_DATUM(Enum):
 
 
 HORIZONTAL_DATUM_REFERENCE = numpy.string_('EPSG')
+REGULAR = 'Regularly-gridded arrays2'
 DATA_CODING_FORMAT = Enum(value="DATA_CODING_FORMAT",
                           names=[
                               ('Time series at fixed stations', 1),
@@ -109,8 +110,26 @@ DATA_CODING_FORMAT = Enum(value="DATA_CODING_FORMAT",
                               ('Irregular grid', 5),
                               ('Variable cell size', 6),
                               ('TIN', 7),
+                              # alternate shortcut names that also show up in sphinx, these will be stored with full names including spaces
+                              ('TIME', 1),
+                              ('REGULAR', 2),
+                              ('UNGEORECTIFIED', 3),
+                              ('MOVING', 4),
+                              ('IRREGULAR', 5),
+                              ('VARIABLE', 6),
                           ]
                           )
+"""
+Sphinx is not interpreting the enum names properly when there are spaces. The correct enum names with spaces are::
+
+  ('Time series at fixed stations', 1),
+  ('Regularly-gridded arrays', 2),
+  ('Ungeorectified gridded arrays', 3),
+  ('Moving platform', 4),
+  ('Irregular grid', 5),
+  ('Variable cell size', 6),
+  ('TIN', 7),
+"""
 
 
 class INTERPOLATION_TYPE(Enum):
@@ -191,32 +210,6 @@ class SEQUENCING_RULE_TYPE(Enum):
 
 SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
 START_SEQUENCE = numpy.string_('0,0')
-
-
-class Chunking:
-    """ This is a mixin to supply chunking attributes to any other class """
-    chunking_attribute_name = "chunking"  #: HDF5 naming
-
-    @property
-    def chunking(self) -> str:
-        return self._attributes[self.chunking_attribute_name]
-
-    @chunking.setter
-    def chunking(self, val: Union[str, list, tuple]):
-        if isinstance(val, str):
-            pass
-        else:
-            val = ",".join(str(a) for a in val)
-        self._attributes[self.chunking_attribute_name] = val
-
-    @property
-    def chunking_type(self) -> Type[str]:
-        return str
-
-    def chunking_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.chunking = self.chunking_type()
 
 
 class DirectPosition(S1xxAttributesBase):
@@ -418,9 +411,6 @@ class Point(S1xxAttributesBase):
     @property
     def position(self) -> DirectPosition:
         """ DirectPosition - see Figure 7-3 in S100 v4.0.0
-        Returns
-        -------
-
         """
         return self._attributes[self.position_attribute_name]
 
@@ -477,12 +467,18 @@ class GeographicExtent(S1xxAttributesBase):
 
 
 class GeographicBoundingBox(GeographicExtent):
-    """ 4.2.1.1.13 of v2.0.0
-    see also S100 Tables 10C-6 and 10c-12
+    """ S100 Tables 10C-6 and 10c-12
+    see also 4.2.1.1.13 of S102 v2.0.0
     The class EX_GeographicBoundingBox is a metadata class from ISO 19115.
     It is a subtype of the abstract class EX_GeographicExtent.
     It defines a bounding box used to indicate the spatial boundaries of the tracking list elements within the
     bounds established by CV_GridEnvelope for the BathymetryCoverage.
+
+    From S100:
+    The geographic extent of the grid, as a bounding box
+    Ref. domainExtent: EX_GeographicExtent > EX_GeographicBoundingBox
+    Either this or the domainExtent dataset must be populated
+    The bounds must either all be populated or all omitted
     """
 
     west_bound_longitude_attribute_name = "westBoundLongitude"  #: HDF5 naming
@@ -496,6 +492,7 @@ class GeographicBoundingBox(GeographicExtent):
 
     @property
     def west_bound_longitude(self) -> float:
+        """Western extent"""
         return self._attributes[self.west_bound_longitude_attribute_name]
 
     @west_bound_longitude.setter
@@ -513,6 +510,7 @@ class GeographicBoundingBox(GeographicExtent):
 
     @property
     def east_bound_longitude(self) -> float:
+        """Eastern extent"""
         return self._attributes[self.east_bound_longitude_attribute_name]
 
     @east_bound_longitude.setter
@@ -530,6 +528,7 @@ class GeographicBoundingBox(GeographicExtent):
 
     @property
     def south_bound_latitude(self) -> float:
+        """Southern extent"""
         return self._attributes[self.south_bound_latitude_attribute_name]
 
     @south_bound_latitude.setter
@@ -547,6 +546,7 @@ class GeographicBoundingBox(GeographicExtent):
 
     @property
     def north_bound_latitude(self) -> float:
+        """Northern extent"""
         return self._attributes[self.north_bound_latitude_attribute_name]
 
     @north_bound_latitude.setter
@@ -577,11 +577,7 @@ class VertexPoint(S1xxAttributesBase):
 
     @property
     def geometry(self) -> Point:
-        """ Derived from ISO 19107, referenced figure 7-3 and 8-A-5 of S100 v4.0.0
-        Returns
-        -------
-
-        """
+        """ Derived from ISO 19107, referenced figure 7-3 and 8-A-5 of S100 v4.0.0"""
         return self._attributes[self.geometry_attribute_name]
 
     @geometry.setter
@@ -659,6 +655,9 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def vertical_extent_minimum_z(self) -> float:
+        """Vertical extent of 3-D grids
+        minimumZ, maximumZ: Minimum and maximum values of the grid’s spatial extent
+        along the vertical direction. They are encoded as separate attributes"""
         return self._attributes[self.vertical_extent_minimum_z_attribute_name]
 
     @vertical_extent_minimum_z.setter
@@ -677,6 +676,9 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def vertical_extent_maximum_z(self) -> float:
+        """Vertical extent of 3-D grids
+        minimumZ, maximumZ: Minimum and maximum values of the grid’s spatial extent
+        along the vertical direction. They are encoded as separate attributes"""
         return self._attributes[self.vertical_extent_maximum_z_attribute_name]
 
     @vertical_extent_maximum_z.setter
@@ -695,6 +697,7 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def num_grp(self) -> int:
+        """The number of data values groups contained in this instance group"""
         return self._attributes[self.num_grp_attribute_name]
 
     @num_grp.setter
@@ -713,6 +716,21 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def instance_chunking(self) -> str:
+        """ instance chunking will return a string but accept a string or an iterable of ints which it will format to a string.
+
+        From S100:
+
+        Chunk size for values dataset. If present, this attribute overrides the setting in Group_F for this feature instance
+
+        The format is a comma-separated string of (string representations of) positive integers
+        (except that there is only one number for a 1-dimensional values dataset). The number
+        of integers in the string must correspond to the dimension of the values dataset. For
+        example, “50” for a 1-dimensional array; “150,200” for a 2-dimensional array
+
+        Note: (1) The quotes are not part of the representation. (2) The dimension of the
+        values dataset is its array rank, not the number of spatial dimensions for the coverage
+        feature"""
+
         return self._attributes[self.instance_chunking_attribute_name]
 
     @instance_chunking.setter
@@ -735,6 +753,8 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def number_of_times(self) -> int:
+        """The total number of time records.
+        Time series data only"""
         return self._attributes[self.number_of_times_attribute_name]
 
     @number_of_times.setter
@@ -753,6 +773,8 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def time_record_interval(self) -> int:
+        """The interval between time records. Units: Seconds.
+        Time series data only"""
         return self._attributes[self.time_record_interval_attribute_name]
 
     @time_record_interval.setter
@@ -771,6 +793,8 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def date_time_of_first_record(self) -> str:
+        """The validity time of the earliest time record. Units: DateTime.
+        Time series data only"""
         return self._attributes[self.date_time_of_first_record_attribute_name]
 
     @date_time_of_first_record.setter
@@ -789,6 +813,8 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def date_time_of_last_record(self) -> str:
+        """The validity time of the latest time record. Units: DateTime.
+        Time series data only"""
         return self._attributes[self.date_time_of_last_record_attribute_name]
 
     @date_time_of_last_record.setter
@@ -806,23 +832,17 @@ class FeatureInstanceBase(GeographicBoundingBox):
         self.date_time_of_last_record = self.date_time_of_last_record_type()
 
 
-class FeatureInstanceDCF2(FeatureInstanceBase):
-    """ Data Coding Format 2 is the grid format from table 10c-12 in S100 spec.  Used in S102 for example.
+class GridOrigin:
+    """ Mixin class for gridOriginLatitude/Longitude/Vertical.
+    Used in Data Conding Formats 2,5,6
     """
-
     grid_origin_longitude_attribute_name = "gridOriginLongitude"
     grid_origin_latitude_attribute_name = "gridOriginLatitude"
     grid_origin_vertical_attribute_name = "gridOriginVertical"
-    grid_spacing_longitudinal_attribute_name = "gridSpacingLongitudinal"
-    grid_spacing_latitudinal_attribute_name = "gridSpacingLatitudinal"
-    grid_spacing_vertical_attribute_name = "gridSpacingVertical"
-    num_points_longitudinal_attribute_name = "numPointsLongitudinal"
-    num_points_latitudinal_attribute_name = "numPointsLatitudinal"
-    num_points_vertical_attribute_name = "numPointsVertical"
-    start_sequence_attribute_name = "startSequence"
 
     @property
     def grid_origin_longitude(self) -> float:
+        """The longitude of the grid origin. Unit: Arc Degrees"""
         return self._attributes[self.grid_origin_longitude_attribute_name]
 
     @grid_origin_longitude.setter
@@ -841,6 +861,7 @@ class FeatureInstanceDCF2(FeatureInstanceBase):
 
     @property
     def grid_origin_latitude(self) -> float:
+        """The latitude of the grid origin. Arc Degrees"""
         return self._attributes[self.grid_origin_latitude_attribute_name]
 
     @grid_origin_latitude.setter
@@ -859,6 +880,7 @@ class FeatureInstanceDCF2(FeatureInstanceBase):
 
     @property
     def grid_origin_vertical(self) -> float:
+        """The grid origin in the vertical dimension. Only for 3-D grids. Units specified by product specifications"""
         return self._attributes[self.grid_origin_vertical_attribute_name]
 
     @grid_origin_vertical.setter
@@ -875,8 +897,18 @@ class FeatureInstanceDCF2(FeatureInstanceBase):
         # pylint: disable=attribute-defined-outside-init
         self.grid_origin_vertical = self.grid_origin_vertical_type()
 
+
+class GridSpacing:
+    """Mixin class for gridSpacingLongitudinal/Latitudinal/Vertical.  Probably used with :class:`GridOrigin`
+    in Data Conding Formats 2,5,6"""
+    grid_spacing_longitudinal_attribute_name = "gridSpacingLongitudinal"
+    grid_spacing_latitudinal_attribute_name = "gridSpacingLatitudinal"
+    grid_spacing_vertical_attribute_name = "gridSpacingVertical"
+
     @property
     def grid_spacing_longitudinal(self) -> float:
+        """Cell size in the X/longitude dimension. This is the X/longitudinal component of the
+        offset vector (8-7.1.4). Units: Arc Degrees"""
         return self._attributes[self.grid_spacing_longitudinal_attribute_name]
 
     @grid_spacing_longitudinal.setter
@@ -895,6 +927,8 @@ class FeatureInstanceDCF2(FeatureInstanceBase):
 
     @property
     def grid_spacing_latitudinal(self) -> float:
+        """Cell size in the Y/latitude dimension. This is the Y/latitudinal component of the offset
+        vector (8-7.1.4). Units: Arc Degrees"""
         return self._attributes[self.grid_spacing_latitudinal_attribute_name]
 
     @grid_spacing_latitudinal.setter
@@ -913,6 +947,7 @@ class FeatureInstanceDCF2(FeatureInstanceBase):
 
     @property
     def grid_spacing_vertical(self) -> float:
+        """Cell size in the vertical dimension. Only for 3-D grids. Units specified by product specifications."""
         return self._attributes[self.grid_spacing_vertical_attribute_name]
 
     @grid_spacing_vertical.setter
@@ -929,8 +964,45 @@ class FeatureInstanceDCF2(FeatureInstanceBase):
         # pylint: disable=attribute-defined-outside-init
         self.grid_spacing_vertical = self.grid_spacing_vertical_type()
 
+class StartSequence:
+    """Mixin class for startSequence.  Data Coding Formats 2,5,6 """
+    start_sequence_attribute_name = "startSequence"
+
+    @property
+    def start_sequence(self) -> str:
+        """ Grid coordinates of the grid point to which the first in the sequence of values is to be
+        assigned. The choice of a valid point for the start sequence is determined by the
+        sequencing rule. Format: n, n… (comma-separated list of grid points, one per
+        dimension – For example, 0,0)
+        """
+        return self._attributes[self.start_sequence_attribute_name]
+
+    @start_sequence.setter
+    def start_sequence(self, val: str):
+        self._attributes[self.start_sequence_attribute_name] = val
+
+    @property
+    def start_sequence_type(self) -> Type[str]:
+        return str
+
+    def start_sequence_create(self):
+        """ Creates a blank, empty or zero value for start_sequence"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.start_sequence = self.start_sequence_type()
+
+
+class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanceBase):
+    """ Data Coding Format 2 is the grid format from table 10c-12 in S100 spec.  Used in S102 for example.
+    """
+
+    num_points_longitudinal_attribute_name = "numPointsLongitudinal"
+    num_points_latitudinal_attribute_name = "numPointsLatitudinal"
+    num_points_vertical_attribute_name = "numPointsVertical"
+
     @property
     def num_points_longitudinal(self) -> int:
+        """Number of grid points in the X/longitude dimension. (iMax)"""
         return self._attributes[self.num_points_longitudinal_attribute_name]
 
     @num_points_longitudinal.setter
@@ -949,6 +1021,7 @@ class FeatureInstanceDCF2(FeatureInstanceBase):
 
     @property
     def num_points_latitudinal(self) -> int:
+        """Number of grid points in the Y/latitude dimension. (jMax)"""
         return self._attributes[self.num_points_latitudinal_attribute_name]
 
     @num_points_latitudinal.setter
@@ -967,6 +1040,7 @@ class FeatureInstanceDCF2(FeatureInstanceBase):
 
     @property
     def num_points_vertical(self) -> int:
+        """Number of grid points in the vertical dimension. (kMax)"""
         return self._attributes[self.num_points_vertical_attribute_name]
 
     @num_points_vertical.setter
@@ -983,24 +1057,6 @@ class FeatureInstanceDCF2(FeatureInstanceBase):
         # pylint: disable=attribute-defined-outside-init
         self.num_points_vertical = self.num_points_vertical_type()
 
-    @property
-    def start_sequence(self) -> str:
-        return self._attributes[self.start_sequence_attribute_name]
-
-    @start_sequence.setter
-    def start_sequence(self, val: str):
-        self._attributes[self.start_sequence_attribute_name] = val
-
-    @property
-    def start_sequence_type(self) -> Type[str]:
-        return str
-
-    def start_sequence_create(self):
-        """ Creates a blank, empty or zero value for start_sequence"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.start_sequence = self.start_sequence_type()
-
 
 class FeatureInformation(S1xxAttributesBase):
     """  In S100, table 10c-8.
@@ -1013,6 +1069,12 @@ class FeatureInformation(S1xxAttributesBase):
 
     Note that the data contained in this class are stored in the HDF5 as strings
     but are translated by s100py to appropriate python types (int, float etc)
+
+    The “code” and “datatype” components encode the rangeType attribute of the coverage features in Part 8.
+
+    “lower”, “upper”, and “closure” encode any constraints on attribute values as encoded in the
+    feature catalogue (see “S100_FC_SimpleAttribute>constraints” in Part 5 and
+    S100_NumericRange in Part 1)
     """
     code_attribute_name = "code"
     name_attribute_name = "name"
@@ -1040,6 +1102,7 @@ class FeatureInformation(S1xxAttributesBase):
     @property
     def code(self) -> str:
         """ Camel case code of attribute as in feature catalogue.
+        The “code” and “datatype” components encode the rangeType attribute of the coverage features in Part 8.
         """
         return self._attributes[self.code_attribute_name]
 
@@ -1161,7 +1224,8 @@ class FeatureInformation(S1xxAttributesBase):
 
     @datatype.setter
     def datatype(self, val: Union[str, int]):
-        """
+        """ The “code” and “datatype” components encode the rangeType attribute of the coverage features in Part 8
+
         Parameters
         ----------
         val
@@ -1182,6 +1246,7 @@ class FeatureInformation(S1xxAttributesBase):
 
     @property
     def lower(self) -> Union[float, int, str]:
+        """ Lower bound on value of attribute """
         return self._convert_from_string_based_on_datatype(self._attributes[self.lower_attribute_name])
 
     @lower.setter
@@ -1199,6 +1264,7 @@ class FeatureInformation(S1xxAttributesBase):
 
     @property
     def upper(self) -> Union[float, int, str]:
+        """ Upper bound on attribute value """
         return self._convert_from_string_based_on_datatype(self._attributes[self.upper_attribute_name])
 
     @upper.setter
@@ -1216,6 +1282,17 @@ class FeatureInformation(S1xxAttributesBase):
 
     @property
     def closure(self) -> str:
+        """ type of closure from S100 Table 1-3 — Interval Types::
+
+        openInterval    The open interval             (a,b)   a < x < b
+        geLtInterval    The right half-open interval  [a,b)   a ≤ x < b
+        gtLeInterval    The left half-open interval   (a,b]   a < x ≤ b
+        closedInterval  The closed interval           [a,b]   a≤ x ≤ b
+        gtSemiInterval  The left half-open ray        (a,∞)   a < x
+        geSemiInterval  The left closed ray           [a,∞)   a ≤ x
+        ltSemiInterval  The right half-open ray       (-∞,a)  x < a
+        leSemiInterval  The right closed ray          (-∞,a]  x ≤ a
+        """
         return self._attributes[self.closure_attribute_name]
 
     @closure.setter
@@ -1232,36 +1309,50 @@ class FeatureInformation(S1xxAttributesBase):
         self.closure = self.closure_type()
 
 
+class Chunking:
+    """ This is a mixin to supply chunking attributes to any other class """
+    chunking_attribute_name = "chunking"  #: HDF5 naming
+
+    @property
+    def chunking(self) -> str:
+        return self._attributes[self.chunking_attribute_name]
+
+    @chunking.setter
+    def chunking(self, val: Union[str, list, tuple]):
+        if isinstance(val, str):
+            pass
+        else:
+            val = ",".join(str(a) for a in val)
+        self._attributes[self.chunking_attribute_name] = val
+
+    @property
+    def chunking_type(self) -> Type[str]:
+        return str
+
+    def chunking_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.chunking = self.chunking_type()
+
+
 class FeatureInformationDataset(Chunking, S1xxDatasetBase, ABC):
     """ This class comes from S100 -- 10c-9.5 Feature information group.
+    This class serves to keep a list of FeatureInformation objects which will be turned into a compound array
+    of strings in the HDF5 file.
 
-    metadata_type will likely be overridden with a specific subclass for the s100+ spec
+    The metadata_name property must be overridden.
+    The metadata_type will likely be overridden with a specific subclass for the s100+ spec
     """
 
     @property
     def metadata_type(self) -> Type[FeatureInformation]:
         return FeatureInformation
 
-    # chunking_attribute_name = "chunking"  #: HDF5 naming
-    # @property
-    # def chunking(self) -> str:
-    #     return self._attributes[self.chunking_attribute_name]
-    #
-    # @chunking.setter
-    # def chunking(self, val: str):
-    #     self._attributes[self.chunking_attribute_name] = val
-    #
-    # @property
-    # def chunking_type(self) -> Type[str]:
-    #     return str
-    #
-    # def chunking_create(self):
-    #     # noinspection PyAttributeOutsideInit
-    #     # pylint: disable=attribute-defined-outside-init
-    #     self.chunking = self.chunking_type()
-
 
 class FeatureContainer(S1xxAttributesBase):
+    """ This class comes from S100 in Table 10c-9 – Structure of feature container groups and
+    Table 10c-10 – Attributes of feature container groups
+    """
     axis_names_attribute_name = "axisNames"
     data_coding_format_attribute_name = "dataCodingFormat"
     dimension_attribute_name = "dimension"
@@ -1270,17 +1361,23 @@ class FeatureContainer(S1xxAttributesBase):
     vertical_uncertainty_attribute_name = "verticalUncertainty"
     time_uncertainty_attribute_name = "timeUncertainty"
     num_instances_attribute_name = "numInstances"
-    sequencing_rule_type_attribute_name = "sequencingRule.type"
-    sequencing_rule_scan_direction_attribute_name = "sequencingRule.scanDirection"
-    interpolation_type_attribute_name = "interpolationType"
 
     def __init__(self, *args, **opts):
         super().__init__(*args, **opts)
         self.data_coding_format_create()  # this is defined by the subclass and is constant, so we will automatically set it here
 
     @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
     def axis_names(self) -> s1xx_sequence:
-        """sequence of character strings"""
+        """sequence of character strings
+
+        S100 Spec: Array (1-D): 0..D-1 where D is the value of the dimension attribute
+        Axes should be in major-minor order; that is, if storage is to be in row-major order the
+        X/longitude axis should be first.
+        """
         return self._attributes[self.axis_names_attribute_name]
 
     @axis_names.setter
@@ -1305,6 +1402,9 @@ class FeatureContainer(S1xxAttributesBase):
 
     @property
     def data_coding_format(self) -> DATA_CODING_FORMAT:
+        """ Indication of the type of coverage in instances of this feature. Used to read the
+        data (see Table 10c-4) or :data:`~DATA_CODING_FORMAT`
+        """
         return self._attributes[self.data_coding_format_attribute_name]
 
     @data_coding_format.setter
@@ -1322,6 +1422,11 @@ class FeatureContainer(S1xxAttributesBase):
 
     @property
     def dimension(self) -> int:
+        """ The dimension of the feature instances
+        This is the number of coordinate axes, not the rank of the HDF5 arrays storing
+        coordinates or values. For example, a fixed stations dataset with positions in
+        latitude and longitude will have dimension=2
+        """
         return self._attributes[self.dimension_attribute_name]
 
     @dimension.setter
@@ -1340,6 +1445,12 @@ class FeatureContainer(S1xxAttributesBase):
 
     @property
     def common_point_rule(self) -> COMMON_POINT_RULE:
+        """ The procedure used for evaluating the coverage at a position that falls on the
+        boundary or in an area of overlap between geometric objects
+        Values from CV_CommonPointRule (Table 10c-19).
+
+        see :data:`~COMMON_POINT_RULE`
+        """
         return self._attributes[self.common_point_rule_attribute_name]
 
     @common_point_rule.setter
@@ -1358,6 +1469,9 @@ class FeatureContainer(S1xxAttributesBase):
 
     @property
     def horizontal_position_uncertainty(self) -> float:
+        """ The uncertainty in horizontal coordinates.
+        For example, -1.0 (unknown/inapplicable) or positive value (m)
+        """
         return self._attributes[self.horizontal_position_uncertainty_attribute_name]
 
     @horizontal_position_uncertainty.setter
@@ -1376,6 +1490,9 @@ class FeatureContainer(S1xxAttributesBase):
 
     @property
     def vertical_uncertainty(self) -> float:
+        """ The uncertainty in vertical coordinate(s).
+        For example, -1.0 (unknown/inapplicable) or positive value (m)
+        """
         return self._attributes[self.vertical_uncertainty_attribute_name]
 
     @vertical_uncertainty.setter
@@ -1394,6 +1511,11 @@ class FeatureContainer(S1xxAttributesBase):
 
     @property
     def time_uncertainty(self) -> float:
+        """ Uncertainty in time values.
+        For example, -1.0 (unknown/inapplicable) or positive value (s)
+
+        Only for time series data
+        """
         return self._attributes[self.time_uncertainty_attribute_name]
 
     @time_uncertainty.setter
@@ -1412,6 +1534,10 @@ class FeatureContainer(S1xxAttributesBase):
 
     @property
     def num_instances(self) -> int:
+        """ Number of instances of the feature
+        (Records in the same time series or moving platform sequence are counted as a
+        single instance, not as separate instances)
+        """
         return self._attributes[self.num_instances_attribute_name]
 
     @num_instances.setter
@@ -1428,6 +1554,13 @@ class FeatureContainer(S1xxAttributesBase):
         # pylint: disable=attribute-defined-outside-init
         self.num_instances = self.num_instances_type()
 
+
+class SequencingRule:
+    """ Mixin class for Sequencing Rule.  At least used in Data Coding Format 2,5,6
+    """
+    sequencing_rule_type_attribute_name = "sequencingRule.type"
+    sequencing_rule_scan_direction_attribute_name = "sequencingRule.scanDirection"
+
     @property
     def sequencing_rule_type(self) -> SEQUENCING_RULE_TYPE:
         # @todo -- clean up formatting
@@ -1439,6 +1572,7 @@ class FeatureContainer(S1xxAttributesBase):
         Literal linear Sequencing is consecutive along grid lines,
         starting with the first grid axis listed in
         scanDirection
+
         1 For example, for 2-D
         grids with scan
         direction=(x,y), scanning
@@ -1447,10 +1581,12 @@ class FeatureContainer(S1xxAttributesBase):
         direction of the scan is reversed on alternating
         grid lines. For grids of dimension > 2, it is also
         reversed on alternating planes
+
         2
         Literal CantorDiagonal Sequencing in alternating directions along
         parallel diagonals of the grid. For dimension > 2,
         it is repeated in successive planes
+
         3
         Literal spiral Sequencing in spiral order 4
         S-100 Edition 4.0.0 December 2018
@@ -1497,6 +1633,12 @@ class FeatureContainer(S1xxAttributesBase):
         # pylint: disable=attribute-defined-outside-init
         self.sequencing_rule_scan_direction = self.sequencing_rule_scan_direction_type()
 
+
+class InterpolationType:
+    """ Mixin class for Interpolation Type.  At least used in Data Coding Format 2,3,4,5,6,7
+    """
+    interpolation_type_attribute_name = "interpolationType"
+
     @property
     def interpolation_type(self) -> Type[int]:
         """ S100 table 10c-21
@@ -1522,8 +1664,60 @@ class FeatureContainer(S1xxAttributesBase):
         self.interpolation_type = self.interpolation_type_type['nearestneighbor']
 
 
+class FeatureContainerDCF1(FeatureContainer):
+    """ Container for Data Coding Format 1 """
+
+    def data_coding_format_create(self):
+        self.data_coding_format = self.data_coding_format_type(1)
+
+
+class FeatureContainerDCF3(InterpolationType, FeatureContainer):
+    """ Container for Data Coding Format 3 """
+
+    def data_coding_format_create(self):
+        self.data_coding_format = self.data_coding_format_type(3)
+
+
+class FeatureContainerDCF4(InterpolationType, FeatureContainer):
+    """ Container for Data Coding Format 4 """
+
+    def data_coding_format_create(self):
+        self.data_coding_format = self.data_coding_format_type(4)
+
+
+class FeatureContainerDCF7(InterpolationType, FeatureContainer):
+    """ Container for Data Coding Format 7 """
+
+    def data_coding_format_create(self):
+        self.data_coding_format = self.data_coding_format_type(7)
+
+
+class FeatureContainerDCF2(SequencingRule, InterpolationType, FeatureContainer):
+    """ Container for Data Coding Format 2 """
+
+    def data_coding_format_create(self):
+        self.data_coding_format = self.data_coding_format_type(2)
+
+
+class FeatureContainerDCF5(SequencingRule, InterpolationType, FeatureContainer):
+    """ Container for Data Coding Format 5 """
+
+    def data_coding_format_create(self):
+        self.data_coding_format = self.data_coding_format_type(5)
+
+
+class FeatureContainerDCF6(SequencingRule, InterpolationType, FeatureContainer):
+    """ Container for Data Coding Format 6 """
+
+    def data_coding_format_create(self):
+        self.data_coding_format = self.data_coding_format_type(6)
+
+
 class GroupFBase(S1xxAttributesBase):
-    """ Table 10.3 and sect 10.2.2 of v1.0.1
+    """ From S100 Table 10c-8 – Components of feature information group
+
+    There will also be a :class:`FeatureInformationDataset` holding a list of :class:`FeatureInformation`
+    which will be defined by the subclasses of this base class.
     """
     feature_code_attribute_name = "featureCode"
 
@@ -1537,6 +1731,10 @@ class GroupFBase(S1xxAttributesBase):
 
     @property
     def feature_code(self) -> s1xx_sequence:
+        """Array (1-d): i=0, F-1.
+        Values = codes of feature classes
+        (F is the number of feature classes in the application schema.)
+        """
         return self._attributes[self.feature_code_attribute_name]
 
     @feature_code.setter

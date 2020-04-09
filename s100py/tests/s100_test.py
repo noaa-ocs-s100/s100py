@@ -8,6 +8,30 @@ import tempfile
 from s100py import s100
 
 
+def test_feature_information_conversions():
+    i = s100.FeatureInformation()
+    assert i._python_datatype() == str
+    i.fill_value = 10.0
+    assert i.fill_value == "10.0"
+    i.lower = 5
+    assert i.lower == '5'
+    i.upper = "hello"
+    assert i.upper == "hello"
+    i.datatype = 0
+    assert i.datatype == 'H5T_INTEGER'
+    assert i.lower == 5
+    with pytest.raises(ValueError):
+        i.fill_value  # this was set as a float but now changed to an int
+    i.fill_value = 10.0  # now this will work since it knows the datatype
+    assert i.fill_value == 10
+    assert isinstance(i.fill_value, int)
+    i.datatype = 'H5T_FLOAT'
+    i.fill_value = 10.01
+    assert i._attributes['fillValue'] == '10.01'
+    i.fill_value = 10.00  # make sure the truncation of insignificant zeros works
+    assert i._attributes['fillValue'] == '10'
+
+
 @pytest.fixture(scope="module")
 def s100_file():
     h, fstr = tempfile.mkstemp(".h5", dir=os.path.split(__file__)[0])
