@@ -1,0 +1,10 @@
+<map id="inheritance197b921325" name="inheritance197b921325">
+<area shape="rect" id="node1" title="Helper class that provides a standard way to create an ABC using" alt="" coords="413,152,488,177"/>
+<area shape="rect" id="node3" href="s100py.s100.FeatureInformationDataset.html#s100py.s100.FeatureInformationDataset" target="_top" title="This class comes from S100 &#45;&#45; 10c&#45;9.5 Feature information group." alt="" coords="161,225,413,251"/>
+<area shape="rect" id="node6" href="s100py.s102.api.S102FeatureInformationDataset.html#s100py.s102.api.S102FeatureInformationDataset" target="_top" title="In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0" alt="" coords="217,299,519,324"/>
+<area shape="rect" id="node2" href="s100py.s100.Chunking.html#s100py.s100.Chunking" target="_top" title="This is a mixin to supply chunking attributes to any other class" alt="" coords="5,152,160,177"/>
+<area shape="rect" id="node4" href="s100py.s1xx.S1xxDatasetBase.html#s100py.s1xx.S1xxDatasetBase" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes." alt="" coords="184,152,389,177"/>
+<area shape="rect" id="node5" href="#s100py.s102.api.BathymetryCoverageDataset" target="_top" title="s100py.s102.api.BathymetryCoverageDataset" alt="" coords="225,372,511,397"/>
+<area shape="rect" id="node7" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="179,5,395,31"/>
+<area shape="rect" id="node8" href="s100py.s1xx.S1xxWritesOwnGroupBase.html#s100py.s1xx.S1xxWritesOwnGroupBase" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="157,79,416,104"/>
+</map>

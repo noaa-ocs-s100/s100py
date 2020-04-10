@@ -1,0 +1,5 @@
+<map id="inheritance2cf58725e1" name="inheritance2cf58725e1">
+<area shape="rect" id="node1" href="s100py.s100.VertexPoint.html#s100py.s100.VertexPoint" target="_top" title="From Figure 8&#45;21 in S100 v4.0.0" alt="" coords="53,79,221,104"/>
+<area shape="rect" id="node3" href="#s100py.s102.api.SurfaceCorrectionValues" target="_top" title="s100py.s102.api.SurfaceCorrectionValues" alt="" coords="5,152,269,177"/>
+<area shape="rect" id="node2" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="29,5,245,31"/>
+</map>

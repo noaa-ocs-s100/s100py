@@ -236,7 +236,7 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     Parameters
     ----------
     depth_grid
-        a numpy or hdf5 dataset object of the rectangular grid of depths, lower left corner is the first point
+        a numpy or hdf5 dataset object of the rectangular grid of depths
     uncert_grid
         a numpy or hdf5 dataset object of the rectangular grid of uncertainties, lower left corner is the first point
     metadata
@@ -245,6 +245,7 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
             - "origin": tuple of the position (x,y) or (lon, lat) for the reference corner node.
                 Other corners are calulated from this corner using the resolution and size of the data array.
             - "res": tuple of the resolution (cell size) of each grid cell (x, y).
+                Lower left corner is the first point of both resolutions are positive.
                 If a resolution is negative then the grid will be flipped in that dimension and the origin adjusted accordingly.
             - "horizontalDatumReference": See :any:`S102Root` horizontal_datum_reference, ex: "EPSG".
                 "EPSG" is the default value.

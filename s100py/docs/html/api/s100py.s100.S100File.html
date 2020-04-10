@@ -2,65 +2,89 @@
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8" />
-    <title>S100File &#8212; Pydro  documentation</title>
-    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
-    
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="S100Root" href="s100py.s100.S100Root.html" />
-    <link rel="prev" title="S100Exception" href="s100py.s100.S100Exception.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="s100py.s100.S100Root.html" title="S100Root"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="s100py.s100.S100Exception.html" title="S100Exception"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../s100.html" accesskey="U">s100py.s100 Module</a> &#187;</li> 
-      </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+<script>
+    window.onload = function () {
+        var ImageMap = function (orig_width, map, img) {
+                var n,
+                    areas = map.getElementsByTagName('area'),
+                    len = areas.length,
+                    coords = [],
+                    previousWidth = orig_width;
+                for (n = 0; n < len; n++) {
+                    coords[n] = areas[n].coords.split(',');
+                }
+                this.resize = function () {
+                    var n, m, clen,
+                        x = img.offsetWidth / previousWidth;
+                    for (n = 0; n < len; n++) {
+                        clen = coords[n].length;
+                        for (m = 0; m < clen; m++) {
+                            coords[n][m] *= x;
+                        }
+                        areas[n].coords = coords[n].join(',');
+                    }
+                    previousWidth = img.offsetWidth;
+                    return true;
+                };
+                window.onresize = this.resize;
+            },
             
-  <div class="section" id="s100file">
+imageMap_0 = new ImageMap(161, document.getElementById('inheritance98e3c1230c'), document.getElementById('inheritance98e3c1230c_img'));
+imageMap_0.resize();
+
+        return;
+    }
+</script><head>
+<meta charset="utf-8"/>
+<title>S100File — Pydro  documentation</title>
+<link href="../_static/classic.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pygments.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/graphviz.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pydro_custom.css" rel="stylesheet" type="text/css"/>
+<script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script>
+<script src="../_static/underscore.js"></script>
+<script src="../_static/doctools.js"></script>
+<script src="../_static/language_data.js"></script>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="s100py.s100.S100Root.html" rel="next" title="S100Root"/>
+<link href="s100py.s100.S100Exception.html" rel="prev" title="S100Exception"/>
+</head><body>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a accesskey="I" href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a accesskey="N" href="s100py.s100.S100Root.html" title="S100Root">next</a> |</li>
+<li class="right">
+<a accesskey="P" href="s100py.s100.S100Exception.html" title="S100Exception">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a accesskey="U" href="../s100.html">S100</a> »</li>
+</ul>
+</div>
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="s100file">
 <h1>S100File<a class="headerlink" href="#s100file" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="s100py.s100.S100File">
 <em class="property">class </em><code class="sig-prename descclassname">s100py.s100.</code><code class="sig-name descname">S100File</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.S100File" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" title="s100py.s1xx.S1XXFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1XXFile</span></code></a></p>
-<div class="graphviz"><img src="../_images/inheritance-5cd75527dac09001d38553e8e2e5a9a32b643658.png" alt="Inheritance diagram of S100File" usemap="#inheritance98e3c1230c" class="inheritance graphviz" /></div>
+<div class="graphviz"><img alt="Inheritance diagram of S100File" class="inheritance graphviz" id="inheritance98e3c1230c_img" src="../_images/inheritance-e093bd7ba0942d6eb3ae0414f59764a56c04b7cf.png" usemap="#inheritance98e3c1230c"/></div>
 <map id="inheritance98e3c1230c" name="inheritance98e3c1230c">
-<area shape="rect" id="node1" href="#s100py.s100.S100File" target="_top" title="s100py.s100.S100File" alt="" coords="204,5,355,31"/>
-<area shape="rect" id="node2" href="s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" target="_top" title="hdf5 files have primary creation methods of" alt="" coords="5,5,156,31"/>
+<area alt="" coords="5,79,156,104" href="#s100py.s100.S100File" id="node1" shape="rect" target="_top" title="s100py.s100.S100File"/>
+<area alt="" coords="5,5,156,31" href="s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" id="node2" shape="rect" target="_top" title="hdf5 files have primary creation methods of"/>
 </map><p class="rubric">Attributes Summary</p>
 <table class="longtable docutils align-default">
 <colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
+<col style="width: 10%"/>
+<col style="width: 90%"/>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.S100File.PRODUCT_SPECIFICATION" title="s100py.s100.S100File.PRODUCT_SPECIFICATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PRODUCT_SPECIFICATION</span></code></a></p></td>
@@ -73,156 +97,160 @@
 <dt id="s100py.s100.S100File.PRODUCT_SPECIFICATION">
 <code class="sig-name descname">PRODUCT_SPECIFICATION</code><em class="property"> = b'INT.IHO.S-100.4.0'</em><a class="headerlink" href="#s100py.s100.S100File.PRODUCT_SPECIFICATION" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="method">
 <dt id="s100py.s100.S100File.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.S100File.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new file object.</p>
 <p>See the h5py user guide for a detailed explanation of the options.</p>
 <dl class="simple">
-<dt>name</dt><dd><p>Name of the file on disk, or file-like object.  Note: for files
-created with the ‘core’ driver, HDF5 still requires this be
+<dt>name</dt><dd><p>Name of the file on disk, or file-like object.  Note: for files
+created with the ‘core’ driver, HDF5 still requires this be
 non-empty.</p>
 </dd>
-<dt>mode</dt><dd><p>r        Readonly, file must exist
-r+       Read/write, file must exist
-w        Create file, truncate if exists
-w- or x  Create file, fail if exists
+<dt>mode</dt><dd><p>r        Readonly, file must exist
+r+       Read/write, file must exist
+w        Create file, truncate if exists
+w- or x  Create file, fail if exists
 a        Read/write if exists, create otherwise (default)</p>
 </dd>
-<dt>driver</dt><dd><p>Name of the driver to use.  Legal values are None (default,
+<dt>driver</dt><dd><p>Name of the driver to use.  Legal values are None (default,
 recommended), ‘core’, ‘sec2’, ‘stdio’, ‘mpio’.</p>
 </dd>
-<dt>libver</dt><dd><p>Library version bounds.  Currently only the strings ‘earliest’
+<dt>libver</dt><dd><p>Library version bounds.  Currently only the strings ‘earliest’
 and ‘latest’ are defined.</p>
 </dd>
-<dt>userblock</dt><dd><p>Desired size of user block.  Only allowed when creating a new
+<dt>userblock</dt><dd><p>Desired size of user block.  Only allowed when creating a new
 file (mode w, w- or x).</p>
 </dd>
 <dt>swmr</dt><dd><p>Open the file in SWMR read mode. Only used when mode = ‘r’.</p>
 </dd>
-<dt>rdcc_nbytes</dt><dd><p>Total size of the raw data chunk cache in bytes. The default size
+<dt>rdcc_nbytes</dt><dd><p>Total size of the raw data chunk cache in bytes. The default size
 is 1024**2 (1 MB) per dataset.</p>
 </dd>
-<dt>rdcc_w0</dt><dd><p>The chunk preemption policy for all datasets.  This must be
-between 0 and 1 inclusive and indicates the weighting according to
-which chunks which have been fully read or written are penalized
-when determining which chunks to flush from cache.  A value of 0
-means fully read or written chunks are treated no differently than
-other chunks (the preemption is strictly LRU) while a value of 1
-means fully read or written chunks are always preempted before
-other chunks.  If your application only reads or writes data once,
-this can be safely set to 1.  Otherwise, this should be set lower
-depending on how often you re-read or re-write the same data.  The
+<dt>rdcc_w0</dt><dd><p>The chunk preemption policy for all datasets.  This must be
+between 0 and 1 inclusive and indicates the weighting according to
+which chunks which have been fully read or written are penalized
+when determining which chunks to flush from cache.  A value of 0
+means fully read or written chunks are treated no differently than
+other chunks (the preemption is strictly LRU) while a value of 1
+means fully read or written chunks are always preempted before
+other chunks.  If your application only reads or writes data once,
+this can be safely set to 1.  Otherwise, this should be set lower
+depending on how often you re-read or re-write the same data.  The
 default value is 0.75.</p>
 </dd>
-<dt>rdcc_nslots</dt><dd><p>The number of chunk slots in the raw data chunk cache for this
-file. Increasing this value reduces the number of cache collisions,
-but slightly increases the memory used. Due to the hashing
-strategy, this value should ideally be a prime number. As a rule of
-thumb, this value should be at least 10 times the number of chunks
-that can fit in rdcc_nbytes bytes. For maximum performance, this
-value should be set approximately 100 times that number of
+<dt>rdcc_nslots</dt><dd><p>The number of chunk slots in the raw data chunk cache for this
+file. Increasing this value reduces the number of cache collisions,
+but slightly increases the memory used. Due to the hashing
+strategy, this value should ideally be a prime number. As a rule of
+thumb, this value should be at least 10 times the number of chunks
+that can fit in rdcc_nbytes bytes. For maximum performance, this
+value should be set approximately 100 times that number of
 chunks. The default value is 521.</p>
 </dd>
-<dt>track_order</dt><dd><p>Track dataset/group/attribute creation order under root group
+<dt>track_order</dt><dd><p>Track dataset/group/attribute creation order under root group
 if True. If None use global default h5.get_config().track_order.</p>
 </dd>
 <dt>Additional keywords</dt><dd><p>Passed on to the selected file driver.</p>
 </dd>
 </dl>
 </dd></dl>
-
 </dd></dl>
-
 </div>
-
-
-          </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../s100py.html">Table of Contents</a></h3>
-  <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../s100.html">s100py.s100 Module</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../s100.html#classes">Classes</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.DirectPosition.html">DirectPosition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_DCF2.html">FeatureInstance_DCF2</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.FeatureInstance_base.html">FeatureInstance_base</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GeographicExtent.html">GeographicExtent</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.GridEnvelope.html">GridEnvelope</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.INTERPOLATION_TYPE.html">INTERPOLATION_TYPE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.Point.html">Point</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100Exception.html">S100Exception</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">S100File</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100Root.html">S100Root</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.S100_FeatureContainer.html">S100_FeatureContainer</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.SEQUENCING_RULE_TYPE.html">SEQUENCING_RULE_TYPE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.SequenceRule.html">SequenceRule</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.VERTICAL_DATUM.html">VERTICAL_DATUM</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s100.VertexPoint.html">VertexPoint</a></li>
+</div>
+</div>
+</div>
+<div aria-label="main navigation" class="sphinxsidebar" role="navigation">
+<div class="sphinxsidebarwrapper">
+<h3><a href="../s100py.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">S111</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102.html">S102</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s100.html">S100</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s100.html#module-s100py.s100">s100py.s100 Module</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../s100.html#classes">Classes</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.Chunking.html">Chunking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.CommonPointRule.html">CommonPointRule</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.DirectPosition.html">DirectPosition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainer.html">FeatureContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF1.html">FeatureContainerDCF1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF2.html">FeatureContainerDCF2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF3.html">FeatureContainerDCF3</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF4.html">FeatureContainerDCF4</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF5.html">FeatureContainerDCF5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF6.html">FeatureContainerDCF6</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF7.html">FeatureContainerDCF7</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureInformationDataset.html">FeatureInformationDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureInstanceBase.html">FeatureInstanceBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureInstanceDCF2.html">FeatureInstanceDCF2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GeographicExtent.html">GeographicExtent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GridEnvelope.html">GridEnvelope</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GridOrigin.html">GridOrigin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GridSpacing.html">GridSpacing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GroupFBase.html">GroupFBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.INTERPOLATION_TYPE.html">INTERPOLATION_TYPE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.InterpolationType.html">InterpolationType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.Point.html">Point</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.S100Exception.html">S100Exception</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">S100File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.S100Root.html">S100Root</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.SEQUENCING_RULE_TYPE.html">SEQUENCING_RULE_TYPE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.SequenceRule.html">SequenceRule</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.SequencingRule.html">SequencingRule</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.StartSequence.html">StartSequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.VERTICAL_DATUM.html">VERTICAL_DATUM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.VertexPoint.html">VertexPoint</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
 </ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="s100py.s100.S100Exception.html"
-                        title="previous chapter">S100Exception</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="s100py.s100.S100Root.html"
-                        title="next chapter">S100Root</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">Base Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
+</ul>
+<h4>Previous topic</h4>
+<p class="topless"><a href="s100py.s100.S100Exception.html" title="previous chapter">S100Exception</a></p>
+<h4>Next topic</h4>
+<p class="topless"><a href="s100py.s100.S100Root.html" title="next chapter">S100Root</a></p>
+<div id="searchbox" role="search" style="display: none">
+<h3 id="searchlabel">Quick search</h3>
+<div class="searchformwrapper">
+<form action="../search.html" class="search" method="get">
+<input aria-labelledby="searchlabel" name="q" type="text"/>
+<input type="submit" value="Go"/>
+</form>
+</div>
 </div>
 <script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a href="s100py.s100.S100Root.html" title="S100Root">next</a> |</li>
+<li class="right">
+<a href="s100py.s100.S100Exception.html" title="S100Exception">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a href="../s100.html">S100</a> »</li>
+</ul>
+</div>
+<div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="s100py.s100.S100Root.html" title="S100Root"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="s100py.s100.S100Exception.html" title="S100Exception"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../s100.html" >s100py.s100 Module</a> &#187;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
-    </div>
-  </body>
+</body>
 </html>

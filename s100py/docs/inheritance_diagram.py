@@ -419,8 +419,16 @@ def html_visit_inheritance_diagram(self: HTMLTranslator, node: inheritance_diagr
                 urls[child['reftitle']] = '../' + current_filename + '#' + child.get('refid')
             else:
                 urls[child['reftitle']] = '#' + child.get('refid')
+    new_attrs = graph_attrs = node.get("graph_attrs", {})
+    try:
+        old_attrs = self.builder.env.config.inheritance_graph_attrs.copy()
+        self.builder.env.config.inheritance_graph_attrs.update(new_attrs)
+    except:
+        old_attrs = {}
+        self.builder.env.config.inheritance_graph_attrs = new_attrs
 
     dotcode = graph.generate_dot(name, urls, env=self.builder.env)
+    self.builder.env.config.inheritance_graph_attrs = old_attrs
     render_dot_html(self, node, dotcode, {}, 'inheritance', 'inheritance',
                     alt='Inheritance diagram of ' + node['content'])
     raise nodes.SkipNode

@@ -111,9 +111,9 @@ and it will fill it into multiple locations at once for you.
 To recap:
     - @property to get the data and do any reformatting needed etc.
     - @property.setter potential validation or other checks/changes to incoming data
-    - *_attribute_name which defines the conversion from python naming to HDF5 (S100) naming
-    - *_type to help the user of the api know the type to use and for the api to load from disk
-    - *_create to make empty objects or supply default values as specified by S100
+    - \*_attribute_name which defines the conversion from python naming to HDF5 (S100) naming
+    - \*_type to help the user of the api know the type to use and for the api to load from disk
+    - \*_create to make empty objects or supply default values as specified by S100
 
 Now let's try a datatype that has eastBoundLongitude, westBoundLongitude, northBoundLongitude, southBoundLatitude and
 utmZone.  The first four attributes are already part of an :any:`s100.GeographicBoundingBox` so let's derive a class
@@ -175,7 +175,7 @@ Let's encode that as a python enumeration::
         cheese = 2
 
 Now let's make the class that has the enumeration and the dataset.  The enumeration data doesn't quite follow
-the standard template, so there is a second one just for enumerations in :any:`extending_the_api`_ ::
+the standard template, so there is a second one just for enumerations in :any:`extending_the_api` ::
 
     class DataGroupObject(s1xx.S1xxAttributesBase):
         @property
@@ -239,7 +239,7 @@ base class::
             return DataGroupObject
 
 For the last datatype we'll make the compund dataset "datasetWithNames".  This is to encapsulate S100 specs that lay out
-data with names, like attributes, but say they belong in a dataset.   The :any:`s1xx.S1xxDatasetBase`_ takes care of this.
+data with names, like attributes, but say they belong in a dataset.   The :any:`s1xx.S1xxDatasetBase` takes care of this.
 Similar to the List we jsut made above, this class uses a list to keep an arbitrary number of data arrays and read/write
 them to HDF%.
 
@@ -312,7 +312,7 @@ we want and not just by name.::
             """ Creates a blank, empty or zero value for attr_str"""
             self.attr_str = self.attr_str_type()
 
-Now we'll wrap this data class inside a :any:`s1xx.S1xxDatasetBase`_  class so it reads and writes to arrays
+Now we'll wrap this data class inside a :any:`s1xx.S1xxDatasetBase`  class so it reads and writes to arrays
 and can be accessed as a python list.::
 
     class DatasetWithNames_List(s1xx.S1xxDatasetBase):

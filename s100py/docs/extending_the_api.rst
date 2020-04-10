@@ -4,6 +4,7 @@ Extending the API
 
 To create a new api from this framework or modify an existing one, use the following classes from :any:`s100py.s1xx`
 as well as the ones in :any:`s100py.s100`.
+
     - S1xxAttributesBase for hdf5 groups with attributes, datasets and sub-groups.
     - S1xxDatasetBase for datasets (numpy arrays).
     - S1xxMetadataListBase for groups that have multiple occurrences using the S100 naming scheme (Group_NNN)

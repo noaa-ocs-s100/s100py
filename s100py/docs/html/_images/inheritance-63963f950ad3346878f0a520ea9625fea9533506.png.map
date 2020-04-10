@@ -1,4 +1,0 @@
-<map id="inheritancef6b5e63766" name="inheritancef6b5e63766">
-<area shape="rect" id="node1" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,5,233,31"/>
-<area shape="rect" id="node2" href="#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="281,5,552,31"/>
-</map>

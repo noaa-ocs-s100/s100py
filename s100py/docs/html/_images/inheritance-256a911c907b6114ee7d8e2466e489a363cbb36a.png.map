@@ -1,0 +1,6 @@
+<map id="inheritance4e47934895" name="inheritance4e47934895">
+<area shape="rect" id="node1" href="#s100py.s111.SurfaceCurrentGroupList" target="_top" title="This is the list of Group.NNN that are held as a list." alt="" coords="13,225,256,251"/>
+<area shape="rect" id="node2" href="s100py.s1xx.S1xxMetadataListBase.html#s100py.s1xx.S1xxMetadataListBase" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5." alt="" coords="17,152,252,177"/>
+<area shape="rect" id="node3" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="27,5,243,31"/>
+<area shape="rect" id="node4" href="s100py.s1xx.S1xxWritesOwnGroupBase.html#s100py.s1xx.S1xxWritesOwnGroupBase" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="5,79,264,104"/>
+</map>

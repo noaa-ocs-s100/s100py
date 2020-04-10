@@ -18,8 +18,9 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py.s102"
 
 from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxGridsBase, S1XXFile
-from ..s100 import GridCoordinate, DirectPosition, GeographicBoundingBox, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
-    FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase
+from ..s100 import GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
+    FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
+    CommonPointRule
 
 
 class S102Exception(S100Exception):
@@ -145,6 +146,9 @@ class BathymetryValues(S1xxGridsBase):
 
     @property
     def depth(self) -> s1xx_sequence:
+        """This is the depth array.  For bathymetric gridded data, the dataset includes a two-dimensional array containing both the depth and uncertainty data.
+        These dimensions are defined by numPointsLongitudinal and numPointsLatitudinal.
+        By knowing the grid origin and the grid spacing, the position of every point in the grid can be computed by simple formulae"""
         return self._attributes[self.depth_attribute_name]
 
     @depth.setter
@@ -163,6 +167,9 @@ class BathymetryValues(S1xxGridsBase):
 
     @property
     def uncertainty(self) -> s1xx_sequence:
+        """This is the uncertainty array.  For bathymetric gridded data, the dataset includes a two-dimensional array containing both the depth and uncertainty data.
+        These dimensions are defined by numPointsLongitudinal and numPointsLatitudinal.
+        By knowing the grid origin and the grid spacing, the position of every point in the grid can be computed by simple formulae"""
         return self._attributes[self.uncertainty_attribute_name]
 
     @uncertainty.setter
@@ -210,6 +217,23 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def values(self) -> BathymetryValues:
+        """ The grids for depth and uncertainty.
+
+        4.2.1.1.2.1 S102_BathymetryValues semantics
+
+        The class S102_BathymetryValues is related to BathymetryCoverage by a composition relationship in which an ordered sequence
+        of depth values provide data values for each grid cell.
+        The class S102_BathymetryValues inherits from S100_Grid
+
+        4.2.1.1.2.2 values
+
+        The attribute values has the value type S102_BathymetryValueRecord which is
+         a sequence of value items that shall assign values to the grid points.
+        There are two attributes in the bathymetry value record, depth and uncertainty in the S102_BathymetryValues class.
+        The definition for the depth is defined by the depthCorrectionType attribute in the S102_DataIdentification class.
+        The definition of the type of data in the values record is defined by the verticalUncertaintyType attribute
+        in the S102_DataIdentification class
+        """
         return self._attributes[self.values_attribute_name]
 
     @values.setter
@@ -241,6 +265,10 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def minimum_depth(self) -> float:
+        """From 4.2.1.1.1.3,
+        The attribute minimumDepth has the value type Real and describes the lower bound of the depth estimate
+        for all the depth values in S102_BathymetryValues record.
+        This attribute is required. There is no default"""
         return self._attributes[self.minimum_depth_attribute_name]
 
     @minimum_depth.setter
@@ -258,6 +286,11 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def maximum_depth(self) -> float:
+        """From 4.2.1.1.1.4,
+        The attribute minimumDepth has the value type Real and describes the lower bound of the depth estimate
+        for all the depth values in S102_BathymetryValues record.
+        This attribute is required. There is no default
+        """
         return self._attributes[self.maximum_depth_attribute_name]
 
     @maximum_depth.setter
@@ -266,6 +299,11 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def minimum_display_scale(self) -> int:
+        """From 4.2.1.1.1.2,
+        The larger value of the ratio of the linear dimensions of the features of a dataset presented in the display and
+        the actual dimensions of the features represented (largest scale) of the scale range of the dataset.
+        A list of display scale ranges is available in Figure 11.1, 1st column
+        """
         return self._attributes[self.minimum_display_scale_attribute_name]
 
     @minimum_display_scale.setter
@@ -283,6 +321,11 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def maximum_display_scale(self) -> int:
+        """From 4.2.1.1.1.5,
+        The smaller value of the ratio of the linear dimensions of the features of a dataset presented in the display and
+        the actual dimensions of the features represented (smallest scale) of the scale range of the dataset.
+        A list of display scale ranges is available in Table 11.1, 1st column
+        """
         return self._attributes[self.maximum_display_scale_attribute_name]
 
     @maximum_display_scale.setter
@@ -300,6 +343,11 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def minimum_uncertainty(self) -> float:
+        """From 4.2.1.1.1.6,
+        The attribute minimumUncertainty has the value type Real and describes the lower bound of the uncertainty of the
+        depth estimate for all the depth values in S102_BathymetryValues record.
+        This attribute is required. There is no default
+        """
         return self._attributes[self.minimum_uncertainty_attribute_name]
 
     @minimum_uncertainty.setter
@@ -317,6 +365,10 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def maximum_uncertainty(self) -> float:
+        """From 4.2.1.1.1.7,
+        The attribute minimumUncertainty has the value type Real and describes the lower bound of the uncertainty
+        of the depth estimate for all the depth values in S102_BathymetryValues record.
+        This attribute is required. There is no default"""
         return self._attributes[self.maximum_uncertainty_attribute_name]
 
     @maximum_uncertainty.setter
@@ -334,6 +386,11 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def origin(self) -> DirectPosition:
+        """From 4.2.1.1.1.8,
+        The attribute origin has the value class DirectPosition which is a position that shall locate the origin of the rectified grid
+        in the coordinate reference system.
+        This attribute is required. There is no default
+        """
         return self._attributes[self.origin_attribute_name]
 
     @origin.setter
@@ -355,7 +412,7 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def offset_vectors(self) -> s1xx_sequence:
-        """sequence of s102 Vectors  4.2.1.1.1.9 in S102 v2.0.0
+        """sequence of s102 Vectors  From 4.2.1.1.1.9 in S102 v2.0.0
         The attribute offsetVectors has the value class Sequence<Vector> that shall be a sequence of offset vector elements
         that determine the grid spacing in each direction.
         The data type Vector is specified in ISO/TS 19103. This attribute is required.
@@ -378,6 +435,11 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def dimension(self) -> int:
+        """From 4.2.1.1.1.10,
+        The attribute dimension has the value class Integer that shall identify the dimensionality of the grid.
+        The value of the grid dimension in this product specification is 2.
+        This value is fixed in this Product Specification and does not need to be encoded
+        """
         return self._attributes[self.dimension_attribute_name]
 
     @dimension.setter
@@ -395,7 +457,10 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def axis_names(self) -> s1xx_sequence:
-        """sequence of character strings"""
+        """sequence of character strings From 4.2.1.1.1.11,
+        The attribute axisNames has the value class Sequence<CharacterString> that shall be used to assign names to the grid axis.
+        The grid axis names shall be "Latitude" and "Longitude" for unprojected data sets or “Northing” and “Easting” in a projected space
+        """
         return self._attributes[self.axis_names_attribute_name]
 
     @axis_names.setter
@@ -409,10 +474,6 @@ class BathymetryCoverage(S1xxAttributesBase):
     def axis_names_create(self):
         """ The attribute axisNames has the value class Sequence<CharacterString> that shall be used to assign names to the grid axis.
         The grid axis names shall be "Latitude" and "Longitude" for unprojected data sets or “Northing” and “Easting” in a projected space.
-
-        Returns
-        -------
-
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
@@ -420,6 +481,10 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def extent(self) -> GridEnvelope:
+        """From 4.2.1.1.1.12,
+        The attribute extent has the value class CV_GridEnvelope that shall contain the extent of the spatial domain of the coverage.
+        It uses the value class CV_GridEnvelope which provides the grid coordinate values for the diametrically opposed corners of the grid.
+        The default is that this value is derived from the bounding box for the data set or tile in a multi tile data set"""
         return self._attributes[self.extent_attribute_name]
 
     @extent.setter
@@ -437,15 +502,13 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def sequencing_rule(self) -> SequenceRule:
-        """ The attribute sequencingRule has the value class CV_SequenceRule (ISO 19123) that shall
+        """From 4.2.1.1.1.13,
+        The attribute sequencingRule has the value class CV_SequenceRule (ISO 19123) that shall
         describe how the grid points are ordered for association to the elements of the sequence values.
         The default value is "Linear".
         No other options are allowed.
         (note that for S100: Only the values "linear" (for a simple regular cell size grid) and "Morton" (for a
         Quad Tree Grid) shall be used for data that conforms to this standard.)
-        Returns
-        -------
-
         """
         return self._attributes[self.sequencing_rule_attribute_name]
 
@@ -464,7 +527,8 @@ class BathymetryCoverage(S1xxAttributesBase):
 
     @property
     def start_sequence(self) -> GridCoordinate:
-        """ The attribute startSequence has the value class CV_GridCoordinate that shall identify the grid
+        """ From4.2.1.1.1.14,
+        The attribute startSequence has the value class CV_GridCoordinate that shall identify the grid
         point to be associated with the first record in the values sequence.
         The default value is the lower left corner of the grid.
         No other options are allowed.
@@ -488,31 +552,6 @@ class BathymetryCoverage(S1xxAttributesBase):
         # pylint: disable=attribute-defined-outside-init
         self.start_sequence = self.start_sequence_type()
 
-    # grid_matrix_attribute_name = "gridMatrix"  #: HDF5 naming
-    #
-    # @property
-    # def grid_matrix_type(self):
-    #     return BathymetryValuesList
-    #
-    # def grid_matrix_remove(self):
-    #     self._remove_attr(self.grid_matrix_attribute_name)
-    #
-    # def grid_matrix_create(self):
-    #     self.grid_matrix = self.grid_matrix_type()
-    #
-    # @property
-    # def grid_matrix(self) -> S102MetadataListBase:
-    #     """
-    #     Returns a BathymetryValuesList object
-    #     -------
-    #
-    #     """
-    #     return self._attributes[self.grid_matrix_attribute_name]
-    #
-    # @grid_matrix.setter
-    # def grid_matrix(self, val: S102MetadataListBase):
-    #     self._attributes[self.grid_matrix_attribute_name] = val
-
 
 class SurfaceCorrectionValues(VertexPoint):
     pass
@@ -521,7 +560,7 @@ class SurfaceCorrectionValues(VertexPoint):
 # this S102_SurfaceCorrectionValues may not be right as the docs refer to S100_VertexPoint,
 # but I'm betting they would both change if there ever is an update
 class TrackingListValues(SurfaceCorrectionValues):
-    """ 4.2.1.1.10 of v2.0.0
+    """ From 4.2.1.1.10 of S102 v2.0.0
     """
     track_code_attribute_name = "trackCode"  #: HDF5 naming
     list_series_attribute_name = "listSeries"  #: HDF5 naming
@@ -532,7 +571,8 @@ class TrackingListValues(SurfaceCorrectionValues):
 
     @property
     def track_code(self) -> str:
-        """ The optional attribute trackCode has the value type CharacterString which may contain a text string
+        """ From 4.2.1.1.10.2,
+        The optional attribute trackCode has the value type CharacterString which may contain a text string
         describing the reason for the override of the corresponding depth and uncertainty values in the bathymetry coverage.
         This is a user definable field with values defined in the lineage metadata.
 
@@ -557,12 +597,9 @@ class TrackingListValues(SurfaceCorrectionValues):
 
     @property
     def list_series(self) -> int:
-        """ The attribute listSeries has the value type Integer which contains an index number into a list of metadata
+        """From 4.2.1.1.10.3,
+        The attribute listSeries has the value type Integer which contains an index number into a list of metadata
         elements describing the reason for the override of the corresponding depth and uncertainty values in the bathymetry coverage.
-
-        Returns
-        -------
-
         """
         return self._attributes[self.list_series_attribute_name]
 
@@ -608,7 +645,7 @@ class TrackingListSetList(S102MetadataListBase):
         return TrackingListValuesList
 
 
-class TrackingListCoverage(S1xxAttributesBase):
+class TrackingListCoverage(CommonPointRule, S1xxAttributesBase):
     """ 4.2.1.1.9 and Figure 4.4 of v2.0.0
     commonPointRule is defined to be an S100_PointCoverage with a value of default and it therefore optional.
     a metadata attribute from S100 is allowed but not necessary as well.
@@ -641,35 +678,10 @@ class TrackingListCoverage(S1xxAttributesBase):
         # pylint: disable=attribute-defined-outside-init
         self.domain_extent = self.domain_extent_type()
 
-    @property
-    def common_point_rule_type(self):
-        return str
-
     def common_point_rule_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.common_point_rule = self.common_point_rule_type("average")
-
-    @property
-    def common_point_rule(self) -> str:
-        """ From S100 sec 8-7.1.2 S100_PointCoverage Spatial Model (also see figure 8-21 in edition 4.0.0):
-        An S100_Point Coverage is a type of CV_DiscretePointCoverage from ISO 19123. The
-        attribute values in the value record for each CV_GeometryValuePair represent values of the
-        coverage, such as bathymetric soundings.
-        The class S100_Point Coverage (Figure 8-21) represents a set of values, such as
-        bathymetric depth values, assigned to a set of arbitrary X,Y points. Each point is identified by
-        a horizontal coordinate geometry pair (X,Y) and assigned one or more values as attribute
-        values. These values are organized in a record for each point.
-
-        Returns
-        -------
-
-        """
-        return self._attributes[self.common_point_rule_attribute_name]
-
-    @common_point_rule.setter
-    def common_point_rule(self, val: str):
-        self._attributes[self.common_point_rule_attribute_name] = val
+        self.common_point_rule = self.common_point_rule_type["average"]
 
     @property
     def set_type(self):
@@ -767,6 +779,9 @@ class TrackingListCoveragesList(S102MetadataListBase):
 
 
 class BathymetryFeatureInstance(FeatureInstanceDCF2):
+    """ This will be the BathymetryCoverage.001 element in HDF5.
+    It will contain a Group.NNN which will have the "values" dataset of the deptha dn uncertainty.
+    """
     bathymetry_group_attribute_name = "Group" + r"[\._]\d+"
     """ Basic template for HDF5 naming of the attribute.  
     Attribute name will be automatically determined based on the list's index of the data. 
@@ -1063,6 +1078,7 @@ class S102Root(S100Root):
 
     @property
     def feature_information(self) -> FeatureCodes:
+        """Feature Information stored in GroupF in the HDF5 using :class:`FeatureCodes`"""
         return self._attributes[self.feature_information_attribute_name]
 
     @feature_information.setter
@@ -1080,6 +1096,8 @@ class S102Root(S100Root):
 
     @property
     def bathymetry_coverage(self) -> S1xxAttributesBase:
+        """Bathymetry instance stored under the HDF5 root using :class:`BathymetryContainer`
+        """
         return self._attributes[self.bathymetry_coverage_attribute_name]
 
     @property

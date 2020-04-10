@@ -1,0 +1,6 @@
+<map id="inheritancedb3918c38d" name="inheritancedb3918c38d">
+<area shape="rect" id="node1" href="#s100py.s102.api.BathymetryValues" target="_top" title="s100py.s102.api.BathymetryValues" alt="" coords="21,225,249,251"/>
+<area shape="rect" id="node2" href="s100py.s1xx.S1xxGridsBase.html#s100py.s1xx.S1xxGridsBase" target="_top" title="s100py.s1xx.S1xxGridsBase" alt="" coords="39,152,230,177"/>
+<area shape="rect" id="node3" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="27,5,243,31"/>
+<area shape="rect" id="node4" href="s100py.s1xx.S1xxWritesOwnGroupBase.html#s100py.s1xx.S1xxWritesOwnGroupBase" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="5,79,264,104"/>
+</map>

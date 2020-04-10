@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<script>
+    window.onload = function () {
+        var ImageMap = function (orig_width, map, img) {
+                var n,
+                    areas = map.getElementsByTagName('area'),
+                    len = areas.length,
+                    coords = [],
+                    previousWidth = orig_width;
+                for (n = 0; n < len; n++) {
+                    coords[n] = areas[n].coords.split(',');
+                }
+                this.resize = function () {
+                    var n, m, clen,
+                        x = img.offsetWidth / previousWidth;
+                    for (n = 0; n < len; n++) {
+                        clen = coords[n].length;
+                        for (m = 0; m < clen; m++) {
+                            coords[n][m] *= x;
+                        }
+                        areas[n].coords = coords[n].join(',');
+                    }
+                    previousWidth = img.offsetWidth;
+                    return true;
+                };
+                window.onresize = this.resize;
+            },
+            
+imageMap_0 = new ImageMap(269, document.getElementById('inheritance16d306d852'), document.getElementById('inheritance16d306d852_img'));
+imageMap_0.resize();
+
+        return;
+    }
+</script><head>
+<meta charset="utf-8"/>
+<title>S1xxGridsBase — Pydro  documentation</title>
+<link href="../_static/classic.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pygments.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/graphviz.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pydro_custom.css" rel="stylesheet" type="text/css"/>
+<script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script>
+<script src="../_static/underscore.js"></script>
+<script src="../_static/doctools.js"></script>
+<script src="../_static/language_data.js"></script>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="s100py.s1xx.S1xxMetadataListBase.html" rel="next" title="S1xxMetadataListBase"/>
+<link href="s100py.s1xx.S1xxDatasetBase.html" rel="prev" title="S1xxDatasetBase"/>
+</head><body>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a accesskey="I" href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a accesskey="N" href="s100py.s1xx.S1xxMetadataListBase.html" title="S1xxMetadataListBase">next</a> |</li>
+<li class="right">
+<a accesskey="P" href="s100py.s1xx.S1xxDatasetBase.html" title="S1xxDatasetBase">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a accesskey="U" href="../s1xx.html">Base Classes</a> »</li>
+</ul>
+</div>
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="s1xxgridsbase">
+<h1>S1xxGridsBase<a class="headerlink" href="#s1xxgridsbase" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s100py.s1xx.S1xxGridsBase">
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s1xx.</code><code class="sig-name descname">S1xxGridsBase</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1xxGridsBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1xxWritesOwnGroupBase.html#s100py.s1xx.S1xxWritesOwnGroupBase" title="s100py.s1xx.S1xxWritesOwnGroupBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1xxWritesOwnGroupBase</span></code></a></p>
+<div class="graphviz"><img alt="Inheritance diagram of S1xxGridsBase" class="inheritance graphviz" id="inheritance16d306d852_img" src="../_images/inheritance-fd0d781a9bbcb011935eb725393ee2218c440327.png" usemap="#inheritance16d306d852"/></div>
+<map id="inheritance16d306d852" name="inheritance16d306d852">
+<area alt="" coords="27,5,243,31" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" id="node1" shape="rect" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub-groups."/>
+<area alt="" coords="5,79,264,104" href="s100py.s1xx.S1xxWritesOwnGroupBase.html#s100py.s1xx.S1xxWritesOwnGroupBase" id="node3" shape="rect" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict"/>
+<area alt="" coords="39,152,230,177" href="#s100py.s1xx.S1xxGridsBase" id="node2" shape="rect" target="_top" title="s100py.s1xx.S1xxGridsBase"/>
+</map><p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%"/>
+<col style="width: 90%"/>
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1xxGridsBase.metadata_name" title="s100py.s1xx.S1xxGridsBase.metadata_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata_name</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%"/>
+<col style="width: 90%"/>
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1xxGridsBase.read" title="s100py.s1xx.S1xxGridsBase.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(group_object_parent)</p></td>
+<td><p>Given an h5py.File or a h5py group then read the data based on the encoded S100+ spec.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s1xx.S1xxGridsBase.write" title="s100py.s1xx.S1xxGridsBase.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a>(group_object)</p></td>
+<td><p>Write out the dataset using order specified with any extra values as unordered but named at the end.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s100py.s1xx.S1xxGridsBase.metadata_name">
+<code class="sig-name descname">metadata_name</code><a class="headerlink" href="#s100py.s1xx.S1xxGridsBase.metadata_name" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+<p class="rubric">Methods Documentation</p>
+<dl class="method">
+<dt id="s100py.s1xx.S1xxGridsBase.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">group_object_parent</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1xxGridsBase.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an h5py.File or a h5py group then read the data based on the encoded S100+ spec.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>group_object</strong> – The group (an h5py.File is a group too) to read from.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="method">
+<dt id="s100py.s1xx.S1xxGridsBase.write">
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">group_object</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1xxGridsBase.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out the dataset using order specified with any extra values as unordered but named at the end.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>group_object</strong> – HDF5 object to write into</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>HDF5 dataset created during the write method</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="method">
+<dt id="s100py.s1xx.S1xxGridsBase.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1xxGridsBase.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+</dd></dl>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="main navigation" class="sphinxsidebar" role="navigation">
+<div class="sphinxsidebarwrapper">
+<h3><a href="../s100py.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">S111</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102.html">S102</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">S100</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s1xx.html">Base Classes</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s1xx.html#module-s100py.s1xx">s100py.s1xx Module</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../s1xx.html#classes">Classes</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.FixedTimeZones.html">FixedTimeZones</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1XXFile.html">S1XXFile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html">S1xxAttributesBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxDatasetBase.html">S1xxDatasetBase</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">S1xxGridsBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxMetadataListBase.html">S1xxMetadataListBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxWritesOwnGroupBase.html">S1xxWritesOwnGroupBase</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../s1xx.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
+</ul>
+<h4>Previous topic</h4>
+<p class="topless"><a href="s100py.s1xx.S1xxDatasetBase.html" title="previous chapter">S1xxDatasetBase</a></p>
+<h4>Next topic</h4>
+<p class="topless"><a href="s100py.s1xx.S1xxMetadataListBase.html" title="next chapter">S1xxMetadataListBase</a></p>
+<div id="searchbox" role="search" style="display: none">
+<h3 id="searchlabel">Quick search</h3>
+<div class="searchformwrapper">
+<form action="../search.html" class="search" method="get">
+<input aria-labelledby="searchlabel" name="q" type="text"/>
+<input type="submit" value="Go"/>
+</form>
+</div>
+</div>
+<script>$('#searchbox').show(0);</script>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a href="s100py.s1xx.S1xxMetadataListBase.html" title="S1xxMetadataListBase">next</a> |</li>
+<li class="right">
+<a href="s100py.s1xx.S1xxDatasetBase.html" title="S1xxDatasetBase">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a href="../s1xx.html">Base Classes</a> »</li>
+</ul>
+</div>
+<div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+</body>
+</html>

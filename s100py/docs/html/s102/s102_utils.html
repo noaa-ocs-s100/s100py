@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="create_s102" href="../api/s100py.s102.utils.create_s102.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="s102.html" /> 
+    <link rel="prev" title="S102" href="s102.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,10 +34,10 @@
           <a href="../api/s100py.s102.utils.create_s102.html" title="create_s102"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="s102.html" title="&lt;no title&gt;"
+          <a href="s102.html" title="S102"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="s102.html" accesskey="U">&lt;no title&gt;</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="s102.html" accesskey="U">S102</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -60,6 +60,7 @@ but can be brought in separately if desired.:</p>
 </div>
 <div class="section" id="module-s100py.s102.utils">
 <span id="s100py-s102-utils-module"></span><h1>s100py.s102.utils Module<a class="headerlink" href="#module-s100py.s102.utils" title="Permalink to this headline">¶</a></h1>
+<p>Functions to create S102 data from other sources</p>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <table class="longtable docutils align-default">
@@ -75,31 +76,20 @@ but can be brought in separately if desired.:</p>
 <td><p>Creates or updates an S102File object based on numpy array/h5py datasets.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.utils.from_arrays_with_metadata.html#s100py.s102.utils.from_arrays_with_metadata" title="s100py.s102.utils.from_arrays_with_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_arrays_with_metadata</span></code></a>(depth_grid, …[, …])</p></td>
-<td><p><dl class="field-list simple">
-<dt class="field-odd">rtype</dt>
-<dd class="field-odd"><p><a class="reference internal" href="../api/s100py.s102.api.S102File.html#s100py.s102.api.S102File" title="s100py.s102.api.S102File"><code class="xref py py-class docutils literal notranslate"><span class="pre">S102File</span></code></a></p>
-</dd>
-</dl>
-</p></td>
+<td><p>Fills or creates an <a class="reference internal" href="../api/s100py.s102.api.S102File.html#s100py.s102.api.S102File" title="s100py.s102.api.S102File"><code class="xref any py py-class docutils literal notranslate"><span class="pre">S102File</span></code></a> from the given arguments.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.utils.from_bag.html#s100py.s102.utils.from_bag" title="s100py.s102.utils.from_bag"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_bag</span></code></a>(bagfile, output_file)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.utils.from_bag.html#s100py.s102.utils.from_bag" title="s100py.s102.utils.from_bag"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_bag</span></code></a>(bagfile, output_file[, metadata])</p></td>
 <td><p><dl class="field-list simple">
-<dt class="field-odd">rtype</dt>
-<dd class="field-odd"><p><a class="reference internal" href="../api/s100py.s102.api.S102File.html#s100py.s102.api.S102File" title="s100py.s102.api.S102File"><code class="xref py py-class docutils literal notranslate"><span class="pre">S102File</span></code></a></p>
-</dd>
+<dt class="field-odd">param bagfile</dt>
+<dd class="field-odd"><p></p></dd>
 </dl>
 </p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.utils.from_gdal.html#s100py.s102.utils.from_gdal" title="s100py.s102.utils.from_gdal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_gdal</span></code></a>(input_raster, output_file[, metadata])</p></td>
-<td><p><dl class="field-list simple">
-<dt class="field-odd">rtype</dt>
-<dd class="field-odd"><p><a class="reference internal" href="../api/s100py.s102.api.S102File.html#s100py.s102.api.S102File" title="s100py.s102.api.S102File"><code class="xref py py-class docutils literal notranslate"><span class="pre">S102File</span></code></a></p>
-</dd>
-</dl>
-</p></td>
+<td><p>Fills or creates an <a class="reference internal" href="../api/s100py.s102.api.S102File.html#s100py.s102.api.S102File" title="s100py.s102.api.S102File"><code class="xref any py py-class docutils literal notranslate"><span class="pre">S102File</span></code></a> from the given arguments.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.utils.read_bag.html#s100py.s102.utils.read_bag" title="s100py.s102.utils.read_bag"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_bag</span></code></a>(input_bag)</p></td>
-<td><p>Extract the required information from the BAG using GDAL and Fuse.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.utils.get_valid_epsg.html#s100py.s102.utils.get_valid_epsg" title="s100py.s102.utils.get_valid_epsg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_valid_epsg</span></code></a>()</p></td>
+<td><p>Create and return the list of valid EPSG codes for S-102 version 2.0.</p></td>
 </tr>
 </tbody>
 </table>
@@ -114,31 +104,32 @@ but can be brought in separately if desired.:</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="../s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">s100py.s102.utils Module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.create_s102.html">create_s102</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.from_arrays.html">from_arrays</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.from_arrays_with_metadata.html">from_arrays_with_metadata</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.from_bag.html">from_bag</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.from_gdal.html">from_gdal</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.read_bag.html">read_bag</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">S111</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="s102.html">S102</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">s100py.s102.utils Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.utils.create_s102.html">create_s102</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.utils.from_arrays.html">from_arrays</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.utils.from_arrays_with_metadata.html">from_arrays_with_metadata</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.utils.from_bag.html">from_bag</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.utils.from_gdal.html">from_gdal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.utils.get_valid_epsg.html">get_valid_epsg</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="s102_api.html">s100py.s102.api Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s102_api.html">s100py.s102.api Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">S100</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">Base Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="s102.html"
-                        title="previous chapter">&lt;no title&gt;</a></p>
+                        title="previous chapter">S102</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="../api/s100py.s102.utils.create_s102.html"
                         title="next chapter">create_s102</a></p>
@@ -169,10 +160,10 @@ but can be brought in separately if desired.:</p>
           <a href="../api/s100py.s102.utils.create_s102.html" title="create_s102"
              >next</a> |</li>
         <li class="right" >
-          <a href="s102.html" title="&lt;no title&gt;"
+          <a href="s102.html" title="S102"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="s102.html" >&lt;no title&gt;</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="s102.html" >S102</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

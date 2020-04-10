@@ -2,74 +2,98 @@
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8" />
-    <title>DEPTH_TYPE_INDEX &#8212; Pydro  documentation</title>
-    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
-    
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="DiscoveryMetadata" href="s100py.s111.DiscoveryMetadata.html" />
-    <link rel="prev" title="s100py.s111 Module" href="../s111.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="s100py.s111.DiscoveryMetadata.html" title="DiscoveryMetadata"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="../s111.html" title="s100py.s111 Module"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../s111.html" accesskey="U">s100py.s111 Module</a> &#187;</li> 
-      </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+<script>
+    window.onload = function () {
+        var ImageMap = function (orig_width, map, img) {
+                var n,
+                    areas = map.getElementsByTagName('area'),
+                    len = areas.length,
+                    coords = [],
+                    previousWidth = orig_width;
+                for (n = 0; n < len; n++) {
+                    coords[n] = areas[n].coords.split(',');
+                }
+                this.resize = function () {
+                    var n, m, clen,
+                        x = img.offsetWidth / previousWidth;
+                    for (n = 0; n < len; n++) {
+                        clen = coords[n].length;
+                        for (m = 0; m < clen; m++) {
+                            coords[n][m] *= x;
+                        }
+                        areas[n].coords = coords[n].join(',');
+                    }
+                    previousWidth = img.offsetWidth;
+                    return true;
+                };
+                window.onresize = this.resize;
+            },
             
-  <div class="section" id="depth-type-index">
+imageMap_0 = new ImageMap(239, document.getElementById('inheritance4f0ea19b66'), document.getElementById('inheritance4f0ea19b66_img'));
+imageMap_0.resize();
+
+        return;
+    }
+</script><head>
+<meta charset="utf-8"/>
+<title>DEPTH_TYPE_INDEX — Pydro  documentation</title>
+<link href="../_static/classic.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pygments.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/graphviz.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pydro_custom.css" rel="stylesheet" type="text/css"/>
+<script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script>
+<script src="../_static/underscore.js"></script>
+<script src="../_static/doctools.js"></script>
+<script src="../_static/language_data.js"></script>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="s100py.s111.DiscoveryMetadata.html" rel="next" title="DiscoveryMetadata"/>
+<link href="../s111.html" rel="prev" title="S111"/>
+</head><body>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a accesskey="I" href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a accesskey="N" href="s100py.s111.DiscoveryMetadata.html" title="DiscoveryMetadata">next</a> |</li>
+<li class="right">
+<a accesskey="P" href="../s111.html" title="S111">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a accesskey="U" href="../s111.html">S111</a> »</li>
+</ul>
+</div>
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="depth-type-index">
 <h1>DEPTH_TYPE_INDEX<a class="headerlink" href="#depth-type-index" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="s100py.s111.DEPTH_TYPE_INDEX">
 <em class="property">class </em><code class="sig-prename descclassname">s100py.s111.</code><code class="sig-name descname">DEPTH_TYPE_INDEX</code><a class="headerlink" href="#s100py.s111.DEPTH_TYPE_INDEX" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
 <p>Contains s111 metadata to pass to S111File.</p>
-<p>PRODUCT_SPECIFICATION: The product specification used to create this dataset.
-HORIZONTAL_DATUM_REFERENCE: Reference to the register from which the horizontal datum value is taken.
-DATA_CODING_FORMAT: Reference to the type of S111 product.
-INTERPOLATION_TYPE: Interpolation method recommended for evaluation of the S100_GridCoverage.
-COMMON_POINT_RULE: The procedure used for evaluating geometric objects that overlap or lie fall on boundaries.
-DIMENSION: The dimension of the feature instance.
-SEQUENCING_RULE_TYPE: Method to assign values from the sequence of values to the grid coordinates (e.g. “linear”).
-SEQUENCING_RULE_SCAN_DIRECTION: AxisNames, comma-separated (e.g. “longitude,latitude”).
+<p>PRODUCT_SPECIFICATION: The product specification used to create this dataset.
+HORIZONTAL_DATUM_REFERENCE: Reference to the register from which the horizontal datum value is taken.
+DATA_CODING_FORMAT: Reference to the type of S111 product.
+INTERPOLATION_TYPE: Interpolation method recommended for evaluation of the S100_GridCoverage.
+COMMON_POINT_RULE: The procedure used for evaluating geometric objects that overlap or lie fall on boundaries.
+DIMENSION: The dimension of the feature instance.
+SEQUENCING_RULE_TYPE: Method to assign values from the sequence of values to the grid coordinates (e.g. “linear”).
+SEQUENCING_RULE_SCAN_DIRECTION: AxisNames, comma-separated (e.g. “longitude,latitude”).
 START_SEQUENCE: Starting location of the scan.</p>
-<div class="graphviz"><img src="../_images/inheritance-e6dc9a74e20d3245d5199683e3fb44d935f8bd4f.png" alt="Inheritance diagram of DEPTH_TYPE_INDEX" usemap="#inheritance4f0ea19b66" class="inheritance graphviz" /></div>
+<div class="graphviz"><img alt="Inheritance diagram of DEPTH_TYPE_INDEX" class="inheritance graphviz" id="inheritance4f0ea19b66_img" src="../_images/inheritance-e75372015f847be14c79cb6d3a5304ea4f982956.png" usemap="#inheritance4f0ea19b66"/></div>
 <map id="inheritance4f0ea19b66" name="inheritance4f0ea19b66">
-<area shape="rect" id="node2" href="#s100py.s111.DEPTH_TYPE_INDEX" target="_top" title="An enumeration." alt="" coords="145,5,373,31"/>
+<area alt="" coords="5,79,233,104" href="#s100py.s111.DEPTH_TYPE_INDEX" id="node2" shape="rect" target="_top" title="An enumeration."/>
 </map><p class="rubric">Attributes Summary</p>
 <table class="longtable docutils align-default">
 <colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
+<col style="width: 10%"/>
+<col style="width: 90%"/>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEPTH_TYPE_INDEX.Layer</span></code></p></td>
@@ -88,95 +112,83 @@ START_SEQUENCE: Starting location of the scan.</p>
 </table>
 <p class="rubric">Attributes Documentation</p>
 </dd></dl>
-
 </div>
-
-
-          </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../s100py.html">Table of Contents</a></h3>
-  <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="../s111.html">s100py.s111 Module</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../s111.html#classes">Classes</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">DEPTH_TYPE_INDEX</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.FeatureCodes.html">FeatureCodes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.FeatureInformation.html">FeatureInformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.FeatureInformationDataset.html">FeatureInformationDataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.S111File.html">S111File</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.S111Root.html">S111Root</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.S111_MetadataList_base.html">S111_MetadataList_base</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentContainer.html">SurfaceCurrentContainer</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentDataset.html">SurfaceCurrentDataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentFeatureInstance.html">SurfaceCurrentFeatureInstance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroup.html">SurfaceCurrentGroup</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroupList.html">SurfaceCurrentGroupList</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentList.html">SurfaceCurrentList</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyDataset.html">SurfaceCurrentUncertaintyDataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyInformation.html">SurfaceCurrentUncertaintyInformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentValueRecord.html">SurfaceCurrentValueRecord</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentValues.html">SurfaceCurrentValues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentValuesList.html">SurfaceCurrentValuesList</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.TYPE_OF_CURRENT_DATA.html">TYPE_OF_CURRENT_DATA</a></li>
+</div>
+</div>
+</div>
+<div aria-label="main navigation" class="sphinxsidebar" role="navigation">
+<div class="sphinxsidebarwrapper">
+<h3><a href="../s100py.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s111.html">S111</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s111.html#module-s100py.s111">s100py.s111 Module</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../s111.html#classes">Classes</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">DEPTH_TYPE_INDEX</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.GeometryValuesDataset.html">GeometryValuesDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.GroupF.html">GroupF</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.PositioningGroup.html">PositioningGroup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.S111File.html">S111File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.S111MetadataListBase.html">S111MetadataListBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.S111Root.html">S111Root</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentContainer.html">SurfaceCurrentContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentFeatureDataset.html">SurfaceCurrentFeatureDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentFeatureInstance.html">SurfaceCurrentFeatureInstance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroup.html">SurfaceCurrentGroup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroupList.html">SurfaceCurrentGroupList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentList.html">SurfaceCurrentList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyDataset.html">SurfaceCurrentUncertaintyDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyInformation.html">SurfaceCurrentUncertaintyInformation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentValues.html">SurfaceCurrentValues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.TYPE_OF_CURRENT_DATA.html">TYPE_OF_CURRENT_DATA</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../s111.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../s111.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
 </ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="../s111.html"
-                        title="previous chapter">s100py.s111 Module</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="s100py.s111.DiscoveryMetadata.html"
-                        title="next chapter">DiscoveryMetadata</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102.html">S102</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">S100</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">Base Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
+</ul>
+<h4>Previous topic</h4>
+<p class="topless"><a href="../s111.html" title="previous chapter">S111</a></p>
+<h4>Next topic</h4>
+<p class="topless"><a href="s100py.s111.DiscoveryMetadata.html" title="next chapter">DiscoveryMetadata</a></p>
+<div id="searchbox" role="search" style="display: none">
+<h3 id="searchlabel">Quick search</h3>
+<div class="searchformwrapper">
+<form action="../search.html" class="search" method="get">
+<input aria-labelledby="searchlabel" name="q" type="text"/>
+<input type="submit" value="Go"/>
+</form>
+</div>
 </div>
 <script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a href="s100py.s111.DiscoveryMetadata.html" title="DiscoveryMetadata">next</a> |</li>
+<li class="right">
+<a href="../s111.html" title="S111">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a href="../s111.html">S111</a> »</li>
+</ul>
+</div>
+<div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="s100py.s111.DiscoveryMetadata.html" title="DiscoveryMetadata"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="../s111.html" title="s100py.s111 Module"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../s111.html" >s100py.s111 Module</a> &#187;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
-    </div>
-  </body>
+</body>
 </html>

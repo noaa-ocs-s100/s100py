@@ -86,7 +86,10 @@ def check_to_skip(app, what, name, obj, skip, options):
     if isinstance(obj, property) or "property" in str(obj):
         # class bathymetry_coverage < property object at 0x0000019161C07278 > False {'members': <object object at 0x000001915FFC3110 >, 'undoc-members': True, 'show-inheritance': True}
         if name.endswith("_type") or name.endswith("_attribute_name"):  # re.search("_type", name):
-            return True
+            if name.endswith("sequencing_rule_type") or name.endswith("interpolation_type"):
+                return False
+            else:
+                return True
     if "<class 'str'>" in str(obj):
         # class bathymetry_coverage < property object at 0x0000019161C07278 > False {'members': <object object at 0x000001915FFC3110 >, 'undoc-members': True, 'show-inheritance': True}
         if name.endswith("_attribute_name"):  # re.search("_type", name):

@@ -36,7 +36,8 @@
         <li class="right" >
           <a href="extending_the_api.html" title="Extending the API"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="for_api_developers.html" accesskey="U">For S100 API Developers</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -102,7 +103,7 @@ This could look like:</p>
 </div>
 <p>But doing this would require the data types read and write themselves to disk and do other housekeeping.
 Also data validation would be harder.</p>
-<p>For datatypes that have child data members there is a base class <a class="reference internal" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1XX_Attributes_base</span></code></a>.
+<p>For datatypes that have child data members there is a base class <a class="reference internal" href="api/s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1xxAttributesBase</span></code></a>.
 This eventually equates to an HDF5 Group object that can have HDF5 attributes, datasets or subgroups.
 To allow for qc of the input and output of data by the user or what is being read from disk,
 we used properties (<a class="reference external" href="https://docs.python.org/3/library/functions.html#property&gt;">&#64;property</a>) instead of plain member data.
@@ -119,7 +120,7 @@ of myFirstObject:</p>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Type</span>
 <span class="kn">from</span> <span class="nn">s100py</span> <span class="k">import</span> <span class="n">s1xx</span><span class="p">,</span> <span class="n">s100</span>
 
-<span class="k">class</span> <span class="nc">MyObject</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Attributes_base</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">MyObject</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1xxAttributesBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Create our first data class with properties etc &quot;&quot;&quot;</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -152,9 +153,9 @@ and it will fill it into multiple locations at once for you.</p>
 <dt>To recap:</dt><dd><ul class="simple">
 <li><p>&#64;property to get the data and do any reformatting needed etc.</p></li>
 <li><p>&#64;property.setter potential validation or other checks/changes to incoming data</p></li>
-<li><p><a href="#id1"><span class="problematic" id="id2">*</span></a>_attribute_name which defines the conversion from python naming to HDF5 (S100) naming</p></li>
-<li><p><a href="#id3"><span class="problematic" id="id4">*</span></a>_type to help the user of the api know the type to use and for the api to load from disk</p></li>
-<li><p><a href="#id5"><span class="problematic" id="id6">*</span></a>_create to make empty objects or supply default values as specified by S100</p></li>
+<li><p>*_attribute_name which defines the conversion from python naming to HDF5 (S100) naming</p></li>
+<li><p>*_type to help the user of the api know the type to use and for the api to load from disk</p></li>
+<li><p>*_create to make empty objects or supply default values as specified by S100</p></li>
 </ul>
 </dd>
 </dl>
@@ -195,7 +196,7 @@ make ‘empty_zone’ the default for the utm_zone:</p>
 </pre></div>
 </div>
 <p>Next is a multi-occurrence object.  These are groups that S100 says has an integer at the end of it’s name, like Group_001.
-To store these there is a class that makes them act as python lists, <a class="reference internal" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" title="s100py.s1xx.S1XX_MetadataList_base"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1XX_MetadataList_base</span></code></a>.
+To store these there is a class that makes them act as python lists, <a class="reference internal" href="api/s100py.s1xx.S1xxMetadataListBase.html#s100py.s1xx.S1xxMetadataListBase" title="s100py.s1xx.S1xxMetadataListBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1xxMetadataListBase</span></code></a>.
 This class needs to know what the acceptable name patterns are for reading/writing the data,
 the default is an underscore OR dot followed by one or more integers.
 You also have to supply a <a class="reference external" href="https://docs.python.org/3/library/functions.html#property&gt;">&#64;property</a> “metadata_name” and “metadata_type” for the name and type of the data to be held in the list.</p>
@@ -217,8 +218,8 @@ Actually, a straight rectangular grid is simple, it is just a property that has 
 </pre></div>
 </div>
 <p>Now let’s make the class that has the enumeration and the dataset.  The enumeration data doesn’t quite follow
-the standard template, so there is a second one just for enumerations in <a href="#id7"><span class="problematic" id="id8">:any:`extending_the_api`_</span></a></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DataGroupObject</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Attributes_base</span><span class="p">):</span>
+the standard template, so there is a second one just for enumerations in <a class="reference internal" href="extending_the_api.html"><span class="doc">Extending the API</span></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DataGroupObject</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1xxAttributesBase</span><span class="p">):</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">__version__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">1</span>
@@ -260,9 +261,9 @@ the standard template, so there is a second one just for enumerations in <a href
         <span class="bp">self</span><span class="o">.</span><span class="n">data_grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_grid_type</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Ok, now let’s make the list object that will actually have these data groups.  Recall the <a class="reference internal" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" title="s100py.s1xx.S1XX_MetadataList_base"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1XX_MetadataList_base</span></code></a>
+<p>Ok, now let’s make the list object that will actually have these data groups.  Recall the <a class="reference internal" href="api/s100py.s1xx.S1xxMetadataListBase.html#s100py.s1xx.S1xxMetadataListBase" title="s100py.s1xx.S1xxMetadataListBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1xxMetadataListBase</span></code></a>
 base class:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DataGroups</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_MetadataList_base</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DataGroups</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1xxMetadataListBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This is the list of dataGroup_NNN that are held as a list.</span>
 <span class="sd">    Each dataGroup_NNN has a data_grid dataset and name_of_data attribute.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -281,14 +282,14 @@ base class:</p>
 </pre></div>
 </div>
 <p>For the last datatype we’ll make the compund dataset “datasetWithNames”.  This is to encapsulate S100 specs that lay out
-data with names, like attributes, but say they belong in a dataset.   The <a href="#id9"><span class="problematic" id="id10">:any:`s1xx.S1XX_Dataset_base`_</span></a> takes care of this.
+data with names, like attributes, but say they belong in a dataset.   The <a class="reference internal" href="api/s100py.s1xx.S1xxDatasetBase.html#s100py.s1xx.S1xxDatasetBase" title="s100py.s1xx.S1xxDatasetBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1xxDatasetBase</span></code></a> takes care of this.
 Similar to the List we jsut made above, this class uses a list to keep an arbitrary number of data arrays and read/write
 them to HDF%.</p>
 <p>For example, the S100 spec Table 10c-8 describes a compound array stored as a dataset which is more naturally used
 as a multiple lists of attributes.  Our example will make a datatype to hold three attributes and a datatype that
 holds them in a list.  Notice we will implement the get_write_order() to make the HDF5 array be written in the order
 we want and not just by name.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">datasetWithNames</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Attributes_base</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">datasetWithNames</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1xxAttributesBase</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">get_write_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;attrInt&quot;</span><span class="p">,</span> <span class="s2">&quot;attrStr&quot;</span><span class="p">,</span> <span class="s2">&quot;attrFloat&quot;</span><span class="p">]</span>
 
@@ -353,9 +354,9 @@ we want and not just by name.:</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">attr_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_str_type</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Now we’ll wrap this data class inside a <a href="#id11"><span class="problematic" id="id12">:any:`s1xx.S1XX_Dataset_base`_</span></a>  class so it reads and writes to arrays
+<p>Now we’ll wrap this data class inside a <a class="reference internal" href="api/s100py.s1xx.S1xxDatasetBase.html#s100py.s1xx.S1xxDatasetBase" title="s100py.s1xx.S1xxDatasetBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1xxDatasetBase</span></code></a>  class so it reads and writes to arrays
 and can be accessed as a python list.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DatasetWithNames_List</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Dataset_base</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DatasetWithNames_List</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1xxDatasetBase</span><span class="p">):</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">metadata_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="nb">type</span><span class="p">]:</span>
@@ -368,8 +369,8 @@ and can be accessed as a python list.:</p>
 </div>
 <p>The final data class we’ll make is make a root object that contains all the datatypes we just made and associate that with a
 file object (which is derived from an h5py File).  The root object itself is just another
-class derived from <a class="reference internal" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1XX_Attributes_base</span></code></a>.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">S999Root</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1XX_Attributes_base</span><span class="p">):</span>
+class derived from <a class="reference internal" href="api/s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">s1xx.S1xxAttributesBase</span></code></a>.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">S999Root</span><span class="p">(</span><span class="n">s1xx</span><span class="o">.</span><span class="n">S1xxAttributesBase</span><span class="p">):</span>
     <span class="n">dataset_with_names_attribute_name</span> <span class="o">=</span> <span class="s2">&quot;datasetWithNames&quot;</span>  <span class="c1">#: HDF5 naming</span>
 
     <span class="nd">@property</span>
@@ -465,15 +466,18 @@ All we need to do is add a product specification string and add a ‘root’ key
         <div class="sphinxsidebarwrapper">
   <h3><a href="s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="s111.html">s100py.s111 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102/s102_utils.html">s100py.s102.utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102/s102_api.html">s100py.s102.api Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">An Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="more_sample_api.html">More Usage of the  API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_the_api.html">Using the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s111.html">S111</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102.html">S102</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s100.html">S100</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">Base Classes</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="for_api_developers.html">For S100 API Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="extending_the_api.html">Extending the API</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">An Example API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="more_sample_api.html">More Usage of the  API</a></li>
+</ul>
+</li>
 </ul>
 
   <h4>Previous topic</h4>
@@ -511,7 +515,8 @@ All we need to do is add a product specification string and add a ‘root’ key
         <li class="right" >
           <a href="extending_the_api.html" title="Extending the API"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="for_api_developers.html" >For S100 API Developers</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

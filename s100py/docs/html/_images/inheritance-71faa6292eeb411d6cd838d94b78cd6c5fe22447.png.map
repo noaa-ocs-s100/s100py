@@ -1,8 +1,0 @@
-<map id="inheritancefb9a580d2e" name="inheritancefb9a580d2e">
-<area shape="rect" id="node1" href="api/s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" target="_top" title="hdf5 files have primary creation methods of" alt="" coords="44,104,117,129"/>
-<area shape="rect" id="node2" href="api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,55,156,80"/>
-<area shape="rect" id="node4" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="204,55,397,80"/>
-<area shape="rect" id="node3" href="api/s100py.s1xx.S1XX_Dataset_base.html#s100py.s1xx.S1XX_Dataset_base" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes." alt="" coords="461,5,599,31"/>
-<area shape="rect" id="node5" href="api/s100py.s1xx.S1XX_Grids_base.html#s100py.s1xx.S1XX_Grids_base" target="_top" title="S1XX_Grids_base" alt="" coords="467,55,593,80"/>
-<area shape="rect" id="node6" href="api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5." alt="" coords="445,104,615,129"/>
-</map>

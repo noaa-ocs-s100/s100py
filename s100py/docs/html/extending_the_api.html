@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="An Example API" href="sample_api.html" />
-    <link rel="prev" title="S1XX_WritesOwnGroup_base" href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html" /> 
+    <link rel="prev" title="For S100 API Developers" href="for_api_developers.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,9 +34,10 @@
           <a href="sample_api.html" title="An Example API"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html" title="S1XX_WritesOwnGroup_base"
+          <a href="for_api_developers.html" title="For S100 API Developers"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="for_api_developers.html" accesskey="U">For S100 API Developers</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -51,9 +52,9 @@
 as well as the ones in <a class="reference internal" href="s100.html#module-s100py.s100" title="s100py.s100"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">s100py.s100</span></code></a>.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>S1XX_Attributes_base for hdf5 groups with attributes, datasets and sub-groups.</p></li>
-<li><p>S1XX_Dataset_base for datasets (numpy arrays).</p></li>
-<li><p>S1XX_MetadataList_base for groups that have multiple occurrences using the S100 naming scheme (Group_NNN)</p></li>
+<li><p>S1xxAttributesBase for hdf5 groups with attributes, datasets and sub-groups.</p></li>
+<li><p>S1xxDatasetBase for datasets (numpy arrays).</p></li>
+<li><p>S1xxMetadataListBase for groups that have multiple occurrences using the S100 naming scheme (Group_NNN)</p></li>
 </ul>
 </div></blockquote>
 <p>To make data members for one of the above classes, here is how to make a template in PyCharm to
@@ -96,6 +97,8 @@ def $attr$_type(self) -&gt; Type[$type$]:
 
 def $attr$_create(self):
     &quot;&quot;&quot; Creates a blank, empty or zero value for $attr$&quot;&quot;&quot;
+    # noinspection PyAttributeOutsideInit
+    # pylint: disable=attribute-defined-outside-init
     self.$attr$ = self.$attr$_type()
 </pre></div>
 </div>
@@ -122,6 +125,8 @@ def $attr$_type(self) -&gt; Type[$type$]:
 
 def $attr$_create(self):
     &quot;&quot;&quot; Creates a value using the first item in the enumeration of $attr$&quot;&quot;&quot;
+    # noinspection PyAttributeOutsideInit
+    # pylint: disable=attribute-defined-outside-init
     self.$attr$ = list(self.$attr$_type)[0]
 </pre></div>
 </div>
@@ -159,6 +164,8 @@ def $attr$_create(self):
     &quot;&quot;&quot; Creates a blank, empty or zero value for $attr$
     $SELECTION$
     &quot;&quot;&quot;
+    # noinspection PyAttributeOutsideInit
+    # pylint: disable=attribute-defined-outside-init
     self.$attr$ = self.$attr$_type()
 </pre></div>
 </div>
@@ -192,6 +199,8 @@ def $attr$_create(self):
     &quot;&quot;&quot; Creates a blank, empty or zero value for $attr$
     $SELECTION$
     &quot;&quot;&quot;
+    # noinspection PyAttributeOutsideInit
+    # pylint: disable=attribute-defined-outside-init
     self.$attr$ = list(self.$attr$_type)[0]
 </pre></div>
 </div>
@@ -205,20 +214,23 @@ def $attr$_create(self):
         <div class="sphinxsidebarwrapper">
   <h3><a href="s100py.html">Table of Contents</a></h3>
   <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="s111.html">s100py.s111 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102/s102_utils.html">s100py.s102.utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102/s102_api.html">s100py.s102.api Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s1xx.html">s100py.s1xx Module</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Extending the API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample_api.html">An Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="more_sample_api.html">More Usage of the  API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_the_api.html">Using the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s111.html">S111</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102.html">S102</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s100.html">S100</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">Base Classes</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="for_api_developers.html">For S100 API Developers</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Extending the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sample_api.html">An Example API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using_sample_api.html">Using The Example API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="more_sample_api.html">More Usage of the  API</a></li>
+</ul>
+</li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html"
-                        title="previous chapter">S1XX_WritesOwnGroup_base</a></p>
+  <p class="topless"><a href="for_api_developers.html"
+                        title="previous chapter">For S100 API Developers</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="sample_api.html"
                         title="next chapter">An Example API</a></p>
@@ -249,9 +261,10 @@ def $attr$_create(self):
           <a href="sample_api.html" title="An Example API"
              >next</a> |</li>
         <li class="right" >
-          <a href="api/s100py.s1xx.S1XX_WritesOwnGroup_base.html" title="S1XX_WritesOwnGroup_base"
+          <a href="for_api_developers.html" title="For S100 API Developers"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="for_api_developers.html" >For S100 API Developers</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

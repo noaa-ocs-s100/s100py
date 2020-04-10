@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>&lt;no title&gt; &#8212; Pydro  documentation</title>
+    <title>S102 &#8212; Pydro  documentation</title>
     <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
@@ -45,8 +45,16 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <p>Figure out how to show the namespace magic performed in __init__ since the functions in the two modules below
-can be accesses easier: e.g.:</p>
+  <div class="section" id="s102">
+<h1>S102<a class="headerlink" href="#s102" title="Permalink to this headline">¶</a></h1>
+<p>Odds are that the only function you will need is <a class="reference internal" href="../api/s100py.s102.utils.from_gdal.html#s100py.s102.utils.from_gdal" title="s100py.s102.utils.from_gdal"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_gdal()</span></code></a>.  You call it with
+the input path (some geogoded raster, like a BAG) and the output path (for an HDF5 file in S102 format).
+You can override some of the metadata elements with a dictionary as well.</p>
+<p>If you are converting a set of arrays or a format not supported by GDAL then use the
+<a class="reference internal" href="../api/s100py.s102.utils.from_arrays_with_metadata.html#s100py.s102.utils.from_arrays_with_metadata" title="s100py.s102.utils.from_arrays_with_metadata"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_arrays_with_metadata()</span></code></a> method.  You supply it numpy arrays and information about
+the horizontal and vertical coordinate systems and it does the rest.</p>
+<p>If you need more involved interaction with the data then import s102 from s100py.
+Methonds and classes from both the api.py and utils.py will be available.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">s100py</span> <span class="k">import</span> <span class="n">s102</span>
 <span class="n">s102</span><span class="o">.</span><span class="n">from_gdal</span><span class="p">()</span>
 <span class="c1"># or</span>
@@ -63,47 +71,43 @@ can be accesses easier: e.g.:</p>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.from_arrays_with_metadata.html">from_arrays_with_metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.from_bag.html">from_bag</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.from_gdal.html">from_gdal</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.read_bag.html">read_bag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.utils.get_valid_epsg.html">get_valid_epsg</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="s102_api.html">s100py.s102.api Module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="s102_api.html#functions">Functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.get_valid_epsg.html">get_valid_epsg</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="s102_api.html#classes">Classes</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryContainer.html">BathymetryContainer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverage.html">BathymetryCoverage</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverage_dataset.html">BathymetryCoverage_dataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverages_List.html">BathymetryCoverages_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverageDataset.html">BathymetryCoverageDataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoveragesList.html">BathymetryCoveragesList</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryFeatureInstance.html">BathymetryFeatureInstance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryGroup_List.html">BathymetryGroup_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryGroupList.html">BathymetryGroupList</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryValues.html">BathymetryValues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.FeatureCodes.html">FeatureCodes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.FeatureInformation_dataset.html">FeatureInformation_dataset</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102Exception.html">S102Exception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102FeatureInformation.html">S102FeatureInformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102FeatureInformationDataset.html">S102FeatureInformationDataset</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102File.html">S102File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102MetadataListBase.html">S102MetadataListBase</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102Root.html">S102Root</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102_MetadataList_base.html">S102_MetadataList_base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.SurfaceCorrectionValues.html">SurfaceCorrectionValues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TilingScheme.html">TilingScheme</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListContainer.html">TrackingListContainer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverage.html">TrackingListCoverage</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverage_dataset.html">TrackingListCoverage_dataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverages_List.html">TrackingListCoverages_List</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListGroup_List.html">TrackingListGroup_List</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListSet_List.html">TrackingListSet_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverageDataset.html">TrackingListCoverageDataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoveragesList.html">TrackingListCoveragesList</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListGroupList.html">TrackingListGroupList</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListSetList.html">TrackingListSetList</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListValues.html">TrackingListValues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListValues_List.html">TrackingListValues_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListValuesList.html">TrackingListValuesList</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="s102_api.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
 </ul>
+</div>
 </div>
 
 
@@ -113,16 +117,17 @@ can be accesses easier: e.g.:</p>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="../s100py.html">Table of Contents</a></h3>
-  <ul>
-<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102_utils.html">s100py.s102.utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102_api.html">s100py.s102.api Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">S111</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">S102</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s102_api.html">s100py.s102.api Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">S100</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">Base Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
 </ul>
 
   <h4>Previous topic</h4>

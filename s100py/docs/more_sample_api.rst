@@ -81,7 +81,7 @@ under the parent location we supply. ::
     data.write(h5file["/new_compound_array"])
 
 Now to really abuse the system we can change names of the data but this is dangerous and not recommended.
-It would both not adhere to the S100+ specs and also potentially be error prone. ::
+It would both not adhere to the S100+ specs and also potentially be error prone.
 
 First we'll change one instance of an object.
 Remember the MyObject has one string attribute that should be named "dataValue"::

@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<script>
+    window.onload = function () {
+        var ImageMap = function (orig_width, map, img) {
+                var n,
+                    areas = map.getElementsByTagName('area'),
+                    len = areas.length,
+                    coords = [],
+                    previousWidth = orig_width;
+                for (n = 0; n < len; n++) {
+                    coords[n] = areas[n].coords.split(',');
+                }
+                this.resize = function () {
+                    var n, m, clen,
+                        x = img.offsetWidth / previousWidth;
+                    for (n = 0; n < len; n++) {
+                        clen = coords[n].length;
+                        for (m = 0; m < clen; m++) {
+                            coords[n][m] *= x;
+                        }
+                        areas[n].coords = coords[n].join(',');
+                    }
+                    previousWidth = img.offsetWidth;
+                    return true;
+                };
+                window.onresize = this.resize;
+            },
+            
+imageMap_0 = new ImageMap(227, document.getElementById('inheritance26ec969c18'), document.getElementById('inheritance26ec969c18_img'));
+imageMap_0.resize();
+
+        return;
+    }
+</script><head>
+<meta charset="utf-8"/>
+<title>GroupFBase — Pydro  documentation</title>
+<link href="../_static/classic.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pygments.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/graphviz.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pydro_custom.css" rel="stylesheet" type="text/css"/>
+<script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script>
+<script src="../_static/underscore.js"></script>
+<script src="../_static/doctools.js"></script>
+<script src="../_static/language_data.js"></script>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="s100py.s100.INTERPOLATION_TYPE.html" rel="next" title="INTERPOLATION_TYPE"/>
+<link href="s100py.s100.GridSpacing.html" rel="prev" title="GridSpacing"/>
+</head><body>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a accesskey="I" href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a accesskey="N" href="s100py.s100.INTERPOLATION_TYPE.html" title="INTERPOLATION_TYPE">next</a> |</li>
+<li class="right">
+<a accesskey="P" href="s100py.s100.GridSpacing.html" title="GridSpacing">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a accesskey="U" href="../s100.html">S100</a> »</li>
+</ul>
+</div>
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="groupfbase">
+<h1>GroupFBase<a class="headerlink" href="#groupfbase" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s100py.s100.GroupFBase">
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s100.</code><code class="sig-name descname">GroupFBase</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.GroupFBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1xxAttributesBase</span></code></a></p>
+<p>From S100 Table 10c-8 – Components of feature information group</p>
+<p>There will also be a <a class="reference internal" href="s100py.s100.FeatureInformationDataset.html#s100py.s100.FeatureInformationDataset" title="s100py.s100.FeatureInformationDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">FeatureInformationDataset</span></code></a> holding a list of <a class="reference internal" href="s100py.s100.FeatureInformation.html#s100py.s100.FeatureInformation" title="s100py.s100.FeatureInformation"><code class="xref py py-class docutils literal notranslate"><span class="pre">FeatureInformation</span></code></a>
+which will be defined by the subclasses of this base class.</p>
+<div class="graphviz"><img alt="Inheritance diagram of GroupFBase" class="inheritance graphviz" id="inheritance26ec969c18_img" src="../_images/inheritance-e9090144175a13738f3ac9309b93fbb92bce6d5d.png" usemap="#inheritance26ec969c18"/></div>
+<map id="inheritance26ec969c18" name="inheritance26ec969c18">
+<area alt="" coords="27,79,200,104" href="#s100py.s100.GroupFBase" id="node1" shape="rect" target="_top" title="From S100 Table 10c-8 – Components of feature information group"/>
+<area alt="" coords="5,5,221,31" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" id="node2" shape="rect" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub-groups."/>
+</map><p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%"/>
+<col style="width: 90%"/>
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s100.GroupFBase.feature_code" title="s100py.s100.GroupFBase.feature_code"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_code</span></code></a></p></td>
+<td><p>i=0, F-1.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s100py.s100.GroupFBase.feature_code">
+<code class="sig-name descname">feature_code</code><a class="headerlink" href="#s100py.s100.GroupFBase.feature_code" title="Permalink to this definition">¶</a></dt>
+<dd><p>i=0, F-1.
+Values = codes of feature classes
+(F is the number of feature classes in the application schema.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Array (1-d)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="method">
+<dt id="s100py.s100.GroupFBase.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s100.GroupFBase.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+</dd></dl>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="main navigation" class="sphinxsidebar" role="navigation">
+<div class="sphinxsidebarwrapper">
+<h3><a href="../s100py.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">S111</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102.html">S102</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s100.html">S100</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s100.html#module-s100py.s100">s100py.s100 Module</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../s100.html#classes">Classes</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.COMMON_POINT_RULE.html">COMMON_POINT_RULE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.Chunking.html">Chunking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.CommonPointRule.html">CommonPointRule</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.DATA_CODING_FORMAT.html">DATA_CODING_FORMAT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.DirectPosition.html">DirectPosition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainer.html">FeatureContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF1.html">FeatureContainerDCF1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF2.html">FeatureContainerDCF2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF3.html">FeatureContainerDCF3</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF4.html">FeatureContainerDCF4</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF5.html">FeatureContainerDCF5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF6.html">FeatureContainerDCF6</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureContainerDCF7.html">FeatureContainerDCF7</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureInformation.html">FeatureInformation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureInformationDataset.html">FeatureInformationDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureInstanceBase.html">FeatureInstanceBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.FeatureInstanceDCF2.html">FeatureInstanceDCF2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GeographicBoundingBox.html">GeographicBoundingBox</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GeographicExtent.html">GeographicExtent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GridCoordinate.html">GridCoordinate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GridEnvelope.html">GridEnvelope</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GridOrigin.html">GridOrigin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.GridSpacing.html">GridSpacing</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">GroupFBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.INTERPOLATION_TYPE.html">INTERPOLATION_TYPE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.InterpolationType.html">InterpolationType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.Point.html">Point</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.S100Exception.html">S100Exception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.S100File.html">S100File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.S100Root.html">S100Root</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.SEQUENCING_RULE_TYPE.html">SEQUENCING_RULE_TYPE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.SequenceRule.html">SequenceRule</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.SequencingRule.html">SequencingRule</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.StartSequence.html">StartSequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.VERTICAL_DATUM.html">VERTICAL_DATUM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s100.VertexPoint.html">VertexPoint</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../s100.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">Base Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
+</ul>
+<h4>Previous topic</h4>
+<p class="topless"><a href="s100py.s100.GridSpacing.html" title="previous chapter">GridSpacing</a></p>
+<h4>Next topic</h4>
+<p class="topless"><a href="s100py.s100.INTERPOLATION_TYPE.html" title="next chapter">INTERPOLATION_TYPE</a></p>
+<div id="searchbox" role="search" style="display: none">
+<h3 id="searchlabel">Quick search</h3>
+<div class="searchformwrapper">
+<form action="../search.html" class="search" method="get">
+<input aria-labelledby="searchlabel" name="q" type="text"/>
+<input type="submit" value="Go"/>
+</form>
+</div>
+</div>
+<script>$('#searchbox').show(0);</script>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a href="s100py.s100.INTERPOLATION_TYPE.html" title="INTERPOLATION_TYPE">next</a> |</li>
+<li class="right">
+<a href="s100py.s100.GridSpacing.html" title="GridSpacing">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a href="../s100.html">S100</a> »</li>
+</ul>
+</div>
+<div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+</body>
+</html>

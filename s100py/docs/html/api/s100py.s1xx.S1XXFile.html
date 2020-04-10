@@ -2,68 +2,92 @@
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8" />
-    <title>S1XXFile &#8212; Pydro  documentation</title>
-    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
-    
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="S1XX_Attributes_base" href="s100py.s1xx.S1XX_Attributes_base.html" />
-    <link rel="prev" title="s100py.s1xx Module" href="../s1xx.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="s100py.s1xx.S1XX_Attributes_base.html" title="S1XX_Attributes_base"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="../s1xx.html" title="s100py.s1xx Module"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../s1xx.html" accesskey="U">s100py.s1xx Module</a> &#187;</li> 
-      </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+<script>
+    window.onload = function () {
+        var ImageMap = function (orig_width, map, img) {
+                var n,
+                    areas = map.getElementsByTagName('area'),
+                    len = areas.length,
+                    coords = [],
+                    previousWidth = orig_width;
+                for (n = 0; n < len; n++) {
+                    coords[n] = areas[n].coords.split(',');
+                }
+                this.resize = function () {
+                    var n, m, clen,
+                        x = img.offsetWidth / previousWidth;
+                    for (n = 0; n < len; n++) {
+                        clen = coords[n].length;
+                        for (m = 0; m < clen; m++) {
+                            coords[n][m] *= x;
+                        }
+                        areas[n].coords = coords[n].join(',');
+                    }
+                    previousWidth = img.offsetWidth;
+                    return true;
+                };
+                window.onresize = this.resize;
+            },
             
-  <div class="section" id="s1xxfile">
+imageMap_0 = new ImageMap(161, document.getElementById('inheritance29606401c0'), document.getElementById('inheritance29606401c0_img'));
+imageMap_0.resize();
+
+        return;
+    }
+</script><head>
+<meta charset="utf-8"/>
+<title>S1XXFile — Pydro  documentation</title>
+<link href="../_static/classic.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pygments.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/graphviz.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pydro_custom.css" rel="stylesheet" type="text/css"/>
+<script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script>
+<script src="../_static/underscore.js"></script>
+<script src="../_static/doctools.js"></script>
+<script src="../_static/language_data.js"></script>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="s100py.s1xx.S1xxAttributesBase.html" rel="next" title="S1xxAttributesBase"/>
+<link href="s100py.s1xx.FixedTimeZones.html" rel="prev" title="FixedTimeZones"/>
+</head><body>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a accesskey="I" href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a accesskey="N" href="s100py.s1xx.S1xxAttributesBase.html" title="S1xxAttributesBase">next</a> |</li>
+<li class="right">
+<a accesskey="P" href="s100py.s1xx.FixedTimeZones.html" title="FixedTimeZones">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a accesskey="U" href="../s1xx.html">Base Classes</a> »</li>
+</ul>
+</div>
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="s1xxfile">
 <h1>S1XXFile<a class="headerlink" href="#s1xxfile" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="s100py.s1xx.S1XXFile">
 <em class="property">class </em><code class="sig-prename descclassname">s100py.s1xx.</code><code class="sig-name descname">S1XXFile</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XXFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">h5py._hl.files.File</span></code></p>
-<p>hdf5 files have primary creation methods of
-create_dataset  to insert array data
-attrs           a dictionary-like to add/read metadata about the current group
+<p>hdf5 files have primary creation methods of
+create_dataset  to insert array data
+attrs           a dictionary-like to add/read metadata about the current group
 create_group    to make a group containing datasets and/or metadata</p>
-<div class="graphviz"><img src="../_images/inheritance-32c0c022616d9e05983aeb6ff589a34071d716f4.png" alt="Inheritance diagram of S1XXFile" usemap="#inheritance29606401c0" class="inheritance graphviz" /></div>
+<div class="graphviz"><img alt="Inheritance diagram of S1XXFile" class="inheritance graphviz" id="inheritance29606401c0_img" src="../_images/inheritance-ac1fcf3ede9088c1ea972c8cd936f624c024eb4b.png" usemap="#inheritance29606401c0"/></div>
 <map id="inheritance29606401c0" name="inheritance29606401c0">
-<area shape="rect" id="node1" href="#s100py.s1xx.S1XXFile" target="_top" title="hdf5 files have primary creation methods of" alt="" coords="5,5,156,31"/>
+<area alt="" coords="5,5,156,31" href="#s100py.s1xx.S1XXFile" id="node1" shape="rect" target="_top" title="hdf5 files have primary creation methods of"/>
 </map><p class="rubric">Methods Summary</p>
 <table class="longtable docutils align-default">
 <colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
+<col style="width: 10%"/>
+<col style="width: 90%"/>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s1xx.S1XXFile.create_empty_metadata" title="s100py.s1xx.S1XXFile.create_empty_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_empty_metadata</span></code></a>()</p></td>
@@ -85,157 +109,143 @@ create_group    to make a group containing datasets and/or metadata</p>
 <dt id="s100py.s1xx.S1XXFile.create_empty_metadata">
 <code class="sig-name descname">create_empty_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XXFile.create_empty_metadata" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="method">
 <dt id="s100py.s1xx.S1XXFile.read">
 <code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XXFile.read" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="method">
 <dt id="s100py.s1xx.S1XXFile.show_keys">
 <code class="sig-name descname">show_keys</code><span class="sig-paren">(</span><em class="sig-param">obj</em>, <em class="sig-param">indent=0</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XXFile.show_keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="method">
 <dt id="s100py.s1xx.S1XXFile.write">
 <code class="sig-name descname">write</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XXFile.write" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="method">
 <dt id="s100py.s1xx.S1XXFile.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1XXFile.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new file object.</p>
 <p>See the h5py user guide for a detailed explanation of the options.</p>
 <dl class="simple">
-<dt>name</dt><dd><p>Name of the file on disk, or file-like object.  Note: for files
-created with the ‘core’ driver, HDF5 still requires this be
+<dt>name</dt><dd><p>Name of the file on disk, or file-like object.  Note: for files
+created with the ‘core’ driver, HDF5 still requires this be
 non-empty.</p>
 </dd>
-<dt>mode</dt><dd><p>r        Readonly, file must exist
-r+       Read/write, file must exist
-w        Create file, truncate if exists
-w- or x  Create file, fail if exists
+<dt>mode</dt><dd><p>r        Readonly, file must exist
+r+       Read/write, file must exist
+w        Create file, truncate if exists
+w- or x  Create file, fail if exists
 a        Read/write if exists, create otherwise (default)</p>
 </dd>
-<dt>driver</dt><dd><p>Name of the driver to use.  Legal values are None (default,
+<dt>driver</dt><dd><p>Name of the driver to use.  Legal values are None (default,
 recommended), ‘core’, ‘sec2’, ‘stdio’, ‘mpio’.</p>
 </dd>
-<dt>libver</dt><dd><p>Library version bounds.  Currently only the strings ‘earliest’
+<dt>libver</dt><dd><p>Library version bounds.  Currently only the strings ‘earliest’
 and ‘latest’ are defined.</p>
 </dd>
-<dt>userblock</dt><dd><p>Desired size of user block.  Only allowed when creating a new
+<dt>userblock</dt><dd><p>Desired size of user block.  Only allowed when creating a new
 file (mode w, w- or x).</p>
 </dd>
 <dt>swmr</dt><dd><p>Open the file in SWMR read mode. Only used when mode = ‘r’.</p>
 </dd>
-<dt>rdcc_nbytes</dt><dd><p>Total size of the raw data chunk cache in bytes. The default size
+<dt>rdcc_nbytes</dt><dd><p>Total size of the raw data chunk cache in bytes. The default size
 is 1024**2 (1 MB) per dataset.</p>
 </dd>
-<dt>rdcc_w0</dt><dd><p>The chunk preemption policy for all datasets.  This must be
-between 0 and 1 inclusive and indicates the weighting according to
-which chunks which have been fully read or written are penalized
-when determining which chunks to flush from cache.  A value of 0
-means fully read or written chunks are treated no differently than
-other chunks (the preemption is strictly LRU) while a value of 1
-means fully read or written chunks are always preempted before
-other chunks.  If your application only reads or writes data once,
-this can be safely set to 1.  Otherwise, this should be set lower
-depending on how often you re-read or re-write the same data.  The
+<dt>rdcc_w0</dt><dd><p>The chunk preemption policy for all datasets.  This must be
+between 0 and 1 inclusive and indicates the weighting according to
+which chunks which have been fully read or written are penalized
+when determining which chunks to flush from cache.  A value of 0
+means fully read or written chunks are treated no differently than
+other chunks (the preemption is strictly LRU) while a value of 1
+means fully read or written chunks are always preempted before
+other chunks.  If your application only reads or writes data once,
+this can be safely set to 1.  Otherwise, this should be set lower
+depending on how often you re-read or re-write the same data.  The
 default value is 0.75.</p>
 </dd>
-<dt>rdcc_nslots</dt><dd><p>The number of chunk slots in the raw data chunk cache for this
-file. Increasing this value reduces the number of cache collisions,
-but slightly increases the memory used. Due to the hashing
-strategy, this value should ideally be a prime number. As a rule of
-thumb, this value should be at least 10 times the number of chunks
-that can fit in rdcc_nbytes bytes. For maximum performance, this
-value should be set approximately 100 times that number of
+<dt>rdcc_nslots</dt><dd><p>The number of chunk slots in the raw data chunk cache for this
+file. Increasing this value reduces the number of cache collisions,
+but slightly increases the memory used. Due to the hashing
+strategy, this value should ideally be a prime number. As a rule of
+thumb, this value should be at least 10 times the number of chunks
+that can fit in rdcc_nbytes bytes. For maximum performance, this
+value should be set approximately 100 times that number of
 chunks. The default value is 521.</p>
 </dd>
-<dt>track_order</dt><dd><p>Track dataset/group/attribute creation order under root group
+<dt>track_order</dt><dd><p>Track dataset/group/attribute creation order under root group
 if True. If None use global default h5.get_config().track_order.</p>
 </dd>
 <dt>Additional keywords</dt><dd><p>Passed on to the selected file driver.</p>
 </dd>
 </dl>
 </dd></dl>
-
 </dd></dl>
-
 </div>
-
-
-          </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../s100py.html">Table of Contents</a></h3>
-  <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../s1xx.html#classes">Classes</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">S1XXFile</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html">S1XX_Attributes_base</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_Dataset_base.html">S1XX_Dataset_base</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_Grids_base.html">S1XX_Grids_base</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_MetadataList_base.html">S1XX_MetadataList_base</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s1xx.S1XX_WritesOwnGroup_base.html">S1XX_WritesOwnGroup_base</a></li>
+</div>
+</div>
+</div>
+<div aria-label="main navigation" class="sphinxsidebar" role="navigation">
+<div class="sphinxsidebarwrapper">
+<h3><a href="../s100py.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">S111</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102.html">S102</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">S100</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s1xx.html">Base Classes</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s1xx.html#module-s100py.s1xx">s100py.s1xx Module</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../s1xx.html#classes">Classes</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.FixedTimeZones.html">FixedTimeZones</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">S1XXFile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html">S1xxAttributesBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxDatasetBase.html">S1xxDatasetBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxGridsBase.html">S1xxGridsBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxMetadataListBase.html">S1xxMetadataListBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxWritesOwnGroupBase.html">S1xxWritesOwnGroupBase</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../s1xx.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../s1xx.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
 </ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="../s1xx.html"
-                        title="previous chapter">s100py.s1xx Module</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="s100py.s1xx.S1XX_Attributes_base.html"
-                        title="next chapter">S1XX_Attributes_base</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
+</ul>
+<h4>Previous topic</h4>
+<p class="topless"><a href="s100py.s1xx.FixedTimeZones.html" title="previous chapter">FixedTimeZones</a></p>
+<h4>Next topic</h4>
+<p class="topless"><a href="s100py.s1xx.S1xxAttributesBase.html" title="next chapter">S1xxAttributesBase</a></p>
+<div id="searchbox" role="search" style="display: none">
+<h3 id="searchlabel">Quick search</h3>
+<div class="searchformwrapper">
+<form action="../search.html" class="search" method="get">
+<input aria-labelledby="searchlabel" name="q" type="text"/>
+<input type="submit" value="Go"/>
+</form>
+</div>
 </div>
 <script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a href="s100py.s1xx.S1xxAttributesBase.html" title="S1xxAttributesBase">next</a> |</li>
+<li class="right">
+<a href="s100py.s1xx.FixedTimeZones.html" title="FixedTimeZones">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a href="../s1xx.html">Base Classes</a> »</li>
+</ul>
+</div>
+<div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="s100py.s1xx.S1XX_Attributes_base.html" title="S1XX_Attributes_base"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="../s1xx.html" title="s100py.s1xx Module"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../s1xx.html" >s100py.s1xx Module</a> &#187;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
-    </div>
-  </body>
+</body>
 </html>

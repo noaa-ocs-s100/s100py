@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<script>
+    window.onload = function () {
+        var ImageMap = function (orig_width, map, img) {
+                var n,
+                    areas = map.getElementsByTagName('area'),
+                    len = areas.length,
+                    coords = [],
+                    previousWidth = orig_width;
+                for (n = 0; n < len; n++) {
+                    coords[n] = areas[n].coords.split(',');
+                }
+                this.resize = function () {
+                    var n, m, clen,
+                        x = img.offsetWidth / previousWidth;
+                    for (n = 0; n < len; n++) {
+                        clen = coords[n].length;
+                        for (m = 0; m < clen; m++) {
+                            coords[n][m] *= x;
+                        }
+                        areas[n].coords = coords[n].join(',');
+                    }
+                    previousWidth = img.offsetWidth;
+                    return true;
+                };
+                window.onresize = this.resize;
+            },
+            
+imageMap_0 = new ImageMap(227, document.getElementById('inheritancec95fa5bcc7'), document.getElementById('inheritancec95fa5bcc7_img'));
+imageMap_0.resize();
+
+        return;
+    }
+</script><head>
+<meta charset="utf-8"/>
+<title>PositioningGroup — Pydro  documentation</title>
+<link href="../_static/classic.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pygments.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/graphviz.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pydro_custom.css" rel="stylesheet" type="text/css"/>
+<script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script>
+<script src="../_static/underscore.js"></script>
+<script src="../_static/doctools.js"></script>
+<script src="../_static/language_data.js"></script>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="s100py.s111.S111File.html" rel="next" title="S111File"/>
+<link href="s100py.s111.GroupF.html" rel="prev" title="GroupF"/>
+</head><body>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a accesskey="I" href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a accesskey="N" href="s100py.s111.S111File.html" title="S111File">next</a> |</li>
+<li class="right">
+<a accesskey="P" href="s100py.s111.GroupF.html" title="GroupF">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a accesskey="U" href="../s111.html">S111</a> »</li>
+</ul>
+</div>
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="positioninggroup">
+<h1>PositioningGroup<a class="headerlink" href="#positioninggroup" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s100py.s111.PositioningGroup">
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s111.</code><code class="sig-name descname">PositioningGroup</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s111.PositioningGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1xxAttributesBase</span></code></a></p>
+<div class="graphviz"><img alt="Inheritance diagram of PositioningGroup" class="inheritance graphviz" id="inheritancec95fa5bcc7_img" src="../_images/inheritance-d17140fe2b43f23c691c4961b8de637065c6e756.png" usemap="#inheritancec95fa5bcc7"/></div>
+<map id="inheritancec95fa5bcc7" name="inheritancec95fa5bcc7">
+<area alt="" coords="14,79,213,104" href="#s100py.s111.PositioningGroup" id="node1" shape="rect" target="_top" title="s100py.s111.PositioningGroup"/>
+<area alt="" coords="5,5,221,31" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" id="node2" shape="rect" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub-groups."/>
+</map><p class="rubric">Attributes Summary</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%"/>
+<col style="width: 90%"/>
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s111.PositioningGroup.geometry_values" title="s100py.s111.PositioningGroup.geometry_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geometry_values</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s111.GeometryValuesDataset.html#s100py.s111.GeometryValuesDataset" title="s100py.s111.GeometryValuesDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeometryValuesDataset</span></code></a></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s111.PositioningGroup.metadata_name" title="s100py.s111.PositioningGroup.metadata_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata_name</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">rtype</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="s100py.s111.PositioningGroup.geometry_values">
+<code class="sig-name descname">geometry_values</code><a class="headerlink" href="#s100py.s111.PositioningGroup.geometry_values" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s111.GeometryValuesDataset.html#s100py.s111.GeometryValuesDataset" title="s100py.s111.GeometryValuesDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeometryValuesDataset</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="attribute">
+<dt id="s100py.s111.PositioningGroup.metadata_name">
+<code class="sig-name descname">metadata_name</code><a class="headerlink" href="#s100py.s111.PositioningGroup.metadata_name" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="method">
+<dt id="s100py.s111.PositioningGroup.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s111.PositioningGroup.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+</dd></dl>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="main navigation" class="sphinxsidebar" role="navigation">
+<div class="sphinxsidebarwrapper">
+<h3><a href="../s100py.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s111.html">S111</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s111.html#module-s100py.s111">s100py.s111 Module</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../s111.html#classes">Classes</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.DEPTH_TYPE_INDEX.html">DEPTH_TYPE_INDEX</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.GeometryValuesDataset.html">GeometryValuesDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.GroupF.html">GroupF</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">PositioningGroup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.S111File.html">S111File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.S111MetadataListBase.html">S111MetadataListBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.S111Root.html">S111Root</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentContainer.html">SurfaceCurrentContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentFeatureDataset.html">SurfaceCurrentFeatureDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentFeatureInstance.html">SurfaceCurrentFeatureInstance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroup.html">SurfaceCurrentGroup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroupList.html">SurfaceCurrentGroupList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentList.html">SurfaceCurrentList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyDataset.html">SurfaceCurrentUncertaintyDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyInformation.html">SurfaceCurrentUncertaintyInformation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentValues.html">SurfaceCurrentValues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.TYPE_OF_CURRENT_DATA.html">TYPE_OF_CURRENT_DATA</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../s111.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102.html">S102</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">S100</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">Base Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
+</ul>
+<h4>Previous topic</h4>
+<p class="topless"><a href="s100py.s111.GroupF.html" title="previous chapter">GroupF</a></p>
+<h4>Next topic</h4>
+<p class="topless"><a href="s100py.s111.S111File.html" title="next chapter">S111File</a></p>
+<div id="searchbox" role="search" style="display: none">
+<h3 id="searchlabel">Quick search</h3>
+<div class="searchformwrapper">
+<form action="../search.html" class="search" method="get">
+<input aria-labelledby="searchlabel" name="q" type="text"/>
+<input type="submit" value="Go"/>
+</form>
+</div>
+</div>
+<script>$('#searchbox').show(0);</script>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a href="s100py.s111.S111File.html" title="S111File">next</a> |</li>
+<li class="right">
+<a href="s100py.s111.GroupF.html" title="GroupF">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a href="../s111.html">S111</a> »</li>
+</ul>
+</div>
+<div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<script>
+    window.onload = function () {
+        var ImageMap = function (orig_width, map, img) {
+                var n,
+                    areas = map.getElementsByTagName('area'),
+                    len = areas.length,
+                    coords = [],
+                    previousWidth = orig_width;
+                for (n = 0; n < len; n++) {
+                    coords[n] = areas[n].coords.split(',');
+                }
+                this.resize = function () {
+                    var n, m, clen,
+                        x = img.offsetWidth / previousWidth;
+                    for (n = 0; n < len; n++) {
+                        clen = coords[n].length;
+                        for (m = 0; m < clen; m++) {
+                            coords[n][m] *= x;
+                        }
+                        areas[n].coords = coords[n].join(',');
+                    }
+                    previousWidth = img.offsetWidth;
+                    return true;
+                };
+                window.onresize = this.resize;
+            },
+            
+imageMap_0 = new ImageMap(269, document.getElementById('inheritance00ca166708'), document.getElementById('inheritance00ca166708_img'));
+imageMap_0.resize();
+
+        return;
+    }
+</script><head>
+<meta charset="utf-8"/>
+<title>S1xxWritesOwnGroupBase — Pydro  documentation</title>
+<link href="../_static/classic.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pygments.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/graphviz.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pydro_custom.css" rel="stylesheet" type="text/css"/>
+<script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script>
+<script src="../_static/underscore.js"></script>
+<script src="../_static/doctools.js"></script>
+<script src="../_static/language_data.js"></script>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="../for_api_developers.html" rel="next" title="For S100 API Developers"/>
+<link href="s100py.s1xx.S1xxMetadataListBase.html" rel="prev" title="S1xxMetadataListBase"/>
+</head><body>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a accesskey="I" href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a accesskey="N" href="../for_api_developers.html" title="For S100 API Developers">next</a> |</li>
+<li class="right">
+<a accesskey="P" href="s100py.s1xx.S1xxMetadataListBase.html" title="S1xxMetadataListBase">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a accesskey="U" href="../s1xx.html">Base Classes</a> »</li>
+</ul>
+</div>
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="s1xxwritesowngroupbase">
+<h1>S1xxWritesOwnGroupBase<a class="headerlink" href="#s1xxwritesowngroupbase" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="s100py.s1xx.S1xxWritesOwnGroupBase">
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s1xx.</code><code class="sig-name descname">S1xxWritesOwnGroupBase</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1xxWritesOwnGroupBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s1xx.S1xxAttributesBase</span></code></a></p>
+<p>Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can’t predict
+The S1xxAttributesBase will call the derived class’ writer without pre-making group for it.
+i.e. the derived class can specify its own group name or dataset and apply specialized logic as needed.</p>
+<div class="graphviz"><img alt="Inheritance diagram of S1xxWritesOwnGroupBase" class="inheritance graphviz" id="inheritance00ca166708_img" src="../_images/inheritance-5ea2291a92edcc720f885ff91318a53807d4dbbf.png" usemap="#inheritance00ca166708"/></div>
+<map id="inheritance00ca166708" name="inheritance00ca166708">
+<area alt="" coords="27,5,243,31" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" id="node1" shape="rect" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub-groups."/>
+<area alt="" coords="5,79,264,104" href="#s100py.s1xx.S1xxWritesOwnGroupBase" id="node2" shape="rect" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict"/>
+</map><dl class="method">
+<dt id="s100py.s1xx.S1xxWritesOwnGroupBase.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s1xx.S1xxWritesOwnGroupBase.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+</dd></dl>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="main navigation" class="sphinxsidebar" role="navigation">
+<div class="sphinxsidebarwrapper">
+<h3><a href="../s100py.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">S111</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102.html">S102</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">S100</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s1xx.html">Base Classes</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s1xx.html#module-s100py.s1xx">s100py.s1xx Module</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../s1xx.html#classes">Classes</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.FixedTimeZones.html">FixedTimeZones</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1XXFile.html">S1XXFile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html">S1xxAttributesBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxDatasetBase.html">S1xxDatasetBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxGridsBase.html">S1xxGridsBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s1xx.S1xxMetadataListBase.html">S1xxMetadataListBase</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">S1xxWritesOwnGroupBase</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../s1xx.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
+</ul>
+<h4>Previous topic</h4>
+<p class="topless"><a href="s100py.s1xx.S1xxMetadataListBase.html" title="previous chapter">S1xxMetadataListBase</a></p>
+<h4>Next topic</h4>
+<p class="topless"><a href="../for_api_developers.html" title="next chapter">For S100 API Developers</a></p>
+<div id="searchbox" role="search" style="display: none">
+<h3 id="searchlabel">Quick search</h3>
+<div class="searchformwrapper">
+<form action="../search.html" class="search" method="get">
+<input aria-labelledby="searchlabel" name="q" type="text"/>
+<input type="submit" value="Go"/>
+</form>
+</div>
+</div>
+<script>$('#searchbox').show(0);</script>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a href="../for_api_developers.html" title="For S100 API Developers">next</a> |</li>
+<li class="right">
+<a href="s100py.s1xx.S1xxMetadataListBase.html" title="S1xxMetadataListBase">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a href="../s1xx.html">Base Classes</a> »</li>
+</ul>
+</div>
+<div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+</body>
+</html>

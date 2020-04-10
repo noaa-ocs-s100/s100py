@@ -2,156 +2,163 @@
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8" />
-    <title>s100py.s102.api Module &#8212; Pydro  documentation</title>
-    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
-    
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="get_valid_epsg" href="../api/s100py.s102.api.get_valid_epsg.html" />
-    <link rel="prev" title="read_bag" href="../api/s100py.s102.utils.read_bag.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="../api/s100py.s102.api.get_valid_epsg.html" title="get_valid_epsg"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="../api/s100py.s102.utils.read_bag.html" title="read_bag"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="s102.html" accesskey="U">&lt;no title&gt;</a> &#187;</li> 
-      </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+<script>
+    window.onload = function () {
+        var ImageMap = function (orig_width, map, img) {
+                var n,
+                    areas = map.getElementsByTagName('area'),
+                    len = areas.length,
+                    coords = [],
+                    previousWidth = orig_width;
+                for (n = 0; n < len; n++) {
+                    coords[n] = areas[n].coords.split(',');
+                }
+                this.resize = function () {
+                    var n, m, clen,
+                        x = img.offsetWidth / previousWidth;
+                    for (n = 0; n < len; n++) {
+                        clen = coords[n].length;
+                        for (m = 0; m < clen; m++) {
+                            coords[n][m] *= x;
+                        }
+                        areas[n].coords = coords[n].join(',');
+                    }
+                    previousWidth = img.offsetWidth;
+                    return true;
+                };
+                window.onresize = this.resize;
+            },
             
-  <p>The classes in s102.api can be accessed by just importing s102.  They are automatically imported
+imageMap_0 = new ImageMap(1305, document.getElementById('inheritancea0fe14c282'), document.getElementById('inheritancea0fe14c282_img'));
+imageMap_0.resize();
+
+        return;
+    }
+</script><head>
+<meta charset="utf-8"/>
+<title>s100py.s102.api Module — Pydro  documentation</title>
+<link href="../_static/classic.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pygments.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/graphviz.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pydro_custom.css" rel="stylesheet" type="text/css"/>
+<script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script>
+<script src="../_static/underscore.js"></script>
+<script src="../_static/doctools.js"></script>
+<script src="../_static/language_data.js"></script>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="../api/s100py.s102.api.BathymetryContainer.html" rel="next" title="BathymetryContainer"/>
+<link href="../api/s100py.s102.utils.get_valid_epsg.html" rel="prev" title="get_valid_epsg"/>
+</head><body>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a accesskey="I" href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a accesskey="N" href="../api/s100py.s102.api.BathymetryContainer.html" title="BathymetryContainer">next</a> |</li>
+<li class="right">
+<a accesskey="P" href="../api/s100py.s102.utils.get_valid_epsg.html" title="get_valid_epsg">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a accesskey="U" href="s102.html">S102</a> »</li>
+</ul>
+</div>
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<p>The classes in s102.api can be accessed by just importing s102.  They are automatically imported
 but can be brought in separately if desired.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">s100py</span> <span class="k">import</span> <span class="n">s102</span>
-<span class="n">s102</span><span class="o">.</span><span class="n">S102File</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-<span class="c1"># or</span>
-<span class="kn">from</span> <span class="nn">s100py.s102</span> <span class="k">import</span> <span class="n">api</span>
-<span class="n">api</span><span class="o">.</span><span class="n">S102File</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-<span class="c1"># or</span>
-<span class="kn">from</span> <span class="nn">s100py</span> <span class="k">import</span> <span class="n">s102</span><span class="o">.</span><span class="n">api</span>
-<span class="n">s102</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">S102File</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">s100py</span> <span class="k">import</span> <span class="n">s102</span>
+<span class="n">s102</span><span class="o">.</span><span class="n">S102File</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># or</span>
+<span class="kn">from</span> <span class="nn">s100py.s102</span> <span class="k">import</span> <span class="n">api</span>
+<span class="n">api</span><span class="o">.</span><span class="n">S102File</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># or</span>
+<span class="kn">from</span> <span class="nn">s100py</span> <span class="k">import</span> <span class="n">s102</span><span class="o">.</span><span class="n">api</span>
+<span class="n">s102</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">S102File</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="section" id="module-s100py.s102.api">
 <span id="s100py-s102-api-module"></span><h1>s100py.s102.api Module<a class="headerlink" href="#module-s100py.s102.api" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="functions">
-<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.get_valid_epsg.html#s100py.s102.api.get_valid_epsg" title="s100py.s102.api.get_valid_epsg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_valid_epsg</span></code></a>()</p></td>
-<td><p>Create and return the list of valid EPSG codes for S-102 version 2.0.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
 <div class="section" id="classes">
 <h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
 <table class="longtable docutils align-default">
 <colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
+<col style="width: 10%"/>
+<col style="width: 90%"/>
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryContainer.html#s100py.s102.api.BathymetryContainer" title="s100py.s102.api.BathymetryContainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryContainer</span></code></a>([…])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryContainer.html#s100py.s102.api.BathymetryContainer" title="s100py.s102.api.BathymetryContainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryContainer</span></code></a>(*args, **opts)</p></td>
 <td><p>This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10 This will hold child groups named BathymetryCoverage.NN</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverage.html#s100py.s102.api.BathymetryCoverage" title="s100py.s102.api.BathymetryCoverage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryCoverage</span></code></a>([recursively_create_children])</p></td>
-<td><p>4.2.1.1.1 and Figure 4.4 of v2.0.0 also see section 12.3 and table 12.5</p></td>
+<td><p>This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverage_dataset.html#s100py.s102.api.BathymetryCoverage_dataset" title="s100py.s102.api.BathymetryCoverage_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryCoverage_dataset</span></code></a>(*args, **opts)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverageDataset.html#s100py.s102.api.BathymetryCoverageDataset" title="s100py.s102.api.BathymetryCoverageDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryCoverageDataset</span></code></a>(*args, **opts)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverages_List.html#s100py.s102.api.BathymetryCoverages_List" title="s100py.s102.api.BathymetryCoverages_List"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryCoverages_List</span></code></a>(*args, **opts)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoveragesList.html#s100py.s102.api.BathymetryCoveragesList" title="s100py.s102.api.BathymetryCoveragesList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryCoveragesList</span></code></a>(*args, **opts)</p></td>
 <td><p>4.2.1.1.2 and Figure 4.4 and Table 10.1 of v2.0.0 This is the set of BathymetryCoverage.NN that act like a list here.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryFeatureInstance.html#s100py.s102.api.BathymetryFeatureInstance" title="s100py.s102.api.BathymetryFeatureInstance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryFeatureInstance</span></code></a>([…])</p></td>
-<td><p></p></td>
+<td><p>This will be the BathymetryCoverage.001 element in HDF5.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryGroup_List.html#s100py.s102.api.BathymetryGroup_List" title="s100py.s102.api.BathymetryGroup_List"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryGroup_List</span></code></a>(*args, **opts)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryGroupList.html#s100py.s102.api.BathymetryGroupList" title="s100py.s102.api.BathymetryGroupList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryGroupList</span></code></a>(*args, **opts)</p></td>
 <td><p>This is the list of Group.NNN that are held as a list.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.BathymetryValues.html#s100py.s102.api.BathymetryValues" title="s100py.s102.api.BathymetryValues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BathymetryValues</span></code></a>([recursively_create_children])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.DiscoveryMetadata.html#s100py.s102.api.DiscoveryMetadata" title="s100py.s102.api.DiscoveryMetadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DiscoveryMetadata</span></code></a>(*args, **kwargs)</p></td>
-<td><p>12.1 of v2.0.0</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.FeatureCodes.html#s100py.s102.api.FeatureCodes" title="s100py.s102.api.FeatureCodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FeatureCodes</span></code></a>([recursively_create_children])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.FeatureCodes.html#s100py.s102.api.FeatureCodes" title="s100py.s102.api.FeatureCodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FeatureCodes</span></code></a>([recursively_create_children])</p></td>
 <td><p>Table 10.1 and sect 10.2.1 of v2.0.0</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.FeatureInformation_dataset.html#s100py.s102.api.FeatureInformation_dataset" title="s100py.s102.api.FeatureInformation_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FeatureInformation_dataset</span></code></a>(*args, **opts)</p></td>
-<td><p>In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.S102Exception.html#s100py.s102.api.S102Exception" title="s100py.s102.api.S102Exception"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S102Exception</span></code></a></p></td>
 <td><p></p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.S102FeatureInformation.html#s100py.s102.api.S102FeatureInformation" title="s100py.s102.api.S102FeatureInformation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S102FeatureInformation</span></code></a>(*args, **kwrds)</p></td>
+<td><p>S102 specifc version of FeatureInformation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.S102FeatureInformationDataset.html#s100py.s102.api.S102FeatureInformationDataset" title="s100py.s102.api.S102FeatureInformationDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S102FeatureInformationDataset</span></code></a>(*args, **opts)</p></td>
+<td><p>In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.S102File.html#s100py.s102.api.S102File" title="s100py.s102.api.S102File"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S102File</span></code></a>(*args, **kywrds)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.S102Root.html#s100py.s102.api.S102Root" title="s100py.s102.api.S102Root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S102Root</span></code></a>([recursively_create_children])</p></td>
-<td><p>The root group contains a feature information group and N feature containers.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.S102_MetadataList_base.html#s100py.s102.api.S102_MetadataList_base" title="s100py.s102.api.S102_MetadataList_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S102_MetadataList_base</span></code></a>(*args, **opts)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.S102MetadataListBase.html#s100py.s102.api.S102MetadataListBase" title="s100py.s102.api.S102MetadataListBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S102MetadataListBase</span></code></a>(*args, **opts)</p></td>
 <td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.S102Root.html#s100py.s102.api.S102Root" title="s100py.s102.api.S102Root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S102Root</span></code></a>([recursively_create_children])</p></td>
+<td><p>The root group contains a feature information group and N feature containers.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.SurfaceCorrectionValues.html#s100py.s102.api.SurfaceCorrectionValues" title="s100py.s102.api.SurfaceCorrectionValues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceCorrectionValues</span></code></a>([…])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.TilingScheme.html#s100py.s102.api.TilingScheme" title="s100py.s102.api.TilingScheme"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TilingScheme</span></code></a>([recursively_create_children])</p></td>
-<td><p>4.2.2, table 4.1 in v2.0.0</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListContainer.html#s100py.s102.api.TrackingListContainer" title="s100py.s102.api.TrackingListContainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListContainer</span></code></a>([…])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListContainer.html#s100py.s102.api.TrackingListContainer" title="s100py.s102.api.TrackingListContainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListContainer</span></code></a>(*args, **opts)</p></td>
 <td><p>Table 10.1 of v2.0.0</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverage.html#s100py.s102.api.TrackingListCoverage" title="s100py.s102.api.TrackingListCoverage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListCoverage</span></code></a>([…])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverage.html#s100py.s102.api.TrackingListCoverage" title="s100py.s102.api.TrackingListCoverage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListCoverage</span></code></a>([…])</p></td>
 <td><p>4.2.1.1.9 and Figure 4.4 of v2.0.0 commonPointRule is defined to be an S100_PointCoverage with a value of default and it therefore optional.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverage_dataset.html#s100py.s102.api.TrackingListCoverage_dataset" title="s100py.s102.api.TrackingListCoverage_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListCoverage_dataset</span></code></a>(*args, **opts)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverageDataset.html#s100py.s102.api.TrackingListCoverageDataset" title="s100py.s102.api.TrackingListCoverageDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListCoverageDataset</span></code></a>(*args, **opts)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverages_List.html#s100py.s102.api.TrackingListCoverages_List" title="s100py.s102.api.TrackingListCoverages_List"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListCoverages_List</span></code></a>(*args, **opts)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoveragesList.html#s100py.s102.api.TrackingListCoveragesList" title="s100py.s102.api.TrackingListCoveragesList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListCoveragesList</span></code></a>(*args, **opts)</p></td>
 <td><p>4.2.1.1.9 and Figure 4.4 and Table 10.1 of v2.0.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListGroup_List.html#s100py.s102.api.TrackingListGroup_List" title="s100py.s102.api.TrackingListGroup_List"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListGroup_List</span></code></a>(*args, **opts)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListGroupList.html#s100py.s102.api.TrackingListGroupList" title="s100py.s102.api.TrackingListGroupList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListGroupList</span></code></a>(*args, **opts)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListSet_List.html#s100py.s102.api.TrackingListSet_List" title="s100py.s102.api.TrackingListSet_List"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListSet_List</span></code></a>(*args, **opts)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListSetList.html#s100py.s102.api.TrackingListSetList" title="s100py.s102.api.TrackingListSetList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListSetList</span></code></a>(*args, **opts)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListValues.html#s100py.s102.api.TrackingListValues" title="s100py.s102.api.TrackingListValues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListValues</span></code></a>([recursively_create_children])</p></td>
-<td><p>4.2.1.1.10 of v2.0.0</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListValues.html#s100py.s102.api.TrackingListValues" title="s100py.s102.api.TrackingListValues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListValues</span></code></a>([recursively_create_children])</p></td>
+<td><p>From 4.2.1.1.10 of S102 v2.0.0</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListValues_List.html#s100py.s102.api.TrackingListValues_List" title="s100py.s102.api.TrackingListValues_List"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListValues_List</span></code></a>(*args, **opts)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/s100py.s102.api.TrackingListValuesList.html#s100py.s102.api.TrackingListValuesList" title="s100py.s102.api.TrackingListValuesList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackingListValuesList</span></code></a>(*args, **opts)</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -159,143 +166,140 @@ but can be brought in separately if desired.:</p>
 </div>
 <div class="section" id="class-inheritance-diagram">
 <h2>Class Inheritance Diagram<a class="headerlink" href="#class-inheritance-diagram" title="Permalink to this headline">¶</a></h2>
-<div class="graphviz"><img src="../_images/inheritance-4fbf68c73ffdbaea721e8c3c1d6b6cf71abe6440.png" alt="Inheritance diagram of s100py.s102.api.BathymetryContainer, s100py.s102.api.BathymetryCoverage, s100py.s102.api.BathymetryCoverage_dataset, s100py.s102.api.BathymetryCoverages_List, s100py.s102.api.BathymetryFeatureInstance, s100py.s102.api.BathymetryGroup_List, s100py.s102.api.BathymetryValues, s100py.s102.api.DiscoveryMetadata, s100py.s102.api.FeatureCodes, s100py.s102.api.FeatureInformation_dataset, s100py.s102.api.S102Exception, s100py.s102.api.S102File, s100py.s102.api.S102Root, s100py.s102.api.S102_MetadataList_base, s100py.s102.api.SurfaceCorrectionValues, s100py.s102.api.TilingScheme, s100py.s102.api.TrackingListContainer, s100py.s102.api.TrackingListCoverage, s100py.s102.api.TrackingListCoverage_dataset, s100py.s102.api.TrackingListCoverages_List, s100py.s102.api.TrackingListGroup_List, s100py.s102.api.TrackingListSet_List, s100py.s102.api.TrackingListValues, s100py.s102.api.TrackingListValues_List" usemap="#inheritancee52c853da0" class="inheritance graphviz" /></div>
-<map id="inheritancee52c853da0" name="inheritancee52c853da0">
-<area shape="rect" id="node1" href="../api/s100py.s102.api.BathymetryContainer.html#s100py.s102.api.BathymetryContainer" target="_top" title="This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c&#45;10" alt="" coords="458,80,602,105"/>
-<area shape="rect" id="node2" href="../api/s100py.s100.S100_FeatureContainer.html#s100py.s100.S100_FeatureContainer" target="_top" title="S100_FeatureContainer" alt="" coords="221,104,380,129"/>
-<area shape="rect" id="node31" href="../api/s100py.s102.api.TrackingListContainer.html#s100py.s102.api.TrackingListContainer" target="_top" title="Table 10.1 of v2.0.0" alt="" coords="457,129,603,155"/>
-<area shape="rect" id="node3" href="../api/s100py.s102.api.BathymetryCoverage.html#s100py.s102.api.BathymetryCoverage" target="_top" title="4.2.1.1.1 and Figure 4.4 of v2.0.0" alt="" coords="229,153,372,179"/>
-<area shape="rect" id="node4" href="../api/s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,301,156,327"/>
-<area shape="rect" id="node14" href="../api/s100py.s102.api.DiscoveryMetadata.html#s100py.s102.api.DiscoveryMetadata" target="_top" title="12.1 of v2.0.0" alt="" coords="235,203,367,228"/>
-<area shape="rect" id="node15" href="../api/s100py.s102.api.FeatureCodes.html#s100py.s102.api.FeatureCodes" target="_top" title="Table 10.1 and sect 10.2.1 of v2.0.0" alt="" coords="249,252,352,277"/>
-<area shape="rect" id="node19" href="../api/s100py.s100.GeographicExtent.html#s100py.s100.GeographicExtent" target="_top" title="4.2.1.1.12 of v2.0.0" alt="" coords="237,301,364,327"/>
-<area shape="rect" id="node27" href="../api/s100py.s1xx.S1XX_WritesOwnGroup_base.html#s100py.s1xx.S1XX_WritesOwnGroup_base" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="204,351,397,376"/>
-<area shape="rect" id="node29" href="../api/s100py.s100.VertexPoint.html#s100py.s100.VertexPoint" target="_top" title="From Figure 8&#45;21 in S100 v4.0.0" alt="" coords="255,400,346,425"/>
-<area shape="rect" id="node30" href="../api/s100py.s102.api.TilingScheme.html#s100py.s102.api.TilingScheme" target="_top" title="4.2.2, table 4.1 in v2.0.0" alt="" coords="251,449,351,475"/>
-<area shape="rect" id="node32" href="../api/s100py.s102.api.TrackingListCoverage.html#s100py.s102.api.TrackingListCoverage" target="_top" title="4.2.1.1.9 and Figure 4.4 of v2.0.0" alt="" coords="228,499,373,524"/>
-<area shape="rect" id="node5" href="../api/s100py.s102.api.BathymetryCoverage_dataset.html#s100py.s102.api.BathymetryCoverage_dataset" target="_top" title="BathymetryCoverage_dataset" alt="" coords="891,301,1083,327"/>
-<area shape="rect" id="node6" href="../api/s100py.s102.api.FeatureInformation_dataset.html#s100py.s102.api.FeatureInformation_dataset" target="_top" title="In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0" alt="" coords="663,351,841,376"/>
-<area shape="rect" id="node33" href="../api/s100py.s102.api.TrackingListCoverage_dataset.html#s100py.s102.api.TrackingListCoverage_dataset" target="_top" title="TrackingListCoverage_dataset" alt="" coords="889,351,1084,376"/>
-<area shape="rect" id="node7" href="../api/s100py.s102.api.BathymetryCoverages_List.html#s100py.s102.api.BathymetryCoverages_List" target="_top" title="4.2.1.1.2 and Figure 4.4 and Table 10.1 of v2.0.0" alt="" coords="898,400,1075,425"/>
-<area shape="rect" id="node8" href="../api/s100py.s102.api.S102_MetadataList_base.html#s100py.s102.api.S102_MetadataList_base" target="_top" title="S102_MetadataList_base" alt="" coords="667,487,837,512"/>
-<area shape="rect" id="node11" href="../api/s100py.s102.api.BathymetryGroup_List.html#s100py.s102.api.BathymetryGroup_List" target="_top" title="This is the list of Group.NNN that are held as a list." alt="" coords="911,449,1063,475"/>
-<area shape="rect" id="node34" href="../api/s100py.s102.api.TrackingListCoverages_List.html#s100py.s102.api.TrackingListCoverages_List" target="_top" title="4.2.1.1.9 and Figure 4.4 and Table 10.1 of v2.0.0" alt="" coords="897,499,1077,524"/>
-<area shape="rect" id="node35" href="../api/s100py.s102.api.TrackingListGroup_List.html#s100py.s102.api.TrackingListGroup_List" target="_top" title="TrackingListGroup_List" alt="" coords="909,548,1064,573"/>
-<area shape="rect" id="node36" href="../api/s100py.s102.api.TrackingListSet_List.html#s100py.s102.api.TrackingListSet_List" target="_top" title="TrackingListSet_List" alt="" coords="917,597,1057,623"/>
-<area shape="rect" id="node38" href="../api/s100py.s102.api.TrackingListValues_List.html#s100py.s102.api.TrackingListValues_List" target="_top" title="TrackingListValues_List" alt="" coords="907,647,1067,672"/>
-<area shape="rect" id="node9" href="../api/s100py.s102.api.BathymetryFeatureInstance.html#s100py.s102.api.BathymetryFeatureInstance" target="_top" title="BathymetryFeatureInstance" alt="" coords="1132,203,1315,228"/>
-<area shape="rect" id="node10" href="../api/s100py.s100.FeatureInstance_DCF2.html#s100py.s100.FeatureInstance_DCF2" target="_top" title="Data Coding Format 2 is the grid format from table 10c&#45;12 in S100 spec. &#160;Used in S102 for example." alt="" coords="909,203,1064,228"/>
-<area shape="rect" id="node12" href="../api/s100py.s102.api.BathymetryValues.html#s100py.s102.api.BathymetryValues" target="_top" title="BathymetryValues" alt="" coords="687,301,817,327"/>
-<area shape="rect" id="node13" href="../api/s100py.s1xx.S1XX_Grids_base.html#s100py.s1xx.S1XX_Grids_base" target="_top" title="S1XX_Grids_base" alt="" coords="467,301,593,327"/>
-<area shape="rect" id="node16" href="../api/s100py.s1xx.S1XX_Dataset_base.html#s100py.s1xx.S1XX_Dataset_base" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes." alt="" coords="461,351,599,376"/>
-<area shape="rect" id="node17" href="../api/s100py.s100.FeatureInstance_base.html#s100py.s100.FeatureInstance_base" target="_top" title="The feature instance group attributes from table 10c&#45;12 in S100 spec" alt="" coords="677,203,827,228"/>
-<area shape="rect" id="node18" href="../api/s100py.s100.GeographicBoundingBox.html#s100py.s100.GeographicBoundingBox" target="_top" title="4.2.1.1.13 of v2.0.0" alt="" coords="447,252,613,277"/>
-<area shape="rect" id="node21" href="../api/s100py.s100.S100Root.html#s100py.s100.S100Root" target="_top" title="From table 10c&#45;6 in S100 spec." alt="" coords="713,252,791,277"/>
-<area shape="rect" id="node20" href="../api/s100py.s100.S100Exception.html#s100py.s100.S100Exception" target="_top" title="S100Exception" alt="" coords="25,55,136,80"/>
-<area shape="rect" id="node22" href="../api/s100py.s102.api.S102Exception.html#s100py.s102.api.S102Exception" target="_top" title="S102Exception" alt="" coords="245,55,356,80"/>
-<area shape="rect" id="node25" href="../api/s100py.s102.api.S102Root.html#s100py.s102.api.S102Root" target="_top" title="The root group contains a feature information group and N feature containers." alt="" coords="947,252,1026,277"/>
-<area shape="rect" id="node23" href="../api/s100py.s102.api.S102File.html#s100py.s102.api.S102File" target="_top" title="S102File" alt="" coords="264,5,337,31"/>
-<area shape="rect" id="node24" href="../api/s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" target="_top" title="hdf5 files have primary creation methods of" alt="" coords="44,5,117,31"/>
-<area shape="rect" id="node26" href="../api/s100py.s1xx.S1XX_MetadataList_base.html#s100py.s1xx.S1XX_MetadataList_base" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5." alt="" coords="445,413,615,439"/>
-<area shape="rect" id="node28" href="../api/s100py.s102.api.SurfaceCorrectionValues.html#s100py.s102.api.SurfaceCorrectionValues" target="_top" title="SurfaceCorrectionValues" alt="" coords="447,512,613,537"/>
-<area shape="rect" id="node37" href="../api/s100py.s102.api.TrackingListValues.html#s100py.s102.api.TrackingListValues" target="_top" title="4.2.1.1.10 of v2.0.0" alt="" coords="686,536,818,561"/>
+<div class="graphviz"><img alt="Inheritance diagram of s100py.s102.api.BathymetryContainer, s100py.s102.api.BathymetryCoverage, s100py.s102.api.BathymetryCoverageDataset, s100py.s102.api.BathymetryCoveragesList, s100py.s102.api.BathymetryFeatureInstance, s100py.s102.api.BathymetryGroupList, s100py.s102.api.BathymetryValues, s100py.s102.api.FeatureCodes, s100py.s102.api.S102Exception, s100py.s102.api.S102FeatureInformation, s100py.s102.api.S102FeatureInformationDataset, s100py.s102.api.S102File, s100py.s102.api.S102MetadataListBase, s100py.s102.api.S102Root, s100py.s102.api.SurfaceCorrectionValues, s100py.s102.api.TrackingListContainer, s100py.s102.api.TrackingListCoverage, s100py.s102.api.TrackingListCoverageDataset, s100py.s102.api.TrackingListCoveragesList, s100py.s102.api.TrackingListGroupList, s100py.s102.api.TrackingListSetList, s100py.s102.api.TrackingListValues, s100py.s102.api.TrackingListValuesList" class="inheritance graphviz" id="inheritancea0fe14c282_img" src="../_images/inheritance-5466b4b522032d5133d88eceea7a602cf3531bb5.png" usemap="#inheritancea0fe14c282"/></div>
+<map id="inheritancea0fe14c282" name="inheritancea0fe14c282">
+<area alt="" coords="857,29,1061,55" href="../api/s100py.s102.api.S102FeatureInformationDataset.html#s100py.s102.api.S102FeatureInformationDataset" id="node7" shape="rect" target="_top" title="In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0"/>
+<area alt="" coords="635,67,809,92" href="../api/s100py.s100.FeatureInformationDataset.html#s100py.s100.FeatureInformationDataset" id="node23" shape="rect" target="_top" title="This class comes from S100 -- 10c-9.5 Feature information group."/>
+<area alt="" coords="650,584,794,609" href="../api/s100py.s102.api.BathymetryContainer.html#s100py.s102.api.BathymetryContainer" id="node2" shape="rect" target="_top" title="This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10"/>
+<area alt="" coords="427,584,581,609" href="../api/s100py.s100.FeatureContainerDCF2.html#s100py.s100.FeatureContainerDCF2" id="node3" shape="rect" target="_top" title="Container for Data Coding Format 2"/>
+<area alt="" coords="649,535,795,560" href="../api/s100py.s102.api.TrackingListContainer.html#s100py.s102.api.TrackingListContainer" id="node42" shape="rect" target="_top" title="Table 10.1 of v2.0.0"/>
+<area alt="" coords="211,288,354,313" href="../api/s100py.s102.api.BathymetryCoverage.html#s100py.s102.api.BathymetryCoverage" id="node4" shape="rect" target="_top" title="This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids."/>
+<area alt="" coords="5,363,144,388" href="../api/s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" id="node5" shape="rect" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub-groups."/>
+<area alt="" coords="235,337,330,363" href="../api/s100py.s100.GroupFBase.html#s100py.s100.GroupFBase" id="node18" shape="rect" target="_top" title="From S100 Table 10c-8 – Components of feature information group"/>
+<area alt="" coords="222,633,343,659" href="../api/s100py.s100.FeatureContainer.html#s100py.s100.FeatureContainer" id="node19" shape="rect" target="_top" title="This class comes from S100 in Table 10c-9 – Structure of feature container groups and"/>
+<area alt="" coords="218,387,347,412" href="../api/s100py.s100.FeatureInformation.html#s100py.s100.FeatureInformation" id="node22" shape="rect" target="_top" title="In S100, table 10c-8."/>
+<area alt="" coords="219,436,346,461" href="../api/s100py.s100.GeographicExtent.html#s100py.s100.GeographicExtent" id="node30" shape="rect" target="_top" title="4.2.1.1.12 of v2.0.0"/>
+<area alt="" coords="192,177,373,203" href="../api/s100py.s1xx.S1xxWritesOwnGroupBase.html#s100py.s1xx.S1xxWritesOwnGroupBase" id="node39" shape="rect" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict"/>
+<area alt="" coords="237,239,328,264" href="../api/s100py.s100.VertexPoint.html#s100py.s100.VertexPoint" id="node41" shape="rect" target="_top" title="From Figure 8-21 in S100 v4.0.0"/>
+<area alt="" coords="210,485,355,511" href="../api/s100py.s102.api.TrackingListCoverage.html#s100py.s102.api.TrackingListCoverage" id="node43" shape="rect" target="_top" title="4.2.1.1.9 and Figure 4.4 of v2.0.0"/>
+<area alt="" coords="1111,5,1298,31" href="../api/s100py.s102.api.BathymetryCoverageDataset.html#s100py.s102.api.BathymetryCoverageDataset" id="node6" shape="rect" target="_top" title="BathymetryCoverageDataset"/>
+<area alt="" coords="1109,55,1300,80" href="../api/s100py.s102.api.TrackingListCoverageDataset.html#s100py.s102.api.TrackingListCoverageDataset" id="node44" shape="rect" target="_top" title="TrackingListCoverageDataset"/>
+<area alt="" coords="874,104,1045,129" href="../api/s100py.s102.api.BathymetryCoveragesList.html#s100py.s102.api.BathymetryCoveragesList" id="node8" shape="rect" target="_top" title="4.2.1.1.2 and Figure 4.4 and Table 10.1 of v2.0.0"/>
+<area alt="" coords="643,215,801,240" href="../api/s100py.s102.api.S102MetadataListBase.html#s100py.s102.api.S102MetadataListBase" id="node9" shape="rect" target="_top" title="S102MetadataListBase"/>
+<area alt="" coords="887,153,1032,179" href="../api/s100py.s102.api.BathymetryGroupList.html#s100py.s102.api.BathymetryGroupList" id="node12" shape="rect" target="_top" title="This is the list of Group.NNN that are held as a list."/>
+<area alt="" coords="873,203,1046,228" href="../api/s100py.s102.api.TrackingListCoveragesList.html#s100py.s102.api.TrackingListCoveragesList" id="node45" shape="rect" target="_top" title="4.2.1.1.9 and Figure 4.4 and Table 10.1 of v2.0.0"/>
+<area alt="" coords="885,252,1033,277" href="../api/s100py.s102.api.TrackingListGroupList.html#s100py.s102.api.TrackingListGroupList" id="node46" shape="rect" target="_top" title="TrackingListGroupList"/>
+<area alt="" coords="893,301,1026,327" href="../api/s100py.s102.api.TrackingListSetList.html#s100py.s102.api.TrackingListSetList" id="node47" shape="rect" target="_top" title="TrackingListSetList"/>
+<area alt="" coords="883,351,1036,376" href="../api/s100py.s102.api.TrackingListValuesList.html#s100py.s102.api.TrackingListValuesList" id="node49" shape="rect" target="_top" title="TrackingListValuesList"/>
+<area alt="" coords="1113,657,1296,683" href="../api/s100py.s102.api.BathymetryFeatureInstance.html#s100py.s102.api.BathymetryFeatureInstance" id="node10" shape="rect" target="_top" title="This will be the BathymetryCoverage.001 element in HDF5."/>
+<area alt="" coords="885,657,1033,683" href="../api/s100py.s100.FeatureInstanceDCF2.html#s100py.s100.FeatureInstanceDCF2" id="node11" shape="rect" target="_top" title="Data Coding Format 2 is the grid format from table 10c-12 in S100 spec.  Used in S102 for example."/>
+<area alt="" coords="657,165,787,191" href="../api/s100py.s102.api.BathymetryValues.html#s100py.s102.api.BathymetryValues" id="node13" shape="rect" target="_top" title="BathymetryValues"/>
+<area alt="" coords="447,165,561,191" href="../api/s100py.s1xx.S1xxGridsBase.html#s100py.s1xx.S1xxGridsBase" id="node14" shape="rect" target="_top" title="S1xxGridsBase"/>
+<area alt="" coords="466,67,542,92" href="../api/s100py.s100.Chunking.html#s100py.s100.Chunking" id="node15" shape="rect" target="_top" title="This is a mixin to supply chunking attributes to any other class"/>
+<area alt="" coords="9,560,140,585" href="../api/s100py.s100.CommonPointRule.html#s100py.s100.CommonPointRule" id="node16" shape="rect" target="_top" title="CommonPointRule"/>
+<area alt="" coords="453,337,555,363" href="../api/s100py.s102.api.FeatureCodes.html#s100py.s102.api.FeatureCodes" id="node17" shape="rect" target="_top" title="Table 10.1 and sect 10.2.1 of v2.0.0"/>
+<area alt="" coords="225,535,341,560" href="../api/s100py.s100.SequencingRule.html#s100py.s100.SequencingRule" id="node20" shape="rect" target="_top" title="Mixin class for Sequencing Rule.  At least used in Data Coding Format 2,5,6"/>
+<area alt="" coords="223,584,343,609" href="../api/s100py.s100.InterpolationType.html#s100py.s100.InterpolationType" id="node21" shape="rect" target="_top" title="Mixin class for Interpolation Type.  At least used in Data Coding Format 2,3,4,5,6,7"/>
+<area alt="" coords="425,387,583,412" href="../api/s100py.s102.api.S102FeatureInformation.html#s100py.s102.api.S102FeatureInformation" id="node34" shape="rect" target="_top" title="S102 specifc version of FeatureInformation."/>
+<area alt="" coords="441,116,567,141" href="../api/s100py.s1xx.S1xxDatasetBase.html#s100py.s1xx.S1xxDatasetBase" id="node24" shape="rect" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes."/>
+<area alt="" coords="649,485,795,511" href="../api/s100py.s100.FeatureInstanceBase.html#s100py.s100.FeatureInstanceBase" id="node25" shape="rect" target="_top" title="The feature instance group attributes from table 10c-12 in S100 spec"/>
+<area alt="" coords="421,436,587,461" href="../api/s100py.s100.GeographicBoundingBox.html#s100py.s100.GeographicBoundingBox" id="node26" shape="rect" target="_top" title="S100 Tables 10C-6 and 10c-12"/>
+<area alt="" coords="683,436,761,461" href="../api/s100py.s100.S100Root.html#s100py.s100.S100Root" id="node32" shape="rect" target="_top" title="From table 10c-6 in S100 spec."/>
+<area alt="" coords="668,633,776,659" href="../api/s100py.s100.StartSequence.html#s100py.s100.StartSequence" id="node27" shape="rect" target="_top" title="Mixin class for startSequence.  Data Coding Formats 2,5,6"/>
+<area alt="" coords="675,683,769,708" href="../api/s100py.s100.GridSpacing.html#s100py.s100.GridSpacing" id="node28" shape="rect" target="_top" title="Mixin class for gridSpacingLongitudinal/Latitudinal/Vertical.  Probably used with :class:`GridOrigin`"/>
+<area alt="" coords="682,732,762,757" href="../api/s100py.s100.GridOrigin.html#s100py.s100.GridOrigin" id="node29" shape="rect" target="_top" title="Mixin class for gridOriginLatitude/Longitude/Vertical."/>
+<area alt="" coords="19,128,130,153" href="../api/s100py.s100.S100Exception.html#s100py.s100.S100Exception" id="node31" shape="rect" target="_top" title="S100Exception"/>
+<area alt="" coords="227,128,338,153" href="../api/s100py.s102.api.S102Exception.html#s100py.s102.api.S102Exception" id="node33" shape="rect" target="_top" title="S102Exception"/>
+<area alt="" coords="920,436,999,461" href="../api/s100py.s102.api.S102Root.html#s100py.s102.api.S102Root" id="node38" shape="rect" target="_top" title="The root group contains a feature information group and N feature containers."/>
+<area alt="" coords="246,79,319,104" href="../api/s100py.s102.api.S102File.html#s100py.s102.api.S102File" id="node35" shape="rect" target="_top" title="S102File"/>
+<area alt="" coords="38,79,111,104" href="../api/s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" id="node36" shape="rect" target="_top" title="hdf5 files have primary creation methods of"/>
+<area alt="" coords="425,215,583,240" href="../api/s100py.s1xx.S1xxMetadataListBase.html#s100py.s1xx.S1xxMetadataListBase" id="node37" shape="rect" target="_top" title="This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5."/>
+<area alt="" coords="421,264,587,289" href="../api/s100py.s102.api.SurfaceCorrectionValues.html#s100py.s102.api.SurfaceCorrectionValues" id="node40" shape="rect" target="_top" title="SurfaceCorrectionValues"/>
+<area alt="" coords="656,264,788,289" href="../api/s100py.s102.api.TrackingListValues.html#s100py.s102.api.TrackingListValues" id="node48" shape="rect" target="_top" title="From 4.2.1.1.10 of S102 v2.0.0"/>
 </map></div>
 </div>
-
-
-          </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../s100py.html">Table of Contents</a></h3>
-  <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../s111.html">s100py.s111 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s102_utils.html">s100py.s102.utils Module</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">s100py.s102.api Module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.get_valid_epsg.html">get_valid_epsg</a></li>
+</div>
+</div>
+</div>
+<div aria-label="main navigation" class="sphinxsidebar" role="navigation">
+<div class="sphinxsidebarwrapper">
+<h3><a href="../s100py.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s111.html">S111</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="s102.html">S102</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="s102_utils.html">s100py.s102.utils Module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">s100py.s102.api Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#classes">Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.BathymetryContainer.html">BathymetryContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverage.html">BathymetryCoverage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverageDataset.html">BathymetryCoverageDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoveragesList.html">BathymetryCoveragesList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.BathymetryFeatureInstance.html">BathymetryFeatureInstance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.BathymetryGroupList.html">BathymetryGroupList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.BathymetryValues.html">BathymetryValues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.FeatureCodes.html">FeatureCodes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.S102Exception.html">S102Exception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.S102FeatureInformation.html">S102FeatureInformation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.S102FeatureInformationDataset.html">S102FeatureInformationDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.S102File.html">S102File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.S102MetadataListBase.html">S102MetadataListBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.S102Root.html">S102Root</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.SurfaceCorrectionValues.html">SurfaceCorrectionValues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.TrackingListContainer.html">TrackingListContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverage.html">TrackingListCoverage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverageDataset.html">TrackingListCoverageDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoveragesList.html">TrackingListCoveragesList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.TrackingListGroupList.html">TrackingListGroupList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.TrackingListSetList.html">TrackingListSetList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.TrackingListValues.html">TrackingListValues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/s100py.s102.api.TrackingListValuesList.html">TrackingListValuesList</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryContainer.html">BathymetryContainer</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverage.html">BathymetryCoverage</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverage_dataset.html">BathymetryCoverage_dataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryCoverages_List.html">BathymetryCoverages_List</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryFeatureInstance.html">BathymetryFeatureInstance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryGroup_List.html">BathymetryGroup_List</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.BathymetryValues.html">BathymetryValues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.FeatureCodes.html">FeatureCodes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.FeatureInformation_dataset.html">FeatureInformation_dataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102Exception.html">S102Exception</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102File.html">S102File</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102Root.html">S102Root</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.S102_MetadataList_base.html">S102_MetadataList_base</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.SurfaceCorrectionValues.html">SurfaceCorrectionValues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TilingScheme.html">TilingScheme</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListContainer.html">TrackingListContainer</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverage.html">TrackingListCoverage</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverage_dataset.html">TrackingListCoverage_dataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListCoverages_List.html">TrackingListCoverages_List</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListGroup_List.html">TrackingListGroup_List</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListSet_List.html">TrackingListSet_List</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListValues.html">TrackingListValues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api/s100py.s102.api.TrackingListValues_List.html">TrackingListValues_List</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">S100</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">Base Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
 </ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="../api/s100py.s102.utils.read_bag.html"
-                        title="previous chapter">read_bag</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="../api/s100py.s102.api.get_valid_epsg.html"
-                        title="next chapter">get_valid_epsg</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
+<h4>Previous topic</h4>
+<p class="topless"><a href="../api/s100py.s102.utils.get_valid_epsg.html" title="previous chapter">get_valid_epsg</a></p>
+<h4>Next topic</h4>
+<p class="topless"><a href="../api/s100py.s102.api.BathymetryContainer.html" title="next chapter">BathymetryContainer</a></p>
+<div id="searchbox" role="search" style="display: none">
+<h3 id="searchlabel">Quick search</h3>
+<div class="searchformwrapper">
+<form action="../search.html" class="search" method="get">
+<input aria-labelledby="searchlabel" name="q" type="text"/>
+<input type="submit" value="Go"/>
+</form>
+</div>
 </div>
 <script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a href="../api/s100py.s102.api.BathymetryContainer.html" title="BathymetryContainer">next</a> |</li>
+<li class="right">
+<a href="../api/s100py.s102.utils.get_valid_epsg.html" title="get_valid_epsg">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a href="s102.html">S102</a> »</li>
+</ul>
+</div>
+<div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="../api/s100py.s102.api.get_valid_epsg.html" title="get_valid_epsg"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="../api/s100py.s102.utils.read_bag.html" title="read_bag"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="s102.html" >&lt;no title&gt;</a> &#187;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
-    </div>
-  </body>
+</body>
 </html>

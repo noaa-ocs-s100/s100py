@@ -263,7 +263,14 @@ class Automoddiagram(InheritanceDiagram):
         try:
             if len(clsnms) > 0:
                 self.arguments = [' '.join(clsnms)]
-            return InheritanceDiagram.run(self)
+            ret_list = InheritanceDiagram.run(self)
+            # This function only creates the module level graphs and we want those horizontal
+            # temporarily change the module to horizontal regardless of the conf -- could make a nev env variable for this
+            try:
+                ret_list[0]["graph_attrs"] = {"rankdir": "LR"}
+            except:
+                pass
+            return ret_list
         finally:
             self.arguments = oldargs
 

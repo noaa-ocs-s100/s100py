@@ -2,108 +2,124 @@
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8" />
-    <title>SurfaceCurrentContainer &#8212; Pydro  documentation</title>
-    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/pydro_custom.css" />
-    
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="SurfaceCurrentDataset" href="s100py.s111.SurfaceCurrentDataset.html" />
-    <link rel="prev" title="S111_MetadataList_base" href="s100py.s111.S111_MetadataList_base.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="s100py.s111.SurfaceCurrentDataset.html" title="SurfaceCurrentDataset"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="s100py.s111.S111_MetadataList_base.html" title="S111_MetadataList_base"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../s111.html" accesskey="U">s100py.s111 Module</a> &#187;</li> 
-      </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+<script>
+    window.onload = function () {
+        var ImageMap = function (orig_width, map, img) {
+                var n,
+                    areas = map.getElementsByTagName('area'),
+                    len = areas.length,
+                    coords = [],
+                    previousWidth = orig_width;
+                for (n = 0; n < len; n++) {
+                    coords[n] = areas[n].coords.split(',');
+                }
+                this.resize = function () {
+                    var n, m, clen,
+                        x = img.offsetWidth / previousWidth;
+                    for (n = 0; n < len; n++) {
+                        clen = coords[n].length;
+                        for (m = 0; m < clen; m++) {
+                            coords[n][m] *= x;
+                        }
+                        areas[n].coords = coords[n].join(',');
+                    }
+                    previousWidth = img.offsetWidth;
+                    return true;
+                };
+                window.onresize = this.resize;
+            },
             
-  <div class="section" id="surfacecurrentcontainer">
+imageMap_0 = new ImageMap(774, document.getElementById('inheritanced964824454'), document.getElementById('inheritanced964824454_img'));
+imageMap_0.resize();
+
+        return;
+    }
+</script><head>
+<meta charset="utf-8"/>
+<title>SurfaceCurrentContainer — Pydro  documentation</title>
+<link href="../_static/classic.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pygments.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/graphviz.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/pydro_custom.css" rel="stylesheet" type="text/css"/>
+<script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script>
+<script src="../_static/underscore.js"></script>
+<script src="../_static/doctools.js"></script>
+<script src="../_static/language_data.js"></script>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="s100py.s111.SurfaceCurrentFeatureDataset.html" rel="next" title="SurfaceCurrentFeatureDataset"/>
+<link href="s100py.s111.S111Root.html" rel="prev" title="S111Root"/>
+</head><body>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a accesskey="I" href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a accesskey="N" href="s100py.s111.SurfaceCurrentFeatureDataset.html" title="SurfaceCurrentFeatureDataset">next</a> |</li>
+<li class="right">
+<a accesskey="P" href="s100py.s111.S111Root.html" title="S111Root">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a accesskey="U" href="../s111.html">S111</a> »</li>
+</ul>
+</div>
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="surfacecurrentcontainer">
 <h1>SurfaceCurrentContainer<a class="headerlink" href="#surfacecurrentcontainer" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="s100py.s111.SurfaceCurrentContainer">
-<em class="property">class </em><code class="sig-prename descclassname">s100py.s111.</code><code class="sig-name descname">SurfaceCurrentContainer</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="s100py.s100.S100_FeatureContainer.html#s100py.s100.S100_FeatureContainer" title="s100py.s100.S100_FeatureContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s100.S100_FeatureContainer</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
-<p>This is the SurfaceCurrent right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
+<em class="property">class </em><code class="sig-prename descclassname">s100py.s111.</code><code class="sig-name descname">SurfaceCurrentContainer</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s100py.s100.FeatureContainerDCF2.html#s100py.s100.FeatureContainerDCF2" title="s100py.s100.FeatureContainerDCF2"><code class="xref py py-class docutils literal notranslate"><span class="pre">s100py.s100.FeatureContainerDCF2</span></code></a></p>
+<p>This is the SurfaceCurrent right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
 This will hold child groups named SurfaceCurrent.NN</p>
-<div class="graphviz"><img src="../_images/inheritance-8573afbfa1da031f517b5c286191cad2edc05dcb.png" alt="Inheritance diagram of SurfaceCurrentContainer" usemap="#inheritanced964824454" class="inheritance graphviz" /></div>
+<div class="graphviz"><img alt="Inheritance diagram of SurfaceCurrentContainer" class="inheritance graphviz" id="inheritanced964824454_img" src="../_images/inheritance-59ec306827a49722fdcbcfb7e3810184d2ac2355.png" usemap="#inheritanced964824454"/></div>
 <map id="inheritanced964824454" name="inheritanced964824454">
-<area shape="rect" id="node4" href="#s100py.s111.SurfaceCurrentContainer" target="_top" title="This is the SurfaceCurrent right off the root of the HDF5 which has possible attributes from S100 spec table 10c&#45;10" alt="" coords="565,31,807,56"/>
-<area shape="rect" id="node2" href="s100py.s100.S100_FeatureContainer.html#s100py.s100.S100_FeatureContainer" target="_top" title="s100py.s100.S100_FeatureContainer" alt="" coords="281,55,517,80"/>
-<area shape="rect" id="node3" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="5,55,233,80"/>
+<area alt="" coords="5,5,213,31" href="s100py.s100.CommonPointRule.html#s100py.s100.CommonPointRule" id="node1" shape="rect" target="_top" title="s100py.s100.CommonPointRule"/>
+<area alt="" coords="127,79,326,104" href="s100py.s100.FeatureContainer.html#s100py.s100.FeatureContainer" id="node2" shape="rect" target="_top" title="This class comes from S100 in Table 10c-9 – Structure of feature container groups and"/>
+<area alt="" coords="332,152,564,177" href="s100py.s100.FeatureContainerDCF2.html#s100py.s100.FeatureContainerDCF2" id="node4" shape="rect" target="_top" title="Container for Data Coding Format 2"/>
+<area alt="" coords="237,5,453,31" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" id="node3" shape="rect" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub-groups."/>
+<area alt="" coords="327,225,569,251" href="#s100py.s111.SurfaceCurrentContainer" id="node7" shape="rect" target="_top" title="This is the SurfaceCurrent right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10"/>
+<area alt="" coords="351,79,545,104" href="s100py.s100.SequencingRule.html#s100py.s100.SequencingRule" id="node5" shape="rect" target="_top" title="Mixin class for Sequencing Rule.  At least used in Data Coding Format 2,5,6"/>
+<area alt="" coords="570,79,769,104" href="s100py.s100.InterpolationType.html#s100py.s100.InterpolationType" id="node6" shape="rect" target="_top" title="Mixin class for Interpolation Type.  At least used in Data Coding Format 2,3,4,5,6,7"/>
 </map><p class="rubric">Attributes Summary</p>
 <table class="longtable docutils align-default">
 <colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
+<col style="width: 10%"/>
+<col style="width: 90%"/>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.max_dataset_current_speed" title="s100py.s111.SurfaceCurrentContainer.max_dataset_current_speed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">max_dataset_current_speed</span></code></a></p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">rtype</dt>
-<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a></p>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1xxAttributesBase</span></code></a></p>
 </dd>
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.max_dataset_current_speed_attribute_name" title="s100py.s111.SurfaceCurrentContainer.max_dataset_current_speed_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">max_dataset_current_speed_attribute_name</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.method_currents_product" title="s100py.s111.SurfaceCurrentContainer.method_currents_product"><code class="xref py py-obj docutils literal notranslate"><span class="pre">method_currents_product</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.method_currents_product" title="s100py.s111.SurfaceCurrentContainer.method_currents_product"><code class="xref py py-obj docutils literal notranslate"><span class="pre">method_currents_product</span></code></a></p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">rtype</dt>
-<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a></p>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1xxAttributesBase</span></code></a></p>
 </dd>
 </dl>
 </p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.method_currents_product_attribute_name" title="s100py.s111.SurfaceCurrentContainer.method_currents_product_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">method_currents_product_attribute_name</span></code></a></p></td>
-<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.min_dataset_current_speed" title="s100py.s111.SurfaceCurrentContainer.min_dataset_current_speed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">min_dataset_current_speed</span></code></a></p></td>
 <td><p><dl class="field-list simple">
 <dt class="field-odd">rtype</dt>
-<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a></p>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1xxAttributesBase</span></code></a></p>
 </dd>
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.min_dataset_current_speed_attribute_name" title="s100py.s111.SurfaceCurrentContainer.min_dataset_current_speed_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">min_dataset_current_speed_attribute_name</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.surface_current" title="s100py.s111.SurfaceCurrentContainer.surface_current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface_current</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.surface_current" title="s100py.s111.SurfaceCurrentContainer.surface_current"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface_current</span></code></a></p></td>
 <td><p>The surface current data, a list of SurfaceCurrent :returns: Contains a list of SurfaceCurrent objects via the SurfaceCurrent_List class :rtype: S111_MetadataList_base</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.surface_current_attribute_name" title="s100py.s111.SurfaceCurrentContainer.surface_current_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface_current_attribute_name</span></code></a></p></td>
-<td><p>Basic template for the name of the attribute Attribute name will be automatically determined based on the containing list’s index</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.type_of_current_data" title="s100py.s111.SurfaceCurrentContainer.type_of_current_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">type_of_current_data</span></code></a></p></td>
 <td><p><dl class="field-list simple">
@@ -113,9 +129,6 @@ This will hold child groups named SurfaceCurrent.NN</p>
 </dl>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#s100py.s111.SurfaceCurrentContainer.type_of_current_data_attribute_name" title="s100py.s111.SurfaceCurrentContainer.type_of_current_data_attribute_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">type_of_current_data_attribute_name</span></code></a></p></td>
-<td><p></p></td>
-</tr>
 </tbody>
 </table>
 <p class="rubric">Attributes Documentation</p>
@@ -124,61 +137,35 @@ This will hold child groups named SurfaceCurrent.NN</p>
 <code class="sig-name descname">max_dataset_current_speed</code><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.max_dataset_current_speed" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a></p>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1xxAttributesBase</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="attribute">
-<dt id="s100py.s111.SurfaceCurrentContainer.max_dataset_current_speed_attribute_name">
-<code class="sig-name descname">max_dataset_current_speed_attribute_name</code><em class="property"> = 'maxDatasetCurrentSpeed'</em><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.max_dataset_current_speed_attribute_name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="attribute">
 <dt id="s100py.s111.SurfaceCurrentContainer.method_currents_product">
 <code class="sig-name descname">method_currents_product</code><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.method_currents_product" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a></p>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1xxAttributesBase</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="attribute">
-<dt id="s100py.s111.SurfaceCurrentContainer.method_currents_product_attribute_name">
-<code class="sig-name descname">method_currents_product_attribute_name</code><em class="property"> = 'methodCurrentsProduct'</em><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.method_currents_product_attribute_name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="attribute">
 <dt id="s100py.s111.SurfaceCurrentContainer.min_dataset_current_speed">
 <code class="sig-name descname">min_dataset_current_speed</code><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.min_dataset_current_speed" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1XX_Attributes_base.html#s100py.s1xx.S1XX_Attributes_base" title="s100py.s1xx.S1XX_Attributes_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1XX_Attributes_base</span></code></a></p>
+<dd class="field-odd"><p><a class="reference internal" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">S1xxAttributesBase</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="attribute">
-<dt id="s100py.s111.SurfaceCurrentContainer.min_dataset_current_speed_attribute_name">
-<code class="sig-name descname">min_dataset_current_speed_attribute_name</code><em class="property"> = 'minDatasetCurrentSpeed'</em><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.min_dataset_current_speed_attribute_name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="attribute">
 <dt id="s100py.s111.SurfaceCurrentContainer.surface_current">
 <code class="sig-name descname">surface_current</code><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.surface_current" title="Permalink to this definition">¶</a></dt>
-<dd><p>The surface current data, a list of SurfaceCurrent
-:returns: Contains a list of SurfaceCurrent objects via the SurfaceCurrent_List class
+<dd><p>The surface current data, a list of SurfaceCurrent
+:returns: Contains a list of SurfaceCurrent objects via the SurfaceCurrent_List class
 :rtype: S111_MetadataList_base</p>
 </dd></dl>
-
-<dl class="attribute">
-<dt id="s100py.s111.SurfaceCurrentContainer.surface_current_attribute_name">
-<code class="sig-name descname">surface_current_attribute_name</code><em class="property"> = 'SurfaceCurrent\\.\\d+'</em><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.surface_current_attribute_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Basic template for the name of the attribute
-Attribute name will be automatically determined based on the containing list’s index</p>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="s100py.s111.SurfaceCurrentContainer.type_of_current_data">
 <code class="sig-name descname">type_of_current_data</code><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.type_of_current_data" title="Permalink to this definition">¶</a></dt>
@@ -188,108 +175,89 @@ Attribute name will be automatically determined based on the containing list’s
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="attribute">
-<dt id="s100py.s111.SurfaceCurrentContainer.type_of_current_data_attribute_name">
-<code class="sig-name descname">type_of_current_data_attribute_name</code><em class="property"> = 'typeOfCurrentData'</em><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.type_of_current_data_attribute_name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
 <dt id="s100py.s111.SurfaceCurrentContainer.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">recursively_create_children=False</em>, <em class="sig-param">**kywrds</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#s100py.s111.SurfaceCurrentContainer.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
-
 </dd></dl>
-
 </div>
-
-
-          </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../s100py.html">Table of Contents</a></h3>
-  <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="../s111.html">s100py.s111 Module</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../s111.html#classes">Classes</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.DEPTH_TYPE_INDEX.html">DEPTH_TYPE_INDEX</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.FeatureCodes.html">FeatureCodes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.FeatureInformation.html">FeatureInformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.FeatureInformationDataset.html">FeatureInformationDataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.S111File.html">S111File</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.S111Root.html">S111Root</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.S111_MetadataList_base.html">S111_MetadataList_base</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceCurrentContainer</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentDataset.html">SurfaceCurrentDataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentFeatureInstance.html">SurfaceCurrentFeatureInstance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroup.html">SurfaceCurrentGroup</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroupList.html">SurfaceCurrentGroupList</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentList.html">SurfaceCurrentList</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyDataset.html">SurfaceCurrentUncertaintyDataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyInformation.html">SurfaceCurrentUncertaintyInformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentValueRecord.html">SurfaceCurrentValueRecord</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentValues.html">SurfaceCurrentValues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.SurfaceCurrentValuesList.html">SurfaceCurrentValuesList</a></li>
-<li class="toctree-l3"><a class="reference internal" href="s100py.s111.TYPE_OF_CURRENT_DATA.html">TYPE_OF_CURRENT_DATA</a></li>
+</div>
+</div>
+</div>
+<div aria-label="main navigation" class="sphinxsidebar" role="navigation">
+<div class="sphinxsidebarwrapper">
+<h3><a href="../s100py.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../using_the_api.html">Using the API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../s111.html">S111</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../s111.html#module-s100py.s111">s100py.s111 Module</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../s111.html#classes">Classes</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.DEPTH_TYPE_INDEX.html">DEPTH_TYPE_INDEX</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.DiscoveryMetadata.html">DiscoveryMetadata</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.GeometryValuesDataset.html">GeometryValuesDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.GroupF.html">GroupF</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.PositioningGroup.html">PositioningGroup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.S111File.html">S111File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.S111MetadataListBase.html">S111MetadataListBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.S111Root.html">S111Root</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">SurfaceCurrentContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentFeatureDataset.html">SurfaceCurrentFeatureDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentFeatureInstance.html">SurfaceCurrentFeatureInstance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroup.html">SurfaceCurrentGroup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentGroupList.html">SurfaceCurrentGroupList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentList.html">SurfaceCurrentList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyDataset.html">SurfaceCurrentUncertaintyDataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentUncertaintyInformation.html">SurfaceCurrentUncertaintyInformation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.SurfaceCurrentValues.html">SurfaceCurrentValues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="s100py.s111.TYPE_OF_CURRENT_DATA.html">TYPE_OF_CURRENT_DATA</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../s111.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../s111.html#class-inheritance-diagram">Class Inheritance Diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../s102/s102_utils.html">s100py.s102.utils Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s102/s102_api.html">s100py.s102.api Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s100.html">s100py.s100 Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">s100py.s1xx Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../extending_the_api.html">Extending the API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../sample_api.html">An Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../using_sample_api.html">Using The Example API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../more_sample_api.html">More Usage of the  API</a></li>
 </ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="s100py.s111.S111_MetadataList_base.html"
-                        title="previous chapter">S111_MetadataList_base</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="s100py.s111.SurfaceCurrentDataset.html"
-                        title="next chapter">SurfaceCurrentDataset</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../s102/s102.html">S102</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s100.html">S100</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../s1xx.html">Base Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../for_api_developers.html">For S100 API Developers</a></li>
+</ul>
+<h4>Previous topic</h4>
+<p class="topless"><a href="s100py.s111.S111Root.html" title="previous chapter">S111Root</a></p>
+<h4>Next topic</h4>
+<p class="topless"><a href="s100py.s111.SurfaceCurrentFeatureDataset.html" title="next chapter">SurfaceCurrentFeatureDataset</a></p>
+<div id="searchbox" role="search" style="display: none">
+<h3 id="searchlabel">Quick search</h3>
+<div class="searchformwrapper">
+<form action="../search.html" class="search" method="get">
+<input aria-labelledby="searchlabel" name="q" type="text"/>
+<input type="submit" value="Go"/>
+</form>
+</div>
 </div>
 <script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+<div aria-label="related navigation" class="related" role="navigation">
+<h3>Navigation</h3>
+<ul>
+<li class="right" style="margin-right: 10px">
+<a href="../genindex.html" title="General Index">index</a></li>
+<li class="right">
+<a href="../py-modindex.html" title="Python Module Index">modules</a> |</li>
+<li class="right">
+<a href="s100py.s111.SurfaceCurrentFeatureDataset.html" title="SurfaceCurrentFeatureDataset">next</a> |</li>
+<li class="right">
+<a href="s100py.s111.S111Root.html" title="S111Root">previous</a> |</li>
+<li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> »</li>
+<li class="nav-item nav-item-1"><a href="../s111.html">S111</a> »</li>
+</ul>
+</div>
+<div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="s100py.s111.SurfaceCurrentDataset.html" title="SurfaceCurrentDataset"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="s100py.s111.S111_MetadataList_base.html" title="S111_MetadataList_base"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../s100py.html">Pydro  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../s111.html" >s100py.s111 Module</a> &#187;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
-    </div>
-  </body>
+</body>
 </html>

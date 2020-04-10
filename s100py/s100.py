@@ -1349,14 +1349,41 @@ class FeatureInformationDataset(Chunking, S1xxDatasetBase, ABC):
         return FeatureInformation
 
 
-class FeatureContainer(S1xxAttributesBase):
+class CommonPointRule:
+    common_point_rule_attribute_name = "commonPointRule"
+
+    @property
+    def common_point_rule(self) -> COMMON_POINT_RULE:
+        """ The procedure used for evaluating the coverage at a position that falls on the
+        boundary or in an area of overlap between geometric objects
+        Values from CV_CommonPointRule (Table 10c-19).
+
+        see :data:`~COMMON_POINT_RULE`
+        """
+        return self._attributes[self.common_point_rule_attribute_name]
+
+    @common_point_rule.setter
+    def common_point_rule(self, val: Union[int, str, COMMON_POINT_RULE]):
+        self.set_enum_attribute(val, self.common_point_rule_attribute_name, self.common_point_rule_type)
+
+    @property
+    def common_point_rule_type(self) -> Type[Enum]:
+        return COMMON_POINT_RULE
+
+    def common_point_rule_create(self):
+        """ Creates a blank, empty or zero value for common_point_rule"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.common_point_rule = self.common_point_rule_type["average"]
+
+
+class FeatureContainer(CommonPointRule, S1xxAttributesBase):
     """ This class comes from S100 in Table 10c-9 – Structure of feature container groups and
     Table 10c-10 – Attributes of feature container groups
     """
     axis_names_attribute_name = "axisNames"
     data_coding_format_attribute_name = "dataCodingFormat"
     dimension_attribute_name = "dimension"
-    common_point_rule_attribute_name = "commonPointRule"
     horizontal_position_uncertainty_attribute_name = "horizontalPositionUncertainty"
     vertical_uncertainty_attribute_name = "verticalUncertainty"
     time_uncertainty_attribute_name = "timeUncertainty"
@@ -1442,30 +1469,6 @@ class FeatureContainer(S1xxAttributesBase):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.dimension = self.dimension_type()
-
-    @property
-    def common_point_rule(self) -> COMMON_POINT_RULE:
-        """ The procedure used for evaluating the coverage at a position that falls on the
-        boundary or in an area of overlap between geometric objects
-        Values from CV_CommonPointRule (Table 10c-19).
-
-        see :data:`~COMMON_POINT_RULE`
-        """
-        return self._attributes[self.common_point_rule_attribute_name]
-
-    @common_point_rule.setter
-    def common_point_rule(self, val: Union[int, str, COMMON_POINT_RULE]):
-        self.set_enum_attribute(val, self.common_point_rule_attribute_name, self.common_point_rule_type)
-
-    @property
-    def common_point_rule_type(self) -> Type[Enum]:
-        return COMMON_POINT_RULE
-
-    def common_point_rule_create(self):
-        """ Creates a blank, empty or zero value for common_point_rule"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.common_point_rule = self.common_point_rule_type["average"]
 
     @property
     def horizontal_position_uncertainty(self) -> float:

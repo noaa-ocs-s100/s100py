@@ -1,0 +1,268 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Using the API &#8212; Pydro  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydro_custom.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="S111" href="s111.html" />
+    <link rel="prev" title="s100py" href="s100py.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s111.html" title="S111"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="s100py.html" title="s100py"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="using-the-api">
+<h1>Using the API<a class="headerlink" href="#using-the-api" title="Permalink to this headline">¶</a></h1>
+<p>S100 is a family of specifications where each data product has it’s own extensions to the basic format dictated
+by S100.  S100 files are HDF5 where the data’s types, names and structure is in the aforementioned specs.
+s100py uses pep8 naming for the api itself.</p>
+<p>The <a class="reference internal" href="api/s100py.s1xx.S1XXFile.html#s100py.s1xx.S1XXFile" title="s100py.s1xx.S1XXFile"><code class="xref any py py-class docutils literal notranslate"><span class="pre">S1XXFile</span></code></a> class handles the top level data management and is derived from the h5py.File class.
+There is a “root” data member for the file object which is where the S100/HDF5 data is held.
+Each data specification should create it’s own S100 type file object but there is a basic s100.S100File class
+which can read the general top level metadata that pertains to all data specifications.</p>
+<p>The three primary data types in HDF5 are attributes, datasets and groups.  s100py encapsulates groups
+(which can have attributes) with the <a class="reference internal" href="api/s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">S1xxAttributesBase</span></code></a> class.
+Datasets are derived from either <a class="reference internal" href="api/s100py.s1xx.S1xxDatasetBase.html#s100py.s1xx.S1xxDatasetBase" title="s100py.s1xx.S1xxDatasetBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">S1xxDatasetBase</span></code></a> or <a class="reference internal" href="api/s100py.s1xx.S1xxGridsBase.html#s100py.s1xx.S1xxGridsBase" title="s100py.s1xx.S1xxGridsBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">S1xxGridsBase</span></code></a>.
+S100 also adds groups that have a trailing number and can have an arbitrary number of occurrences.
+These objects are managed with the <a class="reference internal" href="api/s100py.s1xx.S1xxMetadataListBase.html#s100py.s1xx.S1xxMetadataListBase" title="s100py.s1xx.S1xxMetadataListBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">S1xxMetadataListBase</span></code></a> class.
+Classes derived from <a class="reference internal" href="api/s100py.s1xx.S1xxDatasetBase.html#s100py.s1xx.S1xxDatasetBase" title="s100py.s1xx.S1xxDatasetBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">S1xxDatasetBase</span></code></a> and  <a class="reference internal" href="api/s100py.s1xx.S1xxMetadataListBase.html#s100py.s1xx.S1xxMetadataListBase" title="s100py.s1xx.S1xxMetadataListBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">S1xxMetadataListBase</span></code></a> will act as
+lists of groups (<a class="reference internal" href="api/s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" title="s100py.s1xx.S1xxAttributesBase"><code class="xref any py py-class docutils literal notranslate"><span class="pre">S1xxAttributesBase</span></code></a>)</p>
+<p>Each S100 class has data and some methods to determine what data is expected to be contained therein.
+The function get_standard_properties() will show what child data is referenced in the specs.
+The <a class="reference internal" href="api/s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase.initialize_properties" title="s100py.s1xx.S1xxAttributesBase.initialize_properties"><code class="xref py py-meth docutils literal notranslate"><span class="pre">initialize_properties()</span></code></a> method will create default values for all expected child data.
+Using initialize_properties(True) will recurse the data spec and create a skeleton of all children and their children.
+The get_standard_properties_mapping() show the HDF5 names and they pythonic pep8 names that are used with them.</p>
+<p>Inside of each S100 data class are data values and functions related to each data value.
+For a “dataname” value there are two properties, dataname_type and dataname_attribute_name,
+and a function dataname_create.</p>
+<p>When the File is being written any data that has not been set or initialized will be omitted.
+This way optional data will not appear in the HDF5 file at all.</p>
+<div class="section" id="code-sample-for-an-s102-file">
+<h2>Code Sample for an S102 file<a class="headerlink" href="#code-sample-for-an-s102-file" title="Permalink to this headline">¶</a></h2>
+<p>Create a blank file and see the root object is empty</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">s100py</span> <span class="k">import</span> <span class="n">s102</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">s102</span><span class="o">.</span><span class="n">S102File</span><span class="p">(</span><span class="s2">&quot;c:</span><span class="se">\\</span><span class="s2">temp</span><span class="se">\\</span><span class="s2">test.s102.h5&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+<span class="go">&lt;class &#39;s100py.s102.S102Root&#39;&gt;</span>
+<span class="go">OrderedDict()</span>
+</pre></div>
+</div>
+<p>What properties are allowed in the root?  Use the <a class="reference internal" href="api/s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase.get_standard_properties" title="s100py.s1xx.S1xxAttributesBase.get_standard_properties"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">get_standard_properties</span></code></a> method which will include expected
+HDF5 attributes, subgroups and dataset names (if any):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">get_standard_properties</span><span class="p">()</span>
+<span class="go">[&#39;bathymetry_coverage&#39;, &#39;east_bound_longitude&#39;, &#39;epoch&#39;, &#39;extent_type_code&#39;, ..., &#39;west_bound_longitude&#39;]</span>
+</pre></div>
+</div>
+<p>Knowing the spec, east_bound_longitude is a floating point attribute while bathymetry_coverage is a subgroup which
+will eventually hold the depth and uncertainty values.  How could you tell that without reading the specs?
+Each piece of data, like east_bound_longitude, will have an associated python property with the same
+name followed by “_type”.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">east_bound_longitude_type</span>
+<span class="go">float</span>
+</pre></div>
+</div>
+<p>There is also a method for creating a default value, again with the properties name followed by “_create”.
+This is useful if there is a valid default or the type is another S100 class.
+It is also used by the api to automatically create multiple data properties at once.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">east_bound_longitude_create</span><span class="p">()</span>  <span class="c1"># makes a default value - which in this case isn&#39;t very useful</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">east_bound_longitude</span>  <span class="c1"># let&#39;s see the default</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>You can always just set the value for any data.  Since a default for east_bound_longitude would never make much sense
+we could have jsut set the value right away like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">east_bound_longitude</span> <span class="o">=</span> <span class="o">-</span><span class="mf">124.5</span>
+</pre></div>
+</div>
+<p>As mentioned before, the data is stored in HDF5 (although other formats could easily be added such as XML).
+The names in HDF5 are determined from the S100 specs which don’t adhere to Python’s pep8 standards so there is
+a translation that occurs.  Similar to the _type and _create there is a class attribute ending in “_attribute_name”
+which let’s us know what the name would be in HDF5, if that is important to you.</p>
+<p>What are the east_bound_longiture and bathymetry_ceverage names in S102 nomenclature</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">east_bound_longitude_attribute_name</span>
+<span class="go">&#39;eastBoundLongitude&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bathymetry_coverage_attribute_name</span>
+<span class="go">&#39;BathymetryCoverage&#39;</span>
+</pre></div>
+</div>
+<p>So now we will dive into the bathymetry_coverage, what is its value?</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bathymetry_coverage</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;C:\PydroTrunk\Miniconda36\NOAA\site-packages\Python3\s100py\s102.py&quot;</span>, line <span class="m">1042</span>, in <span class="n">bathymetry_coverage</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bathymetry_coverage_attribute_name</span><span class="p">]</span>
+<span class="gr">KeyError</span>: <span class="n">&#39;BathymetryCoverage&#39;</span>
+</pre></div>
+</div>
+<p>Well, you have to create it first!  Since we didn’t use bathymetry_coverage_create() or
+<a class="reference internal" href="api/s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase.initialize_properties" title="s100py.s1xx.S1xxAttributesBase.initialize_properties"><code class="xref py py-meth docutils literal notranslate"><span class="pre">initialize_properties()</span></code></a>  yet then we need to make the data.
+bathymetry_coverage is a <a class="reference internal" href="api/s100py.s102.api.BathymetryContainer.html#s100py.s102.api.BathymetryContainer" title="s100py.s102.api.BathymetryContainer"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BathymetryContainer</span></code></a> but you don’t really want to look that up in the api,
+so let the create method do it for you.  Saying f.root.bathymetry_coverage is also a bit long, so let’s make a reference
+shortcut called “bathy”
+(of course this wouldn’t work if bathymetry_coverage was just a float and not an S100 data class).:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bathymetry_coverage_create</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bathymetry_coverage</span>  <span class="c1"># grab a reference to the data</span>
+</pre></div>
+</div>
+<p>Next is a little more complex, S100 says you can have multiple items and they would be named Name_NNN where _NNN
+is a zero padded number.  The BathmetryCoverage inside the BathymetryCoverage (yes, they duplicated the names)
+is one of these, so in HDF5 it’s going to be BathymetryCoverage/BathymetryCoverage.001.  Note the dot in the name –
+because S102 also is different than S100 which uses an underscore.
+You can see this gets encoded as a ‘BathymetryContainer’ which is really a “List” type.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bathy</span><span class="o">.</span><span class="n">bathymetry_coverage_type</span>  <span class="c1"># see what type this was (though we don&#39;t really need to)</span>
+<span class="go">s100py.s102.api.BathymetryContainer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy</span><span class="o">.</span><span class="n">bathymetry_coverage_attribute_name</span>  <span class="c1"># We don&#39;t need to know this either</span>
+<span class="go">&#39;BathymetryCoverage[\\._]\\d+&#39;</span>
+</pre></div>
+</div>
+<p>So, what we need to do is _create() the list then populate it with a new item.
+If you let the api do the work, <a class="reference internal" href="api/s100py.s1xx.S1xxMetadataListBase.html#s100py.s1xx.S1xxMetadataListBase.append_new_item" title="s100py.s1xx.S1xxMetadataListBase.append_new_item"><code class="xref py py-meth docutils literal notranslate"><span class="pre">append_new_item()</span></code></a> will make an instance of
+the right class for you.  We’ll call ours “bathy_01” (FYI, it’ll be named BathymetryCoverage.001 in the HDF5 file):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bathy</span><span class="o">.</span><span class="n">bathymetry_coverage_create</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_list</span> <span class="o">=</span> <span class="n">bathy</span><span class="o">.</span><span class="n">bathymetry_coverage</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_01</span> <span class="o">=</span> <span class="n">bathy_list</span><span class="o">.</span><span class="n">append_new_item</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>So, what can go in bathy_01?  Let’s check the standard_properties so we can put in values into its properties:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_01</span><span class="o">.</span><span class="n">get_standard_properties</span><span class="p">()</span>
+<span class="go">[&#39;bathymetry_group&#39;, &#39;date_time_of_first_record&#39;, &#39;date_time_of_last_record&#39;,</span>
+<span class="go">&#39;east_bound_longitude&#39;, &#39;west_bound_longitude&#39;, &#39;north_bound_latitude&#39;, &#39;south_bound_latitude&#39;,</span>
+<span class="go">&#39;extent_type_code&#39;,</span>
+<span class="go">&#39;grid_origin_latitude&#39;, &#39;grid_origin_longitude&#39;, &#39;grid_origin_vertical&#39;,</span>
+<span class="go">&#39;grid_spacing_latitudinal&#39;, &#39;grid_spacing_longitudinal&#39;, &#39;grid_spacing_vertical&#39;,</span>
+<span class="go">&#39;instance_chunking&#39;,</span>
+<span class="go">&#39;num_grp&#39;, &#39;num_points_latitudinal&#39;, &#39;num_points_longitudinal&#39;, &#39;num_points_vertical&#39;,</span>
+<span class="go">&#39;number_of_times&#39;, &#39;start_sequence&#39;, &#39;time_record_interval&#39;,</span>
+<span class="go">&#39;vertical_extent_maximum_z&#39;, &#39;vertical_extent_minimum_z&#39;,</span>
+<span class="go"> ]</span>
+</pre></div>
+</div>
+<p>Ugh, thats a lot.  Let’s just make north_bound_latitude.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_01</span><span class="o">.</span><span class="n">north_bound_latitude</span> <span class="o">=</span> <span class="mf">10.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_01</span>
+<span class="go">&lt;class &#39;s100py.s102.api.BathymetryFeatureInstance&#39;&gt;</span>
+<span class="go">OrderedDict([(&#39;northBoundLatitude&#39;, 10.5)])</span>
+</pre></div>
+</div>
+<p>You can see the latitude above and we made a reference named bathy_01,
+but you can also access the data using list notation (it is derived from a list really)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># look, here&#39;s our data!</span>
+<span class="go">&lt;class &#39;s100py.s102.BathymetryFeatureInstance&#39;&gt;</span>
+<span class="go">OrderedDict([(&#39;northBoundLatitude&#39;, 10.5)])</span>
+</pre></div>
+</div>
+<p>Finally let’s initialize everything in this bathy coverage,  NOTE it overwrites our north latitude,
+so we should have initialized first.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bathy_01</span><span class="o">.</span><span class="n">initialize_properties</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bathy_01</span><span class="p">)</span>
+<span class="go">&lt;class &#39;s100py.s102.BathymetryFeatureInstance&#39;&gt;</span>
+<span class="go">OrderedDict([(&#39;northBoundLatitude&#39;, 0.0), (&#39;Group[\\._]\\d+&#39;, []), (&#39;eastBoundLongitude&#39;, 0.0),</span>
+<span class="go">(&#39;extentTypeCode&#39;, False), (&#39;gridOriginLatitude&#39;, 0.0), (&#39;gridOriginLongitude&#39;, 0.0), ...])</span>
+</pre></div>
+</div>
+<p>Do you see that weird ‘Group[._]\d+’ – I happen to know that is another list (named Group.01, Group.02 etc)
+inside the BathymetryCoverage.001.  That Group object is actually where the data grids for depth and uncertainty
+would go.  But the point here is that a method to find those lists exists too,
+<a class="reference internal" href="api/s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase.get_standard_list_properties" title="s100py.s1xx.S1xxAttributesBase.get_standard_list_properties"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_standard_list_properties()</span></code></a> will tell you the HDF5 naming and the python name:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bathy_01</span><span class="o">.</span><span class="n">get_standard_list_properties</span><span class="p">()</span>
+<span class="p">{</span><span class="s1">&#39;Group[</span><span class="se">\\</span><span class="s1">._]</span><span class="se">\\</span><span class="s1">d+&#39;</span><span class="p">:</span> <span class="s1">&#39;bathymetry_group&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="s100py.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using the API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#code-sample-for-an-s102-file">Code Sample for an S102 file</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="s111.html">S111</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s102/s102.html">S102</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s100.html">S100</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s1xx.html">Base Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="for_api_developers.html">For S100 API Developers</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="s100py.html"
+                        title="previous chapter">s100py</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="s111.html"
+                        title="next chapter">S111</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="s111.html" title="S111"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="s100py.html" title="s100py"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="s100py.html">Pydro  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.
+    </div>
+  </body>
+</html>
