@@ -111,18 +111,13 @@ def source_read_handler(app, docname, source):
 def setup(app):
     app.connect('source-read', source_read_handler)
     app.connect("autodoc-skip-member", check_to_skip)
-    app.add_stylesheet('pydro_custom.css')  # may also be an URL
+    # app.add_stylesheet('pydro_custom.css')  # may also be an URL
 
 
 html_show_sourcelink = False
 html_copy_source = False
 
 html_sidebars = {'**': ['localtoc.html', 'relations.html', 'searchbox.html'], }  # , 'download_page.html'
-
-# example of shortening urls
-# :issue:`test`
-extlinks = {'svnhtml':
-            ('http://svn.pydro.noaa.gov/', '')}
 
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -243,7 +238,7 @@ def set_project_names(prj, auth=u'Hydrographic Systems and Technology Branch', g
     ]
 
 
-set_project_names(u'Pydro')
+set_project_names(u's100py')
 html_show_copyright = False
 copyright = u'None - %s is not subject to Copyrights (though other distributed pieces may be)' % project
 
