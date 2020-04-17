@@ -3,19 +3,10 @@ import numpy
 import datetime
 import fire
 import re
-# import logging
 
 from thyme.model import model, roms, fvcom, pom, hycom
+from thyme.util import dateutil
 from s100py.s111 import S111File
-
-# """
-# Default logging level.
-# """
-# LOGGING_LEVEL = logging.DEBUG
-#
-# # Use global/module-level logging
-# logging.basicConfig(level=LOGGING_LEVEL)
-# logger = logging.getLogger(__name__)
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
@@ -55,12 +46,14 @@ MODELS = {
         'region': 'Chesapeake_Bay',
         'product': PRODUCT_DESCRIPTION_ROMS,
         'model_type': MODELTYPE_ROMS,
+        'datetime_rounding': None
     },
     'nyofs': {
 
         'region': 'Port_of_New_York_and_New_Jersey',
         'product': PRODUCT_DESCRIPTION_POM,
         'model_type': MODELTYPE_POM,
+        'datetime_rounding': dateutil.DatetimeRounding.NEAREST_HOUR
     }
 }
 
@@ -106,7 +99,7 @@ class CLI:
         return epoch
 
     @staticmethod
-    def convert_regular(model_file, model_index, time_index):
+    def convert_regular(model_file, model_index, time_index, idx):
         try:
             model_index.open()
             # Get native-grid output with invalid/masked values removed
@@ -138,13 +131,31 @@ class CLI:
             cellsize_x = model_index.var_x[1] - model_index.var_x[0]
             cellsize_y = model_index.var_y[1] - model_index.var_y[0]
 
-            nx = model_index.dim_x.size
-            ny = model_index.dim_y.size
+            if model_index.dim_subgrid is not None and model_index.var_subgrid_id is not None:
 
-            minx = numpy.nanmin(numpy.round(model_index.var_x, 7))
-            maxx = numpy.nanmax(numpy.round(model_index.var_x, 7))
-            miny = numpy.nanmin(numpy.round(model_index.var_y, 7))
-            maxy = numpy.nanmax(numpy.round(model_index.var_y, 7))
+                x_min = model_index.var_subgrid_x_min[idx]
+                x_max = model_index.var_subgrid_x_max[idx]
+                y_min = model_index.var_subgrid_y_min[idx]
+                y_max = model_index.var_subgrid_y_max[idx]
+                speed = speed[y_min:y_max + 1, x_min:x_max + 1]
+                direction = direction[y_min:y_max + 1, x_min:x_max + 1]
+
+                nx = 1 + model_index.var_subgrid_x_max[idx] - model_index.var_subgrid_x_min[idx]
+                ny = 1 + model_index.var_subgrid_y_max[idx] - model_index.var_subgrid_y_min[idx]
+                minx = model_index.var_x[model_index.var_subgrid_x_min[idx]]
+                miny = model_index.var_y[model_index.var_subgrid_y_min[idx]]
+                maxx = model_index.var_x[model_index.var_subgrid_x_max[idx]]
+                maxy = model_index.var_y[model_index.var_subgrid_y_max[idx]]
+
+            else:
+
+                nx = model_index.dim_x.size
+                ny = model_index.dim_y.size
+
+                minx = numpy.nanmin(numpy.round(model_index.var_x, 7))
+                maxx = numpy.nanmax(numpy.round(model_index.var_x, 7))
+                miny = numpy.nanmin(numpy.round(model_index.var_y, 7))
+                maxy = numpy.nanmax(numpy.round(model_index.var_y, 7))
 
         finally:
             model_index.close()
@@ -188,12 +199,9 @@ class CLI:
         model_filename = os.path.split(model_file_path)[-1]
         model_name = model_filename.split('.')[1]
 
-        model_file = MODEL_FILE_CLASS[MODELS[model_name]['model_type']](model_file_path)
+        s111_filenames = []
+        subgrid_index = []
 
-        if data_coding_format == 2:
-            model_index = MODEL_INDEX_CLASS[MODELS[model_name]['model_type']](model_index_path)
-
-        # Path format/prefix for output S111 files. Forecast initialization (reference).
         if os.path.isdir(s111_path_prefix):
             if not s111_path_prefix.endswith('/'):
                 s111_path_prefix += '/'
@@ -206,181 +214,206 @@ class CLI:
             dt = datetime.datetime.strptime(file_datetime, '%Y%m%d%H')
             epoch = self.determine_epoch(dt)
 
-            s111_path_prefix += f'S111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_TYP{data_coding_format}'
+            if model_index_path is not None:
+                try:
+                    model_index = MODEL_INDEX_CLASS[MODELS[model_name]['model_type']](model_index_path)
+                    model_index.open()
+
+                    if model_index.dim_subgrid is not None and model_index.var_subgrid_id is not None:
+                        for i in range(model_index.dim_subgrid.size):
+
+                            if model_index.var_subgrid_name is not None:
+                                x_min = model_index.var_subgrid_x_min[i]
+                                x_max = model_index.var_subgrid_x_max[i]
+                                y_min = model_index.var_subgrid_y_min[i]
+                                y_max = model_index.var_subgrid_y_max[i]
+
+                                subgrid_valid = model_index.var_mask[y_min:y_max + 1, x_min:x_max + 1]
+                                valid_occurrences = numpy.count_nonzero(subgrid_valid == 1)
+
+                                if valid_occurrences >= 20:
+                                    subgrid_index.append(i)
+
+                                if model_index.var_subgrid_name is not None:
+                                    s111_subgrid_filename = f'S111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_TYP{data_coding_format}_{model_index.var_subgrid_name[i]}'
+                                    s111_filenames.append(s111_subgrid_filename)
+
+                                else:
+                                    s111_subgrid_filename = f'S111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_TYP{data_coding_format}_FID_{model_index.var_subgrid_name[i]}'
+                                    s111_filenames.append(s111_subgrid_filename)
+
+                    else:
+                        s111_filename = f'S111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_TYP{data_coding_format}'
+                        s111_filenames.append(s111_filename)
+
+                finally:
+                    model_index.close()
+
+            else:
+                s111_subgrid_filename = f'S111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_TYP{data_coding_format}'
+                s111_filenames.append(s111_subgrid_filename)
+
+        model_file = MODEL_FILE_CLASS[MODELS[model_name]['model_type']](model_file_path, datetime_rounding=MODELS[model_name]['datetime_rounding'])
+
+        if data_coding_format == 2:
+            model_index = MODEL_INDEX_CLASS[MODELS[model_name]['model_type']](model_index_path)
 
         try:
             model_file.open()
 
-            with S111File(f'{s111_path_prefix}.h5', "w", driver=None) as s111_file:
+            for idx, file in enumerate(s111_filenames):
+                if idx in subgrid_index or not subgrid_index:
 
-                root = s111_file.root
+                    with S111File(f'{s111_path_prefix}{file}.h5', "w") as s111_file:
 
-                root.surface_current_create()
-                surface_current_feature = root.surface_current
+                        root = s111_file.root
 
-                surface_current_feature.surface_current_create()
-                surface_current_feature_instance_01 = surface_current_feature.surface_current.append_new_item()
+                        root.surface_current_create()
+                        surface_current_feature = root.surface_current
 
-                surface_current_feature_instance_01.surface_current_group_create()
+                        surface_current_feature.surface_current_create()
+                        surface_current_feature_instance_01 = surface_current_feature.surface_current.append_new_item()
 
-                surface_current_feature_instance_01.uncertainty_dataset_create()
-                speed_uncertainty = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
-                speed_uncertainty.name = "surfaceCurrentSpeed"
-                speed_uncertainty.value = -1.0
-                direction_uncertainty = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
-                direction_uncertainty.name = "surfaceCurrentDirection"
-                direction_uncertainty.value = -1.0
+                        surface_current_feature_instance_01.surface_current_group_create()
 
-                root.feature_information_create()
-                group_f = root.feature_information
-                group_f.feature_code_create()
-                group_f.surface_current_feature_dataset_create()
+                        surface_current_feature_instance_01.uncertainty_dataset_create()
+                        speed_uncertainty = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+                        speed_uncertainty.name = "surfaceCurrentSpeed"
+                        speed_uncertainty.value = -1.0
+                        direction_uncertainty = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+                        direction_uncertainty.name = "surfaceCurrentDirection"
+                        direction_uncertainty.value = -1.0
 
-                surface_current_feature_dataset = root.feature_information.surface_current_feature_dataset
+                        root.feature_information_create()
+                        group_f = root.feature_information
+                        group_f.feature_code_create()
+                        group_f.surface_current_feature_dataset_create()
 
-                surface_current_speed_info = surface_current_feature_dataset.append_new_item()
-                surface_current_speed_info.code = "surfaceCurrentSpeed"
-                surface_current_speed_info.name = "Surface current speed"
-                surface_current_speed_info.unit_of_measure = "knots"
-                surface_current_speed_info.datatype = "H5T_FLOAT"
-                surface_current_speed_info.fill_value = FILLVALUE
-                surface_current_speed_info.lower = "0.0"
-                surface_current_speed_info.upper = ""
-                surface_current_speed_info.closure = "geSemiInterval"
+                        surface_current_feature_dataset = root.feature_information.surface_current_feature_dataset
 
-                surface_current_direction_info = surface_current_feature_dataset.append_new_item()
-                surface_current_direction_info.code = "surfaceCurrentDirection"
-                surface_current_direction_info.name = "Surface current direction"
-                surface_current_direction_info.unit_of_measure = "arc-degrees"
-                surface_current_direction_info.datatype = "H5T_FLOAT"
-                surface_current_direction_info.fill_value = FILLVALUE
-                surface_current_direction_info.lower = "0"
-                surface_current_direction_info.upper = "360"
-                surface_current_direction_info.closure = "geLtInterval"
+                        surface_current_speed_info = surface_current_feature_dataset.append_new_item()
+                        surface_current_speed_info.code = "surfaceCurrentSpeed"
+                        surface_current_speed_info.name = "Surface current speed"
+                        surface_current_speed_info.unit_of_measure = "knots"
+                        surface_current_speed_info.datatype = "H5T_FLOAT"
+                        surface_current_speed_info.fill_value = FILLVALUE
+                        surface_current_speed_info.lower = "0.0"
+                        surface_current_speed_info.upper = ""
+                        surface_current_speed_info.closure = "geSemiInterval"
 
-                root.product_specification = "INT.IHO.S-111.1.0"
-                root.metadata = 'MD_{}.XML'.format(os.path.split(s111_path_prefix)[-1])
-                root.horizontal_datum_reference = "EPSG"
-                root.horizontal_datum_value = 4326
-                root.epoch = epoch
-                root.geographic_identifier = MODELS[model_name]['region']
-                now = datetime.datetime.now()
-                root.issue_date = now.strftime('%Y%m%d')
-                root.issue_time = now.strftime('%H%M%SZ')
-                root.surface_current_depth = -1 * DEFAULT_TARGET_DEPTH
-                root.depth_type_index = 2
+                        surface_current_direction_info = surface_current_feature_dataset.append_new_item()
+                        surface_current_direction_info.code = "surfaceCurrentDirection"
+                        surface_current_direction_info.name = "Surface current direction"
+                        surface_current_direction_info.unit_of_measure = "arc-degrees"
+                        surface_current_direction_info.datatype = "H5T_FLOAT"
+                        surface_current_direction_info.fill_value = FILLVALUE
+                        surface_current_direction_info.lower = "0"
+                        surface_current_direction_info.upper = "360"
+                        surface_current_direction_info.closure = "geLtInterval"
 
-                surface_current_feature.axis_names = numpy.array(["longitude", "latitude"])
-                surface_current_feature.common_point_rule = 3
-                surface_current_feature.data_coding_format = data_coding_format
-                surface_current_feature.interpolation_type = 10
-                surface_current_feature.num_instances = 1
-                surface_current_feature.time_uncertainty = -1.0
-                surface_current_feature.vertical_uncertainty = -1.0
-                surface_current_feature.horizontal_position_uncertainty = -1.0
-                surface_current_feature.type_of_current_data = 6
-                surface_current_feature.method_currents_product = MODELS[model_name]['product']
+                        root.product_specification = "INT.IHO.S-111.1.0"
+                        root.metadata = f'MD_{file}.XML'
+                        root.horizontal_datum_reference = "EPSG"
+                        root.horizontal_datum_value = 4326
+                        root.epoch = epoch
+                        root.geographic_identifier = MODELS[model_name]['region']
+                        utc_now = datetime.datetime.utcnow()
+                        root.issue_date = utc_now.strftime('%Y%m%d')
+                        root.issue_time = utc_now.strftime('%H%M%SZ')
+                        root.surface_current_depth = -1 * DEFAULT_TARGET_DEPTH
+                        root.depth_type_index = 2
 
-                first_record = model_file.datetime_values[0].strftime('%Y%m%dT%H%M%SZ')
-                surface_current_feature_instance_01.date_time_of_first_record = numpy.string_(first_record)
-                surface_current_feature.min_dataset_current_speed = 0
-                surface_current_feature.max_dataset_current_speed = 0
+                        surface_current_feature.axis_names = numpy.array(["longitude", "latitude"])
+                        surface_current_feature.common_point_rule = 3
+                        surface_current_feature.data_coding_format = data_coding_format
+                        surface_current_feature.interpolation_type = 10
+                        surface_current_feature.num_instances = 1
+                        surface_current_feature.time_uncertainty = -1.0
+                        surface_current_feature.vertical_uncertainty = -1.0
+                        surface_current_feature.horizontal_position_uncertainty = -1.0
+                        surface_current_feature.type_of_current_data = 6
+                        surface_current_feature.method_currents_product = MODELS[model_name]['product']
 
-                for time_index in range(len(model_file.datetime_values)):
-                    if data_coding_format == 2:
-                        speed, direction, cellsize_x, cellsize_y, nx, ny, minx, maxx, miny, maxy = self.convert_regular(
-                            model_file, model_index, time_index)
+                        first_record = model_file.datetime_values[0].strftime('%Y%m%dT%H%M%SZ')
+                        surface_current_feature_instance_01.date_time_of_first_record = numpy.string_(first_record)
+                        surface_current_feature.min_dataset_current_speed = 0
+                        surface_current_feature.max_dataset_current_speed = 0
 
-                        surface_current_feature_instance_01.start_sequence = "0,0"
-                        surface_current_feature.sequencing_rule_scan_direction = "Longitude, Latitude"
-                        surface_current_feature.sequencing_rule_type = 1
-                        surface_current_feature_instance_01.grid_origin_longitude = minx
-                        surface_current_feature_instance_01.grid_origin_latitude = miny
-                        surface_current_feature_instance_01.grid_spacing_longitudinal = cellsize_x
-                        surface_current_feature_instance_01.grid_spacing_latitudinal = cellsize_y
+                        for time_index in range(len(model_file.datetime_values)):
+                            if data_coding_format == 2:
+                                speed, direction, cellsize_x, cellsize_y, nx, ny, minx, maxx, miny, maxy = self.convert_regular(model_file, model_index, time_index, idx)
 
-                        surface_current_feature_instance_01.num_points_latitudinal = ny
-                        surface_current_feature_instance_01.num_points_longitudinal = nx
+                                surface_current_feature_instance_01.start_sequence = "0,0"
+                                surface_current_feature.sequencing_rule_scan_direction = "longitude, latitude"
+                                surface_current_feature.sequencing_rule_type = 1
+                                surface_current_feature_instance_01.grid_origin_longitude = minx
+                                surface_current_feature_instance_01.grid_origin_latitude = miny
+                                surface_current_feature_instance_01.grid_spacing_longitudinal = cellsize_x
+                                surface_current_feature_instance_01.grid_spacing_latitudinal = cellsize_y
 
-                    if data_coding_format == 3:
-                        speed, direction, longitude, latitude, minx, maxx, miny, maxy = self.convert_irregular(model_file, time_index)
+                                surface_current_feature_instance_01.num_points_latitudinal = ny
+                                surface_current_feature_instance_01.num_points_longitudinal = nx
 
-                        surface_current_feature_instance_01.number_of_nodes = longitude.size
+                            if data_coding_format == 3:
+                                speed, direction, longitude, latitude, minx, maxx, miny, maxy = self.convert_irregular(model_file, time_index)
 
-                        # TODO fix array
-                        surface_current_feature_instance_01.positioning_group_create()
-                        positioning = surface_current_feature_instance_01.positioning_group
-                        positioning.geometry_values_create()
-                        geometry_values = positioning.geometry_values
-                        geometry_values.longitude = longitude
-                        geometry_values.latitude = latitude
+                                surface_current_feature_instance_01.number_of_nodes = longitude.size
 
-                    root.east_bound_longitude = minx
-                    root.west_bound_longitude = maxx
-                    root.south_bound_latitude = miny
-                    root.north_bound_latitude = maxy
-                    root.surface_current.dimension = speed.ndim
+                                surface_current_feature_instance_01.positioning_group_create()
+                                positioning = surface_current_feature_instance_01.positioning_group
+                                positioning.geometry_values_create()
+                                geometry_values = positioning.geometry_values
+                                geometry_values.longitude = longitude
+                                geometry_values.latitude = latitude
 
-                    min_speed = numpy.round(numpy.nanmin(speed), decimals=2)
-                    max_speed = numpy.round(numpy.nanmax(speed), decimals=2)
+                            root.east_bound_longitude = minx
+                            root.west_bound_longitude = maxx
+                            root.south_bound_latitude = miny
+                            root.north_bound_latitude = maxy
+                            root.surface_current.dimension = speed.ndim
 
-                    if numpy.ma.is_masked(speed):
-                        speed = speed.filled(FILLVALUE)
-                        direction = direction.filled(FILLVALUE)
+                            min_speed = numpy.round(numpy.nanmin(speed), decimals=2)
+                            max_speed = numpy.round(numpy.nanmax(speed), decimals=2)
 
-                    # Format speed/direction
-                    speed = numpy.round(speed, decimals=2)
-                    direction = numpy.round(direction, decimals=1)
+                            if numpy.ma.is_masked(speed):
+                                speed = speed.filled(FILLVALUE)
+                                direction = direction.filled(FILLVALUE)
 
-                    if min_speed < surface_current_feature.min_dataset_current_speed:
-                        surface_current_feature.min_dataset_current_speed = min_speed
+                            speed = numpy.round(speed, decimals=2)
+                            direction = numpy.round(direction, decimals=1)
 
-                    if max_speed > surface_current_feature.max_dataset_current_speed:
-                        surface_current_feature.max_dataset_current_speed = max_speed
+                            if min_speed < surface_current_feature.min_dataset_current_speed:
+                                surface_current_feature.min_dataset_current_speed = min_speed
 
-                    last_record = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
-                    surface_current_feature_instance_01.date_time_of_last_record = numpy.string_(last_record)
+                            if max_speed > surface_current_feature.max_dataset_current_speed:
+                                surface_current_feature.max_dataset_current_speed = max_speed
 
-                    surface_current_feature_instance_01.num_grp = len(model_file.datetime_values)
-                    surface_current_feature_instance_01.number_of_times = len(model_file.datetime_values)
+                            last_record = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
+                            surface_current_feature_instance_01.date_time_of_last_record = numpy.string_(last_record)
 
-                    if len(model_file.datetime_values) == 1:
-                        surface_current_feature_instance_01.time_record_interval = 0
-                    else:
-                        interval = model_file.datetime_values[1] - model_file.datetime_values[0]
-                        surface_current_feature_instance_01.time_record_interval = interval.total_seconds()
+                            surface_current_feature_instance_01.num_grp = len(model_file.datetime_values)
+                            surface_current_feature_instance_01.number_of_times = len(model_file.datetime_values)
 
-                    surface_current_feature_instance_01.east_bound_longitude = minx
-                    surface_current_feature_instance_01.west_bound_longitude = maxx
-                    surface_current_feature_instance_01.south_bound_latitude = miny
-                    surface_current_feature_instance_01.north_bound_latitude = maxy
+                            if len(model_file.datetime_values) == 1:
+                                surface_current_feature_instance_01.time_record_interval = 0
+                            else:
+                                interval = model_file.datetime_values[1] - model_file.datetime_values[0]
+                                surface_current_feature_instance_01.time_record_interval = int(interval.total_seconds())
 
-                    surface_current_group_object = surface_current_feature_instance_01.surface_current_group.append_new_item()
-                    surface_current_group_object.values_create()
-                    grid = surface_current_group_object.values
-                    grid.surface_current_speed = speed
-                    grid.surface_current_direction = direction
+                            surface_current_feature_instance_01.east_bound_longitude = minx
+                            surface_current_feature_instance_01.west_bound_longitude = maxx
+                            surface_current_feature_instance_01.south_bound_latitude = miny
+                            surface_current_feature_instance_01.north_bound_latitude = maxy
 
-                    surface_current_group_object.time_point = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
+                            surface_current_group_object = surface_current_feature_instance_01.surface_current_group.append_new_item()
+                            surface_current_group_object.values_create()
+                            grid = surface_current_group_object.values
+                            grid.surface_current_speed = speed
+                            grid.surface_current_direction = direction
 
-                s111_file.write()
-                # now that all the chunking is filled in for each grid we can fill the overall attribute
-                all_chunks = []
-                for sc in root.surface_current.surface_current:  # iterate all the surface currents
-                    for grp in sc.surface_current_group:  # and all their groups
-                        try:
-                            chunk = eval(grp.values.chunking)  # grab the individual chunks
-                            all_chunks.append(chunk)
-                        except AttributeError:
-                            print("failed to find chunking attr")
-                all_chunks_array = numpy.array(all_chunks)  # now figure out the minimum chunk sizes and write that out.  Not sure what we should actually do here though.
-                min_chunks = (all_chunks_array[:,0].min(), all_chunks_array[:,1].min())
-                surface_current_feature_dataset.chunking = min_chunks
-                # just write out the surface_current_feature_dataset rather than the whole file.
-                # this requires that the surface_current_feature_dataset had either been read from or written to hdf5 once already
-                # datasets need to create their dataset, which means they need the parent and not just the hdf5 object
-                surface_current_feature_dataset.write(surface_current_feature_dataset.get_hdf5_from_file(s111_file).parent)
-                # s111_file.write()
+                            surface_current_group_object.time_point = model_file.datetime_values[time_index].strftime('%Y%m%dT%H%M%SZ')
+
+                        s111_file.write()
 
         finally:
             model_file.close()
