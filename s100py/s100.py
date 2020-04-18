@@ -1158,7 +1158,9 @@ class FeatureInformation(S1xxAttributesBase):
         self.unit_of_measure = self.unit_of_measure_type()
 
     def _python_datatype(self):
-        """ Determine what kind of python type best fits the HDF5 type.  For undandled types (like H5T.OPAQUE) returns str.
+        """ Determine what kind of python type best fits the HDF5 type held in the S100 'datatype' attribute.
+        The datatype attribute can be set by each S100+ spec individually (S102 and S111 are floats).
+        For unhandled types (like H5T.OPAQUE) returns str.
 
         Returns
         -------
@@ -1180,21 +1182,36 @@ class FeatureInformation(S1xxAttributesBase):
     def _convert_from_string_based_on_datatype(self, str_val):
         use_datatype = self._python_datatype()
         if use_datatype is int:
-            val = int(str_val)
+            try:
+                val = int(str_val)
+            except ValueError as e:
+                if str_val == "":
+                    val = None
+                else:
+                    raise e
         elif use_datatype is float:
-            val = float(str_val)
+            try:
+                val = float(str_val)
+            except ValueError as e:
+                if str_val == "":
+                    val = None
+                else:
+                    raise e
         else:
             val = str_val
         return val
 
     def _convert_to_string_based_on_datatype(self, val):
         use_datatype = self._python_datatype()
-        if use_datatype is int:
-            str_val = str(int(val))  # this extra conversion gives python a chance to convert scientific notation to standard
-        elif use_datatype is float:
-            str_val = str(float(val))  # this extra conversion gives python a chance to convert scientific notation to standard
-            if str_val[-2:] == ".0":  # remove trailing '.0' so a 12000.0 becomes 12000
-                str_val = str_val[:-2]
+        if use_datatype in(int, float):
+            if val is None or val == "":
+                str_val = ""
+            elif use_datatype is int:
+                str_val = str(int(val))  # this extra conversion gives python a chance to convert scientific notation to standard
+            elif use_datatype is float:
+                str_val = str(float(val))  # this extra conversion gives python a chance to convert scientific notation to standard
+                if str_val[-2:] == ".0":  # remove trailing '.0' so a 12000.0 becomes 12000
+                    str_val = str_val[:-2]
         else:
             str_val = str(val)
         return str_val
