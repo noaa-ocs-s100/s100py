@@ -290,12 +290,12 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     bathy_01 = root.bathymetry_coverage.bathymetry_coverage[0]
     bathy_group_object = bathy_01.bathymetry_group[0]
 
-    root.east_bound_longitude = minx
-    root.west_bound_longitude = maxx
+    root.east_bound_longitude = maxx
+    root.west_bound_longitude = minx
     root.south_bound_latitude = miny
     root.north_bound_latitude = maxy
-    bathy_01.east_bound_longitude = minx
-    bathy_01.west_bound_longitude = maxx
+    bathy_01.east_bound_longitude = maxx
+    bathy_01.west_bound_longitude = minx
     bathy_01.south_bound_latitude = miny
     bathy_01.north_bound_latitude = maxy
     bathy_01.grid_origin_latitude = miny
