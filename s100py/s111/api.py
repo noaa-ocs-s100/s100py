@@ -7,7 +7,7 @@ from enum import Enum
 import numpy
 
 from s100py.s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile
-from s100py.s100 import FeatureContainerDCF2, S100Root, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
+from s100py.s100 import S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
 
 SURFACE_CURRENT = "SurfaceCurrent"
 
@@ -48,6 +48,9 @@ SEQUENCING_RULE_SCAN_DIRECTION: AxisNames, comma-separated (e.g. "longitude,lati
 START_SEQUENCE: Starting location of the scan.
 
 """
+
+class S111Exception(S100Exception):
+    pass
 
 
 class S111MetadataListBase(S1xxMetadataListBase):
