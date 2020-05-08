@@ -3,14 +3,20 @@
 """
 import logging
 import sys
+import os
 import warnings
+import argparse
+from xml.etree import ElementTree as et
+import tkinter as tk
+from tkinter import filedialog, messagebox
 
 import numpy
 from osgeo import gdal, osr
 
-from ..s1xx import s1xx_sequence
-from .api import DEPTH, UNCERTAINTY, S102File, S102Exception
+from s100py.s1xx import s1xx_sequence
+from s100py.s102.api import DEPTH, UNCERTAINTY, S102File, S102Exception
 
+gco = "{http://www.isotc211.org/2005/gco}"
 
 # @todo create a friendly name mapping to s102 nested location, then add s102 functions for "to dictionary" and "from dictionary" to api
 # that would make these functions easily invertable
@@ -405,8 +411,12 @@ def from_bag(bagfile, output_file, metadata: dict = {}) -> S102File:
     Parameters
     ----------
     bagfile
+        Either a path to a raster file that GDAL can open or a gdal.Dataset object.
     output_file
         Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+    metadata
+        Supports the metadata options in :any:`from_from_arrays_with_metadata`.
+        In addition, 'resample_resolution' can supplied to use a particular resolution using gdal "MODE=RESAMPLED_GRID"
     Returns
     -------
 
@@ -430,14 +440,12 @@ def from_bag(bagfile, output_file, metadata: dict = {}) -> S102File:
             warnings.warn(f'No resampling resolution provided for variable resolution bag {bag_filename}.  Using overview resolution.', category=RuntimeWarning)
 
     # populate the issueDate if possible from a simple string search
-    xml_str = bag.GetMetadata('xml:BAG')[0]
     if 'issueDate' not in metadata:
-        date_key = '<gmd:dateStamp>\n    <gco:Date>'
-        date_idx = xml_str.find(date_key)
-        if date_idx > 0:
-            date_idx += len(date_key)
-            date = xml_str[date_idx:date_idx + 10]
-            metadata['issueDate'] = date
+        xml_str = bag.GetMetadata('xml:BAG')[0]
+        root = et.fromstring(xml_str)
+        elem = root.find(".//" + gco + "Date")
+        if elem is not None and elem.text:
+            metadata['issueDate'] = elem.text
 
     s102_data_file = from_gdal(bag, output_file, metadata=metadata)
     
@@ -452,3 +460,67 @@ def get_valid_epsg() -> list:
     valid_epsg += list(numpy.arange(32601, 32660 + 1))
     valid_epsg += list(numpy.arange(32701, 32760 + 1))
     return valid_epsg
+
+def browse_files(question):
+    # using tkinter since it is built in to python and smaller to distribute than PySide2 or wxPython in an executable
+    root = tk.Tk()
+    root.withdraw()
+    # root.filename = tkFileDialog.askopenfilename(initialdir="/", title="Select file",
+    #                                              filetypes=(("jpeg files", "*.jpg"), ("all files", "*.*")))
+    file_path = filedialog.askopenfilename(title=question)
+    return file_path
+
+def browse_files(question):
+    root = tk.Tk()
+    root.withdraw()
+    # root.filename = tkFileDialog.askopenfilename(initialdir="/", title="Select file",
+    #                                              filetypes=(("jpeg files", "*.jpg"), ("all files", "*.*")))
+    file_path = filedialog.askopenfilename(title=question)
+    return file_path
+
+def bool_question(question, title="", icon="warning"):
+    root = tk.Tk()
+    root.withdraw()
+    result = messagebox.askquestion(title, question, icon=icon)
+    return result == 'yes'
+
+
+def make_parser():
+    parser = argparse.ArgumentParser(description='Convert a georeferenced file to S102')
+    parser.add_argument("-?", "--show_help", action="store_true", help="show this help message and exit")
+    parser.add_argument("-i", "--input_filename", help="full path to the file to be processed")
+    parser.add_argument("-o", "--output_filename", help="output filename, default is same name as input with .h5 appended")
+    parser.add_argument("-r", "--res", help="Resolution.  If the input file is a BAG then use attempt to use the given resolution" )
+    return parser
+
+
+if __name__ == "__main__":
+    parser = make_parser()
+    args = parser.parse_args()
+    if args.show_help:
+        parser.print_help()
+        sys.exit()
+
+    if not args.input_filename:
+        path = browse_files('Select Directory')
+        if path:
+            args.input_filename = path
+
+    if args.input_filename:
+        # get the output file path from the command line or the user if it wasn't specified
+        if args.output_filename:
+            output_name = args.output_filename
+        else:
+            output_name = args.input_filename + ".h5"
+            if os.path.exists(output_name):
+                if bool_question(f"{output_name} already exists, overwrite?", "Overwrite File"):
+                    os.remove(output_name)
+
+        # check if the data is a bag and should be sent to the from_bag function or just raster and send to from_gdal
+        ds = gdal.Open(args.input_filename)
+        drv = ds.GetDriver()
+        if drv.GetDescription() == "BAG":
+            from_bag(ds, output_name)
+        else:
+            from_gdal(ds, output_name)
+
