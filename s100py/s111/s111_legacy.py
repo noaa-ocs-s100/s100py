@@ -151,7 +151,7 @@ class S111File:
                              ('name', h5py.special_dtype(vlen=str)),
                              ('uom.name', h5py.special_dtype(vlen=str)),
                              ('fillValue', h5py.special_dtype(vlen=str)),
-                             ('dataType', h5py.special_dtype(vlen=str)),
+                             ('datatype', h5py.special_dtype(vlen=str)),
                              ('lower', h5py.special_dtype(vlen=str)),
                              ('upper', h5py.special_dtype(vlen=str)),
                              ('closure', h5py.special_dtype(vlen=str))])
@@ -161,7 +161,7 @@ class S111File:
         fdata['name'][0] = 'Surface current speed'
         fdata['uom.name'][0] = 'knots'
         fdata['fillValue'][0] = str(FILLVALUE)
-        fdata['dataType'][0] = H5T_CLASS_T[h5py.h5t.FLOAT]
+        fdata['datatype'][0] = H5T_CLASS_T[h5py.h5t.FLOAT]
         fdata['lower'][0] = 0.0
         fdata['upper'][0] = ''
         fdata['closure'][0] = 'geSemiInterval'
@@ -170,7 +170,7 @@ class S111File:
         fdata['name'][1] = 'Surface current direction'
         fdata['uom.name'][1] = 'arc-degrees'
         fdata['fillValue'][1] = str(FILLVALUE)
-        fdata['dataType'][1] = H5T_CLASS_T[h5py.h5t.FLOAT]
+        fdata['datatype'][1] = H5T_CLASS_T[h5py.h5t.FLOAT]
         fdata['lower'][1] = 0.0
         fdata['upper'][1] = 360
         fdata['closure'][1] = 'geLtInterval'
