@@ -682,8 +682,8 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
         file_issuance = cycletime.strftime('%Y%m%dT%HZ')
 
         s111_path_prefix += (
-            'S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance,
-                                        str.upper(input_metadata.model_system), data_coding_format))
+            '111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance,
+                                       str.upper(input_metadata.model_system), data_coding_format))
 
     # model_to_s111 requires a target.
     if target_depth is None:
@@ -844,7 +844,7 @@ def time_series_to_s111(input_data, s111_path_prefix, input_metadata, data_codin
             s111_path_prefix += '/'
         file_issuance = datetime.datetime.strftime(timestamp, '%Y%m%dT%H%M%SZ')
         s111_path_prefix += (
-            'S111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, input_metadata.region, data_coding_format))
+            '111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance, input_metadata.region, data_coding_format))
 
         stations_longitude = []
         stations_latitude = []
