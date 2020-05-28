@@ -9,12 +9,11 @@ import os
 import numpy
 import warnings
 import shutil
+from thyme.model import model
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=FutureWarning)
     import h5py
-
-from thyme.model import model
 
 # Default fill value for NetCDF variables
 FILLVALUE = -9999.0
@@ -886,16 +885,15 @@ def concatenate_s111(h5_files, output_path):
     """
 
     # Use the first forecast file as a template for the new S111 file
-    f001 = shutil.copy(h5_files[0], output_path)
+    first_forecast_file = shutil.copy(h5_files[0], output_path)
 
     try:
-        output_file = h5py.File(f001, 'r+')
-        # Add data starting with the second forecast file(f002), use a starting index of 2
+        output_file = h5py.File(first_forecast_file, 'r+')
+        # Add data starting with the second forecast file, use a starting index of 2
         for idx, path in enumerate(h5_files[1:], 2):
 
             # Create new group for each input_file
             output_file['SurfaceCurrent/SurfaceCurrent.01'].create_group(f'Group_{idx:03d}')
-            print(path)
 
             # Open and read input_file
             try:
