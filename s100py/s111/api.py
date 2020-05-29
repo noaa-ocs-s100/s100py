@@ -672,7 +672,7 @@ class DiscoveryMetadata(S1xxAttributesBase):
 
 
 class S111File(S1XXFile):
-    PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-111.1.0')
+    PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.0'
 
     def __init__(self, *args, **kywrds):
         super().__init__(*args, root=S111Root, **kywrds)

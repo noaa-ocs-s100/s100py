@@ -12,9 +12,13 @@ from s100py.s111 import utils
 FILLVALUE = -9999.0
 
 # Default depth in meters
+PRODUCER_CODE = 'USA1'
 DEFAULT_TARGET_DEPTH = 4.5
-PRODUCER_CODE = "US"
 TYPE_OF_CURRENT_DATA = 6
+DEPTH_TYPE_INDEX = 2
+COMMON_POINT_RULE = 3
+INTERPOLATION_TYPE = 10
+DEFAULT_UNCERTAINTY = -1.0
 
 MODELTYPE_FVCOM = 'fvcom'
 MODELTYPE_HYCOM = 'hycom'
@@ -76,24 +80,23 @@ class CLI:
     def generate_metadata_dict(filename, model_name, epoch, model_file):
 
         metadata = {
-            'productSpecification': 'INT.IHO.S-111.1.0',
             'horizontalDatumReference': 'EPSG',
             'horizontalDatumValue': 4326,
             'metadata': f'MD_{filename}.XML',
             'epoch': epoch,
             'geographicIdentifier': MODELS[model_name]['region'],
-            'speedUncertainty': -1.0,
-            'directionUncertainty': -1.0,
-            'verticalUncertainty': -1.0,
-            'horizontalPositionUncertainty': -1.0,
-            'timeUncertainty': -1.0,
+            'speedUncertainty': DEFAULT_UNCERTAINTY,
+            'directionUncertainty': DEFAULT_UNCERTAINTY,
+            'verticalUncertainty': DEFAULT_UNCERTAINTY,
+            'horizontalPositionUncertainty': DEFAULT_UNCERTAINTY,
+            'timeUncertainty': DEFAULT_UNCERTAINTY,
             'surfaceCurrentDepth': -1 * DEFAULT_TARGET_DEPTH,
-            'depthTypeIndex': 2,
-            'commonPointRule': 3,
-            'interpolationType': 10,
+            'depthTypeIndex': DEPTH_TYPE_INDEX,
+            'commonPointRule': COMMON_POINT_RULE,
+            'interpolationType': INTERPOLATION_TYPE,
             'typeOfCurrentData': TYPE_OF_CURRENT_DATA,
             'methodCurrentsProduct': MODELS[model_name]['product'],
-            'datetimeOfFirstRecord': numpy.string_(model_file.datetime_values[0].strftime('%Y%m%dT%H%M%SZ'))
+            'datetimeOfFirstRecord': model_file.datetime_values[0].strftime('%Y%m%dT%H%M%SZ')
 
         }
 
@@ -117,7 +120,7 @@ class CLI:
         g1674 = datetime.datetime.strptime('20120208', '%Y%m%d')
         g1762 = datetime.datetime.strptime('20131016', '%Y%m%d')
 
-        if dt < g730:
+        if transit <= dt < g730:
             epoch = 'TRANSIT'
         elif dt < g873:
             epoch = 'G730'
@@ -137,7 +140,7 @@ class CLI:
         try:
             model_index.open()
             # Get native-grid output with invalid/masked values removed
-            reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index, time_index,4.5)
+            reg_grid_u, reg_grid_v = model_file.uv_to_regular_grid(model_index, time_index, 4.5)
 
             reg_grid_u = numpy.ma.masked_array(reg_grid_u, model_index.var_mask.mask)
             reg_grid_v = numpy.ma.masked_array(reg_grid_v, model_index.var_mask.mask)
@@ -268,22 +271,22 @@ class CLI:
                                     subgrid_index.append(i)
 
                                 if model_index.var_subgrid_name is not None:
-                                    s111_subgrid_filename = f'S111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_TYP{data_coding_format}_{model_index.var_subgrid_name[i]}'
+                                    s111_subgrid_filename = f'111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_DCF{data_coding_format}_{model_index.var_subgrid_name[i]}'
                                     s111_filenames.append(s111_subgrid_filename)
 
                                 else:
-                                    s111_subgrid_filename = f'S111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_TYP{data_coding_format}_FID_{model_index.var_subgrid_name[i]}'
+                                    s111_subgrid_filename = f'111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_DCF{data_coding_format}_FID_{model_index.var_subgrid_name[i]}'
                                     s111_filenames.append(s111_subgrid_filename)
 
                     else:
-                        s111_filename = f'S111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_TYP{data_coding_format}'
+                        s111_filename = f'111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_DCF{data_coding_format}'
                         s111_filenames.append(s111_filename)
 
                 finally:
                     model_index.close()
 
             else:
-                s111_subgrid_filename = f'S111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_TYP{data_coding_format}'
+                s111_subgrid_filename = f'111{PRODUCER_CODE}_{file_issuance}_{model_name.upper()}_DCF{data_coding_format}'
                 s111_filenames.append(s111_subgrid_filename)
 
         model_file = MODEL_FILE_CLASS[MODELS[model_name]['model_type']](model_file_path, datetime_rounding=MODELS[model_name]['datetime_rounding'])
@@ -321,7 +324,7 @@ class CLI:
                                 'ny': ny
                             }
 
-                            datetime_value = numpy.string_(value.strftime('%Y%m%dT%H%M%SZ'))
+                            datetime_value = value.strftime('%Y%m%dT%H%M%SZ')
                             data_file_data = utils.add_data_from_arrays(speed, direction, data_file_meta, grid_properties, datetime_value, data_coding_format)
 
                         if data_coding_format == 3:
@@ -337,10 +340,10 @@ class CLI:
                                 'nodes': longitude.size
                             }
 
-                            datetime_value = numpy.string_(value.strftime('%Y%m%dT%H%M%SZ'))
+                            datetime_value = value.strftime('%Y%m%dT%H%M%SZ')
                             data_file_data = utils.add_data_from_arrays(speed, direction, data_file_meta, grid_properties, datetime_value, data_coding_format)
 
-                    last_record = numpy.string_(model_file.datetime_values[-1].strftime('%Y%m%dT%H%M%SZ'))
+                    last_record = model_file.datetime_values[-1].strftime('%Y%m%dT%H%M%SZ')
 
                     if len(model_file.datetime_values) == 1:
                         interval_sec = 0
