@@ -21,6 +21,10 @@ import numpy
 Record = s1xx_sequence = Union[numpy.ndarray, h5py.Dataset]
 s1xx_sequence_types = s1xx_sequence.__args__
 
+try:
+    h5py_string_dtype = h5py.special_dtype(vlen=str)
+except:
+    h5py_string_dtype = h5py.string_dtype(encoding='utf-8', length=None)
 
 class FixedTimeZones(datetime.tzinfo):
     """Fixed offset in minutes east from UTC."""
@@ -37,6 +41,36 @@ class FixedTimeZones(datetime.tzinfo):
 
     def dst(self, dt):
         return datetime.timedelta(0)
+
+def convert_numpy_strings_to_h5py(vals, names=None):
+    """ change numpy arrays with "U" into array using the h5py special string_dtype that translates to utf-8 in the file.
+
+    Parameters
+    ----------
+    vals
+        a list or array
+    names
+        optional list of names to use with the record array
+
+    Returns
+    -------
+    A new numpy array which will have h5py special types embedded for the strings
+
+    """
+    rec_array = numpy.core.records.fromarrays(vals, names=names)
+    new_dtype = []
+    for i in range(len(rec_array.dtype)):
+        nm = rec_array.dtype.names[i]
+        if rec_array.dtype[i].type is numpy.unicode_:
+            try:  # h5py <=2.9
+                dt = h5py.special_dtype(vlen=str)
+            except:  # h5py >=2.10
+                dt = h5py.string_dtype(encoding='utf-8', length=None)
+        else:
+            dt = rec_array.dtype[i].descr[0][1]
+        new_dtype.append((nm, dt))
+    rec_array_revised = numpy.core.records.fromarrays(vals, dtype=new_dtype)
+    return rec_array_revised
 
 
 class S1xxAttributesBase(ABC):
@@ -249,13 +283,22 @@ class S1xxAttributesBase(ABC):
         for key, val in self._attributes.items():
             if isinstance(val, s1xx_sequence_types):  # this looks inside the typing.Union to see what arrays should be treated like this
                 logging.debug(key + " array: " + str(val.shape))
-                # convert any strings to bytes of h5py will fail to write the unicode
-                converted_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in val]
+                # convert any strings to bytes or h5py will fail to write the unicode
+                # converted_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in val]
+                converted_vals = [v if not isinstance(v, bytes) else v.decode() for v in val]
                 try:
                     del group_object[key]
                 except KeyError:
                     pass  # didn't exist, no error
-                new_dataset = group_object.create_dataset(key, data=converted_vals)
+                # We are only supporting single column data, check the dtype that the convert function found
+                revised_vals = convert_numpy_strings_to_h5py([converted_vals])
+                # Now re-package so it shows up as a single column in hdf5 - not sure why the revised_vals array would have
+                # to be accessed with two dimensions otherwise -- like val[0][0] instead of val[0]
+                revised_2 = numpy.array(converted_vals, dtype=revised_vals.dtype[0])
+                try:
+                    new_dataset = group_object.create_dataset(key, data=revised_2)
+                except Exception as e:
+                    raise e
             elif isinstance(val, S1xxWritesOwnGroupBase):
                 # things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict
                 logging.debug("{}  S100 object - writing itself now...".format(key))
@@ -725,9 +768,14 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
                         raise KeyError(
                             "{} in {} is missing data, this would give a mismatched array \n  please fill all data {} for all items in the list/dataset".format(
                                 key_err.args[0], self.metadata_name, str(write_keys)))
-                    if isinstance(v,
-                                  str):  # convert unicode strings into ascii since HDF5 doesn't like the unicode strings that numpy will produce
-                        v = v.encode("utf-8")
+
+                    if isinstance(v, bytes):
+                        # no longer doing this--
+                        # convert unicode strings into ascii since HDF5 doesn't like the unicode strings that numpy will produce
+                        # v = v.encode("utf-8")
+
+                        # convert bytes strings to strings which will be encoded as utf8 later
+                        v = v.decode()
                     elif isinstance(v, Enum):  # convert Enums to integars
                         v = v.value
                     list_vals.append(v)
@@ -739,15 +787,15 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
             # but to create that without specifying type we need to transpose first then call 'fromarrays'
             transposed_array = list(map(list, zip(*write_array)))
             if write_keys:
-                rec_array = numpy.core.records.fromarrays(transposed_array, names=write_keys)
+                rec_array_revised = convert_numpy_strings_to_h5py(transposed_array, write_keys)
             else:
-                rec_array = h5py.Empty("")
+                rec_array_revised = h5py.Empty("")
                 raise ValueError(self.metadata_name + " had no data fields defined to write - this would create an h5py.Empty dataset")
             try:
                 del group_object[self.metadata_name]
             except KeyError:
                 pass  # didn't exist, no error
-            dataset = group_object.create_dataset(self.metadata_name, data=rec_array)
+            dataset = group_object.create_dataset(self.metadata_name, data=rec_array_revised)
             self.write_simple_attributes(dataset)
         return dataset
 

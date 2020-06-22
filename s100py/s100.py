@@ -13,7 +13,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py"
 
-from .s1xx import s1xx_sequence, S1xxAttributesBase, S1xxDatasetBase, S1XXFile
+from .s1xx import s1xx_sequence, S1xxAttributesBase, S1xxDatasetBase, S1XXFile, h5py_string_dtype
 
 
 class S100Exception(Exception):
@@ -964,6 +964,7 @@ class GridSpacing:
         # pylint: disable=attribute-defined-outside-init
         self.grid_spacing_vertical = self.grid_spacing_vertical_type()
 
+
 class StartSequence:
     """Mixin class for startSequence.  Data Coding Formats 2,5,6 """
     start_sequence_attribute_name = "startSequence"
@@ -1203,7 +1204,7 @@ class FeatureInformation(S1xxAttributesBase):
 
     def _convert_to_string_based_on_datatype(self, val):
         use_datatype = self._python_datatype()
-        if use_datatype in(int, float):
+        if use_datatype in (int, float):
             if val is None or val == "":
                 str_val = ""
             elif use_datatype is int:
@@ -1430,7 +1431,7 @@ class FeatureContainer(CommonPointRule, S1xxAttributesBase):
 
     @property
     def axis_names_type(self) -> Type[str]:
-        return numpy.ndarray
+        return numpy.array
 
     def axis_names_create(self):
         """ The attribute axisNames has the value class Sequence<CharacterString> that shall be used to assign names to the grid axis.
@@ -1442,7 +1443,7 @@ class FeatureContainer(CommonPointRule, S1xxAttributesBase):
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.axis_names = self.axis_names_type([2], dtype='S')
+        self.axis_names = self.axis_names_type(["", ""], dtype=h5py_string_dtype)
 
     @property
     def data_coding_format(self) -> DATA_CODING_FORMAT:
@@ -1839,8 +1840,9 @@ class S100Root(GeographicBoundingBox):
         self._attributes[self.feature_information_attribute_name] = val
 
     @property
-    @abstractmethod
     def feature_information_type(self):
+        print("Supposed to override feature_information before using")
+        return float
         raise NotImplementedError()
 
     def feature_information_create(self):

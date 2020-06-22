@@ -11,13 +11,14 @@ import xml.etree.ElementTree
 import pprint
 
 import numpy
+import h5py
 
 try:
     from .. import s1xx
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s102"
 
-from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxGridsBase, S1XXFile
+from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
 from ..s100 import GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule
@@ -477,7 +478,7 @@ class BathymetryCoverage(S1xxAttributesBase):
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.axis_names = self.axis_names_type([2], dtype='S')
+        self.axis_names = numpy.array(["", ""], dtype=h5py_string_dtype)
 
     @property
     def extent(self) -> GridEnvelope:
@@ -925,6 +926,7 @@ class S102FeatureInformation(FeatureInformation):
     and datatype to H5T_NATIVE_FLOAT.
     The user should set code and name to 'depth' or 'uncertainty' as needed.
     """
+
     def __init__(self, *args, **kwrds):
         super().__init__(*args, **kwrds)
         self.datatype_create()  # make this first so anyone who tries to set values before the datatype isn't surprised by an exception
@@ -1012,7 +1014,7 @@ class FeatureCodes(GroupFBase):
     def feature_name_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.feature_name = self.feature_name_type([BATHY_COVERAGE, TRACKING_COVERAGE], dtype='S')
+        self.feature_name = self.feature_name_type([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
 
     @property
     def feature_name(self) -> s1xx_sequence:
@@ -1025,7 +1027,7 @@ class FeatureCodes(GroupFBase):
     def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.feature_code = self.feature_code_type([BATHY_COVERAGE, TRACKING_COVERAGE], dtype='S')
+        self.feature_code = self.feature_code_type([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
 
     @property
     def bathymetry_coverage_dataset_type(self):

@@ -5,6 +5,9 @@ import datetime
 import logging
 import tempfile
 
+import numpy
+import h5py
+
 from s100py import s100
 
 
@@ -83,3 +86,53 @@ def test_initialize_props(s100_file):
     s100_file.root.initialize_properties()
     s100_file.root.initialize_properties(True)
     assert isinstance(s100_file.root.north_bound_latitude, float)
+
+
+class TestDataset(s100.FeatureInformationDataset):
+    @property
+    def metadata_name(self) -> str:
+        return "FeatInfoTest"
+
+
+def test_dataset(s100_file):
+    td = TestDataset()
+    rec1 = td.metadata_type()
+    rec1.initialize_properties()
+    rec1.code = "unit"
+    rec1.name = "Latitude"
+    rec2 = td.metadata_type()
+    rec2.initialize_properties()
+    rec2.code = "test"
+    td.append(rec1)
+    td.append(rec2)
+    s100_file.root.add_data(td.metadata_name, td)
+    s100_file.write()
+
+    read_file = s100.S100File(s100_file.filename, "r")
+    read_file.read()
+    data = read_file["/" + td.metadata_name]
+    assert data.shape == (2,)
+    assert data.dtype[0].type == numpy.object_  # make sure the strings were stored as utf8 which comes back as an object type
+    assert data[0]['code'] == "unit"
+    assert data[0]['name'] == "Latitude"
+    assert data[1]['code'] == "test"
+
+
+def test_numpy_string(s100_file):
+    numpy_strings = numpy.array(["sLat", "slong"], dtype='S')
+    s100_file.root.add_data("ndStrings", numpy_strings)
+
+    numpy_strings2 = numpy.array(["pLat", "pLon"])
+    s100_file.root.add_data("narray", numpy_strings2)
+
+    h5py_specials = numpy.ndarray([2], dtype=h5py.special_dtype(vlen=str))
+    h5py_specials[0] = "Lat"
+    h5py_specials[1] = "Long"
+    s100_file.root.add_data("h5pyStrings", h5py_specials)
+    s100_file.write()
+
+    read_file = s100.S100File(s100_file.filename, "r")
+    assert read_file['/ndStrings'][0] == "sLat"
+    assert read_file['/ndStrings'][1] == "slong"
+    assert read_file['/narray'][1] == "pLon"
+    assert read_file['/h5pyStrings'][0] == "Lat"
