@@ -474,9 +474,10 @@ class S111File:
             num_nodes = nodes.shape[0]
             self.feature_instance.attrs.create('numberOfNodes', num_nodes, dtype=numpy.int32)
 
-        now = datetime.datetime.now()
-        issuance_time = now.strftime('%H%M%SZ')
-        issuance_date = now.strftime('%Y%m%d')
+        utc_now = datetime.datetime.utcnow()
+        utc_iso = utc_now.isoformat()
+        issuance_date = utc_iso.split('T')[0]
+        issuance_time = utc_iso.split('T')[1]
 
         self.h5_file.attrs.create('issueTime', numpy.string_(issuance_time), dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('issueDate', numpy.string_(issuance_date), dtype=h5py.special_dtype(vlen=str))
@@ -503,9 +504,10 @@ class S111File:
         self.feature_instance.attrs.create('numberOfTimes', num_times, dtype=numpy.int32)
         self.feature_instance.attrs.create('numberOfStations', num_feature_instance_groups, dtype=numpy.int32)
 
-        now = datetime.datetime.now()
-        issuance_time = now.strftime('%H%M%SZ')
-        issuance_date = now.strftime('%Y%m%d')
+        utc_now = datetime.datetime.utcnow()
+        utc_iso = utc_now.isoformat()
+        issuance_date = utc_iso.split('T')[0]
+        issuance_time = utc_iso.split('T')[1]
 
         self.h5_file.attrs.create('issueTime', numpy.string_(issuance_time), dtype=h5py.special_dtype(vlen=str))
         self.h5_file.attrs.create('issueDate', numpy.string_(issuance_date), dtype=h5py.special_dtype(vlen=str))
