@@ -17,7 +17,7 @@ def _get_S111File(output_file):
         data_file = output_file
     else:
         try:
-            data_file = S111File(output_file)
+            data_file = S111File(output_file, "w")
         except TypeError as typeerr:
             msg = "Failed to create S111File using {}".format(str(output_file))
             logging.error(msg)

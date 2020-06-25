@@ -5,8 +5,9 @@ import logging
 from typing import Callable, Iterator, Union, Optional, List, Type
 from enum import Enum
 import numpy
+import h5py
 
-from s100py.s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile
+from s100py.s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
 from s100py.s100 import S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
 
 SURFACE_CURRENT = "SurfaceCurrent"
@@ -570,7 +571,7 @@ class GroupF(GroupFBase):
     def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.feature_code = self.feature_code_type([SURFACE_CURRENT], dtype='S')
+        self.feature_code = self.feature_code_type([SURFACE_CURRENT], dtype=h5py_string_dtype)
 
     @property
     def surface_current_feature_dataset_type(self):
