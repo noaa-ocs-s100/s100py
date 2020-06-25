@@ -684,8 +684,7 @@ def model_to_s111(model_index_file, model_files, s111_path_prefix, cycletime, in
         file_issuance = cycletime.strftime('%Y%m%dT%HZ')
 
         s111_path_prefix += (
-            '111{}_{}_{}_TYP{}'.format(input_metadata.producer_code, file_issuance,
-                                       str.upper(input_metadata.model_system), data_coding_format))
+            '111{}_{}_{}'.format(input_metadata.producer_code, str.upper(input_metadata.model_system), file_issuance))
 
     # model_to_s111 requires a target.
     if target_depth is None:
