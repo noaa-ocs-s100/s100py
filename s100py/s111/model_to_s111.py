@@ -231,7 +231,9 @@ class CLI:
         Returns:
             List of paths to HDF5 files created.
         """
-        s111_path_prefix = os.path.split(output_path)[0]
+        s111_path_prefix = os.path.normpath(output_path)
+        if not os.path.isdir(s111_path_prefix):
+            s111_path_prefix = os.path.split(s111_path_prefix)[0]
         model_filename = os.path.split(model_file_path)[-1]
         model_name = model_filename.split('.')[1]
 
@@ -239,8 +241,8 @@ class CLI:
         subgrid_index = []
 
         if os.path.isdir(s111_path_prefix):
-            if not s111_path_prefix.endswith('/'):
-                s111_path_prefix += '/'
+            if not s111_path_prefix.endswith(os.path.sep):
+                s111_path_prefix += os.path.sep
 
             file_date = re.findall(r'\d{8}', model_filename)[0]
             cycletime = re.findall(r'(?<=t)[^t:]+(?=:?z)', model_filename)[0]
