@@ -26,6 +26,17 @@ try:
 except:
     h5py_string_dtype = h5py.string_dtype(encoding='utf-8', length=None)
 
+
+def is_sub_class(cls, clsinfo):
+    """ Python 3.7+ changed the behavior of issubclass to raise an exception if the cls object is not a class.
+    So when a function is passed in (numpy.array vs numpy.ndarray) it raises an exception that we don't want. 
+    """
+    try:
+        return issubclass(cls, clsinfo)
+    except TypeError as e:
+        return False
+
+    
 class FixedTimeZones(datetime.tzinfo):
     """Fixed offset in minutes east from UTC."""
 
@@ -143,10 +154,10 @@ class S1xxAttributesBase(ABC):
                 self._attributes[attr_name] = group_object.attrs[attr_name]
             else:
                 use_type = self.__getattribute__(expected_items[attr_name] + "_type")
-                if issubclass(use_type, Enum):
+                if is_sub_class(use_type, Enum):
                     logging.debug(" Enumerated attr/val: " + attr_name + "/" + str(group_object.attrs[attr_name]) + " found and read")
                     self.set_enum_attribute(group_object.attrs[attr_name], attr_name, use_type)
-                elif issubclass(use_type, (datetime.date, datetime.datetime, datetime.time)):
+                elif is_sub_class(use_type, (datetime.date, datetime.datetime, datetime.time)):
                     logging.debug(" datetime string: " + attr_name + "/" + str(group_object.attrs[attr_name]) + " found and read")
                     self.set_datetime_attribute(group_object.attrs[attr_name], attr_name, use_type)
                 else:
@@ -201,10 +212,10 @@ class S1xxAttributesBase(ABC):
 
             # read in the HDF5 attributes etc from the group
             use_type = self.__getattribute__(expected_items[key] + "_type")
-            if issubclass(use_type, S1xxAttributesBase):
+            if is_sub_class(use_type, S1xxAttributesBase):
                 self.__getattribute__(expected_items[key] + "_create")()
                 data = self.__getattribute__(expected_items[key])
-                if issubclass(use_type, S1xxWritesOwnGroupBase):  # pass the parent
+                if is_sub_class(use_type, S1xxWritesOwnGroupBase):  # pass the parent
                     data.read(group_object)
                 else:  # pass the exact location for the data
                     data.read(group_object[key])
@@ -380,7 +391,7 @@ class S1xxAttributesBase(ABC):
         s100_to_property = self.get_standard_properties_mapping()
         s100_to_property_for_lists = {}
         for s100_attr, prop in s100_to_property.items():
-            if issubclass(self.__getattribute__(prop + "_type"), S1xxMetadataListBase):
+            if is_sub_class(self.__getattribute__(prop + "_type"), S1xxMetadataListBase):
                 s100_to_property_for_lists[s100_attr] = prop
         return s100_to_property_for_lists
 
@@ -546,11 +557,11 @@ class S1xxAttributesBase(ABC):
                                         int(match['hour']), int(match['minute']), int(match['second']),
                                         decimal_sec, tzinfo=zone)
             else:
-                if issubclass(date_type, datetime.date):
+                if is_sub_class(date_type, datetime.date):
                     match = re.match(re_date, val)
                     if match:
                         val = datetime.date(int(match['year']), int(match['month']), int(match['day']))
-                elif issubclass(date_type, datetime.time):
+                elif is_sub_class(date_type, datetime.time):
                     match = re.match(re_time_with_zone, val)
                     if match:
                         decimal_sec = int(float(match['decimal_sec']) * 1000000) if match['decimal_sec'] else 0
@@ -563,9 +574,9 @@ class S1xxAttributesBase(ABC):
 
         if isinstance(val, (datetime.datetime, datetime.date, datetime.time)):
             if isinstance(val, datetime.datetime):
-                if issubclass(date_type, datetime.date):
+                if is_sub_class(date_type, datetime.date):
                     val = val.date()
-                elif issubclass(date_type, datetime.time):
+                elif is_sub_class(date_type, datetime.time):
                     tz = val.tzinfo
                     val = val.time()
                     # getting the time this way drops the timezone info, so we stored it and now replace it

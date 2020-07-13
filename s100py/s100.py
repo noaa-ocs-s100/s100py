@@ -13,7 +13,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py"
 
-from .s1xx import s1xx_sequence, S1xxAttributesBase, S1xxDatasetBase, S1XXFile, h5py_string_dtype
+from .s1xx import s1xx_sequence, S1xxAttributesBase, S1xxDatasetBase, S1XXFile, h5py_string_dtype, is_sub_class
 
 
 class S100Exception(Exception):
@@ -1789,7 +1789,7 @@ class S100Root(GeographicBoundingBox):
         # and put that into the GroupF FeatureInformation object
         feat_info = None
         for property_name in self.get_standard_properties():
-            if issubclass(self.__getattribute__(property_name + "_type"), GroupFBase):
+            if is_sub_class(self.__getattribute__(property_name + "_type"), GroupFBase):
                 feat_info = self.__getattribute__(property_name)
         # we have the GroupF data now, we can look at the names of the FeatureInstances and then search each for its respective chunking
         if feat_info is not None:
