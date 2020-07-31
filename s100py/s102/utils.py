@@ -1,9 +1,21 @@
 """ Functions to create S102 data from other sources
 
 """
-import logging
-import sys
+
 import os
+import sys
+
+if getattr(sys, 'frozen', False):
+    # in a frozen exe os.pyc is at the root level
+    proj_db_path = os.path.join(os.path.dirname(os.__file__), "library\\share\\proj")
+    # print("frozen exe", proj_db_path)
+    os.environ["PROJ_LIB"] = proj_db_path
+    # print(os.listdir(proj_db_path))  # os.listdir(os.path.dirname(os.__file__)))
+else:
+    pass
+    # print("running as script")
+
+import logging
 import warnings
 import argparse
 from xml.etree import ElementTree as et
@@ -19,7 +31,8 @@ try:
     from matplotlib.colors import LinearSegmentedColormap, ListedColormap, BoundaryNorm
     from matplotlib.colorbar import ColorbarBase
 except:
-    print("matplotlib.pyplot failed to import, plotting will not work")
+    if not getattr(sys, 'frozen', False):  # we expect the frozen exe to not have matplotlib
+        print("matplotlib.pyplot failed to import, plotting will not work")
 
 from s100py.s1xx import s1xx_sequence
 from s100py.s102.api import DEPTH, UNCERTAINTY, S102File, S102Exception
@@ -40,11 +53,12 @@ r"""
 from s100py.s102 import utils
 navo_name = r"G:\Data\S102 Data\LA_LB_Area_GEO_reprojected.bag.navo_%d.h5"
 utils.plot_depth_using_h5py(navo_name)
-bag_name=r"G:\Data\S102 Data\LA_LB_Area_GEO_reprojected.bag"
-bag_name=r"G:\Data\S102 Data\NBS_US5NYCAH_20200430.bag"
 bag_names = [r"G:\Data\S102 Data\NBS_US5NYCAH_20200430.bag", r"G:\Data\S102 Data\NBS_US5NYCBH_20200429.bag", r"G:\Data\S102 Data\LA_LB_Area_GEO_reprojected.bag"]
 fout = utils.from_bag(bag_name, bag_name+r".noaa.h5")
-fout = utils.from_bag(bag_name, bag_name+r".noaa_rev_axis.h5")
+for bag_name in bag_names:
+    fout = utils.from_bag(bag_name, bag_name+r".noaa.h5")
+    fout.close()
+    utils.plot_depth_using_h5py(bag_name + r".noaa.h5")
 """
 
 
