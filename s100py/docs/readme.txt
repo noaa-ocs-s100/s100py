@@ -22,7 +22,11 @@ copy "PydroXL_19\NOAA\site-packages\Python3\s100py\docs\automodsumm_0.12.py" "Py
 copy "PydroXL_19\NOAA\site-packages\Python3\s100py\docs\inheritance_diagram_x.x.x_revised.py" "PydroXL_19\envs\Pydro367\site-packages\sphinx\ext\inheritance_diagram.py" 
 
 
-Then in a console in this directory run sphinx-build -M html . . -E -a
+Then in a console in this directory to make the .rst files run:
+sphinx-apidoc -f -o "." ".."
+
+and to make the html:
+sphinx-build -M html . . -E -a
   or 
 run make_docs.bat 
   whichs calls activate_pydro.bat   ==  call "%~dp0..\..\..\..\..\..\..\scripts\activate" Pydro367
