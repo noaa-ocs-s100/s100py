@@ -232,7 +232,7 @@ class SurfaceCurrentValues(S1xxGridsBase):
 
     @property
     def surface_current_speed_type(self) -> s1xx_sequence:
-        return numpy.ndarray
+        return numpy.float32
 
     def surface_current_speed_create(self):
         """ Creates a blank, empty or zero value for surface_current_speed"""
@@ -250,7 +250,7 @@ class SurfaceCurrentValues(S1xxGridsBase):
 
     @property
     def surface_current_direction_type(self) -> s1xx_sequence:
-        return numpy.ndarray
+        return numpy.float32
 
     def surface_current_direction_create(self):
         """ Creates a blank, empty or zero value for surface_current_direction"""
@@ -260,6 +260,9 @@ class SurfaceCurrentValues(S1xxGridsBase):
 
     def get_write_order(self):
         return [self.surface_current_speed_attribute_name, self.surface_current_direction_attribute_name]
+
+    def get_compound_dtype(self):
+        return [self.surface_current_speed_type, self.surface_current_direction_type]
 
 
 class SurfaceCurrentGroup(S1xxAttributesBase):

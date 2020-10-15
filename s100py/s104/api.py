@@ -42,16 +42,15 @@ VERTICAL_DATUM_REFERENCE = Enum(value="VERTICAL_DATUM_REFERENCE",
                                        ]
                                 )
 
-WATER_LEVEL_TREND = Enum(value="WATER_LEVEL_TREND",
-                         names=[("Decreasing", 1),
-                                ("Increasing", 2),
-                                ("Steady", 3)
-                                ]
-                         )
-
 
 class S104Exception(S100Exception):
     pass
+
+
+class WATER_LEVEL_TREND(IntEnum):
+    Decreasing = 1
+    Increasing = 2
+    Steady = 3
 
 
 class S104MetadataListBase(S1xxMetadataListBase):
@@ -232,7 +231,7 @@ class WaterLevelValues(S1xxGridsBase):
 
     @property
     def water_level_height_type(self) -> s1xx_sequence:
-        return numpy.ndarray
+        return numpy.float32
 
     def water_level_height_create(self):
         """ Creates a blank, empty or zero value for water_level_height"""
@@ -250,7 +249,7 @@ class WaterLevelValues(S1xxGridsBase):
 
     @property
     def water_level_trend_type(self) -> WATER_LEVEL_TREND:
-        return WATER_LEVEL_TREND
+        return h5py.enum_dtype(dict([(water_level_trend.name, water_level_trend.value) for water_level_trend in WATER_LEVEL_TREND]))
 
     def water_level_trend_create(self):
         """ Creates a blank, empty or zero value for water_level_trend"""
@@ -260,6 +259,9 @@ class WaterLevelValues(S1xxGridsBase):
 
     def get_write_order(self):
         return [self.water_level_height_attribute_name, self.water_level_trend_attribute_name]
+
+    def get_compound_dtype(self):
+        return [self.water_level_height_type, self.water_level_trend_type]
 
 
 class WaterLevelGroup(S1xxAttributesBase):
