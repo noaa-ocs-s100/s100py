@@ -53,6 +53,7 @@ class FixedTimeZones(datetime.tzinfo):
     def dst(self, dt):
         return datetime.timedelta(0)
 
+
 def convert_numpy_strings_to_h5py(vals, names=None):
     """ change numpy arrays with "U" into array using the h5py special string_dtype that translates to utf-8 in the file.
 
@@ -344,6 +345,15 @@ class S1xxAttributesBase(ABC):
         Returns
         -------
         A list of key names if order is important, None otherwise.
+        """
+        return None
+
+    def get_compound_dtype(self):
+        """ Override this method if the dtype of compound dataset items is important
+
+        Returns
+        -------
+        A list of dtype, None otherwise.
         """
         return None
 
@@ -846,6 +856,7 @@ class S1xxGridsBase(S1xxWritesOwnGroupBase):
         dataset = None
 
         write_keys = []
+
         if self.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
             write_keys.extend(self.get_write_order())
 
@@ -856,14 +867,18 @@ class S1xxGridsBase(S1xxWritesOwnGroupBase):
         # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
         write_array = [self._attributes[key] for key in write_keys]
 
+        write_compound_dtype = []
+        if self.get_compound_dtype():
+            write_compound_dtype.extend(self.get_compound_dtype())
+
         # hdf5 needs names to the columns which is done in a record array or structured array.
         # but to create that without specifying type we need to transpose first then call 'fromarrays'
 
         # numpy.array is coming out with wrong (at least different) shape and fromarrays is working -- not sure why right now.
         # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
-        rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, 'f4') for name in write_keys])
+        rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, dtype) for name, dtype in zip(write_keys, write_compound_dtype)])
         dataset = group_object.create_dataset(self.metadata_name, data=rec_array, chunks=True, compression='gzip', compression_opts=9)
-        # noinspection PyAttributeOutsideInit
+        #         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.write_simple_attributes(dataset)
 
