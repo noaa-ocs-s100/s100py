@@ -147,14 +147,14 @@ class S111File:
         in the data product and a reference to the name.
         """
         # Add a feature name compound dataset
-        dtype = numpy.dtype([('code', h5py.special_dtype(vlen=str)),
-                             ('name', h5py.special_dtype(vlen=str)),
-                             ('uom.name', h5py.special_dtype(vlen=str)),
-                             ('fillValue', h5py.special_dtype(vlen=str)),
-                             ('datatype', h5py.special_dtype(vlen=str)),
-                             ('lower', h5py.special_dtype(vlen=str)),
-                             ('upper', h5py.special_dtype(vlen=str)),
-                             ('closure', h5py.special_dtype(vlen=str))])
+        dtype = numpy.dtype([('code', '<S50'),
+                             ('name', '<S50'),
+                             ('uom.name', '<S50'),
+                             ('fillValue', '<S50'),
+                             ('datatype', '<S50'),
+                             ('lower', '<S50'),
+                             ('upper', '<S50'),
+                             ('closure', '<S50')])
 
         fdata = numpy.zeros((2,), dtype=dtype)
         fdata['code'][0] = 'surfaceCurrentSpeed'
