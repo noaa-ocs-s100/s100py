@@ -1,5 +1,0 @@
-<map id="inheritanceabb97b0f79" name="inheritanceabb97b0f79">
-<area shape="rect" id="node1" href="s100py.s100.FeatureInformation.html#s100py.s100.FeatureInformation" target="_top" title="In S100, table 10c&#45;8." alt="" coords="31,79,238,104"/>
-<area shape="rect" id="node3" href="#s100py.s102.api.S102FeatureInformation" target="_top" title="S102 specifc version of FeatureInformation." alt="" coords="5,152,264,177"/>
-<area shape="rect" id="node2" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="27,5,243,31"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="inheritance5a29204839" name="inheritance5a29204839">
-<area shape="rect" id="node1" href="s100py.s100.CommonPointRule.html#s100py.s100.CommonPointRule" target="_top" title="s100py.s100.CommonPointRule" alt="" coords="5,5,213,31"/>
-<area shape="rect" id="node2" href="s100py.s100.FeatureContainer.html#s100py.s100.FeatureContainer" target="_top" title="This class comes from S100 in Table 10c&#45;9 – Structure of feature container groups and" alt="" coords="127,79,326,104"/>
-<area shape="rect" id="node4" href="#s100py.s100.FeatureContainerDCF7" target="_top" title="Container for Data Coding Format 7" alt="" coords="221,152,453,177"/>
-<area shape="rect" id="node3" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="237,5,453,31"/>
-<area shape="rect" id="node5" href="s100py.s100.InterpolationType.html#s100py.s100.InterpolationType" target="_top" title="Mixin class for Interpolation Type. &#160;At least used in Data Coding Format 2,3,4,5,6,7" alt="" coords="350,79,549,104"/>
-</map>

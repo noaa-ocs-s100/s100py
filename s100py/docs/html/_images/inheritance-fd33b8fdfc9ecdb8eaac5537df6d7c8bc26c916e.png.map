@@ -1,6 +1,0 @@
-<map id="inheritance069a7fdf0c" name="inheritance069a7fdf0c">
-<area shape="rect" id="node1" href="#s100py.s111.SurfaceCurrentUncertaintyDataset" target="_top" title="s100py.s111.SurfaceCurrentUncertaintyDataset" alt="" coords="5,225,303,251"/>
-<area shape="rect" id="node2" href="s100py.s1xx.S1xxDatasetBase.html#s100py.s1xx.S1xxDatasetBase" target="_top" title="The S102 spec stores some things as attributes that could (or should) be stored as attributes." alt="" coords="51,152,257,177"/>
-<area shape="rect" id="node3" href="s100py.s1xx.S1xxAttributesBase.html#s100py.s1xx.S1xxAttributesBase" target="_top" title="This class implements a general hdf5 group object that has attributes, dataset or sub&#45;groups." alt="" coords="46,5,262,31"/>
-<area shape="rect" id="node4" href="s100py.s1xx.S1xxWritesOwnGroupBase.html#s100py.s1xx.S1xxWritesOwnGroupBase" target="_top" title="Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can&#39;t predict" alt="" coords="25,79,283,104"/>
-</map>
