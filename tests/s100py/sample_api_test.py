@@ -499,7 +499,7 @@ def test_api(filename, revised_filename):
 
     read_from_file = S999File(filename, "r")
     assert read_from_file.root.dataset_with_names[1].attr_int == 27
-    assert read_from_file.root.dataset_with_names[0].attr_str in b"used a default string"
+    assert read_from_file.root.dataset_with_names[0].attr_str in "used a default string"
     assert read_from_file.root.data_group[1].name_of_data == MONTY(2)
     assert read_from_file.root.data_group[2].data_grid[1] == 0.75  # the second element of the range
     assert read_from_file.root.my_location_group.east_bound_longitude == 33.5
@@ -520,7 +520,7 @@ def test_api(filename, revised_filename):
 
 def test_direct_access_just_attributes(revised_filename):
     """ Test/demonstrate accessing an HDF5 file directly on a simple datatype"""
-    h5file = h5py.File(revised_filename)
+    h5file = h5py.File(revised_filename, 'r+')
     obj_location = "/myFirstObject"
     new_string = "A revised simple string"
     data = MyObject()
@@ -543,7 +543,7 @@ def test_direct_access_just_attributes(revised_filename):
 
 def test_direct_access_attr_and_dataset(revised_filename):
     """ Test/demonstrate accessing an HDF5 file directly for enum and dataset (numpy array)"""
-    h5file = h5py.File(revised_filename)
+    h5file = h5py.File(revised_filename, 'r+')
     obj_location = "/dataGroup_003"
     new_enum = MONTY['spam']
     new_val = 99
@@ -571,7 +571,7 @@ def test_direct_access_attr_and_dataset(revised_filename):
 def test_direct_access_list(revised_filename):
     """ For a multi-occurrence object, test/demonstrate accessing an HDF5 file directly
      Lists actually name themselves, so we will give it a different parent than the root as a test too"""
-    h5file = h5py.File(revised_filename)
+    h5file = h5py.File(revised_filename, 'r+')
     obj_location = "/"  # this is the root of the file
     new_val = 35
     data = DataGroups()
@@ -602,7 +602,7 @@ def test_direct_access_list(revised_filename):
 
 
 def test_direct_access_compound_array(revised_filename):
-    h5file = h5py.File(revised_filename)
+    h5file = h5py.File(revised_filename, 'r+')
     obj_location = "/"  # this is the root of the file
     data = DatasetWithNamesList()
     data.read(h5file[obj_location])
@@ -622,7 +622,7 @@ def test_direct_access_compound_array(revised_filename):
 def test_change_names_on_new_data(revised_filename):
     """ This plays some games with the attribute_name.  Because the data is held in a dictionary based on the hdf5 names,
     changing the mapping between python name and HDF5 name can have consequences.  """
-    h5file = h5py.File(revised_filename)
+    h5file = h5py.File(revised_filename, 'r+')
 
     # set up a standard object but store it in a non-standard group
     obj_with_standard_name = MyObject()
@@ -634,11 +634,11 @@ def test_change_names_on_new_data(revised_filename):
     # change just the instance's name for HDF5, doing this BEFORE adding data works fine
     obj_with_non_standard_name = MyObject()
     obj_with_non_standard_name.data_value_attribute_name = "Change_instance_name"
-    obj_with_non_standard_name.data_value = "Testing just the curreent instance"
+    obj_with_non_standard_name.data_value = "Testing just the current instance"
     h5file.require_group("/test_instance_names")
     obj_with_non_standard_name.write(h5file["/test_instance_names"])
 
-    assert obj_with_non_standard_name.data_value == "Testing just the curreent instance"
+    assert obj_with_non_standard_name.data_value == "Testing just the current instance"
 
     # Change the class definition, which can be easier if ALL the data you ever want to read uses that different naming
     MyObject.data_value_attribute_name = "Change_all_classes"
@@ -656,14 +656,14 @@ def test_change_names_on_new_data(revised_filename):
     h5file.require_group("/test_standard_whoa")
     obj_with_standard_name.write(h5file["/test_standard_whoa"])
     assert obj_with_standard_name.data_value_attribute_name == "Change_all_classes"
-    assert obj_with_non_standard_name.data_value == "Testing just the curreent instance"
+    assert obj_with_non_standard_name.data_value == "Testing just the current instance"
 
     h5file.close()
 
 
 def test_changing_names_on_existing_data(revised_filename):
     """ Change the attribute names in existing data, this requires re-mapping the old data to the new name or deleting the old."""
-    h5file = h5py.File(revised_filename)
+    h5file = h5py.File(revised_filename, 'r+')
     obj_location = "/"  # this is the root of the file
     data = DatasetWithNamesList()
     data.read(h5file[obj_location])
