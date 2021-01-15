@@ -158,7 +158,7 @@ class BathymetryValues(S1xxGridsBase):
 
     @property
     def depth_type(self) -> s1xx_sequence:
-        return numpy.ndarray
+        return numpy.float32
 
     def depth_create(self):
         """ Creates a blank, empty or zero value for depth"""
@@ -179,7 +179,7 @@ class BathymetryValues(S1xxGridsBase):
 
     @property
     def uncertainty_type(self) -> s1xx_sequence:
-        return numpy.ndarray
+        return numpy.float32
 
     def uncertainty_create(self):
         """ Creates a blank, empty or zero value for uncertainty"""
@@ -189,6 +189,9 @@ class BathymetryValues(S1xxGridsBase):
 
     def get_write_order(self):
         return [self.depth_attribute_name, self.uncertainty_attribute_name]
+
+    def get_compound_dtype(self):
+        return [self.depth_type, self.uncertainty_type]
 
 
 class BathymetryCoverage(S1xxAttributesBase):

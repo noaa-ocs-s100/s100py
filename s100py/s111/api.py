@@ -145,7 +145,7 @@ class GeometryValuesDataset(S1xxGridsBase):
 
     @property
     def longitude_type(self) -> s1xx_sequence:
-        return numpy.ndarray
+        return numpy.float32
 
     def longitude_create(self):
         """ Creates a blank, empty or zero value for longitude"""
@@ -163,7 +163,7 @@ class GeometryValuesDataset(S1xxGridsBase):
 
     @property
     def latitude_type(self) -> s1xx_sequence:
-        return numpy.ndarray
+        return numpy.float32
 
     def latitude_create(self):
         """ Creates a blank, empty or zero value for latitude"""
@@ -173,6 +173,9 @@ class GeometryValuesDataset(S1xxGridsBase):
 
     def get_write_order(self):
         return [self.longitude_attribute_name, self.latitude_attribute_name]
+
+    def get_compound_dtype(self):
+        return [self.longitude_type, self.latitude_type]
 
 
 class PositioningGroup(S1xxAttributesBase):
