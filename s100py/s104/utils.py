@@ -8,7 +8,7 @@ import datetime
 import numpy
 
 from ..s1xx import s1xx_sequence
-from .api import S104File, FILLVALUE, S104Exception
+from .api import S104File, FILLVALUE_HEIGHT, FILLVALUE_TREND, S104Exception
 
 
 def _get_S104File(output_file):
@@ -58,7 +58,7 @@ def create_s104(output_file) -> S104File:
     water_level_height_info.name = "Water level height"
     water_level_height_info.unit_of_measure = "meters"
     water_level_height_info.datatype = "H5T_FLOAT"
-    water_level_height_info.fill_value = FILLVALUE
+    water_level_height_info.fill_value = FILLVALUE_HEIGHT
     water_level_height_info.lower = "-99.99"
     water_level_height_info.upper = "99.99"
     water_level_height_info.closure = "closedInterval"
@@ -68,7 +68,7 @@ def create_s104(output_file) -> S104File:
     water_level_trend_info.name = "Water level trend"
     water_level_trend_info.unit_of_measure = ""
     water_level_trend_info.datatype = "H5T_NATIVE_INT16"
-    water_level_trend_info.fill_value = FILLVALUE
+    water_level_trend_info.fill_value = FILLVALUE_TREND
     water_level_trend_info.lower = "1"
     water_level_trend_info.upper = "3"
     water_level_trend_info.closure = "closedInterval"
@@ -78,7 +78,7 @@ def create_s104(output_file) -> S104File:
     water_level_time_info.name = "Water level time"
     water_level_time_info.unit_of_measure = "DateTime"
     water_level_time_info.datatype = "H5T_C_S1"
-    water_level_time_info.fill_value = FILLVALUE
+    water_level_time_info.fill_value = ""
     water_level_time_info.lower = "19000101T000000Z"
     water_level_time_info.upper = "21500101T000000Z"
     water_level_time_info.closure = "closedInterval"
@@ -100,25 +100,25 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     metadata
         a dictionary of metadata describing the data passed in,
         metadata should have the following key/value pairs:
-            - "productSpecification": The product specification used to create this dataset.
-            - "horizontalDatumReference":  Reference to the register from which the horizontal datum value is taken.
-                "EPSG" is the default value.
-            - "horizontalDatumValue":  Horizontal Datum of the entire dataset.
+            - "productSpecification": The product specification used to create
+            this dataset.
+            - "horizontalCRS": Horizontal Datum EPSG code.
             - "metadata": File name for the associated discovery metadata (xml)
-            - "epoch": Code denoting the epoch of the geodetic datum used by the CRS
-            - "geographicIdentifier": Location of the data, ex: "Chesapeake Bay".
+            - "geographicIdentifier": Location of the data, ex: "Tampa Bay".
                 An empty string ("") is the default.
-            - "waterLevelHeightUncertainty": In (meters) arises from the hydrodynamic model, and the spatial
-                interpolation method. The default, denoting a missing value, is -1.0.
+            - "waterLevelHeightUncertainty": In (meters) arises from the
+            hydrodynamic model, and the spatial interpolation method.
+            The default, denoting a missing value, is -1.0.
             - "verticalUncertainty": Accuracy of vertical datum
                 The default, denoting a missing value, is -1.0.
-            - "horizontalPositionUncertainty": Accuracy of geolocation techniques, model grid accuracy
-                The default, denoting a missing value, is -1.0.
+            - "horizontalPositionUncertainty": Accuracy of geolocation
+            techniques, model grid accuracy. The default, denoting a missing
+            value, is -1.0.
             - "timeUncertainty": Sensor accuracy, data time tagging accuracy
                 The default, denoting a missing value, is -1.0.
-            - "waterLevelTrendThreshold": Critical value used to determine steady water level trend.
-                Units are meters/hour (m/hr).
-            - "verticalCS": Mandatory vertical EPSG Code
+            - "waterLevelTrendThreshold": Critical value used to determine
+            steady water level trend. Units are meters/hour (m/hr).
+            - "verticalCS": Vertical datum EPSG Code.
             - "verticalCoordinateBase":
                 - 'Sea surface': 1
                 - 'Vertical datum': 2
@@ -165,8 +165,8 @@ def add_metadata(metadata: dict, data_file) -> S104File:
                 - 'low': 2
                 - 'high': 3
                 - 'all': 4
-           - "interpolationType":
-                Interpolation method recommended for evaluation of the S100_GridCoverage.
+           - "interpolationType": Interpolation method recommended for
+           evaluation of the S100_GridCoverage.
                     - 'nearestneighbor': 1
                     - 'linear': 2
                     - 'quadratic': 3
@@ -189,8 +189,10 @@ def add_metadata(metadata: dict, data_file) -> S104File:
                     - Observed minus forecast: 9
                     - Forecast minus predicted: 10
 
-            - "methodWaterLevelProduct": Brief description of tide guage type, forecast method or model, etc.
-            - "datetimeOfFirstRecord": Valid time of earliest value, 'YYYYMMDDTHHMMSSZ'
+            - "methodWaterLevelProduct": Brief description of tide gauge type,
+            forecast method or model, etc.
+            - "datetimeOfFirstRecord": Valid time of earliest value,
+            'YYYYMMDDTHHMMSSZ'
 
     Returns
     -------
@@ -219,13 +221,13 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     root.metadata = metadata["metadata"]
     root.horizontal_datum_reference = metadata["horizontalDatumReference"]
     root.horizontal_datum_value = metadata["horizontalDatumValue"]
-    root.epoch = metadata["epoch"]
+    # root.epoch = metadata["epoch"]
     root.geographic_identifier = metadata["geographicIdentifier"]
     root.water_level_trend_threshold = metadata["waterLevelTrendThreshold"]
     root.vertical_coordinate_system = metadata["verticalCS"]
     root.vertical_coordinate_base = metadata["verticalCoordinateBase"]
     root.vertical_datum_reference = metadata["verticalDatumReference"]
-    root.vertical_datum = metadata["verticalDatum"]
+    root.vertical_datum_epsg = metadata["verticalDatum"]
     water_level_feature.common_point_rule = metadata["commonPointRule"]
     water_level_feature.interpolation_type = metadata["interpolationType"]
     water_level_feature.time_uncertainty = metadata["timeUncertainty"]
@@ -240,9 +242,11 @@ def add_metadata(metadata: dict, data_file) -> S104File:
 
 def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_properties: dict, datetime_value, data_coding_format) -> S104File:
     """  Updates an S104File object based on numpy array/h5py datasets.
-        Calls :any:`create_s104` then fills in the HDF5 datasets with the supplied water level height and trend numpy.arrays.
+        Calls :any:`create_s104` then fills in the HDF5 datasets with the
+        supplied water level height and trend numpy.arrays.
 
-        Raises an S104Exception if the shapes of the water level height and trend (if not None) grids are not equal.
+        Raises an S104Exception if the shapes of the water level height and
+        trend (if not None) grids are not equal.
 
         Parameters
         ----------
@@ -269,11 +273,11 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
                 - "longitude": Only for DCF3, longitudes of nodes
                 - "nodes": Only for DCF3, number of nodes
         data_coding_format
-            - 'Fixed Stations': 1
-            - 'Regular Grid': 2
+            - 'Time Series at fixed xtations': 1
+            - 'Regularly-Gridded arrays': 2
             - 'Ungeorectified Grid': 3
             - 'TIN': 7
-            - 'Fixed STations (Stationwise)': 8
+            - 'Time Series at fixed stations (stationwise)': 8
 
         Returns
         -------
@@ -368,8 +372,10 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S104
                 - "longitude": Only for DCF3, longitudes of nodes
                 - "nodes": Only for DCF3, number of nodes
           update_meta
-              a dictionary of dynamic metadata, metadata can have the following key/value pairs:
-                  - "dateTimeOfLastRecord": Valid time of lastest value, 'YYYYMMDDTHHMMSSZ'
+              a dictionary of dynamic metadata, metadata can have the following
+              key/value pairs:
+                  - "dateTimeOfLastRecord": Valid time of lastest value,
+                  'YYYYMMDDTHHMMSSZ'
                   - "numberOfGroups": Number of forecasts
                   - "numberOfTimes": Number of valid times
                   - "timeRecordInterval": Time between forecasts in seconds
