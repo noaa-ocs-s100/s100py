@@ -856,7 +856,6 @@ class S1xxGridsBase(S1xxWritesOwnGroupBase):
         dataset = None
 
         write_keys = []
-
         if self.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
             write_keys.extend(self.get_write_order())
 
@@ -870,7 +869,8 @@ class S1xxGridsBase(S1xxWritesOwnGroupBase):
         write_compound_dtype = []
         if self.get_compound_dtype():
             write_compound_dtype.extend(self.get_compound_dtype())
-
+        if len(write_keys) != len(write_compound_dtype):
+            raise Exception("write keys and write_compound_dtype must be same length {} vs {}".format(write_keys, write_compound_dtype))
         # hdf5 needs names to the columns which is done in a record array or structured array.
         # but to create that without specifying type we need to transpose first then call 'fromarrays'
 

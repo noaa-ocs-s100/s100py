@@ -145,13 +145,17 @@ class GeometryValuesDataset(S1xxGridsBase):
 
     @property
     def longitude_type(self) -> s1xx_sequence:
+        return numpy.ndarray
+
+    @property
+    def longitude_dtype(self) -> Type[float]:
         return numpy.float32
 
     def longitude_create(self):
         """ Creates a blank, empty or zero value for longitude"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.longitude = self.longitude_type([], numpy.float)
+        self.longitude = self.longitude_type([], self.longitude_dtype)
 
     @property
     def latitude(self) -> s1xx_sequence:
@@ -163,19 +167,23 @@ class GeometryValuesDataset(S1xxGridsBase):
 
     @property
     def latitude_type(self) -> s1xx_sequence:
+        return numpy.ndarray
+
+    @property
+    def latitude_dtype(self) -> Type[float]:
         return numpy.float32
 
     def latitude_create(self):
         """ Creates a blank, empty or zero value for latitude"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.latitude = self.latitude_type([], numpy.float)
+        self.latitude = self.latitude_type([], self.latitude_dtype)
 
     def get_write_order(self):
         return [self.longitude_attribute_name, self.latitude_attribute_name]
 
     def get_compound_dtype(self):
-        return [self.longitude_type, self.latitude_type]
+        return [self.longitude_dtype, self.latitude_dtype]
 
 
 class PositioningGroup(S1xxAttributesBase):
@@ -235,13 +243,17 @@ class SurfaceCurrentValues(S1xxGridsBase):
 
     @property
     def surface_current_speed_type(self) -> s1xx_sequence:
+        return numpy.ndarray
+
+    @property
+    def surface_current_speed_dtype(self) -> Type[float]:
         return numpy.float32
 
     def surface_current_speed_create(self):
         """ Creates a blank, empty or zero value for surface_current_speed"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.surface_current_speed = self.surface_current_speed_type([], numpy.float)
+        self.surface_current_speed = self.surface_current_speed_type([], self.surface_current_speed_dtype)
 
     @property
     def surface_current_direction(self) -> s1xx_sequence:
@@ -253,19 +265,23 @@ class SurfaceCurrentValues(S1xxGridsBase):
 
     @property
     def surface_current_direction_type(self) -> s1xx_sequence:
+        return numpy.ndarray
+
+    @property
+    def surface_current_direction_dtype(self) -> Type[float]:
         return numpy.float32
 
     def surface_current_direction_create(self):
         """ Creates a blank, empty or zero value for surface_current_direction"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.surface_current_direction = self.surface_current_direction_type([], numpy.float)
+        self.surface_current_direction = self.surface_current_direction_type([], self.surface_current_direction_dtype)
 
     def get_write_order(self):
         return [self.surface_current_speed_attribute_name, self.surface_current_direction_attribute_name]
 
     def get_compound_dtype(self):
-        return [self.surface_current_speed_type, self.surface_current_direction_type]
+        return [self.surface_current_speed_dtype, self.surface_current_direction_dtype]
 
 
 class SurfaceCurrentGroup(S1xxAttributesBase):

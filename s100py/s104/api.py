@@ -165,11 +165,16 @@ class GeometryValuesDataset(S1xxGridsBase):
         """S100 Datatype"""
         return numpy.ndarray
 
+    @property
+    def longitude_dtype(self) -> Type[float]:
+        """S100 Datatype"""
+        return numpy.float32
+
     def longitude_create(self):
         """ Creates a blank, empty or zero value for longitude"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.longitude = self.longitude_type([], numpy.float)
+        self.longitude = self.longitude_type([], self.longitude_dtype)
 
     @property
     def latitude(self) -> s1xx_sequence:
@@ -186,15 +191,23 @@ class GeometryValuesDataset(S1xxGridsBase):
         """S100 Datatype"""
         return numpy.ndarray
 
+    @property
+    def latitude_dtype(self) -> Type[float]:
+        """S100 Datatype"""
+        return numpy.float32
+
     def latitude_create(self):
         """ Creates a blank, empty or zero value for latitude"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.latitude = self.latitude_type([], numpy.float)
+        self.latitude = self.latitude_type([], self.latitude_dtype)
 
     def get_write_order(self):
         """Specify order of attributes for ordered dict"""
         return [self.longitude_attribute_name, self.latitude_attribute_name]
+
+    def get_compound_dtype(self):
+        return [self.longitude_dtype, self.latitude_dtype]
 
 
 class PositioningGroup(S1xxAttributesBase):
@@ -268,13 +281,18 @@ class WaterLevelValues(S1xxGridsBase):
     @property
     def water_level_height_type(self) -> s1xx_sequence:
         """Define array datatype"""
+        return numpy.ndarray
+
+    @property
+    def water_level_height_dtype(self) -> Type[float]:
+        """Define array datatype"""
         return numpy.float32
 
     def water_level_height_create(self):
         """ Creates a blank, empty or zero value for water_level_height"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.water_level_height = self.water_level_height_type([], numpy.float)
+        self.water_level_height = self.water_level_height_type([], self.water_level_height_dtype)
 
     @property
     def water_level_trend(self) -> WaterLevelTrend:
@@ -286,7 +304,12 @@ class WaterLevelValues(S1xxGridsBase):
         self.set_enum_attribute(val, self.water_level_trend_attribute_name, self.water_level_trend_type)
 
     @property
-    def water_level_trend_type(self) -> WaterLevelTrend:
+    def water_level_trend_type(self) -> s1xx_sequence:
+        """Define datatype"""
+        return numpy.ndarray
+
+    @property
+    def water_level_trend_dtype(self) -> Type[WaterLevelTrend]:
         """Define array datatype"""
         return h5py.enum_dtype(dict([(water_level_trend.name, water_level_trend.value) for water_level_trend in WaterLevelTrend]))
 
@@ -294,13 +317,13 @@ class WaterLevelValues(S1xxGridsBase):
         """ Creates a blank, empty or zero value for water_level_trend"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.water_level_trend = self.water_level_trend_type["steady"]
+        self.water_level_trend = self.water_level_trend_type([], self.water_level_trend_dtype)
 
     def get_write_order(self):
         return [self.water_level_height_attribute_name, self.water_level_trend_attribute_name]
 
     def get_compound_dtype(self):
-        return [self.water_level_height_type, self.water_level_trend_type]
+        return [self.water_level_height_dtype, self.water_level_trend_dtype]
 
 
 class WaterLevelGroup(S1xxAttributesBase):
