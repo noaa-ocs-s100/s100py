@@ -270,8 +270,7 @@ def input_data():
     }
 
     metadata = {
-     'horizontalDatumReference': 'EPSG',
-     'horizontalDatumValue': 3855,
+     'horizontalCRS': 3855,
      'metadata': 'MD_s104_test.XML',
      'geographicIdentifier': 'Palau',
      'waterLevelHeightUncertainty': -1.0,
@@ -288,16 +287,16 @@ def input_data():
      'interpolationType': 10,
      'typeOfWaterLevelData': 5,
      'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
-     'datetimeOfFirstRecord': '20200926T161736Z'
+     'datetimeOfFirstRecord': '2020-09-26T16:00:00'
 
     }
 
-    datetime_value = datetime.datetime(2021, 1, 7, 12, 0, 0)
+    datetime_value = datetime.datetime(2020, 9, 26, 15, 0, 0)
 
     data_coding_format = 2
 
     update_meta = {
-        'dateTimeOfLastRecord': '20200926T171736Z',
+        'dateTimeOfLastRecord': '2020-09-26T17:00:00',
         'numberOfGroups': 2,
         'numberOfTimes': 2,
         'timeRecordInterval': 3600,
@@ -308,7 +307,7 @@ def input_data():
 
     expected_groupf = numpy.array([
         ('waterLevelHeight', 'Water level height', 'meters', '-9999', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
-        ('waterLevelTrend', 'Water level trend', '', '0', 'H5T_NATIVE_INT16', '1', '3', 'closedInterval'),
+        ('waterLevelTrend', 'Water level trend', '', '0', 'H5T_ENUM', '1', '3', 'closedInterval'),
         ('waterLevelTime', 'Water level time', 'DateTime', '', 'H5T_C_S1', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
         dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
 
@@ -345,4 +344,6 @@ def test_create_s104_dcf2(input_data):
                           input_data.trend_002)
     assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal'] == input_data.height_001.shape[0]
     assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal'] == input_data.height_001.shape[1]
+    print(h5_file['Group_F/WaterLevel'][()])
+    print("expected", input_data.expected_groupf)
     assert all([actual == expected for actual, expected in zip(h5_file['Group_F/WaterLevel'][()], input_data.expected_groupf)])

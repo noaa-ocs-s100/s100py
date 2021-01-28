@@ -67,7 +67,7 @@ def create_s104(output_file) -> S104File:
     water_level_trend_info.code = "waterLevelTrend"
     water_level_trend_info.name = "Water level trend"
     water_level_trend_info.unit_of_measure = ""
-    water_level_trend_info.datatype = "H5T_NATIVE_INT16"
+    water_level_trend_info.datatype = "H5T_ENUM"
     water_level_trend_info.fill_value = FILLVALUE_TREND
     water_level_trend_info.lower = "1"
     water_level_trend_info.upper = "3"
@@ -219,9 +219,7 @@ def add_metadata(metadata: dict, data_file) -> S104File:
 
     root.product_specification = S104File.PRODUCT_SPECIFICATION
     root.metadata = metadata["metadata"]
-    root.horizontal_datum_reference = metadata["horizontalDatumReference"]
-    root.horizontal_datum_value = metadata["horizontalDatumValue"]
-    # root.epoch = metadata["epoch"]
+    root.horizontal_crs = metadata["horizontalCRS"]
     root.geographic_identifier = metadata["geographicIdentifier"]
     root.water_level_trend_threshold = metadata["waterLevelTrendThreshold"]
     root.vertical_coordinate_system = metadata["verticalCS"]
@@ -233,8 +231,8 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     water_level_feature.time_uncertainty = metadata["timeUncertainty"]
     water_level_feature.vertical_uncertainty = metadata["verticalUncertainty"]
     water_level_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
-    water_level_feature.type_of_water_level_data = metadata["typeOfWaterLevelData"]
     water_level_feature.method_water_level_product = metadata["methodWaterLevelProduct"]
+    water_level_feature_instance_01.type_of_water_level_data = metadata["typeOfWaterLevelData"]
     water_level_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
 
     return data_file
@@ -331,7 +329,7 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         water_level_feature.max_dataset_height = max_height
 
     if numpy.ma.is_masked(height):
-        height = height.filled(FILLVALUE)
+        height = height.filled(FILLVALUE_HEIGHT)
 
     height = numpy.round(height, decimals=2)
     trend.astype(int)

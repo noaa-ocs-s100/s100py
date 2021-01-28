@@ -12,7 +12,7 @@ from s100py.s100 import S100Root, S100Exception, FeatureContainerDCF2, FeatureIn
 
 WATER_LEVEL = "WaterLevel"
 
-FILLVALUE_HEIGHT = -9999
+FILLVALUE_HEIGHT = -9999.0
 FILLVALUE_TREND = 0
 
 TYPE_OF_WATER_LEVEL_DATA = Enum(value="TYPE_OF_WATER_LEVEL_DATA",
@@ -401,6 +401,7 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
     water_level_group_attribute_name = "Group" + r"[\._]\d+"
     uncertainty_dataset_attribute_name = "uncertainty"
     number_of_nodes_attribute_name = "numberOfNodes"
+    type_of_water_level_data_attribute_name = "typeOfWaterLevelData"
 
     @property
     def water_level_group_type(self):
@@ -480,6 +481,25 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
         self.positioning_group = self.positioning_group_type()
 
 
+    @property
+    def type_of_water_level_data(self) -> TYPE_OF_WATER_LEVEL_DATA:
+        return self._attributes[self.type_of_water_level_data_attribute_name]
+
+    @type_of_water_level_data.setter
+    def type_of_water_level_data(self, val: Union[int, str, TYPE_OF_WATER_LEVEL_DATA]):
+        self.set_enum_attribute(val, self.type_of_water_level_data_attribute_name, self.type_of_water_level_data_type)
+
+    @property
+    def type_of_water_level_data_type(self) -> Type[TYPE_OF_WATER_LEVEL_DATA]:
+        return TYPE_OF_WATER_LEVEL_DATA
+
+    def type_of_water_level_data_create(self):
+        """ Creates a value using the first item in the enumeration of type_of_water_level_data"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.type_of_water_level_data = list(self.type_of_water_level_data_type)[0]
+
+
 class WaterLevelList(S104MetadataListBase):
     """
     This is the set of WaterLevel.NN that act like a list here.
@@ -510,7 +530,6 @@ class WaterLevelContainer(FeatureContainerDCF2):
     min_dataset_height_attribute_name = "minDatasetHeight"
     max_dataset_height_attribute_name = "maxDatasetHeight"
     method_water_level_product_attribute_name = "methodWaterLevelProduct"
-    type_of_water_level_data_attribute_name = "typeOfWaterLevelData"
 
     @property
     def __version__(self) -> int:
@@ -592,29 +611,10 @@ class WaterLevelContainer(FeatureContainerDCF2):
         return str
 
     def method_water_level_product_create(self):
-        """ Creates a blank, empty or zero value for method_currents_product"""
+        """ Creates a blank, empty or zero value for method_water_level_product"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.method_currents_product = self.method_water_level_product_type()
-
-    @property
-    def type_of_water_level_data(self) -> TYPE_OF_WATER_LEVEL_DATA:
-        return self._attributes[self.type_of_water_level_data_attribute_name]
-
-    @type_of_water_level_data.setter
-    def type_of_water_level_data(self, val: Union[int, str, TYPE_OF_WATER_LEVEL_DATA]):
-        self.set_enum_attribute(val, self.type_of_water_level_data_attribute_name, self.type_of_water_level_data_type)
-
-    @property
-    def type_of_water_level_data_type(self) -> Type[TYPE_OF_WATER_LEVEL_DATA]:
-        return TYPE_OF_WATER_LEVEL_DATA
-
-    def type_of_water_level_data_create(self):
-        """ Creates a value using the first item in the enumeration of type_of_water_level_data"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.type_of_water_level_data = list(self.type_of_water_level_data_type)[0]
-
+        self.method_water_level_product = self.method_water_level_product_type()
 
 class WaterLevelFeatureDataset(FeatureInformationDataset):
     """Create group_f feature dataset"""
@@ -677,6 +677,8 @@ class S104Root(S100Root):
     vertical_coordinate_system_attribute_name = "verticalCS"
     vertical_coordinate_base_attribute_name = "verticalCoordinateBase"
     vertical_datum_reference_attribute_name = "verticalDatumReference"
+    vertical_datum_epsg_attribute_name = "verticalDatum"
+    horizontal_crs_attribute_name = "horizontalCRS"
 
     @property
     def __version__(self) -> int:
@@ -716,7 +718,7 @@ class S104Root(S100Root):
         return numpy.float32
 
     def water_level_trend_threshold_create(self):
-        """ Creates a blank, empty or zero value for surface_current_depth"""
+        """ Creates a blank, empty or zero value for water level trend threshold"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.water_level_trend_threshold = self.water_level_trend_threshold_type()
@@ -735,7 +737,7 @@ class S104Root(S100Root):
         return numpy.int32
 
     def vertical_coordinate_system_create(self):
-        """ Creates a blank, empty or zero value for surface_current_depth"""
+        """ Creates a blank, empty or zero value for vertical coordinate system"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.vertical_coordinate_system = self.vertical_coordinate_system_type()
@@ -777,6 +779,45 @@ class S104Root(S100Root):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.vertical_datum_reference = list(self.vertical_datum_reference_type)[0]
+
+    @property
+    def vertical_datum_epsg(self) -> S1xxAttributesBase:
+        """EPSG code for vertical datum for verticalDatumReference = 2"""
+        return self._attributes[self.vertical_datum_attribute_name]
+
+    @vertical_datum_epsg.setter
+    def vertical_datum_epsg(self, val: S1xxAttributesBase):
+        self._attributes[self.vertical_datum_attribute_name] = val
+
+    @property
+    def vertical_datum_epsg_type(self) -> Type[numpy.int32]:
+        """Define datatype"""
+        return numpy.int32
+
+    def vertical_datum_epsg_create(self):
+        """ Creates a blank, empty or zero value for vertical_datum_epsg"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.vertical_datum_epsg = self.vertical_datum_epsg_type()
+
+    @property
+    def horizontal_crs(self) -> S1xxAttributesBase:
+        return self._attributes[self.horizontal_crs_attribute_name]
+
+    @horizontal_crs.setter
+    def horizontal_crs(self, val: S1xxAttributesBase):
+        self._attributes[self.horizontal_crs_attribute_name] = val
+
+    @property
+    def horizontal_crs_type(self) -> Type[numpy.int32]:
+        """Define S104 datatype"""
+        return numpy.int32
+
+    def horizontal_crs_create(self):
+        """ Creates a blank, empty or zero value for horizontal crs"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.horizontal_crs = self.horizontal_crs_type()
 
 
 class DiscoveryMetadata(S1xxAttributesBase):
