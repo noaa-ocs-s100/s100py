@@ -65,8 +65,8 @@ class S104MetadataListBase(S1xxMetadataListBase):
 
 class WaterLevelUncertaintyInformation(S1xxAttributesBase):
     """S100 code and uncertainty of data values"""
-    name_attribute_name = "name"  #: HDF5 naming
-    value_attribute_name = "value"  #: HDF5 naming
+    __name_attribute_name__ = "name"  #: HDF5 naming
+    __value_attribute_name__ = "value"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -79,15 +79,15 @@ class WaterLevelUncertaintyInformation(S1xxAttributesBase):
         Returns:
             str: Name of the data ("waterLevelHeight" or "waterLevelTrend")
         """
-        return self._attributes[self.name_attribute_name]
+        return self._attributes[self.__name_attribute_name__]
 
     @name.setter
     def name(self, val: str):
         """Incoming value datatype validation"""
-        self._attributes[self.name_attribute_name] = val
+        self._attributes[self.__name_attribute_name__] = val
 
     @property
-    def name_type(self):
+    def __name_type__(self):
         """Uncertainty name datatype"""
         return str
 
@@ -95,20 +95,20 @@ class WaterLevelUncertaintyInformation(S1xxAttributesBase):
         """Create empty object"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.name = self.name_type()
+        self.name = self.__name_type__()
 
     @property
     def value(self) -> str:
         """ The uncertainty value"""
-        return self._attributes[self.value_attribute_name]
+        return self._attributes[self.__value_attribute_name__]
 
     @value.setter
     def value(self, val: int):
         """Incoming value datatype validation"""
-        self._attributes[self.value_attribute_name] = val
+        self._attributes[self.__value_attribute_name__] = val
 
     @property
-    def value_type(self):
+    def __value_type__(self):
         """Uncertainty value datatype"""
         return str
 
@@ -116,7 +116,7 @@ class WaterLevelUncertaintyInformation(S1xxAttributesBase):
         """Create empty object"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.value = self.value_type()
+        self.value = self.__value_type__()
 
 
 class WaterLevelUncertaintyDataset(S1xxDatasetBase):
@@ -138,8 +138,8 @@ class WaterLevelUncertaintyDataset(S1xxDatasetBase):
 
 
 class GeometryValuesDataset(S1xxGridsBase):
-    longitude_attribute_name = "longitude"
-    latitude_attribute_name = "latitude"
+    __longitude_attribute_name__ = "longitude"
+    __latitude_attribute_name__ = "latitude"
 
     @property
     def __version__(self) -> int:
@@ -153,15 +153,15 @@ class GeometryValuesDataset(S1xxGridsBase):
     @property
     def longitude(self) -> s1xx_sequence:
         """Get the data"""
-        return self._attributes[self.longitude_attribute_name]
+        return self._attributes[self.__longitude_attribute_name__]
 
     @longitude.setter
     def longitude(self, val: s1xx_sequence):
         """Potential validation or other checks/changes to incoming data"""
-        self._attributes[self.longitude_attribute_name] = val
+        self._attributes[self.__longitude_attribute_name__] = val
 
     @property
-    def longitude_type(self) -> s1xx_sequence:
+    def __longitude_type__(self) -> s1xx_sequence:
         """S100 Datatype"""
         return numpy.ndarray
 
@@ -174,20 +174,20 @@ class GeometryValuesDataset(S1xxGridsBase):
         """ Creates a blank, empty or zero value for longitude"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.longitude = self.longitude_type([], self.longitude_dtype)
+        self.longitude = self.__longitude_type__([], self.longitude_dtype)
 
     @property
     def latitude(self) -> s1xx_sequence:
         """Get the data"""
-        return self._attributes[self.latitude_attribute_name]
+        return self._attributes[self.__latitude_attribute_name__]
 
     @latitude.setter
     def latitude(self, val: s1xx_sequence):
         """Potential validation or other checks/changes to incoming data"""
-        self._attributes[self.latitude_attribute_name] = val
+        self._attributes[self.__latitude_attribute_name__] = val
 
     @property
-    def latitude_type(self) -> s1xx_sequence:
+    def __latitude_type__(self) -> s1xx_sequence:
         """S100 Datatype"""
         return numpy.ndarray
 
@@ -200,11 +200,11 @@ class GeometryValuesDataset(S1xxGridsBase):
         """ Creates a blank, empty or zero value for latitude"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.latitude = self.latitude_type([], self.latitude_dtype)
+        self.latitude = self.__latitude_type__([], self.latitude_dtype)
 
     def get_write_order(self):
         """Specify order of attributes for ordered dict"""
-        return [self.longitude_attribute_name, self.latitude_attribute_name]
+        return [self.__longitude_attribute_name__, self.__latitude_attribute_name__]
 
     def get_compound_dtype(self):
         return [self.longitude_dtype, self.latitude_dtype]
@@ -212,7 +212,7 @@ class GeometryValuesDataset(S1xxGridsBase):
 
 class PositioningGroup(S1xxAttributesBase):
 
-    geometry_values_attribute_name = "geometry_values"
+    __geometry_values_attribute_name__ = "geometry_values"
 
     @property
     def __version__(self) -> int:
@@ -234,14 +234,14 @@ class PositioningGroup(S1xxAttributesBase):
     @property
     def geometry_values(self) -> GeometryValuesDataset:
         """Get the data"""
-        return self._attributes[self.geometry_values_attribute_name]
+        return self._attributes[self.__geometry_values_attribute_name__]
 
     @geometry_values.setter
     def geometry_values(self, val: GeometryValuesDataset):
-        self._attributes[self.geometry_values_attribute_name] = val
+        self._attributes[self.__geometry_values_attribute_name__] = val
 
     @property
-    def geometry_values_type(self) -> Type[GeometryValuesDataset]:
+    def __geometry_values_type__(self) -> Type[GeometryValuesDataset]:
         """S100 Datatype"""
         return GeometryValuesDataset
 
@@ -249,13 +249,13 @@ class PositioningGroup(S1xxAttributesBase):
         """ Creates a blank, empty or zero value for geometry_values"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.geometry_values = self.geometry_values_type()
+        self.geometry_values = self.__geometry_values_type__()
 
 
 class WaterLevelValues(S1xxGridsBase):
     """NNN Group Datasets"""
-    water_level_height_attribute_name = "waterLevelHeight"
-    water_level_trend_attribute_name = "waterLevelTrend"
+    __water_level_height_attribute_name__ = "waterLevelHeight"
+    __water_level_trend_attribute_name__ = "waterLevelTrend"
 
     @property
     def __version__(self) -> int:
@@ -272,14 +272,14 @@ class WaterLevelValues(S1xxGridsBase):
     @property
     def water_level_height(self) -> s1xx_sequence:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.water_level_height_attribute_name]
+        return self._attributes[self.__water_level_height_attribute_name__]
 
     @water_level_height.setter
     def water_level_height(self, val: s1xx_sequence):
-        self._attributes[self.water_level_height_attribute_name] = val
+        self._attributes[self.__water_level_height_attribute_name__] = val
 
     @property
-    def water_level_height_type(self) -> s1xx_sequence:
+    def __water_level_height_type__(self) -> s1xx_sequence:
         """Define array datatype"""
         return numpy.ndarray
 
@@ -292,19 +292,19 @@ class WaterLevelValues(S1xxGridsBase):
         """ Creates a blank, empty or zero value for water_level_height"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.water_level_height = self.water_level_height_type([], self.water_level_height_dtype)
+        self.water_level_height = self.__water_level_height_type__([], self.water_level_height_dtype)
 
     @property
     def water_level_trend(self) -> WaterLevelTrend:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.water_level_trend_attribute_name]
+        return self._attributes[self.__water_level_trend_attribute_name__]
 
     @water_level_trend.setter
     def water_level_trend(self, val: Union[int, str, WaterLevelTrend]):
-        self.set_enum_attribute(val, self.water_level_trend_attribute_name, self.water_level_trend_type)
+        self.set_enum_attribute(val, self.__water_level_trend_attribute_name__, self.__water_level_trend_type__)
 
     @property
-    def water_level_trend_type(self) -> s1xx_sequence:
+    def __water_level_trend_type__(self) -> s1xx_sequence:
         """Define datatype"""
         return numpy.ndarray
 
@@ -317,10 +317,10 @@ class WaterLevelValues(S1xxGridsBase):
         """ Creates a blank, empty or zero value for water_level_trend"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.water_level_trend = self.water_level_trend_type([], self.water_level_trend_dtype)
+        self.water_level_trend = self.__water_level_trend_type__([], self.water_level_trend_dtype)
 
     def get_write_order(self):
-        return [self.water_level_height_attribute_name, self.water_level_trend_attribute_name]
+        return [self.__water_level_height_attribute_name__, self.__water_level_trend_attribute_name__]
 
     def get_compound_dtype(self):
         return [self.water_level_height_dtype, self.water_level_trend_dtype]
@@ -328,39 +328,39 @@ class WaterLevelValues(S1xxGridsBase):
 
 class WaterLevelGroup(S1xxAttributesBase):
 
-    values_attribute_name = "values"
-    time_point_attribute_name = "timePoint"
+    __values_attribute_name__ = "values"
+    __time_point_attribute_name__ = "timePoint"
 
     @property
     def values(self) -> WaterLevelValues:
         """Plain text name of the dataset (e.g values)"""
-        return self._attributes[self.values_attribute_name]
+        return self._attributes[self.__values_attribute_name__]
 
     @values.setter
     def values(self, val: WaterLevelValues):
-        self._attributes[self.values_attribute_name] = val
+        self._attributes[self.__values_attribute_name__] = val
 
     @property
-    def values_type(self) -> Type[WaterLevelValues]:
+    def __values_type__(self) -> Type[WaterLevelValues]:
         return WaterLevelValues
 
     def values_create(self):
         """ Creates a blank, empty or zero value for values"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.values = self.values_type()
+        self.values = self.__values_type__()
 
     @property
     def time_point(self) -> S1xxAttributesBase:
         """Defines the conversion from python naming to HDF5 (S100) naming"""
-        return self._attributes[self.time_point_attribute_name]
+        return self._attributes[self.__time_point_attribute_name__]
 
     @time_point.setter
     def time_point(self, val: S1xxAttributesBase):
-        self._attributes[self.time_point_attribute_name] = val
+        self._attributes[self.__time_point_attribute_name__] = val
 
     @property
-    def time_point_type(self) -> Type[str]:
+    def __time_point_type__(self) -> Type[str]:
         """Attribute datatype"""
         return str
 
@@ -368,7 +368,7 @@ class WaterLevelGroup(S1xxAttributesBase):
         """ Creates a blank, empty or zero value for time_point"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.time_point = self.time_point_type()
+        self.time_point = self.__time_point_type__()
 
     @property
     def __version__(self) -> int:
@@ -398,79 +398,79 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
     Attribute name will be automatically determined based on the array position
     of the S104_MetadataList
     """
-    water_level_group_attribute_name = "Group" + r"[\._]\d+"
-    uncertainty_dataset_attribute_name = "uncertainty"
-    number_of_nodes_attribute_name = "numberOfNodes"
-    type_of_water_level_data_attribute_name = "typeOfWaterLevelData"
+    __water_level_group_attribute_name__ = "Group" + r"[\._]\d+"
+    __uncertainty_dataset_attribute_name__ = "uncertainty"
+    __number_of_nodes_attribute_name__ = "numberOfNodes"
+    __type_of_water_level_data_attribute_name__ = "typeOfWaterLevelData"
 
     @property
-    def water_level_group_type(self):
+    def __water_level_group_type__(self):
         return WaterLevelGroupList
 
     def water_level_group_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.water_level_group = self.water_level_group_type()
+        self.water_level_group = self.__water_level_group_type__()
 
     @property
     def water_level_group(self) -> S1xxMetadataListBase:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.water_level_group_attribute_name]
+        return self._attributes[self.__water_level_group_attribute_name__]
 
     @water_level_group.setter
     def water_level_group(self, val: S1xxMetadataListBase):
-        self._attributes[self.water_level_group_attribute_name] = val
+        self._attributes[self.__water_level_group_attribute_name__] = val
 
     @property
     def number_of_nodes(self) -> S1xxAttributesBase:
-        return self._attributes[self.number_of_nodes_attribute_name]
+        return self._attributes[self.__number_of_nodes_attribute_name__]
 
     @number_of_nodes.setter
     def number_of_nodes(self, val: S1xxAttributesBase):
-        self._attributes[self.number_of_nodes_attribute_name] = val
+        self._attributes[self.__number_of_nodes_attribute_name__] = val
 
     @property
-    def number_of_nodes_type(self) -> Type[numpy.int32]:
+    def __number_of_nodes_type__(self) -> Type[numpy.int32]:
         return numpy.int32
 
     def number_of_nodes_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.number_of_nodes = self.number_of_nodes_type()
+        self.number_of_nodes = self.__number_of_nodes_type__()
 
     @property
     def uncertainty_dataset(self) -> S1xxDatasetBase:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.uncertainty_dataset_attribute_name]
+        return self._attributes[self.__uncertainty_dataset_attribute_name__]
 
     @uncertainty_dataset.setter
     def uncertainty_dataset(self, val: S1xxDatasetBase):
-        self._attributes[self.uncertainty_dataset_attribute_name] = val
+        self._attributes[self.__uncertainty_dataset_attribute_name__] = val
 
     @property
-    def uncertainty_dataset_type(self) -> Type[WaterLevelUncertaintyDataset]:
+    def __uncertainty_dataset_type__(self) -> Type[WaterLevelUncertaintyDataset]:
         return WaterLevelUncertaintyDataset
 
     def uncertainty_dataset_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.uncertainty_dataset = self.uncertainty_dataset_type()
+        self.uncertainty_dataset = self.__uncertainty_dataset_type__()
 
     @property
-    def positioning_group_attribute_name(self) -> str:
+    def __positioning_group_attribute_name__(self) -> str:
         return "Positioning"
 
     @property
     def positioning_group(self) -> S1xxAttributesBase:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.positioning_group_attribute_name]
+        return self._attributes[self.__positioning_group_attribute_name__]
 
     @positioning_group.setter
     def positioning_group(self, val: S1xxAttributesBase):
-        self._attributes[self.positioning_group_attribute_name] = val
+        self._attributes[self.__positioning_group_attribute_name__] = val
 
     @property
-    def positioning_group_type(self):
+    def __positioning_group_type__(self):
         """Defines datatype"""
         return PositioningGroup
 
@@ -478,26 +478,26 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
         """ Creates a blank, empty or zero value for positioning_group"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.positioning_group = self.positioning_group_type()
+        self.positioning_group = self.__positioning_group_type__()
 
 
     @property
     def type_of_water_level_data(self) -> TYPE_OF_WATER_LEVEL_DATA:
-        return self._attributes[self.type_of_water_level_data_attribute_name]
+        return self._attributes[self.__type_of_water_level_data_attribute_name__]
 
     @type_of_water_level_data.setter
     def type_of_water_level_data(self, val: Union[int, str, TYPE_OF_WATER_LEVEL_DATA]):
-        self.set_enum_attribute(val, self.type_of_water_level_data_attribute_name, self.type_of_water_level_data_type)
+        self.set_enum_attribute(val, self.__type_of_water_level_data_attribute_name__, self.__type_of_water_level_data_type__)
 
     @property
-    def type_of_water_level_data_type(self) -> Type[TYPE_OF_WATER_LEVEL_DATA]:
+    def __type_of_water_level_data_type__(self) -> Type[TYPE_OF_WATER_LEVEL_DATA]:
         return TYPE_OF_WATER_LEVEL_DATA
 
     def type_of_water_level_data_create(self):
         """ Creates a value using the first item in the enumeration of type_of_water_level_data"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.type_of_water_level_data = list(self.type_of_water_level_data_type)[0]
+        self.type_of_water_level_data = list(self.__type_of_water_level_data_type__)[0]
 
 
 class WaterLevelList(S104MetadataListBase):
@@ -526,23 +526,23 @@ class WaterLevelContainer(FeatureContainerDCF2):
 
     #: Basic template for the name of the attribute
     #: Attribute name will be automatically determined based on the containing list's index
-    water_level_attribute_name = WATER_LEVEL + r"[\._]\d+"
-    min_dataset_height_attribute_name = "minDatasetHeight"
-    max_dataset_height_attribute_name = "maxDatasetHeight"
-    method_water_level_product_attribute_name = "methodWaterLevelProduct"
+    __water_level_attribute_name__ = WATER_LEVEL + r"[\._]\d+"
+    __min_dataset_height_attribute_name__ = "minDatasetHeight"
+    __max_dataset_height_attribute_name__ = "maxDatasetHeight"
+    __method_water_level_product_attribute_name__ = "methodWaterLevelProduct"
 
     @property
     def __version__(self) -> int:
         return 1
 
     @property
-    def water_level_type(self):
+    def __water_level_type__(self):
         return WaterLevelList
 
     def water_level_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.water_level = self.water_level_type()
+        self.water_level = self.__water_level_type__()
 
     @property
     def water_level(self) -> S104MetadataListBase:
@@ -552,23 +552,23 @@ class WaterLevelContainer(FeatureContainerDCF2):
             S104_MetadataList_base: Contains a list of WaterLevel objects
             via the WaterLevel_List class
         """
-        return self._attributes[self.water_level_attribute_name]
+        return self._attributes[self.__water_level_attribute_name__]
 
     @water_level.setter
     def water_level(self, val: S104MetadataListBase):
-        self._attributes[self.water_level_attribute_name] = val
+        self._attributes[self.__water_level_attribute_name__] = val
 
     @property
     def min_dataset_height(self) -> S1xxAttributesBase:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.min_dataset_height_attribute_name]
+        return self._attributes[self.__min_dataset_height_attribute_name__]
 
     @min_dataset_height.setter
     def min_dataset_height(self, val: S1xxAttributesBase):
-        self._attributes[self.min_dataset_height_attribute_name] = val
+        self._attributes[self.__min_dataset_height_attribute_name__] = val
 
     @property
-    def min_dataset_height_type(self) -> Type[float]:
+    def __min_dataset_height_type__(self) -> Type[float]:
         """Defines datatype"""
         return float
 
@@ -576,18 +576,18 @@ class WaterLevelContainer(FeatureContainerDCF2):
         """ Creates a blank, empty or zero value for min_dataset_height"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.min_dataset_height = self.min_dataset_height_type()
+        self.min_dataset_height = self.__min_dataset_height_type__()
 
     @property
     def max_dataset_height(self) -> S1xxAttributesBase:
-        return self._attributes[self.max_dataset_height_attribute_name]
+        return self._attributes[self.__max_dataset_height_attribute_name__]
 
     @max_dataset_height.setter
     def max_dataset_height(self, val: S1xxAttributesBase):
-        self._attributes[self.max_dataset_height_attribute_name] = val
+        self._attributes[self.__max_dataset_height_attribute_name__] = val
 
     @property
-    def max_dataset_height_type(self) -> Type[numpy.float32]:
+    def __max_dataset_height_type__(self) -> Type[numpy.float32]:
         """Defines datatype"""
         return numpy.float32
 
@@ -595,18 +595,18 @@ class WaterLevelContainer(FeatureContainerDCF2):
         """ Creates a blank, empty or zero value for max_dataset_height"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.max_dataset_height = self.max_dataset_height_type()
+        self.max_dataset_height = self.__max_dataset_height_type__()
 
     @property
     def method_water_level_product(self) -> S1xxAttributesBase:
-        return self._attributes[self.method_water_level_product_attribute_name]
+        return self._attributes[self.__method_water_level_product_attribute_name__]
 
     @method_water_level_product.setter
     def method_water_level_product(self, val: S1xxAttributesBase):
-        self._attributes[self.method_water_level_product_attribute_name] = val
+        self._attributes[self.__method_water_level_product_attribute_name__] = val
 
     @property
-    def method_water_level_product_type(self) -> Type[str]:
+    def __method_water_level_product_type__(self) -> Type[str]:
         """Defines datatype"""
         return str
 
@@ -614,7 +614,7 @@ class WaterLevelContainer(FeatureContainerDCF2):
         """ Creates a blank, empty or zero value for method_water_level_product"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.method_water_level_product = self.method_water_level_product_type()
+        self.method_water_level_product = self.__method_water_level_product_type__()
 
 class WaterLevelFeatureDataset(FeatureInformationDataset):
     """Create group_f feature dataset"""
@@ -637,7 +637,7 @@ class WaterLevelFeatureDataset(FeatureInformationDataset):
 class GroupF(GroupFBase):
     """From S100 Table 10c-8 – Components of feature information group"""
 
-    water_level_feature_dataset_attribute_name = WATER_LEVEL
+    __water_level_feature_dataset_attribute_name__ = WATER_LEVEL
 
     @property
     def __version__(self) -> int:
@@ -646,24 +646,24 @@ class GroupF(GroupFBase):
     def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.feature_code = self.feature_code_type([WATER_LEVEL], dtype=h5py_string_dtype)
+        self.feature_code = self.__feature_code_type__([WATER_LEVEL], dtype=h5py_string_dtype)
 
     @property
-    def water_level_feature_dataset_type(self):
+    def __water_level_feature_dataset_type__(self):
         return WaterLevelFeatureDataset
 
     def water_level_feature_dataset_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.water_level_feature_dataset = self.water_level_feature_dataset_type()
+        self.water_level_feature_dataset = self.__water_level_feature_dataset_type__()
 
     @property
     def water_level_feature_dataset(self) -> WaterLevelFeatureDataset:
-        return self._attributes[self.water_level_feature_dataset_attribute_name]
+        return self._attributes[self.__water_level_feature_dataset_attribute_name__]
 
     @water_level_feature_dataset.setter
     def water_level_feature_dataset(self, val: WaterLevelFeatureDataset):
-        self._attributes[self.water_level_feature_dataset_attribute_name] = val
+        self._attributes[self.__water_level_feature_dataset_attribute_name__] = val
 
 
 class S104Root(S100Root):
@@ -672,67 +672,67 @@ class S104Root(S100Root):
     The coverage names are determined from the matching CoveragesAttributes
     Table 3 of v0.0.7
     """
-    water_level_attribute_name = WATER_LEVEL
-    water_level_trend_threshold_attribute_name = "waterLevelTrendThreshold"
-    vertical_coordinate_system_attribute_name = "verticalCS"
-    vertical_coordinate_base_attribute_name = "verticalCoordinateBase"
-    vertical_datum_reference_attribute_name = "verticalDatumReference"
-    vertical_datum_epsg_attribute_name = "verticalDatum"
-    horizontal_crs_attribute_name = "horizontalCRS"
+    __water_level_attribute_name__ = WATER_LEVEL
+    __water_level_trend_threshold_attribute_name__ = "waterLevelTrendThreshold"
+    __vertical_coordinate_system_attribute_name__ = "verticalCS"
+    __vertical_coordinate_base_attribute_name__ = "verticalCoordinateBase"
+    __vertical_datum_reference_attribute_name__ = "verticalDatumReference"
+    __vertical_datum_epsg_attribute_name__ = "verticalDatum"
+    __horizontal_crs_attribute_name__ = "horizontalCRS"
 
     @property
     def __version__(self) -> int:
         return 1
 
     @property
-    def feature_information_type(self):
+    def __feature_information_type__(self):
         return GroupF
 
     @property
     def water_level(self) -> S1xxAttributesBase:
-        return self._attributes[self.water_level_attribute_name]
+        return self._attributes[self.__water_level_attribute_name__]
 
     @property
-    def water_level_type(self):
+    def __water_level_type__(self):
         return WaterLevelContainer
 
     def water_level_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.water_level = self.water_level_type()
+        self.water_level = self.__water_level_type__()
 
     @water_level.setter
     def water_level(self, val: S1xxAttributesBase):
-        self._attributes[self.water_level_attribute_name] = val
+        self._attributes[self.__water_level_attribute_name__] = val
 
     @property
     def water_level_trend_threshold(self) -> S1xxAttributesBase:
-        return self._attributes[self.water_level_trend_threshold_attribute_name]
+        return self._attributes[self.__water_level_trend_threshold_attribute_name__]
 
     @water_level_trend_threshold.setter
     def water_level_trend_threshold(self, val: S1xxAttributesBase):
-        self._attributes[self.water_level_trend_threshold_attribute_name] = val
+        self._attributes[self.__water_level_trend_threshold_attribute_name__] = val
 
     @property
-    def water_level_trend_threshold_type(self) -> Type[numpy.float32]:
+    def __water_level_trend_threshold_type__(self) -> Type[numpy.float32]:
         return numpy.float32
 
     def water_level_trend_threshold_create(self):
         """ Creates a blank, empty or zero value for water level trend threshold"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.water_level_trend_threshold = self.water_level_trend_threshold_type()
+        self.water_level_trend_threshold = self.__water_level_trend_threshold_type__()
 
     @property
     def vertical_coordinate_system(self) -> S1xxAttributesBase:
-        return self._attributes[self.vertical_coordinate_system_attribute_name]
+        return self._attributes[self.__vertical_coordinate_system_attribute_name__]
 
     @vertical_coordinate_system.setter
     def vertical_coordinate_system(self, val: S1xxAttributesBase):
-        self._attributes[self.vertical_coordinate_system_attribute_name] = val
+        self._attributes[self.__vertical_coordinate_system_attribute_name__] = val
 
     @property
-    def vertical_coordinate_system_type(self) -> Type[numpy.int32]:
+    def __vertical_coordinate_system_type__(self) -> Type[numpy.int32]:
         """Define S104 datatype"""
         return numpy.int32
 
@@ -740,18 +740,18 @@ class S104Root(S100Root):
         """ Creates a blank, empty or zero value for vertical coordinate system"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_coordinate_system = self.vertical_coordinate_system_type()
+        self.vertical_coordinate_system = self.__vertical_coordinate_system_type__()
 
     @property
     def vertical_coordinate_base(self) -> VERTICAL_COORDINATE_BASE:
-        return self._attributes[self.vertical_coordinate_base_attribute_name]
+        return self._attributes[self.__vertical_coordinate_base_attribute_name__]
 
     @vertical_coordinate_base.setter
     def vertical_coordinate_base(self, val: Union[int, str, VERTICAL_COORDINATE_BASE]):
-        self.set_enum_attribute(val, self.vertical_coordinate_base_attribute_name, self.vertical_coordinate_base_type)
+        self.set_enum_attribute(val, self.__vertical_coordinate_base_attribute_name__, self.__vertical_coordinate_base_type__)
 
     @property
-    def vertical_coordinate_base_type(self) -> Type[VERTICAL_COORDINATE_BASE]:
+    def __vertical_coordinate_base_type__(self) -> Type[VERTICAL_COORDINATE_BASE]:
         """Enumeration data type"""
         return VERTICAL_COORDINATE_BASE
 
@@ -759,18 +759,18 @@ class S104Root(S100Root):
         """ Creates a value using the first item in the enumeration of vertical_coordinate_base"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_coordinate_base = list(self.vertical_coordinate_base_type)[0]
+        self.vertical_coordinate_base = list(self.__vertical_coordinate_base_type__)[0]
 
     @property
     def vertical_datum_reference(self) -> VERTICAL_DATUM_REFERENCE:
-        return self._attributes[self.vertical_datum_reference_attribute_name]
+        return self._attributes[self.__vertical_datum_reference_attribute_name__]
 
     @vertical_datum_reference.setter
     def vertical_datum_reference(self, val: Union[int, str, VERTICAL_DATUM_REFERENCE]):
-        self.set_enum_attribute(val, self.vertical_datum_reference_attribute_name, self.vertical_datum_reference_type)
+        self.set_enum_attribute(val, self.__vertical_datum_reference_attribute_name__, self.__vertical_datum_reference_type__)
 
     @property
-    def vertical_datum_reference_type(self) -> Type[VERTICAL_DATUM_REFERENCE]:
+    def __vertical_datum_reference_type__(self) -> Type[VERTICAL_DATUM_REFERENCE]:
         """Defines enumeration datatype"""
         return VERTICAL_DATUM_REFERENCE
 
@@ -778,19 +778,19 @@ class S104Root(S100Root):
         """ Creates a value using the first item in the enumeration of vertical_datum_reference"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum_reference = list(self.vertical_datum_reference_type)[0]
+        self.vertical_datum_reference = list(self.__vertical_datum_reference_type__)[0]
 
     @property
     def vertical_datum_epsg(self) -> S1xxAttributesBase:
         """EPSG code for vertical datum for verticalDatumReference = 2"""
-        return self._attributes[self.vertical_datum_attribute_name]
+        return self._attributes[self.__vertical_datum_attribute_name__]
 
     @vertical_datum_epsg.setter
     def vertical_datum_epsg(self, val: S1xxAttributesBase):
-        self._attributes[self.vertical_datum_attribute_name] = val
+        self._attributes[self.__vertical_datum_attribute_name__] = val
 
     @property
-    def vertical_datum_epsg_type(self) -> Type[numpy.int32]:
+    def __vertical_datum_epsg_type__(self) -> Type[numpy.int32]:
         """Define datatype"""
         return numpy.int32
 
@@ -798,18 +798,18 @@ class S104Root(S100Root):
         """ Creates a blank, empty or zero value for vertical_datum_epsg"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum_epsg = self.vertical_datum_epsg_type()
+        self.vertical_datum_epsg = self.__vertical_datum_epsg_type__()
 
     @property
     def horizontal_crs(self) -> S1xxAttributesBase:
-        return self._attributes[self.horizontal_crs_attribute_name]
+        return self._attributes[self.__horizontal_crs_attribute_name__]
 
     @horizontal_crs.setter
     def horizontal_crs(self, val: S1xxAttributesBase):
-        self._attributes[self.horizontal_crs_attribute_name] = val
+        self._attributes[self.__horizontal_crs_attribute_name__] = val
 
     @property
-    def horizontal_crs_type(self) -> Type[numpy.int32]:
+    def __horizontal_crs_type__(self) -> Type[numpy.int32]:
         """Define S104 datatype"""
         return numpy.int32
 
@@ -817,7 +817,7 @@ class S104Root(S100Root):
         """ Creates a blank, empty or zero value for horizontal crs"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.horizontal_crs = self.horizontal_crs_type()
+        self.horizontal_crs = self.__horizontal_crs_type__()
 
 
 class DiscoveryMetadata(S1xxAttributesBase):

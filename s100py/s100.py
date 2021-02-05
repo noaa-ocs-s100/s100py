@@ -215,8 +215,8 @@ START_SEQUENCE = numpy.string_('0,0')
 class DirectPosition(S1xxAttributesBase):
     """ 4.2.1.1.4 of v2.0.0
     """
-    coordinate_attribute_name = "coordinate"  #: HDF5 naming
-    dimension_attribute_name = "dimension"  #: HDF5 naming
+    __coordinate_attribute_name__ = "coordinate"  #: HDF5 naming
+    __dimension_attribute_name__ = "dimension"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -224,44 +224,44 @@ class DirectPosition(S1xxAttributesBase):
 
     @property
     def coordinate(self) -> s1xx_sequence:
-        return self._attributes[self.coordinate_attribute_name]
+        return self._attributes[self.__coordinate_attribute_name__]
 
     @coordinate.setter
     def coordinate(self, val: s1xx_sequence):
-        self._attributes[self.coordinate_attribute_name] = val
+        self._attributes[self.__coordinate_attribute_name__] = val
 
     @property
-    def coordinate_type(self):
+    def __coordinate_type__(self):
         return numpy.ndarray
 
     def coordinate_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.coordinate = self.coordinate_type([2], numpy.float64)
+        self.coordinate = self.__coordinate_type__([2], numpy.float64)
 
     @property
     def dimension(self) -> int:
-        return self._attributes[self.dimension_attribute_name]
+        return self._attributes[self.__dimension_attribute_name__]
 
     @dimension.setter
     def dimension(self, val: int):
-        self._attributes[self.dimension_attribute_name] = val
+        self._attributes[self.__dimension_attribute_name__] = val
 
     @property
-    def dimension_type(self):
+    def __dimension_type__(self):
         return int
 
     def dimension_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.dimension = self.dimension_type()
+        self.dimension = self.__dimension_type__()
 
 
 class GridCoordinate(S1xxAttributesBase):
     """ 4.2.1.1.6 of v2.0.0
     """
 
-    coord_values_attribute_name = "coordValues"  #: HDF5 naming
+    __coord_values_attribute_name__ = "coordValues"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -272,20 +272,20 @@ class GridCoordinate(S1xxAttributesBase):
         """The attribute coordValues has the value class Sequence Integer that shall hold one integer value for each dimension of the grid.
         The ordering of these coordinate values shall be the same as that of the elements of axisNames.
         The value of a single coordinate shall be the number of offsets from the origin of the grid in the direction of a specific axis"""
-        return self._attributes[self.coord_values_attribute_name]
+        return self._attributes[self.__coord_values_attribute_name__]
 
     @coord_values.setter
     def coord_values(self, val: s1xx_sequence):
-        self._attributes[self.coord_values_attribute_name] = val
+        self._attributes[self.__coord_values_attribute_name__] = val
 
     @property
-    def coord_values_type(self):
+    def __coord_values_type__(self):
         return numpy.ndarray
 
     def coord_values_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.coord_values = self.coord_values_type([2], numpy.int)
+        self.coord_values = self.__coord_values_type__([2], numpy.int)
 
 
 class GridEnvelope(S1xxAttributesBase):
@@ -298,8 +298,8 @@ class GridEnvelope(S1xxAttributesBase):
     https://www.fgdc.gov/standards/projects/frameword-data-standard/GI_FrameworkDataStandard_Part3_Elevation.doc/at_download/file&usg=AOvVaw07QEsNy5urachwIO1e4ALU
     """
 
-    low_attribute_name = "low"  #: HDF5 naming
-    high_attribute_name = "high"  #: HDF5 naming
+    __low_attribute_name__ = "low"  #: HDF5 naming
+    __high_attribute_name__ = "high"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -307,37 +307,37 @@ class GridEnvelope(S1xxAttributesBase):
 
     @property
     def low(self) -> S1xxAttributesBase:
-        return self._attributes[self.low_attribute_name]
+        return self._attributes[self.__low_attribute_name__]
 
     @low.setter
     def low(self, val: S1xxAttributesBase):
-        self._attributes[self.low_attribute_name] = val
+        self._attributes[self.__low_attribute_name__] = val
 
     @property
-    def low_type(self):
+    def __low_type__(self):
         return GridCoordinate
 
     def low_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.low = self.low_type()
+        self.low = self.__low_type__()
 
     @property
     def high(self) -> S1xxAttributesBase:
-        return self._attributes[self.high_attribute_name]
+        return self._attributes[self.__high_attribute_name__]
 
     @high.setter
     def high(self, val: S1xxAttributesBase):
-        self._attributes[self.high_attribute_name] = val
+        self._attributes[self.__high_attribute_name__] = val
 
     @property
-    def high_type(self):
+    def __high_type__(self):
         return GridCoordinate
 
     def high_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.high = self.high_type()
+        self.high = self.__high_type__()
 
 
 class SequenceRule(S1xxAttributesBase):
@@ -345,8 +345,8 @@ class SequenceRule(S1xxAttributesBase):
     CV_SequenceRule specified in ISO 19123
     """
 
-    type_attribute_name = "type"  #: HDF5 naming
-    scan_direction_attribute_name = "scanDirection"  #: HDF5 naming
+    __type_attribute_name__ = "type"  #: HDF5 naming
+    __scan_direction_attribute_name__ = "scanDirection"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -361,20 +361,20 @@ class SequenceRule(S1xxAttributesBase):
         CodeList types are sets of strings (enumerations if all options are known).
         For SequenceType linear is lowercase while Morton is capitalized.
         """
-        return self._attributes[self.type_attribute_name]
+        return self._attributes[self.__type_attribute_name__]
 
     @type.setter
     def type(self, val: str):
-        self._attributes[self.type_attribute_name] = val
+        self._attributes[self.__type_attribute_name__] = val
 
     @property
-    def type_type(self):
+    def __type_type__(self):
         return str
 
     def type_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.type = self.type_type("linear")
+        self.type = self.__type_type__("linear")
 
     @property
     def scan_direction(self) -> s1xx_sequence:
@@ -382,27 +382,27 @@ class SequenceRule(S1xxAttributesBase):
         the order in which grid points shall be mapped to position within the sequence of records of feature attribute values.
         The scan direction for all layers in S-102 is "Longitude" and "Latitude" or west to east, then south to north.
         """
-        return self._attributes[self.scan_direction_attribute_name]
+        return self._attributes[self.__scan_direction_attribute_name__]
 
     @scan_direction.setter
     def scan_direction(self, val: s1xx_sequence):
-        self._attributes[self.scan_direction_attribute_name] = val
+        self._attributes[self.__scan_direction_attribute_name__] = val
 
     @property
-    def scan_direction_type(self):
+    def __scan_direction_type__(self):
         return str
 
     def scan_direction_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.scan_direction = self.scan_direction_type("Longitude, Latitude")
+        self.scan_direction = self.__scan_direction_type__("Longitude, Latitude")
 
 
 class Point(S1xxAttributesBase):
     """ 4.2.1.1.11 of v2.0.0
     The class GM_Point is taken from ISO 19107 and is the basic data type for a geometric object consisting of one and only one point.
     """
-    position_attribute_name = "position"  #: HDF5 naming
+    __position_attribute_name__ = "position"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -412,20 +412,20 @@ class Point(S1xxAttributesBase):
     def position(self) -> DirectPosition:
         """ DirectPosition - see Figure 7-3 in S100 v4.0.0
         """
-        return self._attributes[self.position_attribute_name]
+        return self._attributes[self.__position_attribute_name__]
 
     @position.setter
     def position(self, val: DirectPosition):
-        self._attributes[self.position_attribute_name] = val
+        self._attributes[self.__position_attribute_name__] = val
 
     @property
-    def position_type(self):
+    def __position_type__(self):
         return DirectPosition
 
     def position_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.position = self.position_type()
+        self.position = self.__position_type__()
 
 
 class GeographicExtent(S1xxAttributesBase):
@@ -438,7 +438,7 @@ class GeographicExtent(S1xxAttributesBase):
     There is one attribute and one subtype.
     """
 
-    extent_type_code_attribute_name = "extentTypeCode"  #: HDF5 naming
+    __extent_type_code_attribute_name__ = "extentTypeCode"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -450,20 +450,20 @@ class GeographicExtent(S1xxAttributesBase):
         It is used to indicate whether the bounding polygon/box encompasses an area covered by the data or an area where data is not present.
         In S-102 it is set to 1.
         """
-        return self._attributes[self.extent_type_code_attribute_name]
+        return self._attributes[self.__extent_type_code_attribute_name__]
 
     @extent_type_code.setter
     def extent_type_code(self, val: bool):
-        self._attributes[self.extent_type_code_attribute_name] = val
+        self._attributes[self.__extent_type_code_attribute_name__] = val
 
     @property
-    def extent_type_code_type(self):
+    def __extent_type_code_type__(self):
         return bool
 
     def extent_type_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.extent_type_code = self.extent_type_code_type()
+        self.extent_type_code = self.__extent_type_code_type__()
 
 
 class GeographicBoundingBox(GeographicExtent):
@@ -481,10 +481,10 @@ class GeographicBoundingBox(GeographicExtent):
     The bounds must either all be populated or all omitted
     """
 
-    west_bound_longitude_attribute_name = "westBoundLongitude"  #: HDF5 naming
-    east_bound_longitude_attribute_name = "eastBoundLongitude"  #: HDF5 naming
-    south_bound_latitude_attribute_name = "southBoundLatitude"  #: HDF5 naming
-    north_bound_latitude_attribute_name = "northBoundLatitude"  #: HDF5 naming
+    __west_bound_longitude_attribute_name__ = "westBoundLongitude"  #: HDF5 naming
+    __east_bound_longitude_attribute_name__ = "eastBoundLongitude"  #: HDF5 naming
+    __south_bound_latitude_attribute_name__ = "southBoundLatitude"  #: HDF5 naming
+    __north_bound_latitude_attribute_name__ = "northBoundLatitude"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -493,74 +493,74 @@ class GeographicBoundingBox(GeographicExtent):
     @property
     def west_bound_longitude(self) -> float:
         """Western extent"""
-        return self._attributes[self.west_bound_longitude_attribute_name]
+        return self._attributes[self.__west_bound_longitude_attribute_name__]
 
     @west_bound_longitude.setter
     def west_bound_longitude(self, val: float):
-        self._attributes[self.west_bound_longitude_attribute_name] = val
+        self._attributes[self.__west_bound_longitude_attribute_name__] = val
 
     @property
-    def west_bound_longitude_type(self):
+    def __west_bound_longitude_type__(self):
         return float
 
     def west_bound_longitude_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.west_bound_longitude = self.west_bound_longitude_type()
+        self.west_bound_longitude = self.__west_bound_longitude_type__()
 
     @property
     def east_bound_longitude(self) -> float:
         """Eastern extent"""
-        return self._attributes[self.east_bound_longitude_attribute_name]
+        return self._attributes[self.__east_bound_longitude_attribute_name__]
 
     @east_bound_longitude.setter
     def east_bound_longitude(self, val: float):
-        self._attributes[self.east_bound_longitude_attribute_name] = val
+        self._attributes[self.__east_bound_longitude_attribute_name__] = val
 
     @property
-    def east_bound_longitude_type(self):
+    def __east_bound_longitude_type__(self):
         return float
 
     def east_bound_longitude_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.east_bound_longitude = self.east_bound_longitude_type()
+        self.east_bound_longitude = self.__east_bound_longitude_type__()
 
     @property
     def south_bound_latitude(self) -> float:
         """Southern extent"""
-        return self._attributes[self.south_bound_latitude_attribute_name]
+        return self._attributes[self.__south_bound_latitude_attribute_name__]
 
     @south_bound_latitude.setter
     def south_bound_latitude(self, val: float):
-        self._attributes[self.south_bound_latitude_attribute_name] = val
+        self._attributes[self.__south_bound_latitude_attribute_name__] = val
 
     @property
-    def south_bound_latitude_type(self):
+    def __south_bound_latitude_type__(self):
         return float
 
     def south_bound_latitude_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.south_bound_latitude = self.south_bound_latitude_type()
+        self.south_bound_latitude = self.__south_bound_latitude_type__()
 
     @property
     def north_bound_latitude(self) -> float:
         """Northern extent"""
-        return self._attributes[self.north_bound_latitude_attribute_name]
+        return self._attributes[self.__north_bound_latitude_attribute_name__]
 
     @north_bound_latitude.setter
     def north_bound_latitude(self, val: float):
-        self._attributes[self.north_bound_latitude_attribute_name] = val
+        self._attributes[self.__north_bound_latitude_attribute_name__] = val
 
     @property
-    def north_bound_latitude_type(self):
+    def __north_bound_latitude_type__(self):
         return float
 
     def north_bound_latitude_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.north_bound_latitude = self.north_bound_latitude_type()
+        self.north_bound_latitude = self.__north_bound_latitude_type__()
 
 
 class VertexPoint(S1xxAttributesBase):
@@ -568,8 +568,8 @@ class VertexPoint(S1xxAttributesBase):
 
     """
 
-    geometry_attribute_name = "geometry"  #: HDF5 naming
-    value_attribute_name = "value"  # HDF5 naming
+    __geometry_attribute_name__ = "geometry"  #: HDF5 naming
+    __value_attribute_name__ = "value"  # HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -578,20 +578,20 @@ class VertexPoint(S1xxAttributesBase):
     @property
     def geometry(self) -> Point:
         """ Derived from ISO 19107, referenced figure 7-3 and 8-A-5 of S100 v4.0.0"""
-        return self._attributes[self.geometry_attribute_name]
+        return self._attributes[self.__geometry_attribute_name__]
 
     @geometry.setter
     def geometry(self, val: Point):
-        self._attributes[self.geometry_attribute_name] = val
+        self._attributes[self.__geometry_attribute_name__] = val
 
     @property
-    def geometry_type(self):
+    def __geometry_type__(self):
         return Point
 
     def geometry_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.geometry = self.geometry_type()
+        self.geometry = self.__geometry_type__()
 
     @property
     def value(self) -> s1xx_sequence:
@@ -604,35 +604,35 @@ class VertexPoint(S1xxAttributesBase):
 
         It is an ISO 19103 class Record
         """
-        return self._attributes[self.value_attribute_name]
+        return self._attributes[self.__value_attribute_name__]
 
     @value.setter
     def value(self, val: s1xx_sequence):
-        self._attributes[self.value_attribute_name] = val
+        self._attributes[self.__value_attribute_name__] = val
 
     @property
-    def value_type(self):
+    def __value_type__(self):
         return numpy.ndarray
 
     def value_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.value = self.value_type([2, ], numpy.float)
+        self.value = self.__value_type__([2, ], numpy.float)
 
 
 class FeatureInstanceBase(GeographicBoundingBox):
     """ The feature instance group attributes from table 10c-12 in S100 spec
     """
 
-    vertical_extent_minimum_z_attribute_name = "verticalExtent.minimumZ"
-    vertical_extent_maximum_z_attribute_name = "verticalExtent.maximumZ"
-    num_grp_attribute_name = "numGRP"
-    instance_chunking_attribute_name = "instanceChunking"
-    number_of_times_attribute_name = "numberOfTimes"
-    time_record_interval_attribute_name = "timeRecordInterval"
+    __vertical_extent_minimum_z_attribute_name__ = "verticalExtent.minimumZ"
+    __vertical_extent_maximum_z_attribute_name__ = "verticalExtent.maximumZ"
+    __num_grp_attribute_name__ = "numGRP"
+    __instance_chunking_attribute_name__ = "instanceChunking"
+    __number_of_times_attribute_name__ = "numberOfTimes"
+    __time_record_interval_attribute_name__ = "timeRecordInterval"
     # @TODO  @FIXME -- first and last records are supposed to be datetime but S100 doc says 'character'  Need to create a datetime handler
-    date_time_of_first_record_attribute_name = "dateTimeOfFirstRecord"
-    date_time_of_last_record_attribute_name = "dateTimeOfLastRecord"
+    __date_time_of_first_record_attribute_name__ = "dateTimeOfFirstRecord"
+    __date_time_of_last_record_attribute_name__ = "dateTimeOfLastRecord"
 
     def write(self, hdf5_object):
         super().write(hdf5_object)
@@ -658,61 +658,61 @@ class FeatureInstanceBase(GeographicBoundingBox):
         """Vertical extent of 3-D grids
         minimumZ, maximumZ: Minimum and maximum values of the grid’s spatial extent
         along the vertical direction. They are encoded as separate attributes"""
-        return self._attributes[self.vertical_extent_minimum_z_attribute_name]
+        return self._attributes[self.__vertical_extent_minimum_z_attribute_name__]
 
     @vertical_extent_minimum_z.setter
     def vertical_extent_minimum_z(self, val: float):
-        self._attributes[self.vertical_extent_minimum_z_attribute_name] = val
+        self._attributes[self.__vertical_extent_minimum_z_attribute_name__] = val
 
     @property
-    def vertical_extent_minimum_z_type(self) -> Type[float]:
+    def __vertical_extent_minimum_z_type__(self) -> Type[float]:
         return float
 
     def vertical_extent_minimum_z_create(self):
         """ Creates a blank, empty or zero value for vertical_extent_minimum_z"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_extent_minimum_z = self.vertical_extent_minimum_z_type()
+        self.vertical_extent_minimum_z = self.__vertical_extent_minimum_z_type__()
 
     @property
     def vertical_extent_maximum_z(self) -> float:
         """Vertical extent of 3-D grids
         minimumZ, maximumZ: Minimum and maximum values of the grid’s spatial extent
         along the vertical direction. They are encoded as separate attributes"""
-        return self._attributes[self.vertical_extent_maximum_z_attribute_name]
+        return self._attributes[self.__vertical_extent_maximum_z_attribute_name__]
 
     @vertical_extent_maximum_z.setter
     def vertical_extent_maximum_z(self, val: float):
-        self._attributes[self.vertical_extent_maximum_z_attribute_name] = val
+        self._attributes[self.__vertical_extent_maximum_z_attribute_name__] = val
 
     @property
-    def vertical_extent_maximum_z_type(self) -> Type[float]:
+    def __vertical_extent_maximum_z_type__(self) -> Type[float]:
         return float
 
     def vertical_extent_maximum_z_create(self):
         """ Creates a blank, empty or zero value for vertical_extent_maximum_z"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_extent_maximum_z = self.vertical_extent_maximum_z_type()
+        self.vertical_extent_maximum_z = self.__vertical_extent_maximum_z_type__()
 
     @property
     def num_grp(self) -> int:
         """The number of data values groups contained in this instance group"""
-        return self._attributes[self.num_grp_attribute_name]
+        return self._attributes[self.__num_grp_attribute_name__]
 
     @num_grp.setter
     def num_grp(self, val: int):
-        self._attributes[self.num_grp_attribute_name] = val
+        self._attributes[self.__num_grp_attribute_name__] = val
 
     @property
-    def num_grp_type(self) -> Type[int]:
+    def __num_grp_type__(self) -> Type[int]:
         return int
 
     def num_grp_create(self):
         """ Creates a blank, empty or zero value for num_grp"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.num_grp = self.num_grp_type()
+        self.num_grp = self.__num_grp_type__()
 
     @property
     def instance_chunking(self) -> str:
@@ -731,7 +731,7 @@ class FeatureInstanceBase(GeographicBoundingBox):
         values dataset is its array rank, not the number of spatial dimensions for the coverage
         feature"""
 
-        return self._attributes[self.instance_chunking_attribute_name]
+        return self._attributes[self.__instance_chunking_attribute_name__]
 
     @instance_chunking.setter
     def instance_chunking(self, val: Union[str, list, tuple]):
@@ -739,235 +739,235 @@ class FeatureInstanceBase(GeographicBoundingBox):
             pass
         else:
             val = ",".join(str(a) for a in val)
-        self._attributes[self.instance_chunking_attribute_name] = val
+        self._attributes[self.__instance_chunking_attribute_name__] = val
 
     @property
-    def instance_chunking_type(self) -> Type[str]:
+    def __instance_chunking_type__(self) -> Type[str]:
         return str
 
     def instance_chunking_create(self):
         """ Creates a blank, empty or zero value for instance_chunking"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.instance_chunking = self.instance_chunking_type()
+        self.instance_chunking = self.__instance_chunking_type__()
 
     @property
     def number_of_times(self) -> int:
         """The total number of time records.
         Time series data only"""
-        return self._attributes[self.number_of_times_attribute_name]
+        return self._attributes[self.__number_of_times_attribute_name__]
 
     @number_of_times.setter
     def number_of_times(self, val: int):
-        self._attributes[self.number_of_times_attribute_name] = val
+        self._attributes[self.__number_of_times_attribute_name__] = val
 
     @property
-    def number_of_times_type(self) -> Type[int]:
+    def __number_of_times_type__(self) -> Type[int]:
         return int
 
     def number_of_times_create(self):
         """ Creates a blank, empty or zero value for number_of_times"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.number_of_times = self.number_of_times_type()
+        self.number_of_times = self.__number_of_times_type__()
 
     @property
     def time_record_interval(self) -> int:
         """The interval between time records. Units: Seconds.
         Time series data only"""
-        return self._attributes[self.time_record_interval_attribute_name]
+        return self._attributes[self.__time_record_interval_attribute_name__]
 
     @time_record_interval.setter
     def time_record_interval(self, val: int):
-        self._attributes[self.time_record_interval_attribute_name] = val
+        self._attributes[self.__time_record_interval_attribute_name__] = val
 
     @property
-    def time_record_interval_type(self) -> Type[int]:
+    def __time_record_interval_type__(self) -> Type[int]:
         return int
 
     def time_record_interval_create(self):
         """ Creates a blank, empty or zero value for time_record_interval"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.time_record_interval = self.time_record_interval_type()
+        self.time_record_interval = self.__time_record_interval_type__()
 
     @property
     def date_time_of_first_record(self) -> str:
         """The validity time of the earliest time record. Units: DateTime.
         Time series data only"""
-        return self._attributes[self.date_time_of_first_record_attribute_name]
+        return self._attributes[self.__date_time_of_first_record_attribute_name__]
 
     @date_time_of_first_record.setter
     def date_time_of_first_record(self, val: str):
-        self._attributes[self.date_time_of_first_record_attribute_name] = val
+        self._attributes[self.__date_time_of_first_record_attribute_name__] = val
 
     @property
-    def date_time_of_first_record_type(self) -> Type[str]:
+    def __date_time_of_first_record_type__(self) -> Type[str]:
         return str
 
     def date_time_of_first_record_create(self):
         """ Creates a blank, empty or zero value for date_time_of_first_record"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.date_time_of_first_record = self.date_time_of_first_record_type()
+        self.date_time_of_first_record = self.__date_time_of_first_record_type__()
 
     @property
     def date_time_of_last_record(self) -> str:
         """The validity time of the latest time record. Units: DateTime.
         Time series data only"""
-        return self._attributes[self.date_time_of_last_record_attribute_name]
+        return self._attributes[self.__date_time_of_last_record_attribute_name__]
 
     @date_time_of_last_record.setter
     def date_time_of_last_record(self, val: str):
-        self._attributes[self.date_time_of_last_record_attribute_name] = val
+        self._attributes[self.__date_time_of_last_record_attribute_name__] = val
 
     @property
-    def date_time_of_last_record_type(self) -> Type[str]:
+    def __date_time_of_last_record_type__(self) -> Type[str]:
         return str
 
     def date_time_of_last_record_create(self):
         """ Creates a blank, empty or zero value for date_time_of_last_record"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.date_time_of_last_record = self.date_time_of_last_record_type()
+        self.date_time_of_last_record = self.__date_time_of_last_record_type__()
 
 
 class GridOrigin:
     """ Mixin class for gridOriginLatitude/Longitude/Vertical.
     Used in Data Conding Formats 2,5,6
     """
-    grid_origin_longitude_attribute_name = "gridOriginLongitude"
-    grid_origin_latitude_attribute_name = "gridOriginLatitude"
-    grid_origin_vertical_attribute_name = "gridOriginVertical"
+    __grid_origin_longitude_attribute_name__ = "gridOriginLongitude"
+    __grid_origin_latitude_attribute_name__ = "gridOriginLatitude"
+    __grid_origin_vertical_attribute_name__ = "gridOriginVertical"
 
     @property
     def grid_origin_longitude(self) -> float:
         """The longitude of the grid origin. Unit: Arc Degrees"""
-        return self._attributes[self.grid_origin_longitude_attribute_name]
+        return self._attributes[self.__grid_origin_longitude_attribute_name__]
 
     @grid_origin_longitude.setter
     def grid_origin_longitude(self, val: float):
-        self._attributes[self.grid_origin_longitude_attribute_name] = val
+        self._attributes[self.__grid_origin_longitude_attribute_name__] = val
 
     @property
-    def grid_origin_longitude_type(self) -> Type[float]:
+    def __grid_origin_longitude_type__(self) -> Type[float]:
         return float
 
     def grid_origin_longitude_create(self):
         """ Creates a blank, empty or zero value for grid_origin_longitude"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.grid_origin_longitude = self.grid_origin_longitude_type()
+        self.grid_origin_longitude = self.__grid_origin_longitude_type__()
 
     @property
     def grid_origin_latitude(self) -> float:
         """The latitude of the grid origin. Arc Degrees"""
-        return self._attributes[self.grid_origin_latitude_attribute_name]
+        return self._attributes[self.__grid_origin_latitude_attribute_name__]
 
     @grid_origin_latitude.setter
     def grid_origin_latitude(self, val: float):
-        self._attributes[self.grid_origin_latitude_attribute_name] = val
+        self._attributes[self.__grid_origin_latitude_attribute_name__] = val
 
     @property
-    def grid_origin_latitude_type(self) -> Type[float]:
+    def __grid_origin_latitude_type__(self) -> Type[float]:
         return float
 
     def grid_origin_latitude_create(self):
         """ Creates a blank, empty or zero value for grid_origin_latitude"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.grid_origin_latitude = self.grid_origin_latitude_type()
+        self.grid_origin_latitude = self.__grid_origin_latitude_type__()
 
     @property
     def grid_origin_vertical(self) -> float:
         """The grid origin in the vertical dimension. Only for 3-D grids. Units specified by product specifications"""
-        return self._attributes[self.grid_origin_vertical_attribute_name]
+        return self._attributes[self.__grid_origin_vertical_attribute_name__]
 
     @grid_origin_vertical.setter
     def grid_origin_vertical(self, val: float):
-        self._attributes[self.grid_origin_vertical_attribute_name] = val
+        self._attributes[self.__grid_origin_vertical_attribute_name__] = val
 
     @property
-    def grid_origin_vertical_type(self) -> Type[float]:
+    def __grid_origin_vertical_type__(self) -> Type[float]:
         return float
 
     def grid_origin_vertical_create(self):
         """ Creates a blank, empty or zero value for grid_origin_vertical"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.grid_origin_vertical = self.grid_origin_vertical_type()
+        self.grid_origin_vertical = self.__grid_origin_vertical_type__()
 
 
 class GridSpacing:
     """Mixin class for gridSpacingLongitudinal/Latitudinal/Vertical.  Probably used with :class:`GridOrigin`
     in Data Conding Formats 2,5,6"""
-    grid_spacing_longitudinal_attribute_name = "gridSpacingLongitudinal"
-    grid_spacing_latitudinal_attribute_name = "gridSpacingLatitudinal"
-    grid_spacing_vertical_attribute_name = "gridSpacingVertical"
+    __grid_spacing_longitudinal_attribute_name__ = "gridSpacingLongitudinal"
+    __grid_spacing_latitudinal_attribute_name__ = "gridSpacingLatitudinal"
+    __grid_spacing_vertical_attribute_name__ = "gridSpacingVertical"
 
     @property
     def grid_spacing_longitudinal(self) -> float:
         """Cell size in the X/longitude dimension. This is the X/longitudinal component of the
         offset vector (8-7.1.4). Units: Arc Degrees"""
-        return self._attributes[self.grid_spacing_longitudinal_attribute_name]
+        return self._attributes[self.__grid_spacing_longitudinal_attribute_name__]
 
     @grid_spacing_longitudinal.setter
     def grid_spacing_longitudinal(self, val: float):
-        self._attributes[self.grid_spacing_longitudinal_attribute_name] = val
+        self._attributes[self.__grid_spacing_longitudinal_attribute_name__] = val
 
     @property
-    def grid_spacing_longitudinal_type(self) -> Type[float]:
+    def __grid_spacing_longitudinal_type__(self) -> Type[float]:
         return float
 
     def grid_spacing_longitudinal_create(self):
         """ Creates a blank, empty or zero value for grid_spacing_longitudinal"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.grid_spacing_longitudinal = self.grid_spacing_longitudinal_type()
+        self.grid_spacing_longitudinal = self.__grid_spacing_longitudinal_type__()
 
     @property
     def grid_spacing_latitudinal(self) -> float:
         """Cell size in the Y/latitude dimension. This is the Y/latitudinal component of the offset
         vector (8-7.1.4). Units: Arc Degrees"""
-        return self._attributes[self.grid_spacing_latitudinal_attribute_name]
+        return self._attributes[self.__grid_spacing_latitudinal_attribute_name__]
 
     @grid_spacing_latitudinal.setter
     def grid_spacing_latitudinal(self, val: float):
-        self._attributes[self.grid_spacing_latitudinal_attribute_name] = val
+        self._attributes[self.__grid_spacing_latitudinal_attribute_name__] = val
 
     @property
-    def grid_spacing_latitudinal_type(self) -> Type[float]:
+    def __grid_spacing_latitudinal_type__(self) -> Type[float]:
         return float
 
     def grid_spacing_latitudinal_create(self):
         """ Creates a blank, empty or zero value for grid_spacing_latitudinal"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.grid_spacing_latitudinal = self.grid_spacing_latitudinal_type()
+        self.grid_spacing_latitudinal = self.__grid_spacing_latitudinal_type__()
 
     @property
     def grid_spacing_vertical(self) -> float:
         """Cell size in the vertical dimension. Only for 3-D grids. Units specified by product specifications."""
-        return self._attributes[self.grid_spacing_vertical_attribute_name]
+        return self._attributes[self.__grid_spacing_vertical_attribute_name__]
 
     @grid_spacing_vertical.setter
     def grid_spacing_vertical(self, val: float):
-        self._attributes[self.grid_spacing_vertical_attribute_name] = val
+        self._attributes[self.__grid_spacing_vertical_attribute_name__] = val
 
     @property
-    def grid_spacing_vertical_type(self) -> Type[float]:
+    def __grid_spacing_vertical_type__(self) -> Type[float]:
         return float
 
     def grid_spacing_vertical_create(self):
         """ Creates a blank, empty or zero value for grid_spacing_vertical"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.grid_spacing_vertical = self.grid_spacing_vertical_type()
+        self.grid_spacing_vertical = self.__grid_spacing_vertical_type__()
 
 
 class StartSequence:
     """Mixin class for startSequence.  Data Coding Formats 2,5,6 """
-    start_sequence_attribute_name = "startSequence"
+    __start_sequence_attribute_name__ = "startSequence"
 
     @property
     def start_sequence(self) -> str:
@@ -976,87 +976,87 @@ class StartSequence:
         sequencing rule. Format: n, n… (comma-separated list of grid points, one per
         dimension – For example, 0,0)
         """
-        return self._attributes[self.start_sequence_attribute_name]
+        return self._attributes[self.__start_sequence_attribute_name__]
 
     @start_sequence.setter
     def start_sequence(self, val: str):
-        self._attributes[self.start_sequence_attribute_name] = val
+        self._attributes[self.__start_sequence_attribute_name__] = val
 
     @property
-    def start_sequence_type(self) -> Type[str]:
+    def __start_sequence_type__(self) -> Type[str]:
         return str
 
     def start_sequence_create(self):
         """ Creates a blank, empty or zero value for start_sequence"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.start_sequence = self.start_sequence_type()
+        self.start_sequence = self.__start_sequence_type__()
 
 
 class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanceBase):
     """ Data Coding Format 2 is the grid format from table 10c-12 in S100 spec.  Used in S102 for example.
     """
 
-    num_points_longitudinal_attribute_name = "numPointsLongitudinal"
-    num_points_latitudinal_attribute_name = "numPointsLatitudinal"
-    num_points_vertical_attribute_name = "numPointsVertical"
+    __num_points_longitudinal_attribute_name__ = "numPointsLongitudinal"
+    __num_points_latitudinal_attribute_name__ = "numPointsLatitudinal"
+    __num_points_vertical_attribute_name__ = "numPointsVertical"
 
     @property
     def num_points_longitudinal(self) -> int:
         """Number of grid points in the X/longitude dimension. (iMax)"""
-        return self._attributes[self.num_points_longitudinal_attribute_name]
+        return self._attributes[self.__num_points_longitudinal_attribute_name__]
 
     @num_points_longitudinal.setter
     def num_points_longitudinal(self, val: int):
-        self._attributes[self.num_points_longitudinal_attribute_name] = val
+        self._attributes[self.__num_points_longitudinal_attribute_name__] = val
 
     @property
-    def num_points_longitudinal_type(self) -> Type[int]:
+    def __num_points_longitudinal_type__(self) -> Type[int]:
         return int
 
     def num_points_longitudinal_create(self):
         """ Creates a blank, empty or zero value for num_points_longitudinal"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.num_points_longitudinal = self.num_points_longitudinal_type()
+        self.num_points_longitudinal = self.__num_points_longitudinal_type__()
 
     @property
     def num_points_latitudinal(self) -> int:
         """Number of grid points in the Y/latitude dimension. (jMax)"""
-        return self._attributes[self.num_points_latitudinal_attribute_name]
+        return self._attributes[self.__num_points_latitudinal_attribute_name__]
 
     @num_points_latitudinal.setter
     def num_points_latitudinal(self, val: int):
-        self._attributes[self.num_points_latitudinal_attribute_name] = val
+        self._attributes[self.__num_points_latitudinal_attribute_name__] = val
 
     @property
-    def num_points_latitudinal_type(self) -> Type[int]:
+    def __num_points_latitudinal_type__(self) -> Type[int]:
         return int
 
     def num_points_latitudinal_create(self):
         """ Creates a blank, empty or zero value for num_points_latitudinal"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.num_points_latitudinal = self.num_points_latitudinal_type()
+        self.num_points_latitudinal = self.__num_points_latitudinal_type__()
 
     @property
     def num_points_vertical(self) -> int:
         """Number of grid points in the vertical dimension. (kMax)"""
-        return self._attributes[self.num_points_vertical_attribute_name]
+        return self._attributes[self.__num_points_vertical_attribute_name__]
 
     @num_points_vertical.setter
     def num_points_vertical(self, val: int):
-        self._attributes[self.num_points_vertical_attribute_name] = val
+        self._attributes[self.__num_points_vertical_attribute_name__] = val
 
     @property
-    def num_points_vertical_type(self) -> Type[int]:
+    def __num_points_vertical_type__(self) -> Type[int]:
         return int
 
     def num_points_vertical_create(self):
         """ Creates a blank, empty or zero value for num_points_vertical"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.num_points_vertical = self.num_points_vertical_type()
+        self.num_points_vertical = self.__num_points_vertical_type__()
 
 
 class FeatureInformation(S1xxAttributesBase):
@@ -1077,86 +1077,86 @@ class FeatureInformation(S1xxAttributesBase):
     feature catalogue (see “S100_FC_SimpleAttribute>constraints” in Part 5 and
     S100_NumericRange in Part 1)
     """
-    code_attribute_name = "code"
-    name_attribute_name = "name"
-    unit_of_measure_attribute_name = "uom.name"
-    fill_value_attribute_name = "fillValue"
-    datatype_attribute_name = "datatype"
-    lower_attribute_name = "lower"
-    upper_attribute_name = "upper"
-    closure_attribute_name = "closure"
+    __code_attribute_name__ = "code"
+    __name_attribute_name__ = "name"
+    __unit_of_measure_attribute_name__ = "uom.name"
+    __fill_value_attribute_name__ = "fillValue"
+    __datatype_attribute_name__ = "datatype"
+    __lower_attribute_name__ = "lower"
+    __upper_attribute_name__ = "upper"
+    __closure_attribute_name__ = "closure"
 
     @property
     def __version__(self) -> int:
         return 1
 
     def get_write_order(self):
-        return [self.code_attribute_name,
-                self.name_attribute_name,
-                self.unit_of_measure_attribute_name,
-                self.fill_value_attribute_name,
-                self.datatype_attribute_name,
-                self.lower_attribute_name,
-                self.upper_attribute_name,
-                self.closure_attribute_name]
+        return [self.__code_attribute_name__,
+                self.__name_attribute_name__,
+                self.__unit_of_measure_attribute_name__,
+                self.__fill_value_attribute_name__,
+                self.__datatype_attribute_name__,
+                self.__lower_attribute_name__,
+                self.__upper_attribute_name__,
+                self.__closure_attribute_name__]
 
     @property
     def code(self) -> str:
         """ Camel case code of attribute as in feature catalogue.
         The “code” and “datatype” components encode the rangeType attribute of the coverage features in Part 8.
         """
-        return self._attributes[self.code_attribute_name]
+        return self._attributes[self.__code_attribute_name__]
 
     @code.setter
     def code(self, val: str):
-        self._attributes[self.code_attribute_name] = val
+        self._attributes[self.__code_attribute_name__] = val
 
     @property
-    def code_type(self):
+    def __code_type__(self):
         return str
 
     def code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.code = self.code_type()
+        self.code = self.__code_type__()
 
     @property
     def name(self) -> str:
         """ Long name as in feature catalogue
         """
-        return self._attributes[self.name_attribute_name]
+        return self._attributes[self.__name_attribute_name__]
 
     @name.setter
     def name(self, val: str):
-        self._attributes[self.name_attribute_name] = val
+        self._attributes[self.__name_attribute_name__] = val
 
     @property
-    def name_type(self):
+    def __name_type__(self):
         return str
 
     def name_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.name = self.name_type()
+        self.name = self.__name_type__()
 
     @property
     def unit_of_measure(self) -> str:
         """ Units of measurement for the dataset.  (uom>name from S-100 feature catalogue)
         """
-        return self._attributes[self.unit_of_measure_attribute_name]
+        return self._attributes[self.__unit_of_measure_attribute_name__]
 
     @unit_of_measure.setter
     def unit_of_measure(self, val: str):
-        self._attributes[self.unit_of_measure_attribute_name] = val
+        self._attributes[self.__unit_of_measure_attribute_name__] = val
 
     @property
-    def unit_of_measure_type(self):
+    def __unit_of_measure_type__(self):
         return str
 
     def unit_of_measure_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.unit_of_measure = self.unit_of_measure_type()
+        self.unit_of_measure = self.__unit_of_measure_type__()
 
     def _python_datatype(self):
         """ Determine what kind of python type best fits the HDF5 type held in the S100 'datatype' attribute.
@@ -1221,24 +1221,24 @@ class FeatureInformation(S1xxAttributesBase):
     def fill_value(self) -> Union[float, int, str]:
         """ Value denoting missing data.  Fill value (integer or float value, string representation)
         """
-        return self._convert_from_string_based_on_datatype(self._attributes[self.fill_value_attribute_name])
+        return self._convert_from_string_based_on_datatype(self._attributes[self.__fill_value_attribute_name__])
 
     @fill_value.setter
     def fill_value(self, val: Union[float, int, str]):
-        self._attributes[self.fill_value_attribute_name] = self._convert_to_string_based_on_datatype(val)
+        self._attributes[self.__fill_value_attribute_name__] = self._convert_to_string_based_on_datatype(val)
 
     @property
-    def fill_value_type(self):
+    def __fill_value_type__(self):
         return self._python_datatype()
 
     def fill_value_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.fill_value = self.fill_value_type()
+        self.fill_value = self.__fill_value_type__()
 
     @property
     def datatype(self) -> str:
-        return self._attributes[self.datatype_attribute_name]
+        return self._attributes[self.__datatype_attribute_name__]
 
     @datatype.setter
     def datatype(self, val: Union[str, int]):
@@ -1251,52 +1251,52 @@ class FeatureInformation(S1xxAttributesBase):
         """
         if isinstance(val, int):
             val = H5T_CLASS_T[val]
-        self._attributes[self.datatype_attribute_name] = val
+        self._attributes[self.__datatype_attribute_name__] = val
 
     @property
-    def datatype_type(self):
+    def __datatype_type__(self):
         return str
 
     def datatype_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.datatype = self.datatype_type()
+        self.datatype = self.__datatype_type__()
 
     @property
     def lower(self) -> Union[float, int, str]:
         """ Lower bound on value of attribute """
-        return self._convert_from_string_based_on_datatype(self._attributes[self.lower_attribute_name])
+        return self._convert_from_string_based_on_datatype(self._attributes[self.__lower_attribute_name__])
 
     @lower.setter
     def lower(self, val: Union[float, int, str]):
-        self._attributes[self.lower_attribute_name] = self._convert_to_string_based_on_datatype(val)
+        self._attributes[self.__lower_attribute_name__] = self._convert_to_string_based_on_datatype(val)
 
     @property
-    def lower_type(self):
+    def __lower_type__(self):
         return self._python_datatype()
 
     def lower_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.lower = self.lower_type()
+        self.lower = self.__lower_type__()
 
     @property
     def upper(self) -> Union[float, int, str]:
         """ Upper bound on attribute value """
-        return self._convert_from_string_based_on_datatype(self._attributes[self.upper_attribute_name])
+        return self._convert_from_string_based_on_datatype(self._attributes[self.__upper_attribute_name__])
 
     @upper.setter
     def upper(self, val: Union[float, int, str]):
-        self._attributes[self.upper_attribute_name] = self._convert_to_string_based_on_datatype(val)
+        self._attributes[self.__upper_attribute_name__] = self._convert_to_string_based_on_datatype(val)
 
     @property
-    def upper_type(self):
+    def __upper_type__(self):
         return self._python_datatype()
 
     def upper_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.upper = self.upper_type()
+        self.upper = self.__upper_type__()
 
     @property
     def closure(self) -> str:
@@ -1311,29 +1311,29 @@ class FeatureInformation(S1xxAttributesBase):
         ltSemiInterval  The right half-open ray       (-∞,a)  x < a
         leSemiInterval  The right closed ray          (-∞,a]  x ≤ a
         """
-        return self._attributes[self.closure_attribute_name]
+        return self._attributes[self.__closure_attribute_name__]
 
     @closure.setter
     def closure(self, val: str):
-        self._attributes[self.closure_attribute_name] = val
+        self._attributes[self.__closure_attribute_name__] = val
 
     @property
-    def closure_type(self):
+    def __closure_type__(self):
         return str
 
     def closure_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.closure = self.closure_type()
+        self.closure = self.__closure_type__()
 
 
 class Chunking:
     """ This is a mixin to supply chunking attributes to any other class """
-    chunking_attribute_name = "chunking"  #: HDF5 naming
+    __chunking_attribute_name__ = "chunking"  #: HDF5 naming
 
     @property
     def chunking(self) -> str:
-        return self._attributes[self.chunking_attribute_name]
+        return self._attributes[self.__chunking_attribute_name__]
 
     @chunking.setter
     def chunking(self, val: Union[str, list, tuple]):
@@ -1341,16 +1341,16 @@ class Chunking:
             pass
         else:
             val = ",".join(str(a) for a in val)
-        self._attributes[self.chunking_attribute_name] = val
+        self._attributes[self.__chunking_attribute_name__] = val
 
     @property
-    def chunking_type(self) -> Type[str]:
+    def __chunking_type__(self) -> Type[str]:
         return str
 
     def chunking_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.chunking = self.chunking_type()
+        self.chunking = self.__chunking_type__()
 
 
 class FeatureInformationDataset(Chunking, S1xxDatasetBase, ABC):
@@ -1368,7 +1368,7 @@ class FeatureInformationDataset(Chunking, S1xxDatasetBase, ABC):
 
 
 class CommonPointRule:
-    common_point_rule_attribute_name = "commonPointRule"
+    __common_point_rule_attribute_name__ = "commonPointRule"
 
     @property
     def common_point_rule(self) -> COMMON_POINT_RULE:
@@ -1378,34 +1378,34 @@ class CommonPointRule:
 
         see :data:`~COMMON_POINT_RULE`
         """
-        return self._attributes[self.common_point_rule_attribute_name]
+        return self._attributes[self.__common_point_rule_attribute_name__]
 
     @common_point_rule.setter
     def common_point_rule(self, val: Union[int, str, COMMON_POINT_RULE]):
-        self.set_enum_attribute(val, self.common_point_rule_attribute_name, self.common_point_rule_type)
+        self.set_enum_attribute(val, self.__common_point_rule_attribute_name__, self.__common_point_rule_type__)
 
     @property
-    def common_point_rule_type(self) -> Type[Enum]:
+    def __common_point_rule_type__(self) -> Type[Enum]:
         return COMMON_POINT_RULE
 
     def common_point_rule_create(self):
         """ Creates a blank, empty or zero value for common_point_rule"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.common_point_rule = self.common_point_rule_type["average"]
+        self.common_point_rule = self.__common_point_rule_type__["average"]
 
 
 class FeatureContainer(CommonPointRule, S1xxAttributesBase):
     """ This class comes from S100 in Table 10c-9 – Structure of feature container groups and
     Table 10c-10 – Attributes of feature container groups
     """
-    axis_names_attribute_name = "axisNames"
-    data_coding_format_attribute_name = "dataCodingFormat"
-    dimension_attribute_name = "dimension"
-    horizontal_position_uncertainty_attribute_name = "horizontalPositionUncertainty"
-    vertical_uncertainty_attribute_name = "verticalUncertainty"
-    time_uncertainty_attribute_name = "timeUncertainty"
-    num_instances_attribute_name = "numInstances"
+    __axis_names_attribute_name__ = "axisNames"
+    __data_coding_format_attribute_name__ = "dataCodingFormat"
+    __dimension_attribute_name__ = "dimension"
+    __horizontal_position_uncertainty_attribute_name__ = "horizontalPositionUncertainty"
+    __vertical_uncertainty_attribute_name__ = "verticalUncertainty"
+    __time_uncertainty_attribute_name__ = "timeUncertainty"
+    __num_instances_attribute_name__ = "numInstances"
 
     def __init__(self, *args, **opts):
         super().__init__(*args, **opts)
@@ -1423,14 +1423,14 @@ class FeatureContainer(CommonPointRule, S1xxAttributesBase):
         Axes should be in major-minor order; that is, if storage is to be in row-major order the
         X/longitude axis should be first.
         """
-        return self._attributes[self.axis_names_attribute_name]
+        return self._attributes[self.__axis_names_attribute_name__]
 
     @axis_names.setter
     def axis_names(self, val: s1xx_sequence):
-        self._attributes[self.axis_names_attribute_name] = val
+        self._attributes[self.__axis_names_attribute_name__] = val
 
     @property
-    def axis_names_type(self) -> Type[str]:
+    def __axis_names_type__(self) -> Type[str]:
         return numpy.array
 
     def axis_names_create(self):
@@ -1443,21 +1443,21 @@ class FeatureContainer(CommonPointRule, S1xxAttributesBase):
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.axis_names = self.axis_names_type(["", ""], dtype=h5py_string_dtype)
+        self.axis_names = self.__axis_names_type__(["", ""], dtype=h5py_string_dtype)
 
     @property
     def data_coding_format(self) -> DATA_CODING_FORMAT:
         """ Indication of the type of coverage in instances of this feature. Used to read the
         data (see Table 10c-4) or :data:`~DATA_CODING_FORMAT`
         """
-        return self._attributes[self.data_coding_format_attribute_name]
+        return self._attributes[self.__data_coding_format_attribute_name__]
 
     @data_coding_format.setter
     def data_coding_format(self, val: int):
-        self.set_enum_attribute(val, self.data_coding_format_attribute_name, self.data_coding_format_type)
+        self.set_enum_attribute(val, self.__data_coding_format_attribute_name__, self.__data_coding_format_type__)
 
     @property
-    def data_coding_format_type(self) -> DATA_CODING_FORMAT:
+    def __data_coding_format_type__(self) -> DATA_CODING_FORMAT:
         return DATA_CODING_FORMAT
 
     @abstractmethod
@@ -1472,63 +1472,63 @@ class FeatureContainer(CommonPointRule, S1xxAttributesBase):
         coordinates or values. For example, a fixed stations dataset with positions in
         latitude and longitude will have dimension=2
         """
-        return self._attributes[self.dimension_attribute_name]
+        return self._attributes[self.__dimension_attribute_name__]
 
     @dimension.setter
     def dimension(self, val: int):
-        self._attributes[self.dimension_attribute_name] = val
+        self._attributes[self.__dimension_attribute_name__] = val
 
     @property
-    def dimension_type(self) -> Type[int]:
+    def __dimension_type__(self) -> Type[int]:
         return int
 
     def dimension_create(self):
         """ Creates a blank, empty or zero value for dimension"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.dimension = self.dimension_type()
+        self.dimension = self.__dimension_type__()
 
     @property
     def horizontal_position_uncertainty(self) -> float:
         """ The uncertainty in horizontal coordinates.
         For example, -1.0 (unknown/inapplicable) or positive value (m)
         """
-        return self._attributes[self.horizontal_position_uncertainty_attribute_name]
+        return self._attributes[self.__horizontal_position_uncertainty_attribute_name__]
 
     @horizontal_position_uncertainty.setter
     def horizontal_position_uncertainty(self, val: float):
-        self._attributes[self.horizontal_position_uncertainty_attribute_name] = val
+        self._attributes[self.__horizontal_position_uncertainty_attribute_name__] = val
 
     @property
-    def horizontal_position_uncertainty_type(self) -> Type[float]:
+    def __horizontal_position_uncertainty_type__(self) -> Type[float]:
         return float
 
     def horizontal_position_uncertainty_create(self):
         """ Creates a blank, empty or zero value for horizontal_position_uncertainty"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.horizontal_position_uncertainty = self.horizontal_position_uncertainty_type()
+        self.horizontal_position_uncertainty = self.__horizontal_position_uncertainty_type__()
 
     @property
     def vertical_uncertainty(self) -> float:
         """ The uncertainty in vertical coordinate(s).
         For example, -1.0 (unknown/inapplicable) or positive value (m)
         """
-        return self._attributes[self.vertical_uncertainty_attribute_name]
+        return self._attributes[self.__vertical_uncertainty_attribute_name__]
 
     @vertical_uncertainty.setter
     def vertical_uncertainty(self, val: float):
-        self._attributes[self.vertical_uncertainty_attribute_name] = val
+        self._attributes[self.__vertical_uncertainty_attribute_name__] = val
 
     @property
-    def vertical_uncertainty_type(self) -> Type[float]:
+    def __vertical_uncertainty_type__(self) -> Type[float]:
         return float
 
     def vertical_uncertainty_create(self):
         """ Creates a blank, empty or zero value for vertical_uncertainty"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_uncertainty = self.vertical_uncertainty_type()
+        self.vertical_uncertainty = self.__vertical_uncertainty_type__()
 
     @property
     def time_uncertainty(self) -> float:
@@ -1537,21 +1537,21 @@ class FeatureContainer(CommonPointRule, S1xxAttributesBase):
 
         Only for time series data
         """
-        return self._attributes[self.time_uncertainty_attribute_name]
+        return self._attributes[self.__time_uncertainty_attribute_name__]
 
     @time_uncertainty.setter
     def time_uncertainty(self, val: float):
-        self._attributes[self.time_uncertainty_attribute_name] = val
+        self._attributes[self.__time_uncertainty_attribute_name__] = val
 
     @property
-    def time_uncertainty_type(self) -> Type[float]:
+    def __time_uncertainty_type__(self) -> Type[float]:
         return float
 
     def time_uncertainty_create(self):
         """ Creates a blank, empty or zero value for time_uncertainty"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.time_uncertainty = self.time_uncertainty_type()
+        self.time_uncertainty = self.__time_uncertainty_type__()
 
     @property
     def num_instances(self) -> int:
@@ -1559,28 +1559,28 @@ class FeatureContainer(CommonPointRule, S1xxAttributesBase):
         (Records in the same time series or moving platform sequence are counted as a
         single instance, not as separate instances)
         """
-        return self._attributes[self.num_instances_attribute_name]
+        return self._attributes[self.__num_instances_attribute_name__]
 
     @num_instances.setter
     def num_instances(self, val: int):
-        self._attributes[self.num_instances_attribute_name] = val
+        self._attributes[self.__num_instances_attribute_name__] = val
 
     @property
-    def num_instances_type(self) -> Type[int]:
+    def __num_instances_type__(self) -> Type[int]:
         return int
 
     def num_instances_create(self):
         """ Creates a blank, empty or zero value for num_instances"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.num_instances = self.num_instances_type()
+        self.num_instances = self.__num_instances_type__()
 
 
 class SequencingRule:
     """ Mixin class for Sequencing Rule.  At least used in Data Coding Format 2,5,6
     """
-    sequencing_rule_type_attribute_name = "sequencingRule.type"
-    sequencing_rule_scan_direction_attribute_name = "sequencingRule.scanDirection"
+    __sequencing_rule_type_attribute_name__ = "sequencingRule.type"
+    __sequencing_rule_scan_direction_attribute_name__ = "sequencingRule.scanDirection"
 
     @property
     def sequencing_rule_type(self) -> SEQUENCING_RULE_TYPE:
@@ -1620,45 +1620,45 @@ class SequencingRule:
         -------
 
         """
-        return self._attributes[self.sequencing_rule_type_attribute_name]
+        return self._attributes[self.__sequencing_rule_type_attribute_name__]
 
     @sequencing_rule_type.setter
     def sequencing_rule_type(self, val: Union[int, str, SEQUENCING_RULE_TYPE]):
-        self.set_enum_attribute(val, self.sequencing_rule_type_attribute_name, self.sequencing_rule_type_type)
+        self.set_enum_attribute(val, self.__sequencing_rule_type_attribute_name__, self.__sequencing_rule_type_type__)
 
     @property
-    def sequencing_rule_type_type(self) -> Type[Enum]:
+    def __sequencing_rule_type_type__(self) -> Type[Enum]:
         return SEQUENCING_RULE_TYPE
 
     def sequencing_rule_type_create(self):
         """ Creates a blank, empty or zero value for sequencing_rule_type"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.sequencing_rule_type = self.sequencing_rule_type_type["linear"]
+        self.sequencing_rule_type = self.__sequencing_rule_type_type__["linear"]
 
     @property
     def sequencing_rule_scan_direction(self) -> str:
-        return self._attributes[self.sequencing_rule_scan_direction_attribute_name]
+        return self._attributes[self.__sequencing_rule_scan_direction_attribute_name__]
 
     @sequencing_rule_scan_direction.setter
     def sequencing_rule_scan_direction(self, val: str):
-        self._attributes[self.sequencing_rule_scan_direction_attribute_name] = val
+        self._attributes[self.__sequencing_rule_scan_direction_attribute_name__] = val
 
     @property
-    def sequencing_rule_scan_direction_type(self) -> Type[str]:
+    def __sequencing_rule_scan_direction_type__(self) -> Type[str]:
         return str
 
     def sequencing_rule_scan_direction_create(self):
         """ Creates a blank, empty or zero value for sequencing_rule_scan_direction"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.sequencing_rule_scan_direction = self.sequencing_rule_scan_direction_type()
+        self.sequencing_rule_scan_direction = self.__sequencing_rule_scan_direction_type__()
 
 
 class InterpolationType:
     """ Mixin class for Interpolation Type.  At least used in Data Coding Format 2,3,4,5,6,7
     """
-    interpolation_type_attribute_name = "interpolationType"
+    __interpolation_type_attribute_name__ = "interpolationType"
 
     @property
     def interpolation_type(self) -> Type[int]:
@@ -1668,70 +1668,70 @@ class InterpolationType:
         -------
 
         """
-        return self._attributes[self.interpolation_type_attribute_name]
+        return self._attributes[self.__interpolation_type_attribute_name__]
 
     @interpolation_type.setter
     def interpolation_type(self, val: Union[int, str, INTERPOLATION_TYPE]):
-        self.set_enum_attribute(val, self.interpolation_type_attribute_name, self.interpolation_type_type)
+        self.set_enum_attribute(val, self.__interpolation_type_attribute_name__, self.__interpolation_type_type__)
 
     @property
-    def interpolation_type_type(self) -> Type[Enum]:
+    def __interpolation_type_type__(self) -> Type[Enum]:
         return INTERPOLATION_TYPE
 
     def interpolation_type_create(self):
         """ Creates a blank, empty or zero value for interpolation_type"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.interpolation_type = self.interpolation_type_type['nearestneighbor']
+        self.interpolation_type = self.__interpolation_type_type__['nearestneighbor']
 
 
 class FeatureContainerDCF1(FeatureContainer):
     """ Container for Data Coding Format 1 """
 
     def data_coding_format_create(self):
-        self.data_coding_format = self.data_coding_format_type(1)
+        self.data_coding_format = self.__data_coding_format_type__(1)
 
 
 class FeatureContainerDCF3(InterpolationType, FeatureContainer):
     """ Container for Data Coding Format 3 """
 
     def data_coding_format_create(self):
-        self.data_coding_format = self.data_coding_format_type(3)
+        self.data_coding_format = self.__data_coding_format_type__(3)
 
 
 class FeatureContainerDCF4(InterpolationType, FeatureContainer):
     """ Container for Data Coding Format 4 """
 
     def data_coding_format_create(self):
-        self.data_coding_format = self.data_coding_format_type(4)
+        self.data_coding_format = self.__data_coding_format_type__(4)
 
 
 class FeatureContainerDCF7(InterpolationType, FeatureContainer):
     """ Container for Data Coding Format 7 """
 
     def data_coding_format_create(self):
-        self.data_coding_format = self.data_coding_format_type(7)
+        self.data_coding_format = self.__data_coding_format_type__(7)
 
 
 class FeatureContainerDCF2(SequencingRule, InterpolationType, FeatureContainer):
     """ Container for Data Coding Format 2 """
 
     def data_coding_format_create(self):
-        self.data_coding_format = self.data_coding_format_type(2)
+        self.data_coding_format = self.__data_coding_format_type__(2)
 
 
 class FeatureContainerDCF5(SequencingRule, InterpolationType, FeatureContainer):
     """ Container for Data Coding Format 5 """
 
     def data_coding_format_create(self):
-        self.data_coding_format = self.data_coding_format_type(5)
+        self.data_coding_format = self.__data_coding_format_type__(5)
 
 
 class FeatureContainerDCF6(SequencingRule, InterpolationType, FeatureContainer):
     """ Container for Data Coding Format 6 """
 
     def data_coding_format_create(self):
-        self.data_coding_format = self.data_coding_format_type(6)
+        self.data_coding_format = self.__data_coding_format_type__(6)
 
 
 class GroupFBase(S1xxAttributesBase):
@@ -1740,10 +1740,10 @@ class GroupFBase(S1xxAttributesBase):
     There will also be a :class:`FeatureInformationDataset` holding a list of :class:`FeatureInformation`
     which will be defined by the subclasses of this base class.
     """
-    feature_code_attribute_name = "featureCode"
+    __feature_code_attribute_name__ = "featureCode"
 
     @property
-    def feature_code_type(self):
+    def __feature_code_type__(self):
         return numpy.array
 
     @abstractmethod
@@ -1756,27 +1756,27 @@ class GroupFBase(S1xxAttributesBase):
         Values = codes of feature classes
         (F is the number of feature classes in the application schema.)
         """
-        return self._attributes[self.feature_code_attribute_name]
+        return self._attributes[self.__feature_code_attribute_name__]
 
     @feature_code.setter
     def feature_code(self, val: s1xx_sequence):
-        self._attributes[self.feature_code_attribute_name] = val
+        self._attributes[self.__feature_code_attribute_name__] = val
 
 
 class S100Root(GeographicBoundingBox):
     """ From table 10c-6 in S100 spec.
     """
-    feature_information_attribute_name = "Group_F"
-    horizontal_datum_reference_attribute_name = "horizontalDatumReference"
-    horizontal_datum_value_attribute_name = "horizontalDatumValue"
-    epoch_attribute_name = "epoch"
-    geographic_identifier_attribute_name = "geographicIdentifier"
-    vertical_datum_attribute_name = "verticalDatum"
-    meta_features_attribute_name = "metaFeatures"
-    metadata_attribute_name = "metadata"
-    product_specification_attribute_name = "productSpecification"
-    issue_time_attribute_name = "issueTime"
-    issue_date_attribute_name = "issueDate"
+    __feature_information_attribute_name__ = "Group_F"
+    __horizontal_datum_reference_attribute_name__ = "horizontalDatumReference"
+    __horizontal_datum_value_attribute_name__ = "horizontalDatumValue"
+    __epoch_attribute_name__ = "epoch"
+    __geographic_identifier_attribute_name__ = "geographicIdentifier"
+    __vertical_datum_attribute_name__ = "verticalDatum"
+    __meta_features_attribute_name__ = "metaFeatures"
+    __metadata_attribute_name__ = "metadata"
+    __product_specification_attribute_name__ = "productSpecification"
+    __issue_time_attribute_name__ = "issueTime"
+    __issue_date_attribute_name__ = "issueDate"
 
     @property
     def __version__(self) -> int:
@@ -1789,7 +1789,7 @@ class S100Root(GeographicBoundingBox):
         # and put that into the GroupF FeatureInformation object
         feat_info = None
         for property_name in self.get_standard_properties():
-            if is_sub_class(self.__getattribute__(property_name + "_type"), GroupFBase):
+            if is_sub_class(self.__getattribute__("__" + property_name + "_type__"), GroupFBase):
                 feat_info = self.__getattribute__(property_name)
         # we have the GroupF data now, we can look at the names of the FeatureInstances and then search each for its respective chunking
         if feat_info is not None:
@@ -1833,14 +1833,14 @@ class S100Root(GeographicBoundingBox):
 
     @property
     def feature_information(self) -> GroupFBase:
-        return self._attributes[self.feature_information_attribute_name]
+        return self._attributes[self.__feature_information_attribute_name__]
 
     @feature_information.setter
     def feature_information(self, val: GroupFBase):
-        self._attributes[self.feature_information_attribute_name] = val
+        self._attributes[self.__feature_information_attribute_name__] = val
 
     @property
-    def feature_information_type(self):
+    def __feature_information_type__(self):
         print("Supposed to override feature_information before using")
         return float
         raise NotImplementedError()
@@ -1848,193 +1848,193 @@ class S100Root(GeographicBoundingBox):
     def feature_information_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.feature_information = self.feature_information_type()
+        self.feature_information = self.__feature_information_type__()
 
     @property
     def product_specification(self) -> str:
-        return self._attributes[self.product_specification_attribute_name]
+        return self._attributes[self.__product_specification_attribute_name__]
 
     @product_specification.setter
     def product_specification(self, val: str):
-        self._attributes[self.product_specification_attribute_name] = val
+        self._attributes[self.__product_specification_attribute_name__] = val
 
     @property
-    def product_specification_type(self) -> Type[str]:
+    def __product_specification_type__(self) -> Type[str]:
         return str
 
     def product_specification_create(self):
         """ Creates a blank, empty or zero value for product_specification"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.product_specification = self.product_specification_type()
+        self.product_specification = self.__product_specification_type__()
 
     @property
     def issue_time(self) -> datetime.time:
-        return self._attributes[self.issue_time_attribute_name]
+        return self._attributes[self.__issue_time_attribute_name__]
 
     @issue_time.setter
     def issue_time(self, val: Union[datetime.time, datetime.datetime, str]):
-        self.set_datetime_attribute(val, self.issue_time_attribute_name, self.issue_time_type)
+        self.set_datetime_attribute(val, self.__issue_time_attribute_name__, self.__issue_time_type__)
 
     @property
-    def issue_time_type(self) -> Type[datetime.time]:
+    def __issue_time_type__(self) -> Type[datetime.time]:
         return datetime.time
 
     def issue_time_create(self):
         """ Creates a blank, empty or zero value for issue_time"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.issue_time = self.issue_time_type(0, 0)  # midnight
+        self.issue_time = self.__issue_time_type__(0, 0)  # midnight
 
     @property
     def issue_date(self) -> datetime.date:
-        return self._attributes[self.issue_date_attribute_name]
+        return self._attributes[self.__issue_date_attribute_name__]
 
     @issue_date.setter
     def issue_date(self, val: Union[datetime.date, datetime.datetime, str]):
-        self.set_datetime_attribute(val, self.issue_date_attribute_name, self.issue_date_type)
+        self.set_datetime_attribute(val, self.__issue_date_attribute_name__, self.__issue_date_type__)
 
     @property
-    def issue_date_type(self) -> Type[datetime.date]:
+    def __issue_date_type__(self) -> Type[datetime.date]:
         return datetime.date
 
     def issue_date_create(self):
         """ Creates a blank, empty or zero value for issue_date"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.issue_date = self.issue_date_type(1970, 1, 1)
+        self.issue_date = self.__issue_date_type__(1970, 1, 1)
 
     @property
     def horizontal_datum_reference(self) -> str:
-        return self._attributes[self.horizontal_datum_reference_attribute_name]
+        return self._attributes[self.__horizontal_datum_reference_attribute_name__]
 
     @horizontal_datum_reference.setter
     def horizontal_datum_reference(self, val: str):
-        self._attributes[self.horizontal_datum_reference_attribute_name] = val
+        self._attributes[self.__horizontal_datum_reference_attribute_name__] = val
 
     @property
-    def horizontal_datum_reference_type(self) -> Type[str]:
+    def __horizontal_datum_reference_type__(self) -> Type[str]:
         return str
 
     def horizontal_datum_reference_create(self):
         """ Creates a blank, empty or zero value for horizontal_datum_reference"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.horizontal_datum_reference = self.horizontal_datum_reference_type()
+        self.horizontal_datum_reference = self.__horizontal_datum_reference_type__()
 
     @property
     def horizontal_datum_value(self) -> int:
-        return self._attributes[self.horizontal_datum_value_attribute_name]
+        return self._attributes[self.__horizontal_datum_value_attribute_name__]
 
     @horizontal_datum_value.setter
     def horizontal_datum_value(self, val: Union[str, int]):
         val = int(val)
-        self._attributes[self.horizontal_datum_value_attribute_name] = val
+        self._attributes[self.__horizontal_datum_value_attribute_name__] = val
 
     @property
-    def horizontal_datum_value_type(self) -> Type[int]:
+    def __horizontal_datum_value_type__(self) -> Type[int]:
         return int
 
     def horizontal_datum_value_create(self):
         """ Creates a blank, empty or zero value for horizontal_datum_value"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.horizontal_datum_value = self.horizontal_datum_value_type()
+        self.horizontal_datum_value = self.__horizontal_datum_value_type__()
 
     @property
     def epoch(self) -> str:
-        return self._attributes[self.epoch_attribute_name]
+        return self._attributes[self.__epoch_attribute_name__]
 
     @epoch.setter
     def epoch(self, val: str):
-        self._attributes[self.epoch_attribute_name] = val
+        self._attributes[self.__epoch_attribute_name__] = val
 
     @property
-    def epoch_type(self) -> Type[str]:
+    def __epoch_type__(self) -> Type[str]:
         return str
 
     def epoch_create(self):
         """ Creates a blank, empty or zero value for epoch"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.epoch = self.epoch_type()
+        self.epoch = self.__epoch_type__()
 
     @property
     def geographic_identifier(self) -> str:
-        return self._attributes[self.geographic_identifier_attribute_name]
+        return self._attributes[self.__geographic_identifier_attribute_name__]
 
     @geographic_identifier.setter
     def geographic_identifier(self, val: str):
-        self._attributes[self.geographic_identifier_attribute_name] = val
+        self._attributes[self.__geographic_identifier_attribute_name__] = val
 
     @property
-    def geographic_identifier_type(self) -> Type[str]:
+    def __geographic_identifier_type__(self) -> Type[str]:
         return str
 
     def geographic_identifier_create(self):
         """ Creates a blank, empty or zero value for geographic_identifier"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.geographic_identifier = self.geographic_identifier_type()
+        self.geographic_identifier = self.__geographic_identifier_type__()
 
     @property
     def metadata(self) -> str:
-        return self._attributes[self.metadata_attribute_name]
+        return self._attributes[self.__metadata_attribute_name__]
 
     @metadata.setter
     def metadata(self, val: str):
-        self._attributes[self.metadata_attribute_name] = val
+        self._attributes[self.__metadata_attribute_name__] = val
 
     @property
-    def metadata_type(self) -> Type[str]:
+    def __metadata_type__(self) -> Type[str]:
         return str
 
     def metadata_create(self):
         """ Creates a blank, empty or zero value for metadata"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.metadata = self.metadata_type()
+        self.metadata = self.__metadata_type__()
 
     @property
     def vertical_datum(self) -> Enum:
-        return self._attributes[self.vertical_datum_attribute_name]
+        return self._attributes[self.__vertical_datum_attribute_name__]
 
     @vertical_datum.setter
     def vertical_datum(self, val: Union[int, str, VERTICAL_DATUM]):
-        self.set_enum_attribute(val, self.vertical_datum_attribute_name, self.vertical_datum_type)
+        self.set_enum_attribute(val, self.__vertical_datum_attribute_name__, self.__vertical_datum_type__)
         # if isinstance(val, str):
-        #     val = self.vertical_datum_type[val]
+        #     val = self.__vertical_datum_type__[val]
         # if isinstance(val , int):
-        #     val = self.vertical_datum_type(val)
-        # self._attributes[self.vertical_datum_attribute_name] = val
+        #     val = self.__vertical_datum_type__(val)
+        # self._attributes[self.__vertical_datum_attribute_name__] = val
 
     @property
-    def vertical_datum_type(self) -> Type[Enum]:
+    def __vertical_datum_type__(self) -> Type[Enum]:
         return VERTICAL_DATUM
 
     def vertical_datum_create(self):
         """ Creates a blank, empty or zero value for vertical_datum"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum = self.vertical_datum_type["MLLW"]
+        self.vertical_datum = self.__vertical_datum_type__["MLLW"]
 
     @property
     def meta_features(self) -> str:
-        return self._attributes[self.meta_features_attribute_name]
+        return self._attributes[self.__meta_features_attribute_name__]
 
     @meta_features.setter
     def meta_features(self, val: str):
-        self._attributes[self.meta_features_attribute_name] = val
+        self._attributes[self.__meta_features_attribute_name__] = val
 
     @property
-    def meta_features_type(self) -> Type[str]:
+    def __meta_features_type__(self) -> Type[str]:
         return str
 
     def meta_features_create(self):
         """ Creates a blank, empty or zero value for meta_features"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.meta_features = self.meta_features_type()
+        self.meta_features = self.__meta_features_type__()
 
 
 class S100File(S1XXFile):

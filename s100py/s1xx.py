@@ -94,7 +94,7 @@ class S1xxAttributesBase(ABC):
     To call a base class property use super().property, e.g. super().__version__
     This base class is built from the version 2.0.0 that was eventually published Nov. 2019
     """
-    _attr_name_suffix = "_attribute_name"
+    _attr_name_suffix = "_attribute_name__"
 
     def __init__(self, recursively_create_children=False, **kywrds):
         self._hdf5_path = ""
@@ -127,7 +127,7 @@ class S1xxAttributesBase(ABC):
         if item in self._attributes or item in self.get_standard_properties_mapping():
             del self._attributes[item]
         elif item in self.get_standard_properties():
-            del self._attributes[eval("self.{}_attribute_name".format(item))]
+            del self._attributes[eval("self.__{}_attribute_name__".format(item))]
         else:
             del self.__dict__[item]
 
@@ -154,7 +154,7 @@ class S1xxAttributesBase(ABC):
                     group_object.attrs[attr_name]) + " was in the group_object but not found in the standard attributes")
                 self._attributes[attr_name] = group_object.attrs[attr_name]
             else:
-                use_type = self.__getattribute__(expected_items[attr_name] + "_type")
+                use_type = self.__getattribute__("__" + expected_items[attr_name] + "_type__")
                 if is_sub_class(use_type, Enum):
                     logging.debug(" Enumerated attr/val: " + attr_name + "/" + str(group_object.attrs[attr_name]) + " found and read")
                     self.set_enum_attribute(group_object.attrs[attr_name], attr_name, use_type)
@@ -212,7 +212,7 @@ class S1xxAttributesBase(ABC):
             logging.debug(" Standard attr/val: " + key + " found and reading")
 
             # read in the HDF5 attributes etc from the group
-            use_type = self.__getattribute__(expected_items[key] + "_type")
+            use_type = self.__getattribute__("__" + expected_items[key] + "_type__")
             if is_sub_class(use_type, S1xxAttributesBase):
                 self.__getattribute__(expected_items[key] + "_create")()
                 data = self.__getattribute__(expected_items[key])
@@ -371,7 +371,7 @@ class S1xxAttributesBase(ABC):
 
     # def get_standard_keys(self):  # this is only things that have properties associated
     #     props = [p[0] for p in inspect.getmembers(self.__class__, lambda x: isinstance(x, property))]
-    #     implemented_properties = [self.__getattribute__(p) for p in props if p.endswith(self._attr_name_suffix) and p[:-len(self._attr_name_suffix)] in props]
+    #     implemented_properties = [self.__getattribute__(p) for p in props if p.endswith(self._attr_name_suffix) and p[2:-len(self._attr_name_suffix)] in props]
     #     return implemented_properties
 
     def get_standard_keys(self):  # this is only things that have properties associated
@@ -401,12 +401,12 @@ class S1xxAttributesBase(ABC):
         s100_to_property = self.get_standard_properties_mapping()
         s100_to_property_for_lists = {}
         for s100_attr, prop in s100_to_property.items():
-            if is_sub_class(self.__getattribute__(prop + "_type"), S1xxMetadataListBase):
+            if is_sub_class(self.__getattribute__("__" + prop + "_type__"), S1xxMetadataListBase):
                 s100_to_property_for_lists[s100_attr] = prop
         return s100_to_property_for_lists
 
     # @classmethod
-    # @todo question - if we make all the _attribute_name as staticmethods or class variables then this could be a classmethod.
+    # @todo question - if we make all the ___attribute_name__ as staticmethods or class variables then this could be a classmethod.
     # @todo Do we want to allow flexibility of changing the HDF5 name for an instance?
     # a little testing shows that using class variables and letting the user change it would fail in this function.
     # so if we change the _attribute_name to class variables then the user could change the name on demand - for better or worse
@@ -428,7 +428,7 @@ class S1xxAttributesBase(ABC):
          """
         s100_to_property = {}
         for prop in self.get_standard_properties():
-            s100_to_property[self.__getattribute__(prop + self._attr_name_suffix)] = prop
+            s100_to_property[self.__getattribute__("__" + prop + self._attr_name_suffix)] = prop
         return s100_to_property
 
     def initialize_properties(self, recursively_create_children=False, overwrite=True):
@@ -482,8 +482,9 @@ class S1xxAttributesBase(ABC):
         """
         # allow for properties or class attributes (the str check does this)
         props = [p[0] for p in inspect.getmembers(cls, lambda x: isinstance(x, (property, str)))]
-        implemented_properties = [p[:-len(cls._attr_name_suffix)] for p in props if
-                                  p.endswith(cls._attr_name_suffix) and p[:-len(cls._attr_name_suffix)] in props]
+        # remove the leading double underscore and the _attribute_name__ suffix
+        implemented_properties = [p[2:-len(cls._attr_name_suffix)] for p in props if
+                                  p.endswith(cls._attr_name_suffix) and p[2:-len(cls._attr_name_suffix)] in props]
         return implemented_properties
 
     def set_enum_attribute(self, val, attribute_name, enum_type):
@@ -832,7 +833,7 @@ class S1xxGridsBase(S1xxWritesOwnGroupBase):
         logging.debug("reading grids")
         self.read_simple_attributes(group_object)
         # for attr in self.get_standard_properties():
-        #    setattr(self, attr, group_object[getattr(self, attr + self._attr_name_suffix)])
+        #    setattr(self, attr, group_object[getattr(self, "__" + attr + self._attr_name_suffix)])
         for name in group_object.dtype.names:
             self._attributes[name] = group_object[name]
 
@@ -895,18 +896,18 @@ class S1XXFile(h5py.File):
         # @TODO: This is the NAVO default setting, have to decide if that is best and handle other options too.
         kywrds.setdefault('root', None)
         self.root = None
-        self.root_type = kywrds.pop('root')
+        self.__root_type__ = kywrds.pop('root')
         if "driver" in kywrds:
             if kywrds['driver'] == 'family':  # @todo @fixme -- this is from the NAVO files, figure how to set memb_size automatically.
                 kywrds.setdefault('memb_size', 681574400)
         super().__init__(*args, **kywrds)
         # initialize with the s102 data if the file already exists.
         # if this is an empty file or opening for write then this is essentially a no-op
-        if self.root_type:
+        if self.__root_type__:
             self.read()
 
     def read(self):
-        self.root = self.root_type()
+        self.root = self.__root_type__()
         self.root._hdf5_path = "/"
         self.root.read(self)
 
@@ -915,7 +916,7 @@ class S1XXFile(h5py.File):
         self.root.write(self)
 
     def create_empty_metadata(self):
-        self.root = self.root_type(True)
+        self.root = self.__root_type__(True)
 
     def show_keys(self, obj, indent=0):
         try:  # print attributes of dataset or group
