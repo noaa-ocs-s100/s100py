@@ -70,7 +70,7 @@ class MONTY(Enum):
 
 
 class MyObject(s1xx.S1xxAttributesBase):
-    data_value_attribute_name = "dataValue"  #: HDF5 naming
+    __data_value_attribute_name__ = "dataValue"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -78,21 +78,21 @@ class MyObject(s1xx.S1xxAttributesBase):
 
     @property
     def data_value(self) -> str:
-        return self._attributes[self.data_value_attribute_name]
+        return self._attributes[self.__data_value_attribute_name__]
 
     @data_value.setter
     def data_value(self, val: str):
-        self._attributes[self.data_value_attribute_name] = val
+        self._attributes[self.__data_value_attribute_name__] = val
 
     @property
-    def data_value_type(self) -> Type[str]:
+    def __data_value_type__(self) -> Type[str]:
         return str
 
     def data_value_create(self):
         """ Creates a blank, empty or zero value for data_value"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.data_value = self.data_value_type()
+        self.data_value = self.__data_value_type__()
 
 
 class MyLocation(s100.GeographicBoundingBox):
@@ -102,11 +102,11 @@ class MyLocation(s100.GeographicBoundingBox):
     def __version__(self) -> int:
         return 1
 
-    utm_zone_attribute_name = "utmZone"  #: HDF5 naming
+    __utm_zone_attribute_name__ = "utmZone"  #: HDF5 naming
 
     @property
     def utm_zone(self) -> int:
-        return self._attributes[self.utm_zone_attribute_name]
+        return self._attributes[self.__utm_zone_attribute_name__]
 
     @utm_zone.setter
     def utm_zone(self, val: int):
@@ -115,61 +115,61 @@ class MyLocation(s100.GeographicBoundingBox):
             val = int(val)
         if (val <= 0 or val > 60) and val != self.empty_zone:
             raise Exception("Illegal zone number, must be between 1 and 60")
-        self._attributes[self.utm_zone_attribute_name] = val
+        self._attributes[self.__utm_zone_attribute_name__] = val
 
     @property
-    def utm_zone_type(self) -> Type[int]:
+    def __utm_zone_type__(self) -> Type[int]:
         return int
 
     def utm_zone_create(self):
         """ Creates a blank, empty or zero value for utm_zone"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.utm_zone = self.utm_zone_type(self.empty_zone)
+        self.utm_zone = self.__utm_zone_type__(self.empty_zone)
 
 
 class DataGroupObject(s1xx.S1xxAttributesBase):
-    data_grid_attribute_name = "dataGrid"  #: HDF5 naming
+    __data_grid_attribute_name__ = "dataGrid"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
         return 1
 
-    name_of_data_attribute_name = "nameOfData"  #: HDF5 naming
+    __name_of_data_attribute_name__ = "nameOfData"  #: HDF5 naming
 
     @property
     def name_of_data(self) -> MONTY:
-        return self._attributes[self.name_of_data_attribute_name]
+        return self._attributes[self.__name_of_data_attribute_name__]
 
     @name_of_data.setter
     def name_of_data(self, val: Union[int, str, MONTY]):
-        self.set_enum_attribute(val, self.name_of_data_attribute_name, self.name_of_data_type)
+        self.set_enum_attribute(val, self.__name_of_data_attribute_name__, self.__name_of_data_type__)
 
     @property
-    def name_of_data_type(self) -> Type[Enum]:
+    def __name_of_data_type__(self) -> Type[Enum]:
         return MONTY
 
     def name_of_data_create(self):
         """ Creates an enumerated value of 'spam' (because it's first in the list) """
-        self.name_of_data = list(self.name_of_data_type)[0]
+        self.name_of_data = list(self.__name_of_data_type__)[0]
 
     @property
     def data_grid(self) -> s1xx.s1xx_sequence:
-        return self._attributes[self.data_grid_attribute_name]
+        return self._attributes[self.__data_grid_attribute_name__]
 
     @data_grid.setter
     def data_grid(self, val: s1xx.s1xx_sequence):
-        self._attributes[self.data_grid_attribute_name] = val
+        self._attributes[self.__data_grid_attribute_name__] = val
 
     @property
-    def data_grid_type(self) -> s1xx.s1xx_sequence:
+    def __data_grid_type__(self) -> s1xx.s1xx_sequence:
         return numpy.ndarray
 
     def data_grid_create(self):
         """ Creates a blank, empty or zero value for data_grid"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.data_grid = self.data_grid_type([2], numpy.float32)
+        self.data_grid = self.__data_grid_type__([2], numpy.float32)
 
 
 class DataGroups(s1xx.S1xxMetadataListBase):
@@ -191,12 +191,12 @@ class DataGroups(s1xx.S1xxMetadataListBase):
 
 
 class DatasetWithNames(s1xx.S1xxAttributesBase):
-    attr_int_attribute_name = "attrInt"  #: HDF5 naming
-    attr_float_attribute_name = "attrFloat"  #: HDF5 naming
-    attr_str_attribute_name = "attrStr"  #: HDF5 naming
+    __attr_int_attribute_name__ = "attrInt"  #: HDF5 naming
+    __attr_float_attribute_name__ = "attrFloat"  #: HDF5 naming
+    __attr_str_attribute_name__ = "attrStr"  #: HDF5 naming
 
     def get_write_order(self):
-        return [self.attr_int_attribute_name, self.attr_str_attribute_name, self.attr_float_attribute_name]
+        return [self.__attr_int_attribute_name__, self.__attr_str_attribute_name__, self.__attr_float_attribute_name__]
 
     @property
     def __version__(self) -> int:
@@ -204,57 +204,57 @@ class DatasetWithNames(s1xx.S1xxAttributesBase):
 
     @property
     def attr_int(self) -> int:
-        return self._attributes[self.attr_int_attribute_name]
+        return self._attributes[self.__attr_int_attribute_name__]
 
     @attr_int.setter
     def attr_int(self, val: int):
-        self._attributes[self.attr_int_attribute_name] = val
+        self._attributes[self.__attr_int_attribute_name__] = val
 
     @property
-    def attr_int_type(self) -> Type[int]:
+    def __attr_int_type__(self) -> Type[int]:
         return int
 
     def attr_int_create(self):
         """ Creates a blank, empty or zero value for attr_int"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.attr_int = self.attr_int_type(55)
+        self.attr_int = self.__attr_int_type__(55)
 
     @property
     def attr_float(self) -> float:
-        return self._attributes[self.attr_float_attribute_name]
+        return self._attributes[self.__attr_float_attribute_name__]
 
     @attr_float.setter
     def attr_float(self, val: float):
-        self._attributes[self.attr_float_attribute_name] = val
+        self._attributes[self.__attr_float_attribute_name__] = val
 
     @property
-    def attr_float_type(self) -> Type[float]:
+    def __attr_float_type__(self) -> Type[float]:
         return float
 
     def attr_float_create(self):
         """ Creates a blank, empty or zero value for attr_float"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.attr_float = self.attr_float_type(123.4)
+        self.attr_float = self.__attr_float_type__(123.4)
 
     @property
     def attr_str(self) -> str:
-        return self._attributes[self.attr_str_attribute_name]
+        return self._attributes[self.__attr_str_attribute_name__]
 
     @attr_str.setter
     def attr_str(self, val: str):
-        self._attributes[self.attr_str_attribute_name] = val
+        self._attributes[self.__attr_str_attribute_name__] = val
 
     @property
-    def attr_str_type(self) -> Type[str]:
+    def __attr_str_type__(self) -> Type[str]:
         return str
 
     def attr_str_create(self):
         """ Creates a blank, empty or zero value for attr_str"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.attr_str = self.attr_str_type("used a default string")
+        self.attr_str = self.__attr_str_type__("used a default string")
 
 
 class DatasetWithNamesList(s1xx.S1xxDatasetBase):
@@ -273,7 +273,7 @@ class DatasetWithNamesList(s1xx.S1xxDatasetBase):
 
 
 class S999Root(s1xx.S1xxAttributesBase):
-    dataset_with_names_attribute_name = "datasetWithNames"  #: HDF5 naming
+    __dataset_with_names_attribute_name__ = "datasetWithNames"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -281,81 +281,81 @@ class S999Root(s1xx.S1xxAttributesBase):
 
     @property
     def dataset_with_names(self) -> DatasetWithNamesList:
-        return self._attributes[self.dataset_with_names_attribute_name]
+        return self._attributes[self.__dataset_with_names_attribute_name__]
 
     @dataset_with_names.setter
     def dataset_with_names(self, val: DatasetWithNamesList):
-        self._attributes[self.dataset_with_names_attribute_name] = val
+        self._attributes[self.__dataset_with_names_attribute_name__] = val
 
     @property
-    def dataset_with_names_type(self) -> Type[DatasetWithNamesList]:
+    def __dataset_with_names_type__(self) -> Type[DatasetWithNamesList]:
         return DatasetWithNamesList
 
     def dataset_with_names_create(self):
         """ Creates a blank, empty or zero value for dataset_with_names"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.dataset_with_names = self.dataset_with_names_type()
+        self.dataset_with_names = self.__dataset_with_names_type__()
 
-    data_group_attribute_name = "dataGroup"  #: HDF5 naming
+    __data_group_attribute_name__ = "dataGroup"  #: HDF5 naming
 
     @property
     def data_group(self) -> DataGroups:
-        return self._attributes[self.data_group_attribute_name]
+        return self._attributes[self.__data_group_attribute_name__]
 
     @data_group.setter
     def data_group(self, val: DataGroups):
-        self._attributes[self.data_group_attribute_name] = val
+        self._attributes[self.__data_group_attribute_name__] = val
 
     @property
-    def data_group_type(self) -> Type[DataGroups]:
+    def __data_group_type__(self) -> Type[DataGroups]:
         return DataGroups
 
     def data_group_create(self):
         """ Creates a blank, empty or zero value for data_group"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.data_group = self.data_group_type()
+        self.data_group = self.__data_group_type__()
 
-    my_location_group_attribute_name = "myLocationGroup"  #: HDF5 naming
+    __my_location_group_attribute_name__ = "myLocationGroup"  #: HDF5 naming
 
     @property
     def my_location_group(self) -> MyLocation:
-        return self._attributes[self.my_location_group_attribute_name]
+        return self._attributes[self.__my_location_group_attribute_name__]
 
     @my_location_group.setter
     def my_location_group(self, val: MyLocation):
-        self._attributes[self.my_location_group_attribute_name] = val
+        self._attributes[self.__my_location_group_attribute_name__] = val
 
     @property
-    def my_location_group_type(self) -> Type[MyLocation]:
+    def __my_location_group_type__(self) -> Type[MyLocation]:
         return MyLocation
 
     def my_location_group_create(self):
         """ Creates a blank, empty or zero value for my_location_group"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.my_location_group = self.my_location_group_type()
+        self.my_location_group = self.__my_location_group_type__()
 
-    my_first_object_attribute_name = "myFirstObject"  #: HDF5 naming
+    __my_first_object_attribute_name__ = "myFirstObject"  #: HDF5 naming
 
     @property
     def my_first_object(self) -> MyObject:
-        return self._attributes[self.my_first_object_attribute_name]
+        return self._attributes[self.__my_first_object_attribute_name__]
 
     @my_first_object.setter
     def my_first_object(self, val: MyObject):
-        self._attributes[self.my_first_object_attribute_name] = val
+        self._attributes[self.__my_first_object_attribute_name__] = val
 
     @property
-    def my_first_object_type(self) -> Type[MyObject]:
+    def __my_first_object_type__(self) -> Type[MyObject]:
         return MyObject
 
     def my_first_object_create(self):
         """ Creates a blank, empty or zero value for my_first_object"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.my_first_object = self.my_first_object_type()
+        self.my_first_object = self.__my_first_object_type__()
 
 
 class S999File(s1xx.S1XXFile):
@@ -468,7 +468,7 @@ def test_api(filename, revised_filename):
 
     data_1 = DataGroupObject()
     data_1.name_of_data = "spam"
-    # data_1.name_of_data = data_1.name_of_data_type["spam"]
+    # data_1.name_of_data = data_1.__name_of_data_type__["spam"]
     data_1.data_grid = numpy.zeros([2, 5])
     write_to_file.root.data_group.append(data_1)
     del data_1.name_of_data
@@ -480,7 +480,7 @@ def test_api(filename, revised_filename):
 
     data_3 = write_to_file.root.data_group.append_new_item()
     data_3.data_grid = numpy.arange(0, 10, .75)
-    data_3.name_of_data = data_3.name_of_data_type["cheese"]
+    data_3.name_of_data = data_3.__name_of_data_type__["cheese"]
 
     write_to_file.root.data_group.append_new_item().name_of_data = MONTY(2)
 
@@ -627,13 +627,13 @@ def test_change_names_on_new_data(revised_filename):
     # set up a standard object but store it in a non-standard group
     obj_with_standard_name = MyObject()
     obj_with_standard_name.data_value = "standard"
-    assert obj_with_standard_name.data_value_attribute_name == "dataValue"
+    assert obj_with_standard_name.__data_value_attribute_name__ == "dataValue"
     h5file.require_group("/test_standard_name")
     obj_with_standard_name.write(h5file["/test_standard_name"])
 
     # change just the instance's name for HDF5, doing this BEFORE adding data works fine
     obj_with_non_standard_name = MyObject()
-    obj_with_non_standard_name.data_value_attribute_name = "Change_instance_name"
+    obj_with_non_standard_name.__data_value_attribute_name__ = "Change_instance_name"
     obj_with_non_standard_name.data_value = "Testing just the current instance"
     h5file.require_group("/test_instance_names")
     obj_with_non_standard_name.write(h5file["/test_instance_names"])
@@ -641,21 +641,21 @@ def test_change_names_on_new_data(revised_filename):
     assert obj_with_non_standard_name.data_value == "Testing just the current instance"
 
     # Change the class definition, which can be easier if ALL the data you ever want to read uses that different naming
-    MyObject.data_value_attribute_name = "Change_all_classes"
+    MyObject.__data_value_attribute_name__ = "Change_all_classes"
     changed_class_obj = MyObject()
     changed_class_obj.data_value = "Change_the_class_itself"
     h5file.require_group("/test_class_names")
     changed_class_obj.write(h5file["/test_class_names"])
 
-    assert changed_class_obj.data_value_attribute_name == "Change_all_classes"
-    assert obj_with_non_standard_name.data_value_attribute_name == "Change_instance_name"
+    assert changed_class_obj.__data_value_attribute_name__ == "Change_all_classes"
+    assert obj_with_non_standard_name.__data_value_attribute_name__ == "Change_instance_name"
 
     # but watch out, existing data will also get the new name (but the one we changed just the instance of will be unaffected).
     # our standard name data will now have data that is orphaned and adding/changing the data via the api will only use the new names
     obj_with_standard_name.data_value = "still standard?"
     h5file.require_group("/test_standard_whoa")
     obj_with_standard_name.write(h5file["/test_standard_whoa"])
-    assert obj_with_standard_name.data_value_attribute_name == "Change_all_classes"
+    assert obj_with_standard_name.__data_value_attribute_name__ == "Change_all_classes"
     assert obj_with_non_standard_name.data_value == "Testing just the current instance"
 
     h5file.close()
@@ -671,12 +671,12 @@ def test_changing_names_on_existing_data(revised_filename):
     # change the names and values of exising data
     for index, compund_arr in enumerate(data):
         del compund_arr.attr_int  # delete the old data before we rename
-        compund_arr.attr_int_attribute_name = "changed_individual_int"
+        compund_arr.__attr_int_attribute_name__ = "changed_individual_int"
         compund_arr.attr_int = (index + 5) * 2
 
     # change the name in all the classes in existence at once.  This could corrupt other data in memory, in theory!
-    old_name = DatasetWithNames.attr_float_attribute_name
-    DatasetWithNames.attr_float_attribute_name = "changed_class_float"
+    old_name = DatasetWithNames.__attr_float_attribute_name__
+    DatasetWithNames.__attr_float_attribute_name__ = "changed_class_float"
     for index, compund_arr in enumerate(data):
         compund_arr.__delattr__(old_name)
         compund_arr.attr_float = (index + 6) * 3

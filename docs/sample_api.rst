@@ -51,8 +51,8 @@ This could look like::
     class myFirstObject:
         def __init__(self, val):
             self.data_value=val
-            self.data_value_attribute_name = "dataValue"
-            self.data_value_type = float
+            self.__data_value_attribute_name__ = "dataValue"
+            self.__data_value_type__ = float
         def data_value_create(self):
             self.data=999
 
@@ -85,23 +85,23 @@ of myFirstObject::
         def __version__(self) -> int:
             return 1
 
-        data_value_attribute_name = "dataValue"  #: HDF5 naming
+        __data_value_attribute_name__ = "dataValue"  #: HDF5 naming
 
         @property
         def data_value(self) -> str:
-            return self._attributes[self.data_value_attribute_name]
+            return self._attributes[self.__data_value_attribute_name__]
 
         @data_value.setter
         def data_value(self, val: str):
-            self._attributes[self.data_value_attribute_name] = val
+            self._attributes[self.__data_value_attribute_name__] = val
 
         @property
-        def data_value_type(self) -> str:
+        def __data_value_type__(self) -> str:
             return str
 
         def data_value_create(self):
             """ Creates a blank, empty or zero value for data_value"""
-            self.data_value = self.data_value_type()
+            self.data_value = self.__data_value_type__()
 
 That would be a lot of typing, but there is a template in :any:`extending_the_api` that makes it much faster
 and is even better when used as a `PyCharm Live Template`_.  If using PyCharm just type in the S100 camelcase name
@@ -111,8 +111,8 @@ and it will fill it into multiple locations at once for you.
 To recap:
     - @property to get the data and do any reformatting needed etc.
     - @property.setter potential validation or other checks/changes to incoming data
-    - \*_attribute_name which defines the conversion from python naming to HDF5 (S100) naming
-    - \*_type to help the user of the api know the type to use and for the api to load from disk
+    - __\*_attribute_name__ which defines the conversion from python naming to HDF5 (S100) naming
+    - __\*_type__ to help the user of the api know the type to use and for the api to load from disk
     - \*_create to make empty objects or supply default values as specified by S100
 
 Now let's try a datatype that has eastBoundLongitude, westBoundLongitude, northBoundLongitude, southBoundLatitude and
@@ -129,11 +129,11 @@ make 'empty_zone' the default for the utm_zone::
         def __version__(self) -> int:
             return 1
 
-        utm_zone_attribute_name = "utmZone"  #: HDF5 naming
+        __utm_zone_attribute_name__ = "utmZone"  #: HDF5 naming
 
         @property
         def utm_zone(self) -> int:
-            return self._attributes[self.utm_zone_attribute_name]
+            return self._attributes[self.__utm_zone_attribute_name__]
 
         @utm_zone.setter
         def utm_zone(self, val: int):
@@ -142,15 +142,15 @@ make 'empty_zone' the default for the utm_zone::
                 val = int(val)
             if (val <= 0 or val > 60) and val != self.empty_zone:
                 raise Exception("Illegal zone number, must be between 1 and 60")
-            self._attributes[self.utm_zone_attribute_name] = val
+            self._attributes[self.__utm_zone_attribute_name__] = val
 
         @property
-        def utm_zone_type(self) -> int:
+        def __utm_zone_type__(self) -> int:
             return int
 
         def utm_zone_create(self):
             """ Use 999 by default """
-            self.utm_zone = self.utm_zone_type(self.empty_zone)
+            self.utm_zone = self.__utm_zone_type__(self.empty_zone)
 
 
 Next is a multi-occurrence object.  These are groups that S100 says has an integer at the end of it's name, like Group_001.
@@ -182,41 +182,41 @@ the standard template, so there is a second one just for enumerations in :any:`e
         def __version__(self) -> int:
             return 1
 
-        name_of_data_attribute_name = "nameOfData"  #: HDF5 naming
+        __name_of_data_attribute_name__ = "nameOfData"  #: HDF5 naming
 
         @property
         def name_of_data(self) -> MONTY:
-            return self._attributes[self.name_of_data_attribute_name]
+            return self._attributes[self.__name_of_data_attribute_name__]
 
         @name_of_data.setter
         def name_of_data(self, val: Union[int, str, MONTY]):
-            self.set_enum_attribute(val, self.name_of_data_attribute_name, self.name_of_data_type)
+            self.set_enum_attribute(val, self.__name_of_data_attribute_name__, self.__name_of_data_type__)
 
         @property
-        def name_of_data_type(self) -> Type[Enum]:
+        def __name_of_data_type__(self) -> Type[Enum]:
             return MONTY
 
         def name_of_data_create(self):
             """ Creates an enumerated value of 'spam' (because it's first in the list) """
-            self.name_of_data = list(self.name_of_data_type)[0]
+            self.name_of_data = list(self.__name_of_data_type__)[0]
 
-        data_grid_attribute_name = "dataGrid"  #: HDF5 naming
+        __data_grid_attribute_name__ = "dataGrid"  #: HDF5 naming
 
         @property
         def data_grid(self) -> s1xx.s1xx_sequence:
-            return self._attributes[self.data_grid_attribute_name]
+            return self._attributes[self.__data_grid_attribute_name__]
 
         @data_grid.setter
         def data_grid(self, val: s1xx.s1xx_sequence):
-            self._attributes[self.data_grid_attribute_name] = val
+            self._attributes[self.__data_grid_attribute_name__] = val
 
         @property
-        def data_grid_type(self) -> s1xx.s1xx_sequence:
+        def __data_grid_type__(self) -> s1xx.s1xx_sequence:
             return return numpy.ndarray
 
         def data_grid_create(self):
             """ Creates a blank, empty or zero value for data_grid"""
-            self.data_grid = self.data_grid_type()
+            self.data_grid = self.__data_grid_type__()
 
 Ok, now let's make the list object that will actually have these data groups.  Recall the :any:`s1xx.S1xxMetadataListBase`
 base class::
@@ -256,61 +256,61 @@ we want and not just by name.::
         def __version__(self) -> int:
             return 1
 
-        attr_int_attribute_name = "attrInt"  #: HDF5 naming
+        __attr_int_attribute_name__ = "attrInt"  #: HDF5 naming
 
         @property
         def attr_int(self) -> int:
-            return self._attributes[self.attr_int_attribute_name]
+            return self._attributes[self.__attr_int_attribute_name__]
 
         @attr_int.setter
         def attr_int(self, val: int):
-            self._attributes[self.attr_int_attribute_name] = val
+            self._attributes[self.__attr_int_attribute_name__] = val
 
         @property
-        def attr_int_type(self) -> Type[int]:
+        def __attr_int_type__(self) -> Type[int]:
             return int
 
         def attr_int_create(self):
             """ Creates a blank, empty or zero value for attr_int"""
-            self.attr_int = self.attr_int_type()
+            self.attr_int = self.__attr_int_type__()
 
 
-        attr_float_attribute_name = "attrFloat"  #: HDF5 naming
+        __attr_float_attribute_name__ = "attrFloat"  #: HDF5 naming
 
         @property
         def attr_float(self) -> float:
-            return self._attributes[self.attr_float_attribute_name]
+            return self._attributes[self.__attr_float_attribute_name__]
 
         @attr_float.setter
         def attr_float(self, val: float):
-            self._attributes[self.attr_float_attribute_name] = val
+            self._attributes[self.__attr_float_attribute_name__] = val
 
         @property
-        def attr_float_type(self) -> Type[float]:
+        def __attr_float_type__(self) -> Type[float]:
             return float
 
         def attr_float_create(self):
             """ Creates a blank, empty or zero value for attr_float"""
-            self.attr_float = self.attr_float_type()
+            self.attr_float = self.__attr_float_type__()
 
 
-        attr_str_attribute_name = "attrStr"  #: HDF5 naming
+        __attr_str_attribute_name__ = "attrStr"  #: HDF5 naming
 
         @property
         def attr_str(self) -> str:
-            return self._attributes[self.attr_str_attribute_name]
+            return self._attributes[self.__attr_str_attribute_name__]
 
         @attr_str.setter
         def attr_str(self, val: str):
-            self._attributes[self.attr_str_attribute_name] = val
+            self._attributes[self.__attr_str_attribute_name__] = val
 
         @property
-        def attr_str_type(self) -> Type[str]:
+        def __attr_str_type__(self) -> Type[str]:
             return str
 
         def attr_str_create(self):
             """ Creates a blank, empty or zero value for attr_str"""
-            self.attr_str = self.attr_str_type()
+            self.attr_str = self.__attr_str_type__()
 
 Now we'll wrap this data class inside a :any:`s1xx.S1xxDatasetBase`  class so it reads and writes to arrays
 and can be accessed as a python list.::
@@ -331,77 +331,77 @@ class derived from :any:`s1xx.S1xxAttributesBase`.::
 
 
     class S999Root(s1xx.S1xxAttributesBase):
-        dataset_with_names_attribute_name = "datasetWithNames"  #: HDF5 naming
+        __dataset_with_names_attribute_name__ = "datasetWithNames"  #: HDF5 naming
 
         @property
         def dataset_with_names(self) -> DatasetWithNames_List:
-            return self._attributes[self.dataset_with_names_attribute_name]
+            return self._attributes[self.__dataset_with_names_attribute_name__]
 
         @dataset_with_names.setter
         def dataset_with_names(self, val: DatasetWithNames_List):
-            self._attributes[self.dataset_with_names_attribute_name] = val
+            self._attributes[self.__dataset_with_names_attribute_name__] = val
 
         @property
-        def dataset_with_names_type(self) -> Type[DatasetWithNames_List]:
+        def __dataset_with_names_type__(self) -> Type[DatasetWithNames_List]:
             return DatasetWithNames_List
 
         def dataset_with_names_create(self):
             """ Creates a blank, empty or zero value for dataset_with_names"""
-            self.dataset_with_names = self.dataset_with_names_type()
+            self.dataset_with_names = self.__dataset_with_names_type__()
 
-        data_group_attribute_name = "dataGroup"  #: HDF5 naming
+        __data_group_attribute_name__ = "dataGroup"  #: HDF5 naming
 
         @property
         def data_group(self) -> DataGroups:
-            return self._attributes[self.data_group_attribute_name]
+            return self._attributes[self.__data_group_attribute_name__]
 
         @data_group.setter
         def data_group(self, val: DataGroups):
-            self._attributes[self.data_group_attribute_name] = val
+            self._attributes[self.__data_group_attribute_name__] = val
 
         @property
-        def data_group_type(self) -> Type[DataGroups]:
+        def __data_group_type__(self) -> Type[DataGroups]:
             return DataGroups
 
         def data_group_create(self):
             """ Creates a blank, empty or zero value for data_group"""
-            self.data_group = self.data_group_type()
+            self.data_group = self.__data_group_type__()
 
-        my_location_group_attribute_name = "myLocationGroup"  #: HDF5 naming
+        __my_location_group_attribute_name__ = "myLocationGroup"  #: HDF5 naming
 
         @property
         def my_location_group(self) -> MyLocation:
-            return self._attributes[self.my_location_group_attribute_name]
+            return self._attributes[self.__my_location_group_attribute_name__]
 
         @my_location_group.setter
         def my_location_group(self, val: MyLocation):
-            self._attributes[self.my_location_group_attribute_name] = val
+            self._attributes[self.__my_location_group_attribute_name__] = val
 
         @property
-        def my_location_group_type(self) -> Type[MyLocation]:
+        def __my_location_group_type__(self) -> Type[MyLocation]:
             return MyLocation
 
         def my_location_group_create(self):
             """ Creates a blank, empty or zero value for my_location_group"""
-            self.my_location_group = self.my_location_group_type()
+            self.my_location_group = self.__my_location_group_type__()
 
-        my_first_object_attribute_name = "myFirstObject"  #: HDF5 naming
+        __my_first_object_attribute_name__ = "myFirstObject"  #: HDF5 naming
 
         @property
         def my_first_object(self) -> MyObject:
-            return self._attributes[self.my_first_object_attribute_name]
+            return self._attributes[self.__my_first_object_attribute_name__]
 
         @my_first_object.setter
         def my_first_object(self, val: MyObject):
-            self._attributes[self.my_first_object_attribute_name] = val
+            self._attributes[self.__my_first_object_attribute_name__] = val
 
         @property
-        def my_first_object_type(self) -> Type[MyObject]:
+        def __my_first_object_type__(self) -> Type[MyObject]:
             return MyObject
 
         def my_first_object_create(self):
             """ Creates a blank, empty or zero value for my_first_object"""
-            self.my_first_object = self.my_first_object_type()
+            self.my_first_object = self.__my_first_object_type__()
 
 The final thing to do is to associate the root data class to a S1XXFile.
 The file is derived from a h5py.File object and will accept any of the creation arguments h5py will take.

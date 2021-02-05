@@ -141,7 +141,7 @@ in different ways and have different shaped datasets. ::
 
     data_3 = write_to_file.root.data_group.append_new_item()
     data_3.data_grid = numpy.arange(0, 10, .75)
-    data_3.name_of_data = data_3.name_of_data_type["cheese"]
+    data_3.name_of_data = data_3.__name_of_data_type__["cheese"]
 
 Ok, let's make a fourth element for the list.  There is a append_new_item() which creates and returns the proper
 dataype.  We'll give it a name by passing in an enumeration value but no grid data.  All on one line no less!! ::

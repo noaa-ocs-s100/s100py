@@ -62,8 +62,8 @@ def test_create_attrs(s100_file):
 
 def test_enumeration(s100_file):
     s100_file.root.vertical_datum = "MLLW"
-    assert s100_file.root.vertical_datum == s100_file.root.vertical_datum_type["MLLW"]
-    assert s100_file.root.vertical_datum == s100_file.root.vertical_datum_type(12)
+    assert s100_file.root.vertical_datum == s100_file.root.__vertical_datum_type__["MLLW"]
+    assert s100_file.root.vertical_datum == s100_file.root.__vertical_datum_type__(12)
     assert s100_file.root.vertical_datum == s100.VERTICAL_DATUM["meanLowerLowWater"]
 
 

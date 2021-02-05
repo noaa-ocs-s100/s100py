@@ -30,25 +30,25 @@ What it does:
 
 Code to put in your live template ::
 
-    $attr$_attribute_name = return "$SELECTION$"  #: HDF5 naming
+    __$attr$_attribute_name__ = return "$SELECTION$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
-        return self._attributes[self.$attr$_attribute_name]
+        return self._attributes[self.__$attr$_attribute_name__]
 
     @$attr$.setter
     def $attr$(self, val: $type$):
-        self._attributes[self.$attr$_attribute_name] = val
+        self._attributes[self.__$attr$_attribute_name__] = val
 
     @property
-    def $attr$_type(self) -> Type[$type$]:
+    def __$attr$_type__(self) -> Type[$type$]:
         return $type$
 
     def $attr$_create(self):
         """ Creates a blank, empty or zero value for $attr$"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.$attr$ = self.$attr$_type()
+        self.$attr$ = self.__$attr$_type__()
 
 For enumeration data types use this template which is very similar
     - Again, click the Edit Variables and for $attr$ under expression put: snakeCase(SELECTION)
@@ -56,25 +56,25 @@ For enumeration data types use this template which is very similar
 
 ::
 
-    $attr$_attribute_name = return "$SELECTION$"  #: HDF5 naming
+    __$attr$_attribute_name__ = return "$SELECTION$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
-        return self._attributes[self.$attr$_attribute_name]
+        return self._attributes[self.__$attr$_attribute_name__]
 
     @$attr$.setter
     def $attr$(self, val: Union[int, str, $type$]):
-        self.set_enum_attribute(val, self.$attr$_attribute_name, self.$attr$_type)
+        self.set_enum_attribute(val, self.__$attr$_attribute_name__, self.__$attr$_type__)
 
     @property
-    def $attr$_type(self) -> Type[$type$]:
+    def __$attr$_type__(self) -> Type[$type$]:
         return $type$
 
     def $attr$_create(self):
         """ Creates a value using the first item in the enumeration of $attr$"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.$attr$ = list(self.$attr$_type)[0]
+        self.$attr$ = list(self.__$attr$_type__)[0]
 
 
 This template makes an attribute but specifies the type as well before you run it.
@@ -95,18 +95,18 @@ Types can be basic python types or custom created classes.
 
 Ex:  eastBoundLongitude->float ::
 
-    $attr$_attribute_name = return "$HDF5NAME$"  #: HDF5 naming
+    __$attr$_attribute_name__ = return "$HDF5NAME$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
-        return self._attributes[self.$attr$_attribute_name]
+        return self._attributes[self.__$attr$_attribute_name__]
 
     @$attr$.setter
     def $attr$(self, val: $type$):
-        self._attributes[self.$attr$_attribute_name] = val
+        self._attributes[self.__$attr$_attribute_name__] = val
 
     @property
-    def $attr$_type(self) -> Type[$type$]:
+    def __$attr$_type__(self) -> Type[$type$]:
         return $type$
 
     def $attr$_create(self):
@@ -115,7 +115,7 @@ Ex:  eastBoundLongitude->float ::
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.$attr$ = self.$attr$_type()
+        self.$attr$ = self.__$attr$_type__()
 
 And finally a similar one for enumerations.
 Same syntax or HDF5 name followed by the Enumeration name.
@@ -128,18 +128,18 @@ Click the Edit Variables and:
 
 If you used the enumeration 'MONTY' from the sample api, this would look like   dataName->MONTY ::
 
-    $attr$_attribute_name = return "$HDF5NAME$"  #: HDF5 naming
+    __$attr$_attribute_name__ = return "$HDF5NAME$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
-        return self._attributes[self.$attr$_attribute_name]
+        return self._attributes[self.__$attr$_attribute_name__]
 
     @$attr$.setter
     def $attr$(self, val: Union[int, str, $type$]):
-        self.set_enum_attribute(val, self.$attr$_attribute_name, self.$attr$_type)
+        self.set_enum_attribute(val, self.__$attr$_attribute_name__, self.$attr$_type)
 
     @property
-    def $attr$_type(self) -> Type[$type$]:
+    def __$attr$_type__(self) -> Type[$type$]:
         return $type$
 
     def $attr$_create(self):
@@ -148,5 +148,5 @@ If you used the enumeration 'MONTY' from the sample api, this would look like   
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.$attr$ = list(self.$attr$_type)[0]
+        self.$attr$ = list(self.__$attr$_type__)[0]
 
