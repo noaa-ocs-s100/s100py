@@ -1,6 +1,7 @@
 import pytest
 
 import os
+import pathlib
 import logging
 import tempfile
 
@@ -9,6 +10,7 @@ from osgeo import gdal
 
 from s100py import s100, s102
 
+local_path = pathlib.Path(__file__).parent
 
 @pytest.fixture(scope="module")
 def s102_file():
@@ -19,14 +21,14 @@ def s102_file():
 
 @pytest.fixture(scope="module")
 def bagname():
-    fname = "F00788_SR_8m.bag"
+    fname = str(local_path.joinpath("F00788_SR_8m.bag"))
     yield fname
 
 
 @pytest.fixture(scope="module")
 def tifname():
     # made with:   gdalwarp -of GTiff -srcnodata 1000000.0 -co "COMPRESS=LZW" -dstnodata 9999.0 F00788_SR_8m.bag F00788_SR_8m.tif
-    fname = "F00788_SR_8m.tif"
+    fname = str(local_path.joinpath("F00788_SR_8m.tif"))
     yield fname
 
 

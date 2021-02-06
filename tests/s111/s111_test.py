@@ -6,7 +6,10 @@ import os
 import datetime
 import numpy
 import h5py
-import gdal
+try:
+    from osgeo import gdal
+except ModuleNotFoundError:
+    import gdal
 
 from s100py import s111
 
@@ -3272,7 +3275,7 @@ def test_to_geotiff(input_data):
 
     s111.utils.to_geotiff(f"{current_directory}/test_s111_dcf2.h5", current_directory)
 
-    assert os.path.isfile("test_s111_dcf2_20210107T120000Z.tif")
+    assert os.path.isfile(f"{current_directory}/test_s111_dcf2_20210107T120000Z.tif")
 
     tif_file = gdal.Open(f"{current_directory}/test_s111_dcf2_20210107T120000Z.tif")
     h5_file = h5py.File(f"{current_directory}/test_s111_dcf2.h5", "r")
