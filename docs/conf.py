@@ -36,6 +36,9 @@ import re
 import sphinx
 import mock
 
+import sphinx_rtd_theme
+
+
 MOCK_MODULES = ['scipy', 'matplotlib', 'matplotlib.pyplot', 'scipy.interpolate', 'osgeo', 'gdal', 'osr']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
@@ -125,13 +128,14 @@ extensions = ['sphinx.ext.imgmath',
               'sphinx.ext.githubpages',
               'sphinx.ext.extlinks',
               'sphinx.ext.ifconfig',
-              full_toc,
+#              full_toc,
               'sphinx.ext.graphviz',
               'sphinx.ext.napoleon',
               # 'recommonmark',
               'm2r2',
               'sphinx_autodoc_typehints',
               'sphinx.ext.autodoc',
+              "sphinx_rtd_theme",
               ]
 if use_automodapi:
     extensions.extend([ # 'sphinx.ext.autosummary',
@@ -148,7 +152,8 @@ elif use_autoapi:
     autoapi_type = "python"
     autoapi_file_pattern = "*.py"
 
-# graphviz_dot = os.path.normpath(os.path.join(root_p, r"..\..\..\..\envs\Pydro367\Library\bin\graphviz\dot.exe"))
+if os.path.exists(r"..\..\..\..\envs\Pydro367\Library\bin\graphviz\dot.exe"):  # on rtd site use the default dot install
+    graphviz_dot = os.path.normpath(os.path.join(root_p, r"..\..\..\..\envs\Pydro367\Library\bin\graphviz\dot.exe"))
 
 autodoc_default_options = {
    # 'members': 'var1, var2',
@@ -277,7 +282,18 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'classic'
+# html_theme = 'classic'
+html_theme = "sphinx_rtd_theme"
+_style = str(pathlib.Path(__file__).parent.joinpath('templates/s100theme.css'))
+# These folders are copied to the documentation's HTML output
+html_static_path = ['templates']
+
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    's100theme.css',
+]
+# print(html_style, os.path.exists(html_style))
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

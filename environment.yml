@@ -8,6 +8,7 @@ dependencies:
   - sphinx-autodoc-typehints
   - python-graphviz
   - sphinxcontrib-fulltoc
+  - sphinx_rtd_theme
   - m2r2
   - numpydoc
   - h5py
