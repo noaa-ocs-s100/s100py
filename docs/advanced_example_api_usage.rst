@@ -1,7 +1,7 @@
-More Usage of the  API
+Advanced Example API Usage
 ==========================
 
-Using the data and api shown in :any:`sample_api` and :any:`using_sample_api` we can look at some advanced usage.
+Using the data and api shown in :any:`example_api` and :any:`using_example_api` we can look at some advanced usage.
 The sample code below is also in the s100py/tests/sample_api_test.py where it should run with pytest.
 
 The S100+ files are built on HDF5 and use h5py for access.  You can access data directly and use the api to read it
@@ -24,7 +24,7 @@ We can also edit the data any write it back to that same place, rather than writ
     data.write(h5file[obj_location])  # overwrite the data in the HDF5 file
 
 We could even put it in the another place in the file.
-This wouldn'y be valid S100+ data but you could do it for compatibility with other software for example. ::
+This wouldn't be valid S100+ data but you could do it for compatibility with other software for example. ::
 
 
     h5file.require_group(obj_location + "_new")  # make a different subgroup called myFirstObject_new
@@ -99,7 +99,7 @@ Doing this BEFORE adding data works fine. ::
 
     obj_with_non_standard_name = MyObject()
     obj_with_non_standard_name.__data_value_hdf_name__ = "Change_instance_name"
-    obj_with_non_standard_name.data_value = "Testing just the curreent instance"
+    obj_with_non_standard_name.data_value = "Testing just the current instance"
     h5file.require_group("/test_instance_names")
     obj_with_non_standard_name.write(h5file["/test_instance_names"])
 
@@ -134,18 +134,18 @@ First we'll change each instance's atrr_int naming and delete the old data and s
     data.read(h5file["/"])
 
     # change the names and values of exising data
-    for index, compund_arr in enumerate(data):
-        del compund_arr.attr_int  #delete the old data before we rename
-        compund_arr.__attr_int_hdf_name__ = "changed_individual_int"
-        compund_arr.attr_int = (index + 5) * 2
+    for index, compound_arr in enumerate(data):
+        del compound_arr.attr_int  #delete the old data before we rename
+        compound_arr.__attr_int_hdf_name__ = "changed_individual_int"
+        compound_arr.attr_int = (index + 5) * 2
 
 Then we'll change the attr_float naming for the whole class (and any other existing data in the processes memory)::
 
     old_name = datasetWithNames.__attr_float_hdf_name__
     datasetWithNames.__attr_float_hdf_name__ = "changed_class_float"
-    for index, compund_arr in enumerate(data):
-        compund_arr.__delattr__(old_name)
-        compund_arr.attr_float = (index + 6) * 3
+    for index, compound_arr in enumerate(data):
+        compound_arr.__delattr__(old_name)
+        compound_arr.attr_float = (index + 6) * 3
 
     h5file.require_group("/compound_array_changed_names")
     data.write(h5file["/compound_array_changed_names"])

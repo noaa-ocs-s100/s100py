@@ -5,23 +5,22 @@ Python Utilities and API for Working with IHO S-111 Data Formats
 Overview
 --------
 
-This python package provides utilities for encoding S-111 hydrographic
-datasets in the International Hydrographic Organization (IHO) S-100
-format.
+S-111 is an IHO standard outlining formats for storing and sending surface
+water current data and metadata.
 
 -   Create and modify S-111 compliant HDF5 files in all four data coding
     formats:
 
 
-        1.  Time-series at fixed station
-        2.  Regularly-gridded arrays
+        1.  Time-series at fixed station 
+        2.  Regularly-gridded arrays 
         3.  Ungeorectified gridded arrays (i.e. irregular grid)
         4.  Time series for moving platform
 
 Example Usage
 -------------
 
-###Create an S-111 DCF2 File:
+**Create an S-111 Data Coding Format 2 File:**
 ```python
 import numpy
 import datetime
@@ -63,7 +62,7 @@ metadata = {
     'horizontalPositionUncertainty': -1.0, # Default or Unknown values
     'timeUncertainty': -1.0, # Default or Unknown values
     'surfaceCurrentDepth': 0, 
-    'depthTypeIndex': 2, 'Sea surface'
+    'depthTypeIndex': 2, # 'Sea surface'
     'commonPointRule': 3, # 'high'
     'interpolationType': 10, #'discrete'
     'typeOfCurrentData': 6, # Hydrodynamic model forecast (F)
@@ -93,35 +92,17 @@ s111.utils.update_metadata(data_file, grid_properties, update_meta)
 s111.utils.write_data_file(data_file)
 ```
 
+For S-111 Developers
+--------------------
+- [S-111 Module Documentation](https://s100py.readthedocs.io/en/latest/s111.html#s111-module-docs)
+- [S-100 Module Documentation](https://s100py.readthedocs.io/en/latest/s100.html)
 
 Authors
 -------
 
 -   Erin Nagel (UCAR), <erin.nagel@noaa.gov>
 -   Jason Greenlaw (ERT), <jason.greenlaw@noaa.gov>
--   Barry Gallagher, <barry.gallagher@noaa.gov>
--   Glen Rice, <glen.rice@noaa.gov>
+-   Barry Gallagher (NOAA), <barry.gallagher@noaa.gov>
 
-License
--------
 
-This work, as a whole, falls under Creative Commons Zero (see
-[LICENSE](LICENSE)).
-
-Disclaimer
-----------
-
-This repository is a scientific product and is not official
-communication of the National Oceanic and Atmospheric Administration, or
-the United States Department of Commerce. All NOAA GitHub project code
-is provided on an 'as is' basis and the user assumes responsibility for
-its use. Any claims against the Department of Commerce or Department of
-Commerce bureaus stemming from the use of this GitHub project will be
-governed by all applicable Federal law. Any reference to specific
-commercial products, processes, or services by service mark, trademark,
-manufacturer, or otherwise, does not constitute or imply their
-endorsement, recommendation or favoring by the Department of Commerce.
-The Department of Commerce seal and logo, or the seal and logo of a DOC
-bureau, shall not be used in any manner to imply endorsement of any
-commercial product or activity by DOC or the United States Government.
 

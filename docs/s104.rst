@@ -1,10 +1,11 @@
-S104
-====
+.. include:: s104/s104_readme.rst
+
+S104 Module Docs
+----------------
 
 .. toctree::
     :maxdepth: 4
 
-    s104/s104_readme
     s104/s104_utils
     s104/s104_api
 

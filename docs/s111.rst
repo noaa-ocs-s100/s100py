@@ -1,6 +1,3 @@
-..
-    Example to decide if the readme should be the main page or should it be in the toctree like s102?
-
 .. include:: s111/s111_readme.rst
 
 S111 Module Docs

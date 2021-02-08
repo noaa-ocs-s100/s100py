@@ -1,4 +1,4 @@
-S100
+s100
 ====
 
 ..  automodapi:: s100py.s100

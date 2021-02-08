@@ -1,7 +1,7 @@
 Using The Example API
 =====================
 
-To use the artificial sample api in :any:`sample_api` we can follow the steps below.
+To use the artificial sample api in :any:`example_api` we can follow the steps below.
 The code below is also in the "s100py/tests" folder in the "sample_api_test.py" file which should be runnable
 assuming you have a compliant, working python environment.
 
@@ -189,7 +189,7 @@ Now let's open that data file and spot check against the values we thought we wr
         assert write_to_file.root.my_location_group.west_bound_longitude is None  # this should not exist, even as None
 
 Finally, let's make a copy of the data on disk and modify one of the values.
-You can use the hdfview app to confirm everything worked. ::
+You can use the HDFView app to confirm everything worked. ::
 
     copy_of_file = S999File("test.rewrite.h5")
     copy_of_file.root = read_from_file.root

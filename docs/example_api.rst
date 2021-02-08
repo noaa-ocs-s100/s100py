@@ -238,9 +238,9 @@ base class::
         def metadata_type(self) -> type:
             return DataGroupObject
 
-For the last datatype we'll make the compund dataset "datasetWithNames".  This is to encapsulate S100 specs that lay out
+For the last datatype we'll make the compound dataset "datasetWithNames".  This is to encapsulate S100 specs that lay out
 data with names, like attributes, but say they belong in a dataset.   The :any:`s1xx.S1xxDatasetBase` takes care of this.
-Similar to the List we jsut made above, this class uses a list to keep an arbitrary number of data arrays and read/write
+Similar to the List we just made above, this class uses a list to keep an arbitrary number of data arrays and read/write
 them to HDF%.
 
 For example, the S100 spec Table 10c-8 describes a compound array stored as a dataset which is more naturally used
@@ -414,4 +414,4 @@ All we need to do is add a product specification string and add a 'root' keyword
             # kywrds['root'] = S999Root
             super().__init__(*args, root=S999Root **kywrds)
 
-All that is left is :any:`using_sample_api`
+All that is left is :any:`using_example_api`

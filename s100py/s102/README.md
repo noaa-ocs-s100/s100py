@@ -1,51 +1,42 @@
 s102
 ======
 
-Python Utilities and API for Working with IHO S-102 Data Formats
+Python API and Utilities for Working with IHO S-102 Data Formats
 
 Overview
 --------
 
-This python package provides an api and utilities for encoding  S-102
-hydrographic datasets in the International Hydrographic Organization (IHO) 
-S-100 format.
+S-102 is an IHO standard outlining formats for storing and sending bathymetric
+data and metadata.
 
-
-Build an Executable
--------------------
-
-create a nomkl environment (mkl takes hundreds of megs compressed -- far more than the program warrants)
-copy the s100py folder into the lib/site-packages
-then use pyinstaller to make an executable
-
-`conda create -n nomkl python=3.6 nomkl pyinstaller gdal h5py numpy`
-
-Copy 
-`cp s100py/ envs/nomkl/lib/site-packages/s100py`
-change directory
-`cd envs/nomkl/lib/site-packages/s100py`
-
-`pyinstaller --onefile -n make_s102 utils.py `
-(if proj.db isn't being found then add the data and modify the utils.py script to find it)
-(to debug if the files are included use --onedir instead of --onefile)
-`pyinstaller --onefile --add-data C:\PydroXL_19_Dev\envs\nomkl2\Library\share\proj;Library\share\proj -n make_s102 utils.py`
-
-The resulting executable will be located at `dist/make_s102.exe`
-
-Usage
------
 Odds are that the only function you will need is from_gdal(). 
-You call it with the input path (some geocoded raster, like a BAG)
-and the output path (for an HDF5 file in S102 format). You can override 
-some of the metadata elements with a dictionary as well.
+You call it with the input path (some geocoded raster, like a BAG) and the output 
+path (for an HDF5 file in S102 format). You can override some of the metadata elements
+with a dictionary as well.
 
 If you are converting a set of arrays or a format not supported by GDAL 
 then use the from_arrays_with_metadata() method. You supply it numpy arrays
-and information about the horizontal and vertical coordinate systems and it does the rest.
+and information about the horizontal and vertical coordinate systems and it 
+does the rest.
+
+If you need more involved interaction with the data than import s102 from s100py.
+Methods and classes from both the api.py and utils.py will be available.
+
+```python
+    from s100py import s102
+    s102.from_gdal()
+    # or
+    from s100py.s102 import utils
+    s102_utils.from_gdal()
+```
+
+Example Usage
+-------------
 
 Create a blank file and see the root object is empty
 
 ```python
+
 from s100py import s102
 f = s102.S102File("c:\\temp\\test.s102.h5")
 print(f.root)
@@ -155,3 +146,15 @@ Do you see that weird ‘Group[._]\d+’ – I happen to know that is another li
 bathy_01.get_standard_list_properties()
 {'Group[\\._]\\d+': 'bathymetry_group'}
 ```
+
+For S-102 Developers
+--------------------
+
+- [S-102 Module Documentation](https://s100py.readthedocs.io/en/latest/s102.html#s102-module-docs)
+- [S-100 Module Documentation](https://s100py.readthedocs.io/en/latest/s100.html)
+
+Authors
+-------
+
+-   Barry Gallagher (NOAA), <barry.gallagher@noaa.gov>
+-   Glen Rice (NOAA), <glen.rice@noaa.gov>
