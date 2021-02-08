@@ -65,8 +65,8 @@ class S104MetadataListBase(S1xxMetadataListBase):
 
 class WaterLevelUncertaintyInformation(S1xxAttributesBase):
     """S100 code and uncertainty of data values"""
-    __name_attribute_name__ = "name"  #: HDF5 naming
-    __value_attribute_name__ = "value"  #: HDF5 naming
+    __name_hdf_name__ = "name"  #: HDF5 naming
+    __value_hdf_name__ = "value"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -79,12 +79,12 @@ class WaterLevelUncertaintyInformation(S1xxAttributesBase):
         Returns:
             str: Name of the data ("waterLevelHeight" or "waterLevelTrend")
         """
-        return self._attributes[self.__name_attribute_name__]
+        return self._attributes[self.__name_hdf_name__]
 
     @name.setter
     def name(self, val: str):
         """Incoming value datatype validation"""
-        self._attributes[self.__name_attribute_name__] = val
+        self._attributes[self.__name_hdf_name__] = val
 
     @property
     def __name_type__(self):
@@ -100,12 +100,12 @@ class WaterLevelUncertaintyInformation(S1xxAttributesBase):
     @property
     def value(self) -> str:
         """ The uncertainty value"""
-        return self._attributes[self.__value_attribute_name__]
+        return self._attributes[self.__value_hdf_name__]
 
     @value.setter
     def value(self, val: int):
         """Incoming value datatype validation"""
-        self._attributes[self.__value_attribute_name__] = val
+        self._attributes[self.__value_hdf_name__] = val
 
     @property
     def __value_type__(self):
@@ -138,8 +138,8 @@ class WaterLevelUncertaintyDataset(S1xxDatasetBase):
 
 
 class GeometryValuesDataset(S1xxGridsBase):
-    __longitude_attribute_name__ = "longitude"
-    __latitude_attribute_name__ = "latitude"
+    __longitude_hdf_name__ = "longitude"
+    __latitude_hdf_name__ = "latitude"
 
     @property
     def __version__(self) -> int:
@@ -153,12 +153,12 @@ class GeometryValuesDataset(S1xxGridsBase):
     @property
     def longitude(self) -> s1xx_sequence:
         """Get the data"""
-        return self._attributes[self.__longitude_attribute_name__]
+        return self._attributes[self.__longitude_hdf_name__]
 
     @longitude.setter
     def longitude(self, val: s1xx_sequence):
         """Potential validation or other checks/changes to incoming data"""
-        self._attributes[self.__longitude_attribute_name__] = val
+        self._attributes[self.__longitude_hdf_name__] = val
 
     @property
     def __longitude_type__(self) -> s1xx_sequence:
@@ -179,12 +179,12 @@ class GeometryValuesDataset(S1xxGridsBase):
     @property
     def latitude(self) -> s1xx_sequence:
         """Get the data"""
-        return self._attributes[self.__latitude_attribute_name__]
+        return self._attributes[self.__latitude_hdf_name__]
 
     @latitude.setter
     def latitude(self, val: s1xx_sequence):
         """Potential validation or other checks/changes to incoming data"""
-        self._attributes[self.__latitude_attribute_name__] = val
+        self._attributes[self.__latitude_hdf_name__] = val
 
     @property
     def __latitude_type__(self) -> s1xx_sequence:
@@ -204,7 +204,7 @@ class GeometryValuesDataset(S1xxGridsBase):
 
     def get_write_order(self):
         """Specify order of attributes for ordered dict"""
-        return [self.__longitude_attribute_name__, self.__latitude_attribute_name__]
+        return [self.__longitude_hdf_name__, self.__latitude_hdf_name__]
 
     def get_compound_dtype(self):
         return [self.longitude_dtype, self.latitude_dtype]
@@ -212,7 +212,7 @@ class GeometryValuesDataset(S1xxGridsBase):
 
 class PositioningGroup(S1xxAttributesBase):
 
-    __geometry_values_attribute_name__ = "geometry_values"
+    __geometry_values_hdf_name__ = "geometry_values"
 
     @property
     def __version__(self) -> int:
@@ -234,11 +234,11 @@ class PositioningGroup(S1xxAttributesBase):
     @property
     def geometry_values(self) -> GeometryValuesDataset:
         """Get the data"""
-        return self._attributes[self.__geometry_values_attribute_name__]
+        return self._attributes[self.__geometry_values_hdf_name__]
 
     @geometry_values.setter
     def geometry_values(self, val: GeometryValuesDataset):
-        self._attributes[self.__geometry_values_attribute_name__] = val
+        self._attributes[self.__geometry_values_hdf_name__] = val
 
     @property
     def __geometry_values_type__(self) -> Type[GeometryValuesDataset]:
@@ -254,8 +254,8 @@ class PositioningGroup(S1xxAttributesBase):
 
 class WaterLevelValues(S1xxGridsBase):
     """NNN Group Datasets"""
-    __water_level_height_attribute_name__ = "waterLevelHeight"
-    __water_level_trend_attribute_name__ = "waterLevelTrend"
+    __water_level_height_hdf_name__ = "waterLevelHeight"
+    __water_level_trend_hdf_name__ = "waterLevelTrend"
 
     @property
     def __version__(self) -> int:
@@ -272,11 +272,11 @@ class WaterLevelValues(S1xxGridsBase):
     @property
     def water_level_height(self) -> s1xx_sequence:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.__water_level_height_attribute_name__]
+        return self._attributes[self.__water_level_height_hdf_name__]
 
     @water_level_height.setter
     def water_level_height(self, val: s1xx_sequence):
-        self._attributes[self.__water_level_height_attribute_name__] = val
+        self._attributes[self.__water_level_height_hdf_name__] = val
 
     @property
     def __water_level_height_type__(self) -> s1xx_sequence:
@@ -297,11 +297,11 @@ class WaterLevelValues(S1xxGridsBase):
     @property
     def water_level_trend(self) -> WaterLevelTrend:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.__water_level_trend_attribute_name__]
+        return self._attributes[self.__water_level_trend_hdf_name__]
 
     @water_level_trend.setter
     def water_level_trend(self, val: Union[int, str, WaterLevelTrend]):
-        self.set_enum_attribute(val, self.__water_level_trend_attribute_name__, self.__water_level_trend_type__)
+        self.set_enum_attribute(val, self.__water_level_trend_hdf_name__, self.__water_level_trend_type__)
 
     @property
     def __water_level_trend_type__(self) -> s1xx_sequence:
@@ -320,7 +320,7 @@ class WaterLevelValues(S1xxGridsBase):
         self.water_level_trend = self.__water_level_trend_type__([], self.water_level_trend_dtype)
 
     def get_write_order(self):
-        return [self.__water_level_height_attribute_name__, self.__water_level_trend_attribute_name__]
+        return [self.__water_level_height_hdf_name__, self.__water_level_trend_hdf_name__]
 
     def get_compound_dtype(self):
         return [self.water_level_height_dtype, self.water_level_trend_dtype]
@@ -328,17 +328,17 @@ class WaterLevelValues(S1xxGridsBase):
 
 class WaterLevelGroup(S1xxAttributesBase):
 
-    __values_attribute_name__ = "values"
-    __time_point_attribute_name__ = "timePoint"
+    __values_hdf_name__ = "values"
+    __time_point_hdf_name__ = "timePoint"
 
     @property
     def values(self) -> WaterLevelValues:
         """Plain text name of the dataset (e.g values)"""
-        return self._attributes[self.__values_attribute_name__]
+        return self._attributes[self.__values_hdf_name__]
 
     @values.setter
     def values(self, val: WaterLevelValues):
-        self._attributes[self.__values_attribute_name__] = val
+        self._attributes[self.__values_hdf_name__] = val
 
     @property
     def __values_type__(self) -> Type[WaterLevelValues]:
@@ -353,11 +353,11 @@ class WaterLevelGroup(S1xxAttributesBase):
     @property
     def time_point(self) -> S1xxAttributesBase:
         """Defines the conversion from python naming to HDF5 (S100) naming"""
-        return self._attributes[self.__time_point_attribute_name__]
+        return self._attributes[self.__time_point_hdf_name__]
 
     @time_point.setter
     def time_point(self, val: S1xxAttributesBase):
-        self._attributes[self.__time_point_attribute_name__] = val
+        self._attributes[self.__time_point_hdf_name__] = val
 
     @property
     def __time_point_type__(self) -> Type[str]:
@@ -398,10 +398,10 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
     Attribute name will be automatically determined based on the array position
     of the S104_MetadataList
     """
-    __water_level_group_attribute_name__ = "Group" + r"[\._]\d+"
-    __uncertainty_dataset_attribute_name__ = "uncertainty"
-    __number_of_nodes_attribute_name__ = "numberOfNodes"
-    __type_of_water_level_data_attribute_name__ = "typeOfWaterLevelData"
+    __water_level_group_hdf_name__ = "Group" + r"[\._]\d+"
+    __uncertainty_dataset_hdf_name__ = "uncertainty"
+    __number_of_nodes_hdf_name__ = "numberOfNodes"
+    __type_of_water_level_data_hdf_name__ = "typeOfWaterLevelData"
 
     @property
     def __water_level_group_type__(self):
@@ -415,19 +415,19 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
     @property
     def water_level_group(self) -> S1xxMetadataListBase:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.__water_level_group_attribute_name__]
+        return self._attributes[self.__water_level_group_hdf_name__]
 
     @water_level_group.setter
     def water_level_group(self, val: S1xxMetadataListBase):
-        self._attributes[self.__water_level_group_attribute_name__] = val
+        self._attributes[self.__water_level_group_hdf_name__] = val
 
     @property
     def number_of_nodes(self) -> S1xxAttributesBase:
-        return self._attributes[self.__number_of_nodes_attribute_name__]
+        return self._attributes[self.__number_of_nodes_hdf_name__]
 
     @number_of_nodes.setter
     def number_of_nodes(self, val: S1xxAttributesBase):
-        self._attributes[self.__number_of_nodes_attribute_name__] = val
+        self._attributes[self.__number_of_nodes_hdf_name__] = val
 
     @property
     def __number_of_nodes_type__(self) -> Type[numpy.int32]:
@@ -441,11 +441,11 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
     @property
     def uncertainty_dataset(self) -> S1xxDatasetBase:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.__uncertainty_dataset_attribute_name__]
+        return self._attributes[self.__uncertainty_dataset_hdf_name__]
 
     @uncertainty_dataset.setter
     def uncertainty_dataset(self, val: S1xxDatasetBase):
-        self._attributes[self.__uncertainty_dataset_attribute_name__] = val
+        self._attributes[self.__uncertainty_dataset_hdf_name__] = val
 
     @property
     def __uncertainty_dataset_type__(self) -> Type[WaterLevelUncertaintyDataset]:
@@ -457,17 +457,17 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
         self.uncertainty_dataset = self.__uncertainty_dataset_type__()
 
     @property
-    def __positioning_group_attribute_name__(self) -> str:
+    def __positioning_group_hdf_name__(self) -> str:
         return "Positioning"
 
     @property
     def positioning_group(self) -> S1xxAttributesBase:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.__positioning_group_attribute_name__]
+        return self._attributes[self.__positioning_group_hdf_name__]
 
     @positioning_group.setter
     def positioning_group(self, val: S1xxAttributesBase):
-        self._attributes[self.__positioning_group_attribute_name__] = val
+        self._attributes[self.__positioning_group_hdf_name__] = val
 
     @property
     def __positioning_group_type__(self):
@@ -483,11 +483,11 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
 
     @property
     def type_of_water_level_data(self) -> TYPE_OF_WATER_LEVEL_DATA:
-        return self._attributes[self.__type_of_water_level_data_attribute_name__]
+        return self._attributes[self.__type_of_water_level_data_hdf_name__]
 
     @type_of_water_level_data.setter
     def type_of_water_level_data(self, val: Union[int, str, TYPE_OF_WATER_LEVEL_DATA]):
-        self.set_enum_attribute(val, self.__type_of_water_level_data_attribute_name__, self.__type_of_water_level_data_type__)
+        self.set_enum_attribute(val, self.__type_of_water_level_data_hdf_name__, self.__type_of_water_level_data_type__)
 
     @property
     def __type_of_water_level_data_type__(self) -> Type[TYPE_OF_WATER_LEVEL_DATA]:
@@ -526,10 +526,10 @@ class WaterLevelContainer(FeatureContainerDCF2):
 
     #: Basic template for the name of the attribute
     #: Attribute name will be automatically determined based on the containing list's index
-    __water_level_attribute_name__ = WATER_LEVEL + r"[\._]\d+"
-    __min_dataset_height_attribute_name__ = "minDatasetHeight"
-    __max_dataset_height_attribute_name__ = "maxDatasetHeight"
-    __method_water_level_product_attribute_name__ = "methodWaterLevelProduct"
+    __water_level_hdf_name__ = WATER_LEVEL + r"[\._]\d+"
+    __min_dataset_height_hdf_name__ = "minDatasetHeight"
+    __max_dataset_height_hdf_name__ = "maxDatasetHeight"
+    __method_water_level_product_hdf_name__ = "methodWaterLevelProduct"
 
     @property
     def __version__(self) -> int:
@@ -552,20 +552,20 @@ class WaterLevelContainer(FeatureContainerDCF2):
             S104_MetadataList_base: Contains a list of WaterLevel objects
             via the WaterLevel_List class
         """
-        return self._attributes[self.__water_level_attribute_name__]
+        return self._attributes[self.__water_level_hdf_name__]
 
     @water_level.setter
     def water_level(self, val: S104MetadataListBase):
-        self._attributes[self.__water_level_attribute_name__] = val
+        self._attributes[self.__water_level_hdf_name__] = val
 
     @property
     def min_dataset_height(self) -> S1xxAttributesBase:
         """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.__min_dataset_height_attribute_name__]
+        return self._attributes[self.__min_dataset_height_hdf_name__]
 
     @min_dataset_height.setter
     def min_dataset_height(self, val: S1xxAttributesBase):
-        self._attributes[self.__min_dataset_height_attribute_name__] = val
+        self._attributes[self.__min_dataset_height_hdf_name__] = val
 
     @property
     def __min_dataset_height_type__(self) -> Type[float]:
@@ -580,11 +580,11 @@ class WaterLevelContainer(FeatureContainerDCF2):
 
     @property
     def max_dataset_height(self) -> S1xxAttributesBase:
-        return self._attributes[self.__max_dataset_height_attribute_name__]
+        return self._attributes[self.__max_dataset_height_hdf_name__]
 
     @max_dataset_height.setter
     def max_dataset_height(self, val: S1xxAttributesBase):
-        self._attributes[self.__max_dataset_height_attribute_name__] = val
+        self._attributes[self.__max_dataset_height_hdf_name__] = val
 
     @property
     def __max_dataset_height_type__(self) -> Type[numpy.float32]:
@@ -599,11 +599,11 @@ class WaterLevelContainer(FeatureContainerDCF2):
 
     @property
     def method_water_level_product(self) -> S1xxAttributesBase:
-        return self._attributes[self.__method_water_level_product_attribute_name__]
+        return self._attributes[self.__method_water_level_product_hdf_name__]
 
     @method_water_level_product.setter
     def method_water_level_product(self, val: S1xxAttributesBase):
-        self._attributes[self.__method_water_level_product_attribute_name__] = val
+        self._attributes[self.__method_water_level_product_hdf_name__] = val
 
     @property
     def __method_water_level_product_type__(self) -> Type[str]:
@@ -637,7 +637,7 @@ class WaterLevelFeatureDataset(FeatureInformationDataset):
 class GroupF(GroupFBase):
     """From S100 Table 10c-8 – Components of feature information group"""
 
-    __water_level_feature_dataset_attribute_name__ = WATER_LEVEL
+    __water_level_feature_dataset_hdf_name__ = WATER_LEVEL
 
     @property
     def __version__(self) -> int:
@@ -659,11 +659,11 @@ class GroupF(GroupFBase):
 
     @property
     def water_level_feature_dataset(self) -> WaterLevelFeatureDataset:
-        return self._attributes[self.__water_level_feature_dataset_attribute_name__]
+        return self._attributes[self.__water_level_feature_dataset_hdf_name__]
 
     @water_level_feature_dataset.setter
     def water_level_feature_dataset(self, val: WaterLevelFeatureDataset):
-        self._attributes[self.__water_level_feature_dataset_attribute_name__] = val
+        self._attributes[self.__water_level_feature_dataset_hdf_name__] = val
 
 
 class S104Root(S100Root):
@@ -672,13 +672,13 @@ class S104Root(S100Root):
     The coverage names are determined from the matching CoveragesAttributes
     Table 3 of v0.0.7
     """
-    __water_level_attribute_name__ = WATER_LEVEL
-    __water_level_trend_threshold_attribute_name__ = "waterLevelTrendThreshold"
-    __vertical_coordinate_system_attribute_name__ = "verticalCS"
-    __vertical_coordinate_base_attribute_name__ = "verticalCoordinateBase"
-    __vertical_datum_reference_attribute_name__ = "verticalDatumReference"
-    __vertical_datum_epsg_attribute_name__ = "verticalDatum"
-    __horizontal_crs_attribute_name__ = "horizontalCRS"
+    __water_level_hdf_name__ = WATER_LEVEL
+    __water_level_trend_threshold_hdf_name__ = "waterLevelTrendThreshold"
+    __vertical_coordinate_system_hdf_name__ = "verticalCS"
+    __vertical_coordinate_base_hdf_name__ = "verticalCoordinateBase"
+    __vertical_datum_reference_hdf_name__ = "verticalDatumReference"
+    __vertical_datum_epsg_hdf_name__ = "verticalDatum"
+    __horizontal_crs_hdf_name__ = "horizontalCRS"
 
     @property
     def __version__(self) -> int:
@@ -690,7 +690,7 @@ class S104Root(S100Root):
 
     @property
     def water_level(self) -> S1xxAttributesBase:
-        return self._attributes[self.__water_level_attribute_name__]
+        return self._attributes[self.__water_level_hdf_name__]
 
     @property
     def __water_level_type__(self):
@@ -703,15 +703,15 @@ class S104Root(S100Root):
 
     @water_level.setter
     def water_level(self, val: S1xxAttributesBase):
-        self._attributes[self.__water_level_attribute_name__] = val
+        self._attributes[self.__water_level_hdf_name__] = val
 
     @property
     def water_level_trend_threshold(self) -> S1xxAttributesBase:
-        return self._attributes[self.__water_level_trend_threshold_attribute_name__]
+        return self._attributes[self.__water_level_trend_threshold_hdf_name__]
 
     @water_level_trend_threshold.setter
     def water_level_trend_threshold(self, val: S1xxAttributesBase):
-        self._attributes[self.__water_level_trend_threshold_attribute_name__] = val
+        self._attributes[self.__water_level_trend_threshold_hdf_name__] = val
 
     @property
     def __water_level_trend_threshold_type__(self) -> Type[numpy.float32]:
@@ -725,11 +725,11 @@ class S104Root(S100Root):
 
     @property
     def vertical_coordinate_system(self) -> S1xxAttributesBase:
-        return self._attributes[self.__vertical_coordinate_system_attribute_name__]
+        return self._attributes[self.__vertical_coordinate_system_hdf_name__]
 
     @vertical_coordinate_system.setter
     def vertical_coordinate_system(self, val: S1xxAttributesBase):
-        self._attributes[self.__vertical_coordinate_system_attribute_name__] = val
+        self._attributes[self.__vertical_coordinate_system_hdf_name__] = val
 
     @property
     def __vertical_coordinate_system_type__(self) -> Type[numpy.int32]:
@@ -744,11 +744,11 @@ class S104Root(S100Root):
 
     @property
     def vertical_coordinate_base(self) -> VERTICAL_COORDINATE_BASE:
-        return self._attributes[self.__vertical_coordinate_base_attribute_name__]
+        return self._attributes[self.__vertical_coordinate_base_hdf_name__]
 
     @vertical_coordinate_base.setter
     def vertical_coordinate_base(self, val: Union[int, str, VERTICAL_COORDINATE_BASE]):
-        self.set_enum_attribute(val, self.__vertical_coordinate_base_attribute_name__, self.__vertical_coordinate_base_type__)
+        self.set_enum_attribute(val, self.__vertical_coordinate_base_hdf_name__, self.__vertical_coordinate_base_type__)
 
     @property
     def __vertical_coordinate_base_type__(self) -> Type[VERTICAL_COORDINATE_BASE]:
@@ -763,11 +763,11 @@ class S104Root(S100Root):
 
     @property
     def vertical_datum_reference(self) -> VERTICAL_DATUM_REFERENCE:
-        return self._attributes[self.__vertical_datum_reference_attribute_name__]
+        return self._attributes[self.__vertical_datum_reference_hdf_name__]
 
     @vertical_datum_reference.setter
     def vertical_datum_reference(self, val: Union[int, str, VERTICAL_DATUM_REFERENCE]):
-        self.set_enum_attribute(val, self.__vertical_datum_reference_attribute_name__, self.__vertical_datum_reference_type__)
+        self.set_enum_attribute(val, self.__vertical_datum_reference_hdf_name__, self.__vertical_datum_reference_type__)
 
     @property
     def __vertical_datum_reference_type__(self) -> Type[VERTICAL_DATUM_REFERENCE]:
@@ -783,11 +783,11 @@ class S104Root(S100Root):
     @property
     def vertical_datum_epsg(self) -> S1xxAttributesBase:
         """EPSG code for vertical datum for verticalDatumReference = 2"""
-        return self._attributes[self.__vertical_datum_attribute_name__]
+        return self._attributes[self.__vertical_datum_hdf_name__]
 
     @vertical_datum_epsg.setter
     def vertical_datum_epsg(self, val: S1xxAttributesBase):
-        self._attributes[self.__vertical_datum_attribute_name__] = val
+        self._attributes[self.__vertical_datum_hdf_name__] = val
 
     @property
     def __vertical_datum_epsg_type__(self) -> Type[numpy.int32]:
@@ -802,11 +802,11 @@ class S104Root(S100Root):
 
     @property
     def horizontal_crs(self) -> S1xxAttributesBase:
-        return self._attributes[self.__horizontal_crs_attribute_name__]
+        return self._attributes[self.__horizontal_crs_hdf_name__]
 
     @horizontal_crs.setter
     def horizontal_crs(self, val: S1xxAttributesBase):
-        self._attributes[self.__horizontal_crs_attribute_name__] = val
+        self._attributes[self.__horizontal_crs_hdf_name__] = val
 
     @property
     def __horizontal_crs_type__(self) -> Type[numpy.int32]:

@@ -89,24 +89,24 @@ Remember the MyObject has one string attribute that should be named "dataValue":
     # set up a standard object but store it in a non-standard group
     obj_with_standard_name = MyObject()
     obj_with_standard_name.data_value = "standard"
-    assert obj_with_standard_name.__data_value_attribute_name__ == "dataValue"
+    assert obj_with_standard_name.__data_value_hdf_name__ == "dataValue"
     h5file.require_group("/test_standard_name")
     obj_with_standard_name.write(h5file["/test_standard_name"])
 
-Now let's make another copy of MyObject and change __data_value_attribute_name__
+Now let's make another copy of MyObject and change __data_value_hdf_name__
 which defines the mapping from python name to S100+.
 Doing this BEFORE adding data works fine. ::
 
     obj_with_non_standard_name = MyObject()
-    obj_with_non_standard_name.__data_value_attribute_name__ = "Change_instance_name"
+    obj_with_non_standard_name.__data_value_hdf_name__ = "Change_instance_name"
     obj_with_non_standard_name.data_value = "Testing just the curreent instance"
     h5file.require_group("/test_instance_names")
     obj_with_non_standard_name.write(h5file["/test_instance_names"])
 
-If you want to get in trouble then you can change the class variable __data_value_attribute_name__ which will then affect
+If you want to get in trouble then you can change the class variable __data_value_hdf_name__ which will then affect
 ALL the future and existing instances of MyObject. ::
 
-    MyObject.__data_value_attribute_name__ = "Change_all_classes"
+    MyObject.__data_value_hdf_name__ = "Change_all_classes"
     changed_class_obj = MyObject()
     changed_class_obj.data_value = "Change_the_class_itself"
     h5file.require_group("/test_class_names")
@@ -136,13 +136,13 @@ First we'll change each instance's atrr_int naming and delete the old data and s
     # change the names and values of exising data
     for index, compund_arr in enumerate(data):
         del compund_arr.attr_int  #delete the old data before we rename
-        compund_arr.__attr_int_attribute_name__ = "changed_individual_int"
+        compund_arr.__attr_int_hdf_name__ = "changed_individual_int"
         compund_arr.attr_int = (index + 5) * 2
 
 Then we'll change the attr_float naming for the whole class (and any other existing data in the processes memory)::
 
-    old_name = datasetWithNames.__attr_float_attribute_name__
-    datasetWithNames.__attr_float_attribute_name__ = "changed_class_float"
+    old_name = datasetWithNames.__attr_float_hdf_name__
+    datasetWithNames.__attr_float_hdf_name__ = "changed_class_float"
     for index, compund_arr in enumerate(data):
         compund_arr.__delattr__(old_name)
         compund_arr.attr_float = (index + 6) * 3

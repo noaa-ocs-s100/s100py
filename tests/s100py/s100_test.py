@@ -40,7 +40,7 @@ def s100_file():
     h, fstr = tempfile.mkstemp(".h5", dir=os.path.split(__file__)[0])
     os.close(h)
     # create a S100 file to do basic tests, each test of a specific spec (102, 111) will need to create it's own.
-    f = s100.S100File(fstr)
+    f = s100.S100File(fstr, "w")
     yield f
     f.close()
     os.remove(fstr)
@@ -88,14 +88,14 @@ def test_initialize_props(s100_file):
     assert isinstance(s100_file.root.north_bound_latitude, float)
 
 
-class TestDataset(s100.FeatureInformationDataset):
+class FakeDataset(s100.FeatureInformationDataset):
     @property
     def metadata_name(self) -> str:
         return "FeatInfoTest"
 
 
 def test_dataset(s100_file):
-    td = TestDataset()
+    td = FakeDataset()
     rec1 = td.metadata_type()
     rec1.initialize_properties()
     rec1.code = "unit"

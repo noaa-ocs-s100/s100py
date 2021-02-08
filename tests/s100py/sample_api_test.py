@@ -70,7 +70,7 @@ class MONTY(Enum):
 
 
 class MyObject(s1xx.S1xxAttributesBase):
-    __data_value_attribute_name__ = "dataValue"  #: HDF5 naming
+    __data_value_hdf_name__ = "dataValue"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -78,11 +78,11 @@ class MyObject(s1xx.S1xxAttributesBase):
 
     @property
     def data_value(self) -> str:
-        return self._attributes[self.__data_value_attribute_name__]
+        return self._attributes[self.__data_value_hdf_name__]
 
     @data_value.setter
     def data_value(self, val: str):
-        self._attributes[self.__data_value_attribute_name__] = val
+        self._attributes[self.__data_value_hdf_name__] = val
 
     @property
     def __data_value_type__(self) -> Type[str]:
@@ -102,11 +102,11 @@ class MyLocation(s100.GeographicBoundingBox):
     def __version__(self) -> int:
         return 1
 
-    __utm_zone_attribute_name__ = "utmZone"  #: HDF5 naming
+    __utm_zone_hdf_name__ = "utmZone"  #: HDF5 naming
 
     @property
     def utm_zone(self) -> int:
-        return self._attributes[self.__utm_zone_attribute_name__]
+        return self._attributes[self.__utm_zone_hdf_name__]
 
     @utm_zone.setter
     def utm_zone(self, val: int):
@@ -115,7 +115,7 @@ class MyLocation(s100.GeographicBoundingBox):
             val = int(val)
         if (val <= 0 or val > 60) and val != self.empty_zone:
             raise Exception("Illegal zone number, must be between 1 and 60")
-        self._attributes[self.__utm_zone_attribute_name__] = val
+        self._attributes[self.__utm_zone_hdf_name__] = val
 
     @property
     def __utm_zone_type__(self) -> Type[int]:
@@ -129,21 +129,21 @@ class MyLocation(s100.GeographicBoundingBox):
 
 
 class DataGroupObject(s1xx.S1xxAttributesBase):
-    __data_grid_attribute_name__ = "dataGrid"  #: HDF5 naming
+    __data_grid_hdf_name__ = "dataGrid"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
         return 1
 
-    __name_of_data_attribute_name__ = "nameOfData"  #: HDF5 naming
+    __name_of_data_hdf_name__ = "nameOfData"  #: HDF5 naming
 
     @property
     def name_of_data(self) -> MONTY:
-        return self._attributes[self.__name_of_data_attribute_name__]
+        return self._attributes[self.__name_of_data_hdf_name__]
 
     @name_of_data.setter
     def name_of_data(self, val: Union[int, str, MONTY]):
-        self.set_enum_attribute(val, self.__name_of_data_attribute_name__, self.__name_of_data_type__)
+        self.set_enum_attribute(val, self.__name_of_data_hdf_name__, self.__name_of_data_type__)
 
     @property
     def __name_of_data_type__(self) -> Type[Enum]:
@@ -155,11 +155,11 @@ class DataGroupObject(s1xx.S1xxAttributesBase):
 
     @property
     def data_grid(self) -> s1xx.s1xx_sequence:
-        return self._attributes[self.__data_grid_attribute_name__]
+        return self._attributes[self.__data_grid_hdf_name__]
 
     @data_grid.setter
     def data_grid(self, val: s1xx.s1xx_sequence):
-        self._attributes[self.__data_grid_attribute_name__] = val
+        self._attributes[self.__data_grid_hdf_name__] = val
 
     @property
     def __data_grid_type__(self) -> s1xx.s1xx_sequence:
@@ -191,12 +191,12 @@ class DataGroups(s1xx.S1xxMetadataListBase):
 
 
 class DatasetWithNames(s1xx.S1xxAttributesBase):
-    __attr_int_attribute_name__ = "attrInt"  #: HDF5 naming
-    __attr_float_attribute_name__ = "attrFloat"  #: HDF5 naming
-    __attr_str_attribute_name__ = "attrStr"  #: HDF5 naming
+    __attr_int_hdf_name__ = "attrInt"  #: HDF5 naming
+    __attr_float_hdf_name__ = "attrFloat"  #: HDF5 naming
+    __attr_str_hdf_name__ = "attrStr"  #: HDF5 naming
 
     def get_write_order(self):
-        return [self.__attr_int_attribute_name__, self.__attr_str_attribute_name__, self.__attr_float_attribute_name__]
+        return [self.__attr_int_hdf_name__, self.__attr_str_hdf_name__, self.__attr_float_hdf_name__]
 
     @property
     def __version__(self) -> int:
@@ -204,11 +204,11 @@ class DatasetWithNames(s1xx.S1xxAttributesBase):
 
     @property
     def attr_int(self) -> int:
-        return self._attributes[self.__attr_int_attribute_name__]
+        return self._attributes[self.__attr_int_hdf_name__]
 
     @attr_int.setter
     def attr_int(self, val: int):
-        self._attributes[self.__attr_int_attribute_name__] = val
+        self._attributes[self.__attr_int_hdf_name__] = val
 
     @property
     def __attr_int_type__(self) -> Type[int]:
@@ -222,11 +222,11 @@ class DatasetWithNames(s1xx.S1xxAttributesBase):
 
     @property
     def attr_float(self) -> float:
-        return self._attributes[self.__attr_float_attribute_name__]
+        return self._attributes[self.__attr_float_hdf_name__]
 
     @attr_float.setter
     def attr_float(self, val: float):
-        self._attributes[self.__attr_float_attribute_name__] = val
+        self._attributes[self.__attr_float_hdf_name__] = val
 
     @property
     def __attr_float_type__(self) -> Type[float]:
@@ -240,11 +240,11 @@ class DatasetWithNames(s1xx.S1xxAttributesBase):
 
     @property
     def attr_str(self) -> str:
-        return self._attributes[self.__attr_str_attribute_name__]
+        return self._attributes[self.__attr_str_hdf_name__]
 
     @attr_str.setter
     def attr_str(self, val: str):
-        self._attributes[self.__attr_str_attribute_name__] = val
+        self._attributes[self.__attr_str_hdf_name__] = val
 
     @property
     def __attr_str_type__(self) -> Type[str]:
@@ -273,7 +273,7 @@ class DatasetWithNamesList(s1xx.S1xxDatasetBase):
 
 
 class S999Root(s1xx.S1xxAttributesBase):
-    __dataset_with_names_attribute_name__ = "datasetWithNames"  #: HDF5 naming
+    __dataset_with_names_hdf_name__ = "datasetWithNames"  #: HDF5 naming
 
     @property
     def __version__(self) -> int:
@@ -281,11 +281,11 @@ class S999Root(s1xx.S1xxAttributesBase):
 
     @property
     def dataset_with_names(self) -> DatasetWithNamesList:
-        return self._attributes[self.__dataset_with_names_attribute_name__]
+        return self._attributes[self.__dataset_with_names_hdf_name__]
 
     @dataset_with_names.setter
     def dataset_with_names(self, val: DatasetWithNamesList):
-        self._attributes[self.__dataset_with_names_attribute_name__] = val
+        self._attributes[self.__dataset_with_names_hdf_name__] = val
 
     @property
     def __dataset_with_names_type__(self) -> Type[DatasetWithNamesList]:
@@ -297,15 +297,15 @@ class S999Root(s1xx.S1xxAttributesBase):
         # pylint: disable=attribute-defined-outside-init
         self.dataset_with_names = self.__dataset_with_names_type__()
 
-    __data_group_attribute_name__ = "dataGroup"  #: HDF5 naming
+    __data_group_hdf_name__ = "dataGroup"  #: HDF5 naming
 
     @property
     def data_group(self) -> DataGroups:
-        return self._attributes[self.__data_group_attribute_name__]
+        return self._attributes[self.__data_group_hdf_name__]
 
     @data_group.setter
     def data_group(self, val: DataGroups):
-        self._attributes[self.__data_group_attribute_name__] = val
+        self._attributes[self.__data_group_hdf_name__] = val
 
     @property
     def __data_group_type__(self) -> Type[DataGroups]:
@@ -317,15 +317,15 @@ class S999Root(s1xx.S1xxAttributesBase):
         # pylint: disable=attribute-defined-outside-init
         self.data_group = self.__data_group_type__()
 
-    __my_location_group_attribute_name__ = "myLocationGroup"  #: HDF5 naming
+    __my_location_group_hdf_name__ = "myLocationGroup"  #: HDF5 naming
 
     @property
     def my_location_group(self) -> MyLocation:
-        return self._attributes[self.__my_location_group_attribute_name__]
+        return self._attributes[self.__my_location_group_hdf_name__]
 
     @my_location_group.setter
     def my_location_group(self, val: MyLocation):
-        self._attributes[self.__my_location_group_attribute_name__] = val
+        self._attributes[self.__my_location_group_hdf_name__] = val
 
     @property
     def __my_location_group_type__(self) -> Type[MyLocation]:
@@ -337,15 +337,15 @@ class S999Root(s1xx.S1xxAttributesBase):
         # pylint: disable=attribute-defined-outside-init
         self.my_location_group = self.__my_location_group_type__()
 
-    __my_first_object_attribute_name__ = "myFirstObject"  #: HDF5 naming
+    __my_first_object_hdf_name__ = "myFirstObject"  #: HDF5 naming
 
     @property
     def my_first_object(self) -> MyObject:
-        return self._attributes[self.__my_first_object_attribute_name__]
+        return self._attributes[self.__my_first_object_hdf_name__]
 
     @my_first_object.setter
     def my_first_object(self, val: MyObject):
-        self._attributes[self.__my_first_object_attribute_name__] = val
+        self._attributes[self.__my_first_object_hdf_name__] = val
 
     @property
     def __my_first_object_type__(self) -> Type[MyObject]:
@@ -395,7 +395,7 @@ else:
 
 def test_api(filename, revised_filename):
     print("running the sample api")
-    write_to_file = S999File(filename)
+    write_to_file = S999File(filename, "w")
     if not revised_filename:
         revised_filename = filename + ".revised.h5"
 
@@ -510,7 +510,7 @@ def test_api(filename, revised_filename):
     else:
         assert read_from_file.root.my_location_group.west_bound_longitude is None  # this should not exist, even as None
 
-    copy_of_file = S999File(revised_filename)
+    copy_of_file = S999File(revised_filename, "r+")
     copy_of_file.root = read_from_file.root
     # this shows how to initialize on creation
     copy_of_file.root.my_location_group = MyLocation(utm_zone=22, east_bound_longitude=11, extra_attr="This shouldn't even be here, but it works")
@@ -620,20 +620,20 @@ def test_direct_access_compound_array(revised_filename):
 
 
 def test_change_names_on_new_data(revised_filename):
-    """ This plays some games with the attribute_name.  Because the data is held in a dictionary based on the hdf5 names,
+    """ This plays some games with the hdf_name.  Because the data is held in a dictionary based on the hdf5 names,
     changing the mapping between python name and HDF5 name can have consequences.  """
     h5file = h5py.File(revised_filename, 'r+')
 
     # set up a standard object but store it in a non-standard group
     obj_with_standard_name = MyObject()
     obj_with_standard_name.data_value = "standard"
-    assert obj_with_standard_name.__data_value_attribute_name__ == "dataValue"
+    assert obj_with_standard_name.__data_value_hdf_name__ == "dataValue"
     h5file.require_group("/test_standard_name")
     obj_with_standard_name.write(h5file["/test_standard_name"])
 
     # change just the instance's name for HDF5, doing this BEFORE adding data works fine
     obj_with_non_standard_name = MyObject()
-    obj_with_non_standard_name.__data_value_attribute_name__ = "Change_instance_name"
+    obj_with_non_standard_name.__data_value_hdf_name__ = "Change_instance_name"
     obj_with_non_standard_name.data_value = "Testing just the current instance"
     h5file.require_group("/test_instance_names")
     obj_with_non_standard_name.write(h5file["/test_instance_names"])
@@ -641,21 +641,21 @@ def test_change_names_on_new_data(revised_filename):
     assert obj_with_non_standard_name.data_value == "Testing just the current instance"
 
     # Change the class definition, which can be easier if ALL the data you ever want to read uses that different naming
-    MyObject.__data_value_attribute_name__ = "Change_all_classes"
+    MyObject.__data_value_hdf_name__ = "Change_all_classes"
     changed_class_obj = MyObject()
     changed_class_obj.data_value = "Change_the_class_itself"
     h5file.require_group("/test_class_names")
     changed_class_obj.write(h5file["/test_class_names"])
 
-    assert changed_class_obj.__data_value_attribute_name__ == "Change_all_classes"
-    assert obj_with_non_standard_name.__data_value_attribute_name__ == "Change_instance_name"
+    assert changed_class_obj.__data_value_hdf_name__ == "Change_all_classes"
+    assert obj_with_non_standard_name.__data_value_hdf_name__ == "Change_instance_name"
 
     # but watch out, existing data will also get the new name (but the one we changed just the instance of will be unaffected).
     # our standard name data will now have data that is orphaned and adding/changing the data via the api will only use the new names
     obj_with_standard_name.data_value = "still standard?"
     h5file.require_group("/test_standard_whoa")
     obj_with_standard_name.write(h5file["/test_standard_whoa"])
-    assert obj_with_standard_name.__data_value_attribute_name__ == "Change_all_classes"
+    assert obj_with_standard_name.__data_value_hdf_name__ == "Change_all_classes"
     assert obj_with_non_standard_name.data_value == "Testing just the current instance"
 
     h5file.close()
@@ -671,12 +671,12 @@ def test_changing_names_on_existing_data(revised_filename):
     # change the names and values of exising data
     for index, compund_arr in enumerate(data):
         del compund_arr.attr_int  # delete the old data before we rename
-        compund_arr.__attr_int_attribute_name__ = "changed_individual_int"
+        compund_arr.__attr_int_hdf_name__ = "changed_individual_int"
         compund_arr.attr_int = (index + 5) * 2
 
     # change the name in all the classes in existence at once.  This could corrupt other data in memory, in theory!
-    old_name = DatasetWithNames.__attr_float_attribute_name__
-    DatasetWithNames.__attr_float_attribute_name__ = "changed_class_float"
+    old_name = DatasetWithNames.__attr_float_hdf_name__
+    DatasetWithNames.__attr_float_hdf_name__ = "changed_class_float"
     for index, compund_arr in enumerate(data):
         compund_arr.__delattr__(old_name)
         compund_arr.attr_float = (index + 6) * 3

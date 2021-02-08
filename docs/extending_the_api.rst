@@ -30,15 +30,15 @@ What it does:
 
 Code to put in your live template ::
 
-    __$attr$_attribute_name__ = return "$SELECTION$"  #: HDF5 naming
+    __$attr$_hdf_name__ = return "$SELECTION$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
-        return self._attributes[self.__$attr$_attribute_name__]
+        return self._attributes[self.__$attr$_hdf_name__]
 
     @$attr$.setter
     def $attr$(self, val: $type$):
-        self._attributes[self.__$attr$_attribute_name__] = val
+        self._attributes[self.__$attr$_hdf_name__] = val
 
     @property
     def __$attr$_type__(self) -> Type[$type$]:
@@ -56,15 +56,15 @@ For enumeration data types use this template which is very similar
 
 ::
 
-    __$attr$_attribute_name__ = return "$SELECTION$"  #: HDF5 naming
+    __$attr$_hdf_name__ = return "$SELECTION$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
-        return self._attributes[self.__$attr$_attribute_name__]
+        return self._attributes[self.__$attr$_hdf_name__]
 
     @$attr$.setter
     def $attr$(self, val: Union[int, str, $type$]):
-        self.set_enum_attribute(val, self.__$attr$_attribute_name__, self.__$attr$_type__)
+        self.set_enum_attribute(val, self.__$attr$_hdf_name__, self.__$attr$_type__)
 
     @property
     def __$attr$_type__(self) -> Type[$type$]:
@@ -95,15 +95,15 @@ Types can be basic python types or custom created classes.
 
 Ex:  eastBoundLongitude->float ::
 
-    __$attr$_attribute_name__ = return "$HDF5NAME$"  #: HDF5 naming
+    __$attr$_hdf_name__ = return "$HDF5NAME$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
-        return self._attributes[self.__$attr$_attribute_name__]
+        return self._attributes[self.__$attr$_hdf_name__]
 
     @$attr$.setter
     def $attr$(self, val: $type$):
-        self._attributes[self.__$attr$_attribute_name__] = val
+        self._attributes[self.__$attr$_hdf_name__] = val
 
     @property
     def __$attr$_type__(self) -> Type[$type$]:
@@ -128,15 +128,15 @@ Click the Edit Variables and:
 
 If you used the enumeration 'MONTY' from the sample api, this would look like   dataName->MONTY ::
 
-    __$attr$_attribute_name__ = return "$HDF5NAME$"  #: HDF5 naming
+    __$attr$_hdf_name__ = return "$HDF5NAME$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
-        return self._attributes[self.__$attr$_attribute_name__]
+        return self._attributes[self.__$attr$_hdf_name__]
 
     @$attr$.setter
     def $attr$(self, val: Union[int, str, $type$]):
-        self.set_enum_attribute(val, self.__$attr$_attribute_name__, self.$attr$_type)
+        self.set_enum_attribute(val, self.__$attr$_hdf_name__, self.$attr$_type)
 
     @property
     def __$attr$_type__(self) -> Type[$type$]:

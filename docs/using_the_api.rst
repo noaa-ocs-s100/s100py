@@ -25,7 +25,7 @@ Using initialize_properties(True) will recurse the data spec and create a skelet
 The get_standard_properties_mapping() show the HDF5 names and they pythonic pep8 names that are used with them.
 
 Inside of each S100 data class are data values and functions related to each data value.
-For a "dataname" value there are two properties, __dataname_type__ and __dataname_attribute_name__,
+For a "dataname" value there are two properties, __dataname_type__ and __dataname_hdf_name__,
 and a function dataname_create.
 
 When the File is being written any data that has not been set or initialized will be omitted.
@@ -71,14 +71,14 @@ we could have jsut set the value right away like this::
 
 As mentioned before, the data is stored in HDF5 (although other formats could easily be added such as XML).
 The names in HDF5 are determined from the S100 specs which don't adhere to Python's pep8 standards so there is
-a translation that occurs.  Similar to the _type and _create there is a class attribute ending in "_attribute_name"
+a translation that occurs.  Similar to the _type and _create there is a class attribute ending in "_hdf_name"
 which let's us know what the name would be in HDF5, if that is important to you.
 
 What are the east_bound_longiture and bathymetry_ceverage names in S102 nomenclature ::
 
-    >>> f.root.__east_bound_longitude_attribute_name__
+    >>> f.root.__east_bound_longitude_hdf_name__
     'eastBoundLongitude'
-    >>> f.root.__bathymetry_coverage_attribute_name__
+    >>> f.root.__bathymetry_coverage_hdf_name__
     'BathymetryCoverage'
 
 So now we will dive into the bathymetry_coverage, what is its value? ::
@@ -86,7 +86,7 @@ So now we will dive into the bathymetry_coverage, what is its value? ::
     >>> f.root.bathymetry_coverage
     Traceback (most recent call last):
       File "C:\PydroTrunk\Miniconda36\NOAA\site-packages\Python3\s100py\s102.py", line 1042, in bathymetry_coverage
-        return self._attributes[self.__bathymetry_coverage_attribute_name__]
+        return self._attributes[self.__bathymetry_coverage_hdf_name__]
     KeyError: 'BathymetryCoverage'
 
 Well, you have to create it first!  Since we didn't use bathymetry_coverage_create() or
@@ -107,7 +107,7 @@ You can see this gets encoded as a 'BathymetryContainer' which is really a "List
 
     >>> bathy.__bathymetry_coverage_type__  # see what type this was (though we don't really need to)
     s100py.s102.api.BathymetryContainer
-    >>> bathy.__bathymetry_coverage_attribute_name__  # We don't need to know this either
+    >>> bathy.__bathymetry_coverage_hdf_name__  # We don't need to know this either
     'BathymetryCoverage[\\._]\\d+'
 
 So, what we need to do is _create() the list then populate it with a new item.

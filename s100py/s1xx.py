@@ -94,7 +94,7 @@ class S1xxAttributesBase(ABC):
     To call a base class property use super().property, e.g. super().__version__
     This base class is built from the version 2.0.0 that was eventually published Nov. 2019
     """
-    _attr_name_suffix = "_attribute_name__"
+    _attr_name_suffix = "_hdf_name__"
 
     def __init__(self, recursively_create_children=False, **kywrds):
         self._hdf5_path = ""
@@ -127,7 +127,7 @@ class S1xxAttributesBase(ABC):
         if item in self._attributes or item in self.get_standard_properties_mapping():
             del self._attributes[item]
         elif item in self.get_standard_properties():
-            del self._attributes[eval("self.__{}_attribute_name__".format(item))]
+            del self._attributes[eval("self.__{}_hdf_name__".format(item))]
         else:
             del self.__dict__[item]
 
@@ -406,12 +406,12 @@ class S1xxAttributesBase(ABC):
         return s100_to_property_for_lists
 
     # @classmethod
-    # @todo question - if we make all the ___attribute_name__ as staticmethods or class variables then this could be a classmethod.
+    # @todo question - if we make all the __xxx_hdf_name__ as staticmethods or class variables then this could be a classmethod.
     # @todo Do we want to allow flexibility of changing the HDF5 name for an instance?
     # a little testing shows that using class variables and letting the user change it would fail in this function.
-    # so if we change the _attribute_name to class variables then the user could change the name on demand - for better or worse
+    # so if we change the _hdf_name to class variables then the user could change the name on demand - for better or worse
     #  but this would not be a classmethod.
-    # if we want this to be a classmethod then all the attribute_name would bee to become staticmethods and become functions - meaning adding ()
+    # if we want this to be a classmethod then all the hdf_name would bee to become staticmethods and become functions - meaning adding ()
     def get_standard_properties_mapping(self):
         """ This function autodetermines the HDF5 or xml names and their associated property names.
         Keys are the s100 (HDF5 spelling) strings and the values are the python style naming.
@@ -470,7 +470,7 @@ class S1xxAttributesBase(ABC):
 
     @classmethod
     def get_standard_properties(cls):
-        """  This function autodetermines the properties implemented (which have get/set @properties and _attribute_name associated)
+        """  This function autodetermines the properties implemented (which have get/set @properties and _hdf_name associated)
 
         Returns
         -------
@@ -482,12 +482,12 @@ class S1xxAttributesBase(ABC):
         """
         # allow for properties or class attributes (the str check does this)
         props = [p[0] for p in inspect.getmembers(cls, lambda x: isinstance(x, (property, str)))]
-        # remove the leading double underscore and the _attribute_name__ suffix
+        # remove the leading double underscore and the _hdf_name__ suffix
         implemented_properties = [p[2:-len(cls._attr_name_suffix)] for p in props if
                                   p.endswith(cls._attr_name_suffix) and p[2:-len(cls._attr_name_suffix)] in props]
         return implemented_properties
 
-    def set_enum_attribute(self, val, attribute_name, enum_type):
+    def set_enum_attribute(self, val, hdf_name, enum_type):
         """ Function to set an attribute that is an enumeration type using either it's string or numeric value
         or enumeration instance.
 
@@ -495,7 +495,7 @@ class S1xxAttributesBase(ABC):
         ----------
         val
             The value as a string, int or Enum().
-        attribute_name
+        hdf_name
             The S100 name (hdf5 spelling).
         enum_type
             The class of enumeration to use if an instance needs to be created.
@@ -508,9 +508,9 @@ class S1xxAttributesBase(ABC):
             val = enum_type[val]
         if isinstance(val, (int, numpy.integer)):
             val = enum_type(val)
-        self._attributes[attribute_name] = val
+        self._attributes[hdf_name] = val
 
-    def set_datetime_attribute(self, val, attribute_name, date_type):
+    def set_datetime_attribute(self, val, hdf_name, date_type):
         """
         A DateTime is a combination of a date and a time type. Character encoding of a
         DateTime must follow ISO 8601:2004  ( :2004 took away partial dates with two digit year or just month/day)
@@ -528,7 +528,7 @@ class S1xxAttributesBase(ABC):
         Parameters
         ----------
         val
-        attribute_name
+        hdf_name
         date_type
 
         Returns
@@ -581,7 +581,7 @@ class S1xxAttributesBase(ABC):
                                             decimal_sec, tzinfo=zone)
 
             if not match:
-                print("failed to parse date and/or time from '" + val + "' storing as string in ", attribute_name)
+                print("failed to parse date and/or time from '" + val + "' storing as string in ", hdf_name)
 
         if isinstance(val, (datetime.datetime, datetime.date, datetime.time)):
             if isinstance(val, datetime.datetime):
@@ -594,7 +594,7 @@ class S1xxAttributesBase(ABC):
                     if tz:
                         val = val.replace(tzinfo=tz)
 
-        self._attributes[attribute_name] = val
+        self._attributes[hdf_name] = val
 
     def get_hdf5_from_file(self, file_obj):
         if self._hdf5_path:
