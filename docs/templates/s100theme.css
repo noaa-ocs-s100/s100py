@@ -1,5 +1,17 @@
+/* Make page full width */
 @import url("theme.css");
 
 .wy-nav-content {
     max-width: 100%;
+}
+
+/* override table width restrictions which made table one line with scroll bar */
+.wy-table-responsive table td, .wy-table-responsive table th {
+    white-space: normal;
+}
+
+.wy-table-responsive {
+/*    margin-bottom: 24px;
+    max-width: 100%; */
+    overflow: visible;
 }
