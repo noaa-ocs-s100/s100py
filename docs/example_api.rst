@@ -59,7 +59,7 @@ This could look like::
 But doing this would require the data types read and write themselves to disk and do other housekeeping.
 Also data validation would be harder.
 
-For datatypes that have child data members there is a base class :any:`s1xx.S1xxAttributesBase`.
+For datatypes that have child data members there is a base class :any:`s1xx.S1xxObject`.
 This eventually equates to an HDF5 Group object that can have HDF5 attributes, datasets or subgroups.
 To allow for qc of the input and output of data by the user or what is being read from disk,
 we used properties (`@property`_) instead of plain member data.
@@ -79,7 +79,7 @@ of myFirstObject::
     from typing import Callable, Iterator, Union, Optional, List, Type
     from s100py import s1xx, s100
 
-    class MyObject(s1xx.S1xxAttributesBase):
+    class MyObject(s1xx.S1xxObject):
         """ Create our first data class with properties etc """
         @property
         def __version__(self) -> int:
@@ -154,7 +154,7 @@ make 'empty_zone' the default for the utm_zone::
 
 
 Next is a multi-occurrence object.  These are groups that S100 says has an integer at the end of it's name, like Group_001.
-To store these there is a class that makes them act as python lists, :any:`s1xx.S1xxMetadataListBase`.
+To store these there is a class that makes them act as python lists, :any:`s1xx.S1xxCollection`.
 This class needs to know what the acceptable name patterns are for reading/writing the data,
 the default is an underscore OR dot followed by one or more integers.
 You also have to supply a `@property`_ "metadata_name" and "metadata_type" for the name and type of the data to be held in the list.
@@ -177,7 +177,7 @@ Let's encode that as a python enumeration::
 Now let's make the class that has the enumeration and the dataset.  The enumeration data doesn't quite follow
 the standard template, so there is a second one just for enumerations in :any:`extending_the_api` ::
 
-    class DataGroupObject(s1xx.S1xxAttributesBase):
+    class DataGroupObject(s1xx.S1xxObject):
         @property
         def __version__(self) -> int:
             return 1
@@ -218,10 +218,10 @@ the standard template, so there is a second one just for enumerations in :any:`e
             """ Creates a blank, empty or zero value for data_grid"""
             self.data_grid = self.__data_grid_type__()
 
-Ok, now let's make the list object that will actually have these data groups.  Recall the :any:`s1xx.S1xxMetadataListBase`
+Ok, now let's make the list object that will actually have these data groups.  Recall the :any:`s1xx.S1xxCollection`
 base class::
 
-    class DataGroups(s1xx.S1xxMetadataListBase):
+    class DataGroups(s1xx.S1xxCollection):
         """ This is the list of dataGroup_NNN that are held as a list.
         Each dataGroup_NNN has a data_grid dataset and name_of_data attribute.
         """
@@ -248,7 +248,7 @@ as a multiple lists of attributes.  Our example will make a datatype to hold thr
 holds them in a list.  Notice we will implement the get_write_order() to make the HDF5 array be written in the order
 we want and not just by name.::
 
-    class datasetWithNames(s1xx.S1xxAttributesBase):
+    class datasetWithNames(s1xx.S1xxObject):
         def get_write_order(self):
             return ["attrInt", "attrStr", "attrFloat"]
 
@@ -327,10 +327,10 @@ and can be accessed as a python list.::
 
 The final data class we'll make is make a root object that contains all the datatypes we just made and associate that with a
 file object (which is derived from an h5py File).  The root object itself is just another
-class derived from :any:`s1xx.S1xxAttributesBase`.::
+class derived from :any:`s1xx.S1xxObject`.::
 
 
-    class S999Root(s1xx.S1xxAttributesBase):
+    class S999Root(s1xx.S1xxObject):
         __dataset_with_names_hdf_name__ = "datasetWithNames"  #: HDF5 naming
 
         @property

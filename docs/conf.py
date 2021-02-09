@@ -43,7 +43,7 @@ MOCK_MODULES = ['scipy', 'matplotlib', 'matplotlib.pyplot', 'scipy.interpolate',
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 
-top_classes = "s100py.s1xx.S1xxAttributesBase, s100py.s1xx.S1XXFile"
+top_classes = "s100py.s1xx.S1xxObject, s100py.s1xx.S1XXFile"
 
 use_automodapi = True
 use_autoapi = not use_automodapi
@@ -162,7 +162,7 @@ autodoc_default_options = {
    'special-members': '__init__',
    'undoc-members': True,
    'exclude-members': '__weakref__',
-   'top-classes': "s100py.s1xx.S1xxAttributesBase, s100py.s1xx.S1XXFile",
+   'top-classes': "s100py.s1xx.S1xxObject, s100py.s1xx.S1XXFile",
 #    'inherited-members': False,
 }
 

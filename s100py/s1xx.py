@@ -85,9 +85,9 @@ def convert_numpy_strings_to_h5py(vals, names=None):
     return rec_array_revised
 
 
-class S1xxAttributesBase(ABC):
+class S1xxObject(ABC):
     """ This class implements a general hdf5 group object that has attributes, dataset or sub-groups.
-    Works with S1xxMetadataListBase if the subgroups have multiple occurences (like Group.01, Group.02)
+    Works with S1xxCollection if the subgroups have multiple occurences (like Group.01, Group.02)
     Works with S1xxDatasetBase for things that are stored like a numpy array (dataset) in hdf5
 
     __version__ must be overridden.
@@ -213,10 +213,10 @@ class S1xxAttributesBase(ABC):
 
             # read in the HDF5 attributes etc from the group
             use_type = self.__getattribute__("__" + expected_items[key] + "_type__")
-            if is_sub_class(use_type, S1xxAttributesBase):
+            if is_sub_class(use_type, S1xxObject):
                 self.__getattribute__(expected_items[key] + "_create")()
                 data = self.__getattribute__(expected_items[key])
-                if is_sub_class(use_type, S1xxWritesOwnGroupBase):  # pass the parent
+                if is_sub_class(use_type, S1xxWritesGroupObjects):  # pass the parent
                     data.read(group_object)
                 else:  # pass the exact location for the data
                     data.read(group_object[key])
@@ -243,9 +243,9 @@ class S1xxAttributesBase(ABC):
         for key, val in self._attributes.items():
             if isinstance(val, s1xx_sequence_types):
                 continue  # skip these types for now
-            elif isinstance(val, S1xxWritesOwnGroupBase):
+            elif isinstance(val, S1xxWritesGroupObjects):
                 continue  # skip these types for now
-            elif isinstance(val, S1xxAttributesBase):
+            elif isinstance(val, S1xxObject):
                 continue  # skip these types for now
             elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
                 logging.debug(key + " datetime: {}", val)
@@ -290,8 +290,8 @@ class S1xxAttributesBase(ABC):
 
         # iterate through all the key/values in _attributes and write to hdf5
         # if a value is numpy.array then convert to h5py.Dataset
-        # if a value is a S1xxAttributesBase instance then create a group and call it's write function
-        # if a value is a S1xxWritesOwnGroupBase instance then let it create the group and tell it to write into the current group_object
+        # if a value is a S1xxObject instance then create a group and call it's write function
+        # if a value is a S1xxWritesGroupObjects instance then let it create the group and tell it to write into the current group_object
         for key, val in self._attributes.items():
             if isinstance(val, s1xx_sequence_types):  # this looks inside the typing.Union to see what arrays should be treated like this
                 logging.debug(key + " array: " + str(val.shape))
@@ -311,11 +311,11 @@ class S1xxAttributesBase(ABC):
                     new_dataset = group_object.create_dataset(key, data=revised_2)
                 except Exception as e:
                     raise e
-            elif isinstance(val, S1xxWritesOwnGroupBase):
+            elif isinstance(val, S1xxWritesGroupObjects):
                 # things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict
                 logging.debug("{}  S100 object - writing itself now...".format(key))
                 val.write(group_object)
-            elif isinstance(val, S1xxAttributesBase):
+            elif isinstance(val, S1xxObject):
                 logging.debug(key + " S100 object - writing itself now...")
                 new_group = group_object.require_group(key)
                 val.write(new_group)
@@ -389,7 +389,7 @@ class S1xxAttributesBase(ABC):
         return list(self.get_standard_properties_mapping().keys())
 
     def get_standard_list_properties(self):
-        """ Returns a list of properties that are lists (children based on S1xxMetadataListBase).
+        """ Returns a list of properties that are lists (children based on S1xxCollection).
         Basically a way of finding which items will be named <name>_001, <name>_002 etc
 
         Returns
@@ -401,7 +401,7 @@ class S1xxAttributesBase(ABC):
         s100_to_property = self.get_standard_properties_mapping()
         s100_to_property_for_lists = {}
         for s100_attr, prop in s100_to_property.items():
-            if is_sub_class(self.__getattribute__("__" + prop + "_type__"), S1xxMetadataListBase):
+            if is_sub_class(self.__getattribute__("__" + prop + "_type__"), S1xxCollection):
                 s100_to_property_for_lists[s100_attr] = prop
         return s100_to_property_for_lists
 
@@ -435,7 +435,7 @@ class S1xxAttributesBase(ABC):
         """ Calls the create function for all the properties of the class.
         Default values will be created for each attribute that is expected to be contained in this object.
 
-        For example, say a class has simple attributes of ESPG code (int) and locatilty (str) and then a class  made from S1xxAttributesBase
+        For example, say a class has simple attributes of ESPG code (int) and locatilty (str) and then a class  made from S1xxObject
         called "extents" which has east and west inside it.
 
         Calling initialize_properties(recursively_create_children=False) would result in EPSG=0, locality="" and
@@ -465,7 +465,7 @@ class S1xxAttributesBase(ABC):
             if overwrite or not self.__getattribute__(prop):
                 exec("self.{}_create()".format(prop))
                 o = eval("self.{}".format(prop))
-                if recursively_create_children and isinstance(o, S1xxAttributesBase):
+                if recursively_create_children and isinstance(o, S1xxObject):
                     o.initialize_properties(recursively_create_children, overwrite)
 
     @classmethod
@@ -604,15 +604,15 @@ class S1xxAttributesBase(ABC):
         return obj
 
 
-class S1xxWritesOwnGroupBase(S1xxAttributesBase):
+class S1xxWritesGroupObjects(S1xxObject):
     """ Derive things that either create a dataset and have to combine data into it or make multiple sub groups that the parent can't predict
-    The S1xxAttributesBase will call the derived class' writer without pre-making group for it.
+    The S1xxObject will call the derived class' writer without pre-making group for it.
     i.e. the derived class can specify its own group name or dataset and apply specialized logic as needed.
     """
     pass
 
 
-class S1xxMetadataListBase(list, S1xxWritesOwnGroupBase):
+class S1xxCollection(list, S1xxWritesGroupObjects):
     """ This class represents arrays (noted in UML as *, 1..*, 0..* etc) which is not really part of HDF5.
     The S100 spec is using a atttribute.NNN to repreent this type of record.
     This class takes the supplied name and type and will make it act like a list in python and read/write the data in HDF5 like S102 wants.
@@ -624,7 +624,7 @@ class S1xxMetadataListBase(list, S1xxWritesOwnGroupBase):
     def __init__(self, *args, **opts):
         # initialize the list in case data was passed in.
         super().__init__(*args, **opts)  # standard init for lists
-        S1xxAttributesBase.__init__(self)  # initialize the s100 class
+        S1xxObject.__init__(self)  # initialize the s100 class
 
     @property
     @abstractmethod
@@ -667,7 +667,7 @@ class S1xxMetadataListBase(list, S1xxWritesOwnGroupBase):
         # They should all be the same type but we aren't sure what type they are.
         # Most likely to be another S100_Attribute type.
         # if a value is numpy.array then convert to h5py.Dataset
-        # if a value is a S1xxAttributesBase instance then create a group and call it's write function
+        # if a value is a S1xxObject instance then create a group and call it's write function
         # if a value is a date, time - convert to character string per S100, section 10C-7 table 10C-1
         # otherwise write as a simple attribute and simple type
         self._hdf5_path = group_object.name
@@ -678,9 +678,9 @@ class S1xxMetadataListBase(list, S1xxWritesOwnGroupBase):
             name = self.metadata_name + self.write_format_str % (index + 1)
             if isinstance(val, s1xx_sequence_types):  # this looks inside the typing.Union to see what arrays should be treated like this
                 raise NotImplementedError()
-            # elif isinstance(val, S1xxMetadataListBase):
+            # elif isinstance(val, S1xxCollection):
             #     raise NotImplementedError("Nested Lists")
-            elif isinstance(val, S1xxAttributesBase):  # Attributes, List and Datasets all work the same (for now)
+            elif isinstance(val, S1xxObject):  # Attributes, List and Datasets all work the same (for now)
                 new_group = group_object.require_group(name)
                 val.write(new_group)
             elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
@@ -692,8 +692,8 @@ class S1xxMetadataListBase(list, S1xxWritesOwnGroupBase):
                 group_object[name] = val
 
 
-class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
-    """ The S102 spec stores some things as attributes that could (or should) be stored as attributes.
+class S1xxDatasetBase(list, S1xxWritesGroupObjects):
+    """ The S102 spec stores some things as datasets that could (or should) be stored as attributes.
     This class reads/writes datasets but stores/accesses them as a list of class instances.
     Data access should then be used as object[index].attribute
     So for the FeatureInformation class that would be feat[0].name = "depth" and feat[1].name = "uncertainty"
@@ -702,7 +702,7 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
     def __init__(self, *args, **opts):
         # initialize the list in case data was passed in.
         super().__init__(*args, **opts)  # standard init for lists
-        S1xxAttributesBase.__init__(self)  # initialize the s102 class
+        S1xxObject.__init__(self)  # initialize the s102 class
 
     @property
     @abstractmethod
@@ -719,7 +719,7 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
         return self[-1]
 
     def __repr__(self):
-        s = S1xxAttributesBase.__repr__(self)
+        s = S1xxObject.__repr__(self)
         for data_object in self:
             s += str(data_object)
         return s
@@ -728,7 +728,7 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
         group_object = group_object_parent[self.metadata_name]
         self.read_simple_attributes(group_object)  # put any attributes from the dataset object into the overall _attributes
         # @fixme -- I think below is more correct, but should be functionally the same as above
-        # S1xxAttributesBase.read(self, group_object)
+        # S1xxObject.read(self, group_object)
         # del self._attributes[self.metadata_name]  # remove the dataset since we are going to interpret it as a list instead
 
         list_length = group_object.shape[0]
@@ -822,7 +822,7 @@ class S1xxDatasetBase(list, S1xxWritesOwnGroupBase):
         return dataset
 
 
-class S1xxGridsBase(S1xxWritesOwnGroupBase):
+class S1xxGridsBase(S1xxWritesGroupObjects):
     @property
     @abstractmethod
     def metadata_name(self) -> str:

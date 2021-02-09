@@ -7,7 +7,7 @@ from enum import Enum
 import numpy
 import h5py
 
-from s100py.s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
+from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
 from s100py.s100 import S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
 
 SURFACE_CURRENT = "SurfaceCurrent"
@@ -54,11 +54,11 @@ class S111Exception(S100Exception):
     pass
 
 
-class S111MetadataListBase(S1xxMetadataListBase):
+class S111MetadataListBase(S1xxCollection):
     write_format_str = ".%02d"
 
 
-class SurfaceCurrentUncertaintyInformation(S1xxAttributesBase):
+class SurfaceCurrentUncertaintyInformation(S1xxObject):
     __name_hdf_name__ = "name"  #: HDF5 naming
     __value_hdf_name__ = "value"  #: HDF5 naming
 
@@ -186,7 +186,7 @@ class GeometryValuesDataset(S1xxGridsBase):
         return [self.longitude_dtype, self.latitude_dtype]
 
 
-class PositioningGroup(S1xxAttributesBase):
+class PositioningGroup(S1xxObject):
 
     __geometry_values_hdf_name__ = "geometry_values"
 
@@ -284,7 +284,7 @@ class SurfaceCurrentValues(S1xxGridsBase):
         return [self.surface_current_speed_dtype, self.surface_current_direction_dtype]
 
 
-class SurfaceCurrentGroup(S1xxAttributesBase):
+class SurfaceCurrentGroup(S1xxObject):
     """ 10.2.5 of v1.0.1
     also see section 12.3 and table 12.5
 
@@ -311,11 +311,11 @@ class SurfaceCurrentGroup(S1xxAttributesBase):
         self.values = self.__values_type__()
 
     @property
-    def time_point(self) -> S1xxAttributesBase:
+    def time_point(self) -> S1xxObject:
         return self._attributes[self.__time_point_hdf_name__]
 
     @time_point.setter
-    def time_point(self, val: S1xxAttributesBase):
+    def time_point(self, val: S1xxObject):
         self._attributes[self.__time_point_hdf_name__] = val
 
     @property
@@ -333,7 +333,7 @@ class SurfaceCurrentGroup(S1xxAttributesBase):
         return 1
 
 
-class SurfaceCurrentGroupList(S1xxMetadataListBase):
+class SurfaceCurrentGroupList(S1xxCollection):
     """ This is the list of Group.NNN that are held as a list.
     Each Group.NNN has a dataset of depth and uncertainty.
     """
@@ -370,19 +370,19 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
         self.surface_current_group = self.__surface_current_group_type__()
 
     @property
-    def surface_current_group(self) -> S1xxMetadataListBase:
+    def surface_current_group(self) -> S1xxCollection:
         return self._attributes[self.__surface_current_group_hdf_name__]
 
     @surface_current_group.setter
-    def surface_current_group(self, val: S1xxMetadataListBase):
+    def surface_current_group(self, val: S1xxCollection):
         self._attributes[self.__surface_current_group_hdf_name__] = val
 
     @property
-    def number_of_nodes(self) -> S1xxAttributesBase:
+    def number_of_nodes(self) -> S1xxObject:
         return self._attributes[self.__number_of_nodes_hdf_name__]
 
     @number_of_nodes.setter
-    def number_of_nodes(self, val: S1xxAttributesBase):
+    def number_of_nodes(self, val: S1xxObject):
         self._attributes[self.__number_of_nodes_hdf_name__] = val
 
     @property
@@ -416,11 +416,11 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
         return "Positioning"
 
     @property
-    def positioning_group(self) -> S1xxAttributesBase:
+    def positioning_group(self) -> S1xxObject:
         return self._attributes[self.__positioning_group_hdf_name__]
 
     @positioning_group.setter
-    def positioning_group(self, val: S1xxAttributesBase):
+    def positioning_group(self, val: S1xxObject):
         self._attributes[self.__positioning_group_hdf_name__] = val
 
     @property
@@ -494,11 +494,11 @@ class SurfaceCurrentContainer(FeatureContainerDCF2):
         self._attributes[self.__surface_current_hdf_name__] = val
 
     @property
-    def min_dataset_current_speed(self) -> S1xxAttributesBase:
+    def min_dataset_current_speed(self) -> S1xxObject:
         return self._attributes[self.__min_dataset_current_speed_hdf_name__]
 
     @min_dataset_current_speed.setter
-    def min_dataset_current_speed(self, val: S1xxAttributesBase):
+    def min_dataset_current_speed(self, val: S1xxObject):
         self._attributes[self.__min_dataset_current_speed_hdf_name__] = val
 
     @property
@@ -512,11 +512,11 @@ class SurfaceCurrentContainer(FeatureContainerDCF2):
         self.min_dataset_current_speed = self.__min_dataset_current_speed_type__()
 
     @property
-    def max_dataset_current_speed(self) -> S1xxAttributesBase:
+    def max_dataset_current_speed(self) -> S1xxObject:
         return self._attributes[self.__max_dataset_current_speed_hdf_name__]
 
     @max_dataset_current_speed.setter
-    def max_dataset_current_speed(self, val: S1xxAttributesBase):
+    def max_dataset_current_speed(self, val: S1xxObject):
         self._attributes[self.__max_dataset_current_speed_hdf_name__] = val
 
     @property
@@ -530,11 +530,11 @@ class SurfaceCurrentContainer(FeatureContainerDCF2):
         self.max_dataset_current_speed = self.__max_dataset_current_speed_type__()
 
     @property
-    def method_currents_product(self) -> S1xxAttributesBase:
+    def method_currents_product(self) -> S1xxObject:
         return self._attributes[self.__method_currents_product_hdf_name__]
 
     @method_currents_product.setter
-    def method_currents_product(self, val: S1xxAttributesBase):
+    def method_currents_product(self, val: S1xxObject):
         self._attributes[self.__method_currents_product_hdf_name__] = val
 
     @property
@@ -632,7 +632,7 @@ class S111Root(S100Root):
         return GroupF
 
     @property
-    def surface_current(self) -> S1xxAttributesBase:
+    def surface_current(self) -> S1xxObject:
         return self._attributes[self.__surface_current_hdf_name__]
 
     @property
@@ -645,7 +645,7 @@ class S111Root(S100Root):
         self.surface_current = self.__surface_current_type__()
 
     @surface_current.setter
-    def surface_current(self, val: S1xxAttributesBase):
+    def surface_current(self, val: S1xxObject):
         self._attributes[self.__surface_current_hdf_name__] = val
 
     @property
@@ -667,11 +667,11 @@ class S111Root(S100Root):
         self.depth_type_index = list(self.__depth_type_index_type__)[0]
 
     @property
-    def surface_current_depth(self) -> S1xxAttributesBase:
+    def surface_current_depth(self) -> S1xxObject:
         return self._attributes[self.__surface_current_depth_hdf_name__]
 
     @surface_current_depth.setter
-    def surface_current_depth(self, val: S1xxAttributesBase):
+    def surface_current_depth(self, val: S1xxObject):
         self._attributes[self.__surface_current_depth_hdf_name__] = val
 
     @property
@@ -685,7 +685,7 @@ class S111Root(S100Root):
         self.surface_current_depth = self.__surface_current_depth_type__()
 
 
-class DiscoveryMetadata(S1xxAttributesBase):
+class DiscoveryMetadata(S1xxObject):
     """ 12.2.6 of v1.0.1
     """
 

@@ -13,7 +13,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py"
 
-from .s1xx import s1xx_sequence, S1xxAttributesBase, S1xxDatasetBase, S1XXFile, h5py_string_dtype, is_sub_class
+from .s1xx import s1xx_sequence, S1xxObject, S1xxDatasetBase, S1XXFile, h5py_string_dtype, is_sub_class
 
 
 class S100Exception(Exception):
@@ -212,7 +212,7 @@ SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
 START_SEQUENCE = numpy.string_('0,0')
 
 
-class DirectPosition(S1xxAttributesBase):
+class DirectPosition(S1xxObject):
     """ 4.2.1.1.4 of v2.0.0
     """
     __coordinate_hdf_name__ = "coordinate"  #: HDF5 naming
@@ -257,7 +257,7 @@ class DirectPosition(S1xxAttributesBase):
         self.dimension = self.__dimension_type__()
 
 
-class GridCoordinate(S1xxAttributesBase):
+class GridCoordinate(S1xxObject):
     """ 4.2.1.1.6 of v2.0.0
     """
 
@@ -288,7 +288,7 @@ class GridCoordinate(S1xxAttributesBase):
         self.coord_values = self.__coord_values_type__([2], numpy.int)
 
 
-class GridEnvelope(S1xxAttributesBase):
+class GridEnvelope(S1xxObject):
     """ 4.2.1.1.5 of v2.0.0
     While I would think that the envelope would describe the real world extents of the grid,
     in the docs it describes the envelope as specifying the row/column offsets for the lower left and upper right
@@ -306,11 +306,11 @@ class GridEnvelope(S1xxAttributesBase):
         return 1
 
     @property
-    def low(self) -> S1xxAttributesBase:
+    def low(self) -> S1xxObject:
         return self._attributes[self.__low_hdf_name__]
 
     @low.setter
-    def low(self, val: S1xxAttributesBase):
+    def low(self, val: S1xxObject):
         self._attributes[self.__low_hdf_name__] = val
 
     @property
@@ -323,11 +323,11 @@ class GridEnvelope(S1xxAttributesBase):
         self.low = self.__low_type__()
 
     @property
-    def high(self) -> S1xxAttributesBase:
+    def high(self) -> S1xxObject:
         return self._attributes[self.__high_hdf_name__]
 
     @high.setter
-    def high(self, val: S1xxAttributesBase):
+    def high(self, val: S1xxObject):
         self._attributes[self.__high_hdf_name__] = val
 
     @property
@@ -340,7 +340,7 @@ class GridEnvelope(S1xxAttributesBase):
         self.high = self.__high_type__()
 
 
-class SequenceRule(S1xxAttributesBase):
+class SequenceRule(S1xxObject):
     """ 4.2.1.1.7 (and .8) of v2.0.0
     CV_SequenceRule specified in ISO 19123
     """
@@ -398,7 +398,7 @@ class SequenceRule(S1xxAttributesBase):
         self.scan_direction = self.__scan_direction_type__("Longitude, Latitude")
 
 
-class Point(S1xxAttributesBase):
+class Point(S1xxObject):
     """ 4.2.1.1.11 of v2.0.0
     The class GM_Point is taken from ISO 19107 and is the basic data type for a geometric object consisting of one and only one point.
     """
@@ -428,7 +428,7 @@ class Point(S1xxAttributesBase):
         self.position = self.__position_type__()
 
 
-class GeographicExtent(S1xxAttributesBase):
+class GeographicExtent(S1xxObject):
     """ 4.2.1.1.12 of v2.0.0
     The class EX_GeographicExtent is a metadata class from ISO 19115.
     It is a component of the metaclass EX_Extent.
@@ -563,7 +563,7 @@ class GeographicBoundingBox(GeographicExtent):
         self.north_bound_latitude = self.__north_bound_latitude_type__()
 
 
-class VertexPoint(S1xxAttributesBase):
+class VertexPoint(S1xxObject):
     """ From Figure 8-21 in S100 v4.0.0
 
     """
@@ -1059,7 +1059,7 @@ class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanc
         self.num_points_vertical = self.__num_points_vertical_type__()
 
 
-class FeatureInformation(S1xxAttributesBase):
+class FeatureInformation(S1xxObject):
     """  In S100, table 10c-8.
     In S102, 10.2.1 and table 10.2 and Table 10.1 of v2.0.0
 
@@ -1395,7 +1395,7 @@ class CommonPointRule:
         self.common_point_rule = self.__common_point_rule_type__["average"]
 
 
-class FeatureContainer(CommonPointRule, S1xxAttributesBase):
+class FeatureContainer(CommonPointRule, S1xxObject):
     """ This class comes from S100 in Table 10c-9 – Structure of feature container groups and
     Table 10c-10 – Attributes of feature container groups
     """
@@ -1734,7 +1734,7 @@ class FeatureContainerDCF6(SequencingRule, InterpolationType, FeatureContainer):
         self.data_coding_format = self.__data_coding_format_type__(6)
 
 
-class GroupFBase(S1xxAttributesBase):
+class GroupFBase(S1xxObject):
     """ From S100 Table 10c-8 – Components of feature information group
 
     There will also be a :class:`FeatureInformationDataset` holding a list of :class:`FeatureInformation`

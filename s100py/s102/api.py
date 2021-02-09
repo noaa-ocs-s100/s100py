@@ -18,7 +18,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s102"
 
-from ..s1xx import s1xx_sequence, S1xxAttributesBase, S1xxMetadataListBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
+from ..s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype
 from ..s100 import GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule
@@ -55,12 +55,12 @@ START_SEQUENCE: Starting location of the scan.
 
 
 # override the basic S100 spec that says to use an underscore and use a dot instead
-class S102MetadataListBase(S1xxMetadataListBase):
+class S102MetadataListBase(S1xxCollection):
     write_format_str = ".%03d"
 
 
 # # @TODO -- determine if this is old.  The spec seems to describe a one dimensional array or list of points but the values in the grid is a 2 x N x M dataset
-# class BathymetryValueRecord(S1xxAttributesBase):
+# class BathymetryValueRecord(S1xxObject):
 #     """ 4.2.1.1.2.2 and Figure 4.4 of v2.0.0
 #     The attribute values has the value type S102_BathymetryValueRecord which is a sequence of value items that
 #     shall assign values to the grid points.
@@ -202,7 +202,7 @@ class BathymetryValues(S1xxGridsBase):
         return [self.depth_dtype, self.uncertainty_dtype]
 
 
-class BathymetryCoverage(S1xxAttributesBase):
+class BathymetryCoverage(S1xxObject):
     """ This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
 
     4.2.1.1.1 and Figure 4.4 of v2.0.0
@@ -657,7 +657,7 @@ class TrackingListSetList(S102MetadataListBase):
         return TrackingListValuesList
 
 
-class TrackingListCoverage(CommonPointRule, S1xxAttributesBase):
+class TrackingListCoverage(CommonPointRule, S1xxObject):
     """ 4.2.1.1.9 and Figure 4.4 of v2.0.0
     commonPointRule is defined to be an S100_PointCoverage with a value of default and it therefore optional.
     a metadata attribute from S100 is allowed but not necessary as well.
@@ -723,11 +723,11 @@ class TrackingListCoverage(CommonPointRule, S1xxAttributesBase):
     # __geometry_hdf_name__ = "geometry"  #: HDF5 naming
     #
     # @property
-    # def geometry(self) -> S1xxAttributesBase:
+    # def geometry(self) -> S1xxObject:
     #     return self._attributes[self.__geometry_hdf_name__]
     #
     # @geometry.setter
-    # def geometry(self, val: S1xxAttributesBase):
+    # def geometry(self, val: S1xxObject):
     #     self._attributes[self.__geometry_hdf_name__] = val
     #
     # __value_hdf_name__ = "value"  #: HDF5 naming
@@ -917,7 +917,7 @@ class TrackingListContainer(FeatureContainerDCF2):
         self.tracking_list_coverage = self.__tracking_list_coverage_type__()
 
     @property
-    def tracking_list_coverage(self) -> S1xxAttributesBase:
+    def tracking_list_coverage(self) -> S1xxObject:
         """ The tracking list data, a list of TrackingListCoverage
         Returns
         -------
@@ -927,7 +927,7 @@ class TrackingListContainer(FeatureContainerDCF2):
         return self._attributes[self.__tracking_list_coverage_hdf_name__]
 
     @tracking_list_coverage.setter
-    def tracking_list_coverage(self, val: S1xxAttributesBase):
+    def tracking_list_coverage(self, val: S1xxObject):
         self._attributes[self.__tracking_list_coverage_hdf_name__] = val
 
 
@@ -1108,7 +1108,7 @@ class S102Root(S100Root):
         self.feature_information = self.__feature_information_type__()
 
     @property
-    def bathymetry_coverage(self) -> S1xxAttributesBase:
+    def bathymetry_coverage(self) -> S1xxObject:
         """Bathymetry instance stored under the HDF5 root using :class:`BathymetryContainer`
         """
         return self._attributes[self.__bathymetry_coverage_hdf_name__]
@@ -1123,7 +1123,7 @@ class S102Root(S100Root):
         self.bathymetry_coverage = self.__bathymetry_coverage_type__()
 
     @bathymetry_coverage.setter
-    def bathymetry_coverage(self, val: S1xxAttributesBase):
+    def bathymetry_coverage(self, val: S1xxObject):
         self._attributes[self.__bathymetry_coverage_hdf_name__] = val
 
     @property
@@ -1136,11 +1136,11 @@ class S102Root(S100Root):
         self.tracking_list_coverage = self.__tracking_list_coverage_type__()
 
     @property
-    def tracking_list_coverage(self) -> S1xxAttributesBase:
+    def tracking_list_coverage(self) -> S1xxObject:
         return self._attributes[self.__tracking_list_coverage_hdf_name__]
 
     @tracking_list_coverage.setter
-    def tracking_list_coverage(self, val: S1xxAttributesBase):
+    def tracking_list_coverage(self, val: S1xxObject):
         self._attributes[self.__tracking_list_coverage_hdf_name__] = val
 
 

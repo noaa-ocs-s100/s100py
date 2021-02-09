@@ -69,7 +69,7 @@ class MONTY(Enum):
     cheese = 2
 
 
-class MyObject(s1xx.S1xxAttributesBase):
+class MyObject(s1xx.S1xxObject):
     __data_value_hdf_name__ = "dataValue"  #: HDF5 naming
 
     @property
@@ -128,7 +128,7 @@ class MyLocation(s100.GeographicBoundingBox):
         self.utm_zone = self.__utm_zone_type__(self.empty_zone)
 
 
-class DataGroupObject(s1xx.S1xxAttributesBase):
+class DataGroupObject(s1xx.S1xxObject):
     __data_grid_hdf_name__ = "dataGrid"  #: HDF5 naming
 
     @property
@@ -172,7 +172,7 @@ class DataGroupObject(s1xx.S1xxAttributesBase):
         self.data_grid = self.__data_grid_type__([2], numpy.float32)
 
 
-class DataGroups(s1xx.S1xxMetadataListBase):
+class DataGroups(s1xx.S1xxCollection):
     """ This is the list of dataGroup_NNN that are held as a list.
     Each dataGroup_NNN has a data_grid dataset and name_of_data attribute.
     """
@@ -190,7 +190,7 @@ class DataGroups(s1xx.S1xxMetadataListBase):
         return DataGroupObject
 
 
-class DatasetWithNames(s1xx.S1xxAttributesBase):
+class DatasetWithNames(s1xx.S1xxObject):
     __attr_int_hdf_name__ = "attrInt"  #: HDF5 naming
     __attr_float_hdf_name__ = "attrFloat"  #: HDF5 naming
     __attr_str_hdf_name__ = "attrStr"  #: HDF5 naming
@@ -272,7 +272,7 @@ class DatasetWithNamesList(s1xx.S1xxDatasetBase):
         return "datasetWithNames"
 
 
-class S999Root(s1xx.S1xxAttributesBase):
+class S999Root(s1xx.S1xxObject):
     __dataset_with_names_hdf_name__ = "datasetWithNames"  #: HDF5 naming
 
     @property
