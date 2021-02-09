@@ -11,6 +11,11 @@ import h5py
 from s100py import s100
 
 
+def h5py_string_comp(h5py_val, cmp_str):
+    # h5py <3.0 returns a string, >3.0 returns bytes
+    return h5py_val in (cmp_str, bytes(cmp_str, "utf-8"))
+
+
 def test_feature_information_conversions():
     i = s100.FeatureInformation()
     assert i._python_datatype() == str
@@ -113,9 +118,11 @@ def test_dataset(s100_file):
     data = read_file["/" + td.metadata_name]
     assert data.shape == (2,)
     assert data.dtype[0].type == numpy.object_  # make sure the strings were stored as utf8 which comes back as an object type
-    assert data[0]['code'] == "unit"
-    assert data[0]['name'] == "Latitude"
-    assert data[1]['code'] == "test"
+
+    # h5py <3.0 returns a string, >3.0 returns bytes
+    assert h5py_string_comp(data[0]['code'], "unit")
+    assert h5py_string_comp(data[0]['name'], "Latitude")
+    assert h5py_string_comp(data[1]['code'], "test")
 
 
 def test_numpy_string(s100_file):
@@ -132,7 +139,7 @@ def test_numpy_string(s100_file):
     s100_file.write()
 
     read_file = s100.S100File(s100_file.filename, "r")
-    assert read_file['/ndStrings'][0] == "sLat"
-    assert read_file['/ndStrings'][1] == "slong"
-    assert read_file['/narray'][1] == "pLon"
-    assert read_file['/h5pyStrings'][0] == "Lat"
+    assert h5py_string_comp(read_file['/ndStrings'][0], "sLat")
+    assert h5py_string_comp(read_file['/ndStrings'][1], "slong")
+    assert h5py_string_comp(read_file['/narray'][1], "pLon")
+    assert h5py_string_comp(read_file['/h5pyStrings'][0], "Lat")

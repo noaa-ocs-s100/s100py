@@ -12,6 +12,12 @@ from s100py import s100, s102
 
 local_path = pathlib.Path(__file__).parent
 
+
+def h5py_string_comp(h5py_val, cmp_str):
+    # h5py <3.0 returns a string, >3.0 returns bytes
+    return h5py_val in (cmp_str, bytes(cmp_str, "utf-8"))
+
+
 @pytest.fixture(scope="module")
 def s102_file():
     tf = tempfile.TemporaryFile(suffix=".h5")
@@ -65,6 +71,9 @@ def copy_path(bagname):
 def check_s102_data(s102obj):
     assert s102obj.root
     assert s102obj.root.horizontal_datum_reference == "EPSG"
+    # read with lower level h5py access too
+    assert h5py_string_comp(s102obj.attrs['horizontalDatumReference'], "EPSG")
+
     assert s102obj.root.horizontal_datum_value == 32610
     assert s102obj.root.west_bound_longitude > 523816
     assert s102obj.root.west_bound_longitude < 523817

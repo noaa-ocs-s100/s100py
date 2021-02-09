@@ -63,6 +63,9 @@ except:
 # custom modules
 from s100py import s1xx, s100
 
+def h5py_string_comp(h5py_val, cmp_str):
+    # h5py <3.0 returns a string, >3.0 returns bytes
+    return h5py_val in (cmp_str, bytes(cmp_str, "utf-8"))
 
 class MONTY(Enum):
     spam = 1
@@ -499,7 +502,7 @@ def test_api(filename, revised_filename):
 
     read_from_file = S999File(filename, "r")
     assert read_from_file.root.dataset_with_names[1].attr_int == 27
-    assert read_from_file.root.dataset_with_names[0].attr_str in "used a default string"
+    assert h5py_string_comp(read_from_file.root.dataset_with_names[0].attr_str, "used a default string")
     assert read_from_file.root.data_group[1].name_of_data == MONTY(2)
     assert read_from_file.root.data_group[2].data_grid[1] == 0.75  # the second element of the range
     assert read_from_file.root.my_location_group.east_bound_longitude == 33.5
