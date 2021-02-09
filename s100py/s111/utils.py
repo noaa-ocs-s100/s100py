@@ -207,6 +207,8 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
             1d or 2d array containing surface current directions.
         data_file
             S111File object
+        datetime_value
+            datetime object
         grid_properties
             a dictionary of metadata describing the grids passed in,
             metadata can have the following key/value pairs:
@@ -304,33 +306,30 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S111
 
           Parameters
           ----------
-          speed
-              1d or 2d array containing surface current speeds.
-          direction
-              1d or 2d array containing surface current directions.
           data_file
               S111File object
           grid_properties
-            a dictionary of metadata describing the grids passed in,
-            metadata can have the following key/value pairs:
-                - "maxx": West bound longitude
-                - "minx": East bound longitude
-                - "miny": South bound latitude
-                - "maxy": North bound latitude
-                - "cellsize_x": Only for DCF2, grid spacing longitude
-                - "cellsize_y": Only for DCF2, grid spacing latitude
-                - "nx": Only for DCF2, number of points longitudinal
-                - "ny": Only for DCF2, number of points latitudinal
-                - "latitude": Only for DCF3, latitude of nodes
-                - "longitude": Only for DCF3, longitudes of nodes
-                - "nodes": Only for DCF3, number of nodes
+              a dictionary of metadata describing the grids passed in,
+              metadata can have the following key/value pairs:
+                 - "maxx": West bound longitude
+                 - "minx": East bound longitude
+                 - "miny": South bound latitude
+                 - "maxy": North bound latitude
+                 - "cellsize_x": Only for DCF2, grid spacing longitude
+                 - "cellsize_y": Only for DCF2, grid spacing latitude
+                 - "nx": Only for DCF2, number of points longitudinal
+                 - "ny": Only for DCF2, number of points latitudinal
+                 - "latitude": Only for DCF3, latitude of nodes
+                 - "longitude": Only for DCF3, longitudes of nodes
+                 - "nodes": Only for DCF3, number of nodes
           update_meta
-              a dictionary of dynamic metadata, metadata can have the following key/value pairs:
-                  - "dateTimeOfLastRecord": West bound longitude
-                  - "numberOfGroups": East bound longitude
-                  - "numberOfTimes": South bound latitude
-                  - "timeRecordInterval": North bound latitude
-                  - "num_instances": Only for DCF2, grid spacing longitude
+              a dictionary of dynamic metadata, metadata can have the following
+              key/value pairs:
+                  - "dateTimeOfLastRecord": Valid ISO 8601 time of latest value
+                  - "numberOfGroups": Number of forecasts
+                  - "numberOfTimes": Number of valid times
+                  - "timeRecordInterval": Time between forecasts in seconds
+                  - "num_instances": Number of surface current feature instances
 
           Returns
           -------

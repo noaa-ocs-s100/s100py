@@ -1,7 +1,5 @@
-"""Utilities for creation and modification of S-111 compliant HDF-5 files.
+"""Legacy utilities for creation and modification of S-111 compliant HDF-5 files
 
-S-111 is an IHO standard outlining formats for storing and sending surface
-water current data and metadata.
 """
 import contextlib
 import datetime

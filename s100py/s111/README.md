@@ -8,14 +8,14 @@ Overview
 S-111 is an IHO standard outlining formats for storing and sending surface
 water current data and metadata.
 
--   Create and modify S-111 compliant HDF5 files in all four data coding
-    formats:
+-   S-111 Data Coding Formats (DCF):
 
-
-        1.  Time-series at fixed station 
-        2.  Regularly-gridded arrays 
-        3.  Ungeorectified gridded arrays (i.e. irregular grid)
+        1.  Time-series at fixed station
+        2.  Regularly-gridded arrays
+        3.  Ungeorectified Grid (i.e. irregular grid)
         4.  Time series for moving platform
+
+*NOTE: DCF 1 & 4 are currently not supported but will be added in the future*
 
 Example Usage
 -------------

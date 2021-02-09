@@ -271,7 +271,7 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
                 - "longitude": Only for DCF3, longitudes of nodes
                 - "nodes": Only for DCF3, number of nodes
         data_coding_format
-            - 'Time Series at fixed xtations': 1
+            - 'Time Series at fixed stations': 1
             - 'Regularly-Gridded arrays': 2
             - 'Ungeorectified Grid': 3
             - 'TIN': 7
@@ -356,24 +356,23 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S104
           data_file
               S104File object
           grid_properties
-            a dictionary of metadata describing the dynamic data passed in,
-            metadata can have the following key/value pairs:
-                - "maxx": West bound longitude
-                - "minx": East bound longitude
-                - "miny": South bound latitude
-                - "maxy": North bound latitude
-                - "cellsize_x": Only for DCF2, grid spacing longitude
-                - "cellsize_y": Only for DCF2, grid spacing latitude
-                - "nx": Only for DCF2, number of points longitudinal
-                - "ny": Only for DCF2, number of points latitudinal
-                - "latitude": Only for DCF3, latitude of nodes
-                - "longitude": Only for DCF3, longitudes of nodes
-                - "nodes": Only for DCF3, number of nodes
+              a dictionary of metadata describing the dynamic data passed in,
+              metadata can have the following key/value pairs:
+                  - "maxx": West bound longitude
+                  - "minx": East bound longitude
+                  - "miny": South bound latitude
+                  - "maxy": North bound latitude
+                  - "cellsize_x": Only for DCF2, grid spacing longitude
+                  - "cellsize_y": Only for DCF2, grid spacing latitude
+                  - "nx": Only for DCF2, number of points longitudinal
+                  - "ny": Only for DCF2, number of points latitudinal
+                  - "latitude": Only for DCF3, latitude of nodes
+                  - "longitude": Only for DCF3, longitudes of nodes
+                  - "nodes": Only for DCF3, number of nodes
           update_meta
               a dictionary of dynamic metadata, metadata can have the following
               key/value pairs:
-                  - "dateTimeOfLastRecord": Valid time of lastest value,
-                  'YYYYMMDDTHHMMSSZ'
+                  - "dateTimeOfLastRecord": Valid ISO 8601 time of latest value
                   - "numberOfGroups": Number of forecasts
                   - "numberOfTimes": Number of valid times
                   - "timeRecordInterval": Time between forecasts in seconds

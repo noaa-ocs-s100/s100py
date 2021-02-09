@@ -8,6 +8,16 @@ Overview
 S-104 is an IHO standard outlining formats for storing and sending
 water level data and metadata for surface navigation.
 
+-   S-104 Data Coding Formats (DCF):
+
+        1.  Time-series at fixed station
+        2.  Regularly-gridded arrays
+        3.  Ungeorectified Grid
+        7.  TIN
+        8.  Time Series at fixed stations (stationwise)
+
+*NOTE: DCF 1, 7, 8 are currently not supported but will be added in the future*
+
 Example Usage
 -------------
 

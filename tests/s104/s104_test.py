@@ -274,7 +274,6 @@ def input_data():
      'metadata': 'MD_s104_test.XML',
      'geographicIdentifier': 'Palau',
      'waterLevelHeightUncertainty': -1.0,
-     'waterLevelTrendUncertainty': -1.0,
      'verticalUncertainty': -1.0,
      'horizontalPositionUncertainty': -1.0,
      'timeUncertainty': -1.0,
