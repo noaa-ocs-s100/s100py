@@ -11,10 +11,10 @@ with open(os.path.join(HERE, 'README.md'), encoding='utf-8') as f:
 
 setuptools.setup(
     name='s100py',
-    license='BSD-2-Clause',
-    author='Erin Nagel, Jason Greenlaw',
-    author_email='erin.nagel@noaa.gov, jason.greenlaw@noaa.gov',
-    description='This python package provides utilities for encoding hydrographic datasets in the International Hydrographic Organization (IHO) S-100 format',
+    license='CC0 1.0 Universal',
+    author='Barry Gallagher, Erin Nagel',
+    author_email='barry.gallagher@noaa.gov, erin.nagel@noaa.gov',
+    description='This python package provides api and utilities for encoding hydrographic datasets in the International Hydrographic Organization (IHO) S-100 format',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/noaa-ocs-s100/s100py',
@@ -25,7 +25,7 @@ setuptools.setup(
     classifiers=[
         'Programming Language :: Python :: 3',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: CCO License',
         'Operating System :: OS Independent',
     ],
 )
