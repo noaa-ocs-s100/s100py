@@ -1,6 +1,10 @@
 """ Functions to create S102 data from other sources
 
+If the utils module is run as __main__ then it will run  :func:`from_bag` or :func:`from_gdal` on the filename given in the command line arguments.
+
 """
+# this also works but doesn't put parenthesis in the html   :any:`from_bag`
+# fully qualified would also work   :func:`s100py.s102.utils.from_gdal`
 
 import os
 import sys
@@ -37,18 +41,14 @@ except:
 from s100py.s1xx import s1xx_sequence
 from s100py.s102.api import DEPTH, UNCERTAINTY, S102File, S102Exception
 
+__all__ = ['plot_depth_using_h5py', 'create_s102', 'from_arrays', 'from_arrays_with_metadata',
+           'from_gdal', 'from_bag', 'get_valid_epsg']
+
 gco = "{http://www.isotc211.org/2005/gco}"
 
 # @todo create a friendly name mapping to s102 nested location, then add s102 functions for "to dictionary" and "from dictionary" to api
-# that would make these functions easily invertable
+#   that would make these functions easily invertable
 
-# fname = r"G:\Data\S102 Data\GlenS102Test\102USA15NYCAH200430.H5"
-# navo_name = r"G:\Data\S102 Data\LA_LB_Area_GEO_reprojected.bag_%d.h5"
-# bag_name=r"G:\Data\S102 Data\LA_LB_Area_GEO_reprojected.bag"
-# fout = utils.from_bag(bag_name, r"G:\Data\S102 Data\LA_LB_Area_GEO_reprojected.bag.noaa.h5")
-# utils.plot_depth_using_h5py(navo_name)
-# utils.plot_depth_using_h5py(fname)
-# importlib.reload(utils)
 r"""
 from s100py.s102 import utils
 navo_name = r"G:\Data\S102 Data\LA_LB_Area_GEO_reprojected.bag.navo_%d.h5"
@@ -568,14 +568,6 @@ def get_valid_epsg() -> list:
 
 def browse_files(question):
     # using tkinter since it is built in to python and smaller to distribute than PySide2 or wxPython in an executable
-    root = tk.Tk()
-    root.withdraw()
-    # root.filename = tkFileDialog.askopenfilename(initialdir="/", title="Select file",
-    #                                              filetypes=(("jpeg files", "*.jpg"), ("all files", "*.*")))
-    file_path = filedialog.askopenfilename(title=question)
-    return file_path
-
-def browse_files(question):
     root = tk.Tk()
     root.withdraw()
     # root.filename = tkFileDialog.askopenfilename(initialdir="/", title="Select file",
