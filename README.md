@@ -78,8 +78,9 @@ Authors
 
 -   Barry Gallagher (NOAA), <barry.gallagher@noaa.gov>
 -   Erin Nagel (UCAR), <erin.nagel@noaa.gov>
--   Jason Greenlaw (ERT), <jason.greenlaw@noaa.gov>
 -   Glen Rice (NOAA), <glen.rice@noaa.gov>
+-   Jason Greenlaw
+
 
 License
 -------

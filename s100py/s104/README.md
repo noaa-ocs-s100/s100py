@@ -111,8 +111,8 @@ Authors
 -------
 
 -   Erin Nagel (UCAR), <erin.nagel@noaa.gov>
--   Jason Greenlaw (ERT), <jason.greenlaw@noaa.gov>
 -   Barry Gallagher (NOAA), <barry.gallagher@noaa.gov>
+-   Jason Greenlaw
 
 
 
