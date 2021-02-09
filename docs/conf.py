@@ -152,8 +152,9 @@ elif use_autoapi:
     autoapi_type = "python"
     autoapi_file_pattern = "*.py"
 
-if os.path.exists(r"..\..\..\..\envs\Pydro367\Library\bin\graphviz\dot.exe"):  # on rtd site use the default dot install
-    graphviz_dot = os.path.normpath(os.path.join(root_p, r"..\..\..\..\envs\Pydro367\Library\bin\graphviz\dot.exe"))
+bg_dot_path = r"c:\PydroTrunk\Miniconda36\envs\Pydro367\Library\bin\graphviz\dot.exe"
+if os.path.exists(bg_dot_path):  # on rtd site use the default dot install
+    graphviz_dot = bg_dot_path
 
 autodoc_default_options = {
    # 'members': 'var1, var2',
