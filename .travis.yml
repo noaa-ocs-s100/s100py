@@ -27,7 +27,7 @@ install:
   - python setup.py install
 
 script:
-- echo "No tests"
+  - pytest -vv
 
 deploy:
   provider: pypi
