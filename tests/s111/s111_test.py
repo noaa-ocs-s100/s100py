@@ -3221,7 +3221,7 @@ def input_data():
         ('surfaceCurrentDirection', 'Surface current direction', 'arc-degrees', '-9999', 'H5T_FLOAT', '0', '360', 'geLtInterval')],
       dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
 
-    expected_georeferenced_coordinates = (-75.59722, 0.005554199, 0.0, 37.202778, 0.0, 0.005558014)
+    expected_georeferenced_coordinates = (-75.30278, 0.005554199, 0.0, 37.202778, 0.0, 0.005558014)
 
     return InputData(speed_2d_001, direction_2d_001, speed_2d_002, direction_2d_002, speed_1d, direction_1d, lon, lat, grid_2d_properties, grid_1d_properties, metadata, datetime_value, update_2d_meta, update_1d_meta, expected_2d_chunks, expected_1d_chunks, expected_groupf, expected_georeferenced_coordinates)
 
