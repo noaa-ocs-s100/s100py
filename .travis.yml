@@ -1,6 +1,7 @@
 language: python
 
 python:
+  - '3.8'
   - '3.7'
   - '3.6'
 
@@ -19,8 +20,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION gdal scipy numpy
-    shapely netCDF4 h5py pytest
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION gdal scipy numpy h5py pytest
   - conda activate test-environment
   - pip install -U pip
   - pip install thyme
