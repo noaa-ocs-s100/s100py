@@ -247,7 +247,7 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
         surface_current_feature_instance_01.start_sequence = "0,0"
         surface_current_feature.sequencing_rule_scan_direction = "longitude, latitude"
         surface_current_feature.sequencing_rule_type = 1
-        surface_current_feature_instance_01.grid_origin_longitude = grid_properties['minx']
+        surface_current_feature_instance_01.grid_origin_longitude = grid_properties['maxx']
         surface_current_feature_instance_01.grid_origin_latitude = grid_properties['miny']
         surface_current_feature_instance_01.grid_spacing_longitudinal = grid_properties['cellsize_x']
         surface_current_feature_instance_01.grid_spacing_latitudinal = grid_properties['cellsize_y']
@@ -393,7 +393,12 @@ def to_geotiff(input_path, output_path):
                 speed = values['surfaceCurrentSpeed']
                 direction = values['surfaceCurrentDirection']
                 timepoint = feature_instance['Group_{:03d}'.format(idx)].attrs['timePoint']
-                timepoint_str = datetime.datetime.strptime(timepoint, "%Y-%m-%dT%H:%M:%S")
+
+                try:
+                    timepoint_str = datetime.datetime.strptime(timepoint, "%Y-%m-%dT%H:%M:%S")
+                except ValueError:
+                    timepoint_str = datetime.datetime.strptime(timepoint, "%Y%m%dT%H%M%SZ")
+
                 datetime_str = timepoint_str.strftime("%Y%m%dT%H%M%SZ")
 
                 x_dim = speed.shape[1]

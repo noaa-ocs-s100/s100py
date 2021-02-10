@@ -292,7 +292,7 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         water_level_feature_instance_01.start_sequence = "0,0"
         water_level_feature.sequencing_rule_scan_direction = "longitude, latitude"
         water_level_feature.sequencing_rule_type = 1
-        water_level_feature_instance_01.grid_origin_longitude = grid_properties['minx']
+        water_level_feature_instance_01.grid_origin_longitude = grid_properties['maxx']
         water_level_feature_instance_01.grid_origin_latitude = grid_properties['miny']
         water_level_feature_instance_01.grid_spacing_longitudinal = grid_properties['cellsize_x']
         water_level_feature_instance_01.grid_spacing_latitudinal = grid_properties['cellsize_y']
