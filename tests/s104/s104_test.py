@@ -13,6 +13,12 @@ path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
 path_to_s104file = os.path.join(current_directory, "test_s104.h5")
 
+
+def h5py_string_comp(h5py_val, cmp_str):
+    # h5py <3.0 returns a string, >3.0 returns bytes
+    return h5py_val in (cmp_str, bytes(cmp_str, "utf-8"))
+
+
 InputData = namedtuple(
     'InputData',
     ['height_001',
@@ -343,6 +349,10 @@ def test_create_s104_dcf2(input_data):
                           input_data.trend_002)
     assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal'] == input_data.height_001.shape[0]
     assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal'] == input_data.height_001.shape[1]
-    print(h5_file['Group_F/WaterLevel'][()])
-    print("expected", input_data.expected_groupf)
-    assert all([actual == expected for actual, expected in zip(h5_file['Group_F/WaterLevel'][()], input_data.expected_groupf)])
+
+    assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][0],
+                                                                               input_data.expected_groupf[0])])
+    assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][1],
+                                                                               input_data.expected_groupf[1])])
+    assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][2],
+                                                                               input_data.expected_groupf[2])])

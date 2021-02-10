@@ -16,6 +16,12 @@ from s100py import s111
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
 
+
+def h5py_string_comp(h5py_val, cmp_str):
+    # h5py <3.0 returns a string, >3.0 returns bytes
+    return h5py_val in (cmp_str, bytes(cmp_str, "utf-8"))
+
+
 InputData = namedtuple(
     'InputData',
     ['speed_2d_001',
@@ -3244,7 +3250,10 @@ def test_create_s111_dcf2(input_data):
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_002/values']['surfaceCurrentDirection'], input_data.direction_2d_002)
     assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLongitudinal'] == input_data.speed_2d_001.shape[0]
     assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLatitudinal'] == input_data.speed_2d_001.shape[1]
-    assert all([actual == expected for actual, expected in zip(h5_file['Group_F/SurfaceCurrent'][()], input_data.expected_groupf)])
+    assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/SurfaceCurrent'][()][0],
+                                                                               input_data.expected_groupf[0])])
+    assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/SurfaceCurrent'][()][1],
+                                                                               input_data.expected_groupf[1])])
 
 
 def test_create_s111_dcf3(input_data):
