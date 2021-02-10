@@ -1,6 +1,6 @@
 s111
 ======
-Python Utilities and API for Working with IHO S-111 Data Formats
+Python API and Utilities for Working with IHO S-111 Data Formats
 
 Overview
 --------
@@ -15,7 +15,7 @@ water current data and metadata.
         3.  Ungeorectified Grid (i.e. irregular grid)
         4.  Time series for moving platform
 
-*NOTE: DCF 1 & 4 are currently not supported but will be added in the future*
+*NOTE: Only DCF 2 & 3 are currently supported*
 
 Example Usage
 -------------
@@ -25,28 +25,29 @@ Example Usage
 import numpy
 import datetime
 from s100py import s111
-speed = numpy.array([[0.34, 0.35, 0.35, 0.36, 0.37, 0.39, 0.4 , 0.4 , 0.4 , 0.39, 0.39,
-                    0.4 , 0.41, 0.41, 0.42, 0.43, 0.43, 0.44, 0.44, 0.45, 0.46, 0.47,
-                    0.48, 0.49, 0.49, 0.49, 0.5 , 0.51, 0.51, 0.52, 0.52, 0.52, 0.53,
-                    0.53, 0.54, 0.54, 0.55, 0.56, 0.57, 0.58, 0.58, 0.59, 0.59, 0.59,
-                    0.59, 0.6 , 0.61, 0.62, 0.63, 0.64, 0.64, 0.65, 0.66, 0.66]])
+speed = numpy.array([[0.34, 0.35, 0.35, 0.36, 0.37],
+                     [0.4 , 0.41, 0.41, 0.42, 0.43],
+                     [0.48, 0.49, 0.49, 0.49, 0.5],
+                     [0.53, 0.54, 0.54, 0.55, 0.56],
+                     [0.59, 0.6 , 0.61, 0.62, 0.63],
+                     [0.34, 0.34, 0.35, 0.35, 0.37]])
 
-direction = numpy.array([[189.1, 188.6, 188.1, 188.8, 189.7, 190.6, 191.5, 192. , 192.3,
-                        192.6, 192.9, 192.8, 192.9, 193.1, 193.4, 193.5, 193.4, 193.6,
-                        193.6, 193.8, 193.9, 193.8, 193.6, 193.4, 193.1, 193. , 192.9,
-                        192.8, 192.7, 192.9, 193.1, 193.3, 193.6, 193.7, 194.1, 194.6,
-                        195. , 195.4, 195.7, 195.8, 195.7, 195.4, 195.1, 194.8, 194.5,
-                        194.3, 194.1, 194.0, 194.0, 194.0, 194.1, 194.1, 194.1, 194.2]])
+direction = numpy.array([[189.1, 188.6, 188.1, 188.8, 189.7],
+                         [192.6, 192.9, 192.8, 192.9, 193.1],
+                         [193.6, 193.8, 193.9, 193.8, 193.6],
+                         [192.8, 192.7, 192.9, 193.1, 193.3],
+                         [195.0, 195.4, 195.7, 195.8, 195.7],
+                         [194.3, 194.1, 194.0, 194.0, 194.0]])
 
 grid_properties = {
-        'maxx': -75.30278,
-        'minx': -75.59722,
-        'miny': 37.202778,
-        'maxy': 37.497223,
-        'cellsize_x': 0.005554199,
-        'cellsize_y': 0.005558014,
-        'nx': 54,
-        'ny': 1
+        'maxx': -76.064,
+        'minx': -76.03,
+        'miny': 37.034,
+        'maxy': 37.062,
+        'cellsize_x': 0.005695343,
+        'cellsize_y': 0.0056991577,
+        'nx': 6,
+        'ny': 5
 }
 
 # Example metadata
@@ -55,19 +56,19 @@ metadata = {
     'horizontalDatumValue': 4326,
     'metadata': f'MD_test_s111.XML',
     'epoch': 'G1762',
-    'geographicIdentifier': 'Region',
+    'geographicIdentifier': 'RegionName',
     'speedUncertainty': -1.0, # Default or Unknown values
     'directionUncertainty': -1.0, # Default or Unknown values
     'verticalUncertainty': -1.0, # Default or Unknown values
     'horizontalPositionUncertainty': -1.0, # Default or Unknown values
     'timeUncertainty': -1.0, # Default or Unknown values
     'surfaceCurrentDepth': 0, 
-    'depthTypeIndex': 2, # 'Sea surface'
-    'commonPointRule': 3, # 'high'
-    'interpolationType': 10, #'discrete'
-    'typeOfCurrentData': 6, # Hydrodynamic model forecast (F)
+    'depthTypeIndex': 2, # 2:Sea surface
+    'commonPointRule': 3, # 3:high
+    'interpolationType': 10, # 10:discrete
+    'typeOfCurrentData': 6, # 6:Hydrodynamic model forecast (F)
     'methodCurrentsProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
-    'datetimeOfFirstRecord': '20210107T130000Z'
+    'datetimeOfFirstRecord': '2021-01-07T13:00:00'
 
 }
 
@@ -76,7 +77,7 @@ datetime_value = datetime.datetime(2021, 1, 7, 12, 0, 0)
 data_coding_format = 2
 
 update_meta = {
-        'dateTimeOfLastRecord': '20210107T130000Z',
+        'dateTimeOfLastRecord': '2021-01-07T13:00:00',
         'numberOfGroups': 1,
         'numberOfTimes': 1,
         'timeRecordInterval': 0,

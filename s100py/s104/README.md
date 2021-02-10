@@ -1,6 +1,6 @@
 s104
 ======
-Python Utilities and API for Working with IHO S-104 Data Formats
+Python API and Utilities for Working with IHO S-104 Data Formats
 
 Overview
 --------
@@ -16,7 +16,7 @@ water level data and metadata for surface navigation.
         7.  TIN
         8.  Time Series at fixed stations (stationwise)
 
-*NOTE: DCF 1, 7, 8 are currently not supported but will be added in the future*
+*NOTE: Only DCF 2 is currently supported*
 
 Example Usage
 -------------
@@ -26,57 +26,49 @@ Example Usage
 import numpy
 import datetime
 from s100py import s104
-water_level_height = numpy.array([[ 0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,
-                                     0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,
-                                     0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,
-                                     0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,
-                                     0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,
-                                     0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,
-                                     0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,
-                                     0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,
-                                     0.34,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35,
-                                     0.35,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35]])
+water_level_height = numpy.array([[ 0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,
+                                    0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34, 0.34,  0.34],
+                                  [ 0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34, 0.34,  0.34,  0.34,
+                                    0.34,  0.34,  0.34,  0.34,  0.34,  0.34, 0.34,  0.34,  0.34,  0.34],
+                                  [ 0.34,  0.34,  0.34, 0.34,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35,
+                                    0.35,  0.35, 0.35,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35]])
 
-water_level_trend = numpy.array([[ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3,
-                                    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-                                    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]])
+water_level_trend = numpy.array([[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
 
 grid_properties = {
-        'maxx': -75.30278,
-        'minx': -75.59722,
-        'miny': 37.202778,
-        'maxy': 37.497223,
-        'cellsize_x': 0.005554199,
-        'cellsize_y': 0.005558014,
-        'nx': 1,
-        'ny': 220
+        'maxx': 134.175,
+        'minx': 134.216,
+        'miny': 6.982,
+        'maxy': 7.254,
+        'cellsize_x': 0.013595581,
+        'cellsize_y': 0.013597488,
+        'nx': 3,
+        'ny': 20
 }
 
 # Example metadata
 metadata = {
-    'horizontalCRS': 3855,
+    'horizontalCRS': 4362, #EPSG code
     'metadata': f'MD_test_s104.XML',
-    'geographicIdentifier': 'Region',
+    'geographicIdentifier': 'RegionName',
     'waterLevelHeightUncertainty': -1.0, # Default or Unknown values
     'verticalUncertainty': -1.0, # Default or Unknown values
     'horizontalPositionUncertainty': -1.0, # Default or Unknown values
     'timeUncertainty': -1.0, # Default or Unknown values
-    'waterLevelTrendThreshold': 0.02,
-    'verticalCS': 6499,
-    'verticalCoordinateBase': 2,
-    'verticalDatumReference': 2,
-    'verticalDatum': 1027,
-    'commonPointRule': 4, # 'all'
-    'interpolationType': 10, #'discrete'
-    'typeOfCurrentData': 5, # Hydrodynamic model forecast (F)
-    'methodCurrentsProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
+    'waterLevelTrendThreshold': 0.2,
+    'verticalCS': 6499, # EPSG code
+    'verticalCoordinateBase': 2, # 2:Vertical Datum
+    'verticalDatumReference': 2, # 2:EPSG
+    'verticalDatum': 1027, # EPSG code
+    'commonPointRule': 4, # 4:all
+    'interpolationType': 10, # 10:discrete
+    'typeOfWaterLevelData': 5, # 5:Hydrodynamic model forecast (F)
+    'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
     'datetimeOfFirstRecord': '2020-09-26T16:00:00'
 
 }
@@ -86,10 +78,10 @@ datetime_value = datetime.datetime(2020, 9, 26, 15, 0, 0)
 data_coding_format = 2
 
 update_meta = {
-        'dateTimeOfLastRecord': '2020-09-26T17:00:00',
-        'numberOfGroups': 2,
-        'numberOfTimes': 2,
-        'timeRecordInterval': 3600,
+        'dateTimeOfLastRecord': '2020-09-26T16:00:00',
+        'numberOfGroups': 1,
+        'numberOfTimes': 1,
+        'timeRecordInterval': 0,
         'num_instances': 1
     }
 
