@@ -35,9 +35,9 @@ website](http://s100.iho.int/S100/).
 Create S100 Products
 --------------------
 
-- Follow [S-102](s100py/s102/README.md) examples to create an S-102 File
-- Follow [S-104](s100py/s104/README.md) examples to create an S-104 File
-- Follow [S-111](s100py/s111/README.md) examples to create an S-111 File
+- Follow [S-102](https://s100py.readthedocs.io/en/latest/s102.html#) examples to create an S-102 File
+- Follow [S-104](https://s100py.readthedocs.io/en/latest/s104.html#) examples to create an S-104 File
+- Follow [S-111](https://s100py.readthedocs.io/en/latest/s111.html#) examples to create an S-111 File
 
 For S100 API Developers
 -----------------------
@@ -72,6 +72,12 @@ Once `gdal` has been installed, s100py can be installed using `pip`:
 ```bash
 pip install s100py
 ```
+
+Release Notes
+-------------
+**Version 1.0.0-rc.1 (2021-02-11)**
+
+*Note: All minor releases have been deprecated*
 
 Authors
 -------
