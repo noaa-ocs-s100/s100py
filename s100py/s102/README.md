@@ -1,5 +1,5 @@
-s102 (Bathymetric Surface)
-==========================
+s102 Bathymetric Surface
+========================
 
 Python API and Utilities for Working with IHO S-102 Data Formats
 
