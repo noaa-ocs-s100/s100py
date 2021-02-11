@@ -22,7 +22,7 @@ Electronic Navigational Charts (ENCs).
 The initial focus of this package is on three of the S-100 encoding
 formats:
 
--   S-102 Bathymetry 
+-   S-102 Bathymetric Surface 
 -   S-104 Water Level Information for Surface Navigation
 -   S-111 Water Currents for Surface Navigation
 
