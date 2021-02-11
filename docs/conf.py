@@ -162,7 +162,7 @@ autodoc_default_options = {
    'special-members': '__init__',
    'undoc-members': True,
    'exclude-members': '__weakref__',
-   'top-classes': "s100py.s1xx.S1xxObject, s100py.s1xx.S1XXFile",
+   'top-classes': top_classes,
 #    'inherited-members': False,
 }
 
