@@ -14,5 +14,3 @@ dependencies:
   - h5py
   - numpy
   - gdal
-  - pip:
-    - thyme

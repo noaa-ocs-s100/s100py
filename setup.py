@@ -21,7 +21,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     use_scm_version=True,
     setup_requires=['numpy', 'setuptools_scm'],
-    install_requires=['thyme(>=0.5.0)', 'numpy', 'h5py'],
+    install_requires=['numpy', 'h5py'],
     classifiers=[
         'Programming Language :: Python :: 3',
         'Intended Audience :: Science/Research',

@@ -7,7 +7,11 @@ import os
 import numpy
 import warnings
 import shutil
-from thyme.model import model
+
+try:
+    from thyme.model import model
+except ModuleNotFoundError as e:
+    print(e, "run `pip install thyme` prior to using s111_legacy")
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=FutureWarning)

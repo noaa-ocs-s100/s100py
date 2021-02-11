@@ -39,7 +39,7 @@ import mock
 import sphinx_rtd_theme
 
 
-MOCK_MODULES = ['scipy', 'matplotlib', 'matplotlib.pyplot', 'scipy.interpolate', 'osgeo', 'gdal', 'osr']
+MOCK_MODULES = ['matplotlib', 'matplotlib.pyplot', 'osgeo', 'gdal', 'osr']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 

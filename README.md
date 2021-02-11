@@ -19,18 +19,15 @@ services for hydrographic, maritime, and GIS communities, comprised of
 multiple data encoding formats designed for interoperability with
 Electronic Navigational Charts (ENCs).
 
-The initial focus of this package is on three of the S-100 encoding
-formats:
+This package includes the following S-100 encoding formats:
 
 -   S-102 Bathymetric Surface 
 -   S-104 Water Level Information for Surface Navigation
 -   S-111 Water Currents for Surface Navigation
 
-However, support for additional formats will likely be added in the
-future.
-
-For further information about S-100 formats, see the [IHO
-website](http://s100.iho.int/S100/).
+However, support for additional formats as they become available will
+be added in the future.  For further information about S-100 formats,
+see the [IHO website](http://s100.iho.int/S100/).
 
 Create S100 Products
 --------------------
@@ -76,8 +73,15 @@ pip install s100py
 Release Notes
 -------------
 **Version 1.0.0-rc.1 (2021-02-11)**
-
-*Note: All minor releases have been deprecated*
+- This is a major release, which inclues a new API that encapsulates the data specifications to allow
+  introspection with Python to determine what data is available or should be and what data types would
+  be acceptable. Convenience utilities are available to convert data into S102/S104/S111 so detailed
+  knowledge of the S100 specs and APIs is not required in most cases
+- Support for s102 (bathymetry) and s104 (water levels) has been added
+- A consistent API for S100 data structures was added and is used to encode S102, S104, and S111
+- The previous S111 library has been migrated to this general S100 API and therefore any
+  code written against the previous s100py library will no longer work
+- Examples of using the new S111 API are available [here](https://s100py.readthedocs.io/en/latest/s111.html#example-usage)
 
 Authors
 -------
