@@ -67,7 +67,7 @@ is probably the easiest method.
 Once `gdal` has been installed, s100py can be installed using `pip`:
 
 ```bash
-pip install s100py
+pip install s100py==1.0.0rc1
 ```
 
 Release Notes
