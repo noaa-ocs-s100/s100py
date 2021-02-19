@@ -2,14 +2,16 @@ s100py
 ======
 [![Build Status](https://travis-ci.com/noaa-ocs-s100/s100py.svg?branch=master)](https://travis-ci.com/noaa-ocs-s100/s100py)
 
-Python API and Utilities for Working with IHO S-100 HDF5 Data Formats
+API and Utilities for Working with IHO S-100 HDF5 Data Formats
 
 Overview
 --------
 
-This python package provides utilities for encoding hydrographic
+This python package includes an API and utilities for encoding hydrographic
 datasets in the International Hydrographic Organization (IHO) S-100
 HDF5 format.
+
+See [s100py Read the Docs](https://s100py.readthedocs.io/en/v1.0.0-rc.1/) for more information.
 
 Background
 ----------
@@ -73,7 +75,7 @@ pip install s100py==1.0.0rc1
 Release Notes
 -------------
 **Version 1.0.0-rc.1 (2021-02-11)**
-- This is a major release, which inclues a new API that encapsulates the data specifications to allow
+- This is a major release, which includes a new API that encapsulates the data specifications to allow
   introspection with Python to determine what data is available or should be and what data types would
   be acceptable. Convenience utilities are available to convert data into S102/S104/S111 so detailed
   knowledge of the S100 specs and APIs is not required in most cases
