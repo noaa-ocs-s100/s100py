@@ -475,12 +475,18 @@ def from_gdal(input_raster, output_file, metadata: dict = None) -> S102File:  # 
     # Until we have a working datum engine this module should not do datum transformations - GR 20200402
     if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
         metadata["horizontalDatumReference"] = "EPSG"
-        epsg = osr.SpatialReference(dataset.GetProjection()).GetAttrValue("AUTHORITY", 1)
-        try:
+        sr = osr.SpatialReference(dataset.GetProjection())
+        epsg = sr.GetAuthorityCode(None)
+        # FIXME: this is likely incorrect. We probably don't want to get the code of the geographic CRS when the CRS is projected
+        if epsg is None and sr.IsProjected():
+            sr = sr.CloneGeogCS()
+        if epsg:
             metadata["horizontalDatumValue"] = int(epsg)
-        except TypeError:
-            if osr.SpatialReference(dataset.GetProjection()).GetAttrValue("GEOGCS") == 'WGS 84':
+        else:
+            if sr.GetAttrValue("GEOGCS") == 'WGS 84':
                 metadata["horizontalDatumValue"] = 4326
+            #elif sr.GetAttrValue("GEOGCS") == 'North_American_Datum_1983':
+            #    metadata["horizontalDatumValue"] = 4269
             else:
                 raise S102Exception("Projection not understood, was searching for an EPSG code and found " + osr.SpatialReference(dataset.GetProjection()).ExportToWkt())
 
