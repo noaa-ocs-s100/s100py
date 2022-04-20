@@ -94,7 +94,7 @@ def test_make_from_gdal(bagname, output_path):
     except FileNotFoundError:
         pass
     # the sample data is in NAD83 so does not meet spec - test that it's caught
-    pytest.raises(ValueError, s102.from_gdal, *(bagname, output_path))
+    pytest.raises(s102.S102Exception, s102.from_gdal, *(bagname, output_path))
 
     # override the metadata for the datum to WGS84 zone 10N and go from there
     metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}

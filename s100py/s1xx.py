@@ -892,7 +892,7 @@ class S1XXFile(h5py.File):
     create_group    to make a group containing datasets and/or metadata
     """
 
-    def __init__(self, *args, **kywrds):
+    def __init__(self, name, *args, **kywrds):
         # @TODO: This is the NAVO default setting, have to decide if that is best and handle other options too.
         kywrds.setdefault('root', None)
         self.root = None
@@ -900,7 +900,7 @@ class S1XXFile(h5py.File):
         if "driver" in kywrds:
             if kywrds['driver'] == 'family':  # @todo @fixme -- this is from the NAVO files, figure how to set memb_size automatically.
                 kywrds.setdefault('memb_size', 681574400)
-        super().__init__(*args, **kywrds)
+        super().__init__(name, *args, **kywrds)
         # initialize with the s102 data if the file already exists.
         # if this is an empty file or opening for write then this is essentially a no-op
         if self.__root_type__:
@@ -947,3 +947,14 @@ class S1XXFile(h5py.File):
                     print(s)
                 except:
                     print("    " * indent + "dtype not understood")
+
+
+# def S1XXFile(name, *args, version=4.0, **kwargs):
+#     obj = None
+#     if version == 4.0:
+#         obj = S1XXFile_4_0(name, *args, **kwargs)
+#     elif version < 4.0:
+#         raise NotImplementedError("Versions below 4.0 of S100 are not supported")
+#     else:
+#         raise ValueError(f"Version {version} is not supported")
+#     return obj
