@@ -203,7 +203,7 @@ class BathymetryValues(S1xxGridsBase):
         return [self.depth_dtype, self.uncertainty_dtype]
 
 
-class BathymetryCoverage(S1xxObject):
+class BathymetryCoverageBase(S1xxObject):
     """ This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
 
     4.2.1.1.1 and Figure 4.4 of v2.0.0
@@ -216,8 +216,6 @@ class BathymetryCoverage(S1xxObject):
     __values_hdf_name__ = "values"  #: HDF5 naming
     __minimum_depth_hdf_name__ = "minimumDepth"  #: HDF5 naming
     __maximum_depth_hdf_name__ = "maximumDepth"  #: HDF5 naming
-    __maximum_display_scale_hdf_name__ = "maximumDisplayScale"  #: HDF5 naming
-    __minimum_display_scale_hdf_name__ = "minimumDisplayScale"  #: HDF5 naming
     __minimum_uncertainty_hdf_name__ = "minimumUncertainty"  #: HDF5 naming
     __maximum_uncertainty_hdf_name__ = "maximumUncertainty"  #: HDF5 naming
     __origin_hdf_name__ = "origin"  #: HDF5 naming
@@ -309,50 +307,6 @@ class BathymetryCoverage(S1xxObject):
     @maximum_depth.setter
     def maximum_depth(self, val: float):
         self._attributes[self.__maximum_depth_hdf_name__] = val
-
-    @property
-    def minimum_display_scale(self) -> int:
-        """From 4.2.1.1.1.2,
-        The larger value of the ratio of the linear dimensions of the features of a dataset presented in the display and
-        the actual dimensions of the features represented (largest scale) of the scale range of the dataset.
-        A list of display scale ranges is available in Figure 11.1, 1st column
-        """
-        return self._attributes[self.__minimum_display_scale_hdf_name__]
-
-    @minimum_display_scale.setter
-    def minimum_display_scale(self, val: int):
-        self._attributes[self.__minimum_display_scale_hdf_name__] = val
-
-    @property
-    def __maximum_display_scale_type__(self):
-        return float
-
-    def maximum_display_scale_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.maximum_display_scale = self.__maximum_display_scale_type__()
-
-    @property
-    def maximum_display_scale(self) -> int:
-        """From 4.2.1.1.1.5,
-        The smaller value of the ratio of the linear dimensions of the features of a dataset presented in the display and
-        the actual dimensions of the features represented (smallest scale) of the scale range of the dataset.
-        A list of display scale ranges is available in Table 11.1, 1st column
-        """
-        return self._attributes[self.__maximum_display_scale_hdf_name__]
-
-    @maximum_display_scale.setter
-    def maximimum_display_scale(self, val: int):
-        self._attributes[self.__maximum_display_scale_hdf_name__] = val
-
-    @property
-    def __minimum_display_scale_type__(self):
-        return float
-
-    def minimum_display_scale_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.minimum_display_scale = self.__minimum_display_scale_type__()
 
     @property
     def minimum_uncertainty(self) -> float:
@@ -565,6 +519,58 @@ class BathymetryCoverage(S1xxObject):
         # pylint: disable=attribute-defined-outside-init
         self.start_sequence = self.__start_sequence_type__()
 
+
+class DisplayScaleMixin:
+    __maximum_display_scale_hdf_name__ = "maximumDisplayScale"  #: HDF5 naming
+    __minimum_display_scale_hdf_name__ = "minimumDisplayScale"  #: HDF5 naming
+
+    @property
+    def minimum_display_scale(self) -> int:
+        """From 4.2.1.1.1.2,
+        The larger value of the ratio of the linear dimensions of the features of a dataset presented in the display and
+        the actual dimensions of the features represented (largest scale) of the scale range of the dataset.
+        A list of display scale ranges is available in Figure 11.1, 1st column
+        """
+        return self._attributes[self.__minimum_display_scale_hdf_name__]
+
+    @minimum_display_scale.setter
+    def minimum_display_scale(self, val: int):
+        self._attributes[self.__minimum_display_scale_hdf_name__] = val
+
+    @property
+    def __minimum_display_scale_type__(self):
+        return float
+
+    def minimum_display_scale_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.minimum_display_scale = self.__minimum_display_scale_type__()
+
+    @property
+    def __maximum_display_scale_type__(self):
+        return float
+
+    def maximum_display_scale_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.maximum_display_scale = self.__maximum_display_scale_type__()
+
+    @property
+    def maximum_display_scale(self) -> int:
+        """From 4.2.1.1.1.5,
+        The smaller value of the ratio of the linear dimensions of the features of a dataset presented in the display and
+        the actual dimensions of the features represented (smallest scale) of the scale range of the dataset.
+        A list of display scale ranges is available in Table 11.1, 1st column
+        """
+        return self._attributes[self.__maximum_display_scale_hdf_name__]
+
+    @maximum_display_scale.setter
+    def maximimum_display_scale(self, val: int):
+        self._attributes[self.__maximum_display_scale_hdf_name__] = val
+
+
+class BathymetryCoverage(BathymetryCoverageBase, DisplayScaleMixin):
+    pass
 
 class SurfaceCorrectionValues(VertexPoint):
     pass

@@ -208,7 +208,7 @@ def create_s102(output_file, overwrite=True) -> S102File:
 
 
 def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_file, nodata_value=None,
-                flip_x: bool = False, flip_y: bool = False, overwrite: bool = True) -> S102File:  # num_array, or list of lists accepted
+                flip_x: bool = False, flip_y: bool = False, overwrite: bool = True, flip_z: bool = False) -> S102File:  # num_array, or list of lists accepted
     """  Creates or updates an S102File object based on numpy array/h5py datasets.
     Calls :any:`create_s102` then fills in the HDF5 datasets with the supplied depth_grid and uncert_grid.
     Fills the number of points areas and any other appropriate places in the HDF5 file per the S102 spec.
@@ -312,6 +312,9 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
     if flip_y:
         depth_grid = numpy.flipud(depth_grid)
         uncert_grid = numpy.flipud(uncert_grid)
+    if flip_z:
+        depth_grid[depth_grid != nodata_value] *= -1
+
     if nodata_value != root.feature_information.bathymetry_coverage_dataset[0].fill_value:
         depth_grid = numpy.copy(depth_grid)
         depth_grid[depth_grid == nodata_value] = root.feature_information.bathymetry_coverage_dataset[0].fill_value
@@ -325,7 +328,7 @@ def from_arrays(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_fi
 
 
 def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, metadata: dict, output_file, nodata_value=None,
-                              overwrite: bool = True) -> S102File:  # raw arrays and metadata accepted
+                              overwrite: bool = True, flip_z: bool = False) -> S102File:  # raw arrays and metadata accepted
     """ Fills or creates an :any:`S102File` from the given arguments.
 
     Parameters
@@ -378,7 +381,7 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     miny = min((corner_y, opposite_corner_y))
     maxy = max((corner_y, opposite_corner_y))
 
-    data_file = from_arrays(depth_grid, uncert_grid, output_file, nodata_value=nodata_value, overwrite=overwrite, flip_x=flip_x, flip_y=flip_y)
+    data_file = from_arrays(depth_grid, uncert_grid, output_file, nodata_value=nodata_value, overwrite=overwrite, flip_x=flip_x, flip_y=flip_y, flip_z=flip_z)
 
     # now add the additional metadata
     root = data_file.root
@@ -439,7 +442,7 @@ def from_arrays_with_metadata(depth_grid: s1xx_sequence, uncert_grid: s1xx_seque
     return data_file
 
 
-def from_gdal(input_raster, output_file, metadata: dict = None) -> S102File:  # gdal instance or filename accepted
+def from_gdal(input_raster, output_file, metadata: dict = None, flip_z=False) -> S102File:  # gdal instance or filename accepted
     """ Fills or creates an :any:`S102File` from the given arguments.
 
     Parameters
@@ -508,7 +511,7 @@ def from_gdal(input_raster, output_file, metadata: dict = None) -> S102File:  # 
     if "res" not in metadata:
         metadata["res"] = [dxx, dyy]
     s102_data_file = from_arrays_with_metadata(raster_band.ReadAsArray(), uncertainty_band.ReadAsArray(), metadata, output_file,
-                                               nodata_value=depth_nodata_value)
+                                               nodata_value=depth_nodata_value, flip_z=flip_z)
 
     return s102_data_file
 
