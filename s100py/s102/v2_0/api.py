@@ -1192,6 +1192,27 @@ class S102File(S1XXFile):
     def __init__(self, name, *args, **kywrds):
         super().__init__(name, *args, root=S102Root, **kywrds)
 
+    def subdivide(self, rows, cols):
+        raise NotImplementedError("Add this to allow for easily limiting size of s102 files")
+        # hp5y does not have the ability to repack the data.
+        # This means that when replacing data the file will not shrink or even grow when you'd expect it to shrink.
+        # Basically it allocates space on disk and if you delete data and then add it will reuse that storage block but not reduce the space.
+        # If the new data is larger than the old data then it adds space at the end and leave empty space in the old location.
+        # There is a free "h5repack" utility from hdfgroup with binaries which would remove the empty space.
+        # However, we want to be platform independent so we will do an end run.
+        #
+        # 1) Copy the file, then open that copy and delete the datasets we need to subdivide
+        #    (it deletes it on disk so we can't operate on the original safely).
+        # 2) Then make as many copies as needed using the h5py copy method (which should stop the empty space issue).
+        # 3) Finally add the bathy+uncertainty data to each sub-file and revise the extents and min/max values.
+        out = h5py.File(fname + ".2nd.h5", "w")
+        for k in self.keys():  # copy all groups+datasets data from the root
+            self.copy(self[k], out['/'], k)
+        for n, a in orig.attrs.items():  # copy the attributes of the root (I'd think there'd be a better way)
+            out.attrs.create(n, a, dtype=a.dtype)
+        # detete
+        del out["BathymetryCoverage/BathymetryCoverage.01/Group.001/values"]
+
     @staticmethod
     def get_valid_epsg() -> list:
         """

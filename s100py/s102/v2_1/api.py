@@ -131,12 +131,7 @@ class S102File(v2_0.S102File):
         bathy_depth_info.code = DEPTH
         bathy_depth_info.name = DEPTH
         # these are auto-filled by the api:
-        # unit_of_measure
-        # fill_value
-        # datatype
-        # lower
-        # upper
-        # closure
+        # unit_of_measure, fill_value, datatype, lower, upper, closure
 
         bathy_uncertainty_info = bathy_cov_dset.append_new_item()
         bathy_uncertainty_info.initialize_properties(True, overwrite=overwrite)
