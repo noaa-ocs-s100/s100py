@@ -1228,7 +1228,10 @@ class S102File(S1XXFile):
             shutil.copy(self.name, tmpname)
         tmp = S102File(tmpname, "r+")
         # delete the bathy and uncertainty
-        del tmp.root.bathymetry_coverage.bathymetry_coverage
+        # @FIXME @TODO add a remove hdf5 method
+        del tmp[tmp.root.bathymetry_coverage.bathymetry_coverage[0]._hdf5_path]  # force the data out of hdf5
+        del tmp.root.bathymetry_coverage.bathymetry_coverage[0]
+        tmp.flush()
         bathy_01 = self.root.bathymetry_coverage.bathymetry_coverage[0]
         bathy_group_object = bathy_01.bathymetry_group[0]
         grid = bathy_group_object.values
@@ -1247,12 +1250,17 @@ class S102File(S1XXFile):
             for c in range(cols):
                 out_path = base_path.with_suffix(f".{r+1}_{c+1}.h5")
                 fnames.append(str(out_path))
-                out = S102File(str(out_path), "w")
                 # I haven't figured out how to copy the root to the temp root - it gives errors about "no name"
+                raw_out = h5py.File(str(out_path), "w")
                 for key in tmp.keys():  # copy all groups+datasets data from the root
-                    tmp.copy(tmp[key], out['/'], key)
+                    tmp.copy(tmp[key], raw_out['/'], key)
                 for name in tmp.attrs.keys():  # copy the attributes of the root (I'd think there'd be a better way)
-                    out.attrs[name] = tmp.attrs[name]  # out.create(n, a, dtype=a.dtype)
+                    raw_out.attrs[name] = tmp.attrs[name]  # out.create(n, a, dtype=a.dtype)
+                raw_out.close()
+
+                out = S102File(str(out_path), "r+")
+                out.root.bathymetry_coverage.bathymetry_coverage_create()  # we deleted the bathymetry_coverage above, so make a new container
+
                 start_row = row_indices[r]
                 end_row = row_indices[r+1]
                 start_col = col_indices[c]

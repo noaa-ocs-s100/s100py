@@ -911,6 +911,12 @@ class S1XXFile(h5py.File):
         self.root._hdf5_path = "/"
         self.root.read(self)
 
+    # FIXME  @TODO  currently write will not remove anything from the hdf5 file that is already on disk.
+    #  It may replace it but not remove it entirely.
+    #  So, if you make an attribute and write to disk, then load the file and sat del attribute it will remain on disk even after calling write()
+    #  We need either a "write from scratch" parameter or something.
+    #  At least a write all expected items from scratch (if they are missing then make sure they are empty in the hdf5).
+    #  If we just delete everything then additional data in the hdf5 (which may be legal) would get removed too.
     def write(self):
         self.root._hdf5_path = "/"
         self.root.write(self)
