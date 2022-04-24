@@ -103,6 +103,21 @@ def test_make_from_gdal(bagname, output_path):
     check_s102_data(new_s102)
 
 
+def test_make_from_bag(bagname, output_path):
+    try:
+        os.remove(output_path)
+    except FileNotFoundError:
+        pass
+    # the sample data is in NAD83 so does not meet spec - test that it's caught
+    pytest.raises(s102.S102Exception, s102.from_bag, *(bagname, output_path))
+
+    # override the metadata for the datum to WGS84 zone 10N and go from there
+    metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+    new_s102 = s102.from_bag(bagname, output_path, metadata=metadata)
+
+    check_s102_data(new_s102)
+
+
 def test_read_s102(output_path):
     s102_read_test = s102.S102File(output_path, "r")
     check_s102_data(s102_read_test)
@@ -153,3 +168,10 @@ def test_tif_conversion(tifname, temp_bagname):
     assert new_s102.root.feature_information.bathymetry_coverage_dataset[0].fill_value == empty_corner
     assert orig[-1][0] == depth_raster.GetNoDataValue()
     assert min_data == new_s102.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.depth[min_row, min_col]
+
+
+def test_subdivide():
+    fname = r"C:\Pydro22_Dev\NOAA\site-packages\Python38\git_repos\s100py\tests\s102\F00788_SR_8m.bag.s102.h5"
+    s102_file = s102.S102File(fname, "r")
+    s102_file.subdivide(fname, 2, 3)
+    pass

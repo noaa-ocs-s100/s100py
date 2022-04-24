@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import os
+import pathlib
+import shutil
 import sys
 import subprocess
 import datetime
+import tempfile
 import warnings
 import logging
 import functools
@@ -1192,8 +1195,7 @@ class S102File(S1XXFile):
     def __init__(self, name, *args, **kywrds):
         super().__init__(name, *args, root=S102Root, **kywrds)
 
-    def subdivide(self, rows, cols):
-        raise NotImplementedError("Add this to allow for easily limiting size of s102 files")
+    def subdivide(self, path, rows, cols):
         # hp5y does not have the ability to repack the data.
         # This means that when replacing data the file will not shrink or even grow when you'd expect it to shrink.
         # Basically it allocates space on disk and if you delete data and then add it will reuse that storage block but not reduce the space.
@@ -1201,17 +1203,75 @@ class S102File(S1XXFile):
         # There is a free "h5repack" utility from hdfgroup with binaries which would remove the empty space.
         # However, we want to be platform independent so we will do an end run.
         #
-        # 1) Copy the file, then open that copy and delete the datasets we need to subdivide
+        # 0) Make sure any changes are on disk
+        # 1) Copy the file to a temporary file
+        # 2) Open the copy and delete the datasets we need to subdivide
         #    (it deletes it on disk so we can't operate on the original safely).
-        # 2) Then make as many copies as needed using the h5py copy method (which should stop the empty space issue).
-        # 3) Finally add the bathy+uncertainty data to each sub-file and revise the extents and min/max values.
-        out = h5py.File(fname + ".2nd.h5", "w")
-        for k in self.keys():  # copy all groups+datasets data from the root
-            self.copy(self[k], out['/'], k)
-        for n, a in orig.attrs.items():  # copy the attributes of the root (I'd think there'd be a better way)
-            out.attrs.create(n, a, dtype=a.dtype)
-        # detete
-        del out["BathymetryCoverage/BathymetryCoverage.01/Group.001/values"]
+        # 3) Then make as many copies as needed using the h5py copy method (which should stop the empty space issue).
+        # 4) Finally add the bathy+uncertainty data to each sub-file and revise the extents and min/max values.
+
+        # self.write()
+        self.flush()
+        base_path = pathlib.Path(path).with_suffix("")
+        try:
+            tmpname = tempfile.mktemp(".h5", "tmp")
+            print("remove this")
+            tmpname = base_path.with_suffix(".tmp.h5")
+            try:
+                os.remove(tmpname)
+            except FileNotFoundError:
+                pass
+            print("to here")
+            shutil.copy(self.filename, tmpname)
+        except FileExistsError:
+            tmpname = tempfile.mktemp(".h5", "tmp")
+            shutil.copy(self.name, tmpname)
+        tmp = S102File(tmpname, "r+")
+        # delete the bathy and uncertainty
+        del tmp.root.bathymetry_coverage.bathymetry_coverage
+        bathy_01 = self.root.bathymetry_coverage.bathymetry_coverage[0]
+        bathy_group_object = bathy_01.bathymetry_group[0]
+        grid = bathy_group_object.values
+        depth_grid = grid.depth
+        uncert_grid = grid.uncertainty
+        origin = bathy_group_object.origin.coordinate
+        res_x = bathy_01.grid_spacing_longitudinal
+        res_y = bathy_01.grid_spacing_latitudinal
+        res = numpy.array([res_x, res_y])
+        # make list of indices to subdivide with, so a size 1000 array divided 3 times gives [0, 333, 666, None]
+        row_indices = (numpy.arange(rows) * int(depth_grid.shape[0] / rows)).tolist() + [None]
+        col_indices = (numpy.arange(cols) * int(depth_grid.shape[0] / cols)).tolist() + [None]
+        no_data = self.root.feature_information.bathymetry_coverage_dataset[0].fill_value
+        fnames = []
+        for r in range(rows):
+            for c in range(cols):
+                out_path = base_path.with_suffix(f".{r+1}_{c+1}.h5")
+                fnames.append(str(out_path))
+                out = S102File(str(out_path), "w")
+                # I haven't figured out how to copy the root to the temp root - it gives errors about "no name"
+                for key in tmp.keys():  # copy all groups+datasets data from the root
+                    tmp.copy(tmp[key], out['/'], key)
+                for name in tmp.attrs.keys():  # copy the attributes of the root (I'd think there'd be a better way)
+                    out.attrs[name] = tmp.attrs[name]  # out.create(n, a, dtype=a.dtype)
+                start_row = row_indices[r]
+                end_row = row_indices[r+1]
+                start_col = col_indices[c]
+                end_col = col_indices[c+1]
+                local_origin = origin + numpy.array([start_col, start_row]) * res
+                sub_depth_grid = depth_grid[start_row:end_row, start_col:end_col]
+                sub_uncert_grid = uncert_grid[start_row:end_row, start_col:end_col]
+                # just set the origin and res for the load_arrays_with_metadata
+                # this will reset the coordinates and min/max automatically
+                # but use overwrite=False since we want to maintain the original file's spatial reference, dates etc.
+                metadata = {"origin": local_origin, "res": res, 'metadataFile': out_path.with_suffix(".xml").name}
+                out.load_arrays_with_metadata(sub_depth_grid, sub_uncert_grid, metadata, overwrite=False, nodata_value=no_data)
+        tmp.close()
+        del tmp
+        try:
+            os.remove(tmp)
+        except (FileNotFoundError, PermissionError):
+            print(f"Failed to remove temp file {tmpname}")
+        return fnames
 
     @staticmethod
     def get_valid_epsg() -> list:
@@ -1395,6 +1455,10 @@ class S102File(S1XXFile):
     def from_arrays(cls, depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_file, nodata_value=None,
                     flip_x: bool = False, flip_y: bool = False, overwrite: bool = True,
                     flip_z: bool = False) -> S102File:  # num_array, or list of lists accepted
+        """  Creates or updates an S102File object based on numpy array/h5py datasets.
+        Calls :any:`create_s102` then fills in the HDF5 datasets with the supplied depth_grid and uncert_grid.
+        Fills the number of points areas and any other appropriate places in the HDF5 file per the S102 spec.
+        """
         data_file = cls.create_s102(output_file)
         data_file.load_arrays(depth_grid, uncert_grid, nodata_value=nodata_value,
                               flip_x=flip_x, flip_y=flip_y, overwrite=overwrite,
@@ -1405,7 +1469,7 @@ class S102File(S1XXFile):
                     flip_x: bool = False, flip_y: bool = False, overwrite: bool = True,
                     flip_z: bool = False):  # num_array, or list of lists accepted
 
-        """  Creates or updates an S102File object based on numpy array/h5py datasets.
+        """  Updates an S102File object based on numpy array/h5py datasets.
         Calls :any:`create_s102` then fills in the HDF5 datasets with the supplied depth_grid and uncert_grid.
         Fills the number of points areas and any other appropriate places in the HDF5 file per the S102 spec.
 
