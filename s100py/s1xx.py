@@ -462,7 +462,17 @@ class S1xxObject(ABC):
 
         """
         for prop in self.get_standard_properties():
-            if overwrite or not self.__getattribute__(prop):
+            needs_creation = False
+            if not overwrite:
+                # see if the attribute exists.
+                # Usually the attribute is a @property looking up a value in a self._attributes dict.
+                # This would raise a KeyError.  If it is a real python attribute and is missing then AttributeError should occur.
+                try:
+                    self.__getattribute__(prop)
+                except (KeyError, AttributeError):
+                    needs_creation = True
+
+            if overwrite or needs_creation :
                 exec("self.{}_create()".format(prop))
                 o = eval("self.{}".format(prop))
                 if recursively_create_children and isinstance(o, S1xxObject):

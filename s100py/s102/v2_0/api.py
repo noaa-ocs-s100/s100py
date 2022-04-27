@@ -1550,8 +1550,11 @@ class S102File(S1XXFile):
         bathy_group_object.extent.low.coord_values[0:2] = [0, 0]
         bathy_group_object.extent.high.coord_values[0:2] = [rows, cols]
 
-        depth_max = depth_grid[depth_grid != nodata_value].max()
-        depth_min = depth_grid[depth_grid != nodata_value].min()
+        try:
+            depth_max = depth_grid[depth_grid != nodata_value].max()
+            depth_min = depth_grid[depth_grid != nodata_value].min()
+        except ValueError:  # an empty depth array (all values == nodata) will cause this, subdivide() may cause this or data to be updated later
+            depth_min = depth_max = nodata_value
         bathy_group_object.maximum_depth = depth_max
         bathy_group_object.minimum_depth = depth_min
 
@@ -1560,7 +1563,6 @@ class S102File(S1XXFile):
             uncertainty_min = uncert_grid[uncert_grid != nodata_value].min()
         except ValueError:  # an empty uncertainty array (all values == nodata) will cause this
             uncertainty_max = uncertainty_min = nodata_value
-
         bathy_group_object.minimum_uncertainty = uncertainty_min
         bathy_group_object.maximum_uncertainty = uncertainty_max
 
