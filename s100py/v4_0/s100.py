@@ -17,6 +17,7 @@ from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxDatasetBase, S1XXFile, h5
 
 EDITION = 4.0
 
+
 class S100Exception(Exception):
     pass
 
@@ -54,6 +55,7 @@ _H5T_Types = {
 }
 
 
+# noinspection PyPep8Naming
 class VERTICAL_DATUM(Enum):
     """ Note: while a Vertical Datum can be created with the shorthand aliases, ex: MLWS, the string written and
     returned from the file/S100 object will be the official long name, e.g. "meanLowWaterSprings" etc.
@@ -133,6 +135,7 @@ Sphinx is not interpreting the enum names properly when there are spaces. The co
 """
 
 
+# noinspection PyPep8Naming
 class INTERPOLATION_TYPE(Enum):
     """
     Enumeration S100_CV_InterpolationMethod Codes for interpolation methods between known feature attribute
@@ -193,6 +196,7 @@ class INTERPOLATION_TYPE(Enum):
     discrete = 10
 
 
+# noinspection PyPep8Naming
 class COMMON_POINT_RULE(Enum):
     average = 1
     low = 2
@@ -200,6 +204,7 @@ class COMMON_POINT_RULE(Enum):
     all = 4
 
 
+# noinspection PyPep8Naming
 class SEQUENCING_RULE_TYPE(Enum):
     linear = 1
     boustrophedonic = 2
@@ -833,6 +838,7 @@ class FeatureInstanceBase(GeographicBoundingBox):
         self.date_time_of_last_record = self.__date_time_of_last_record_type__()
 
 
+# noinspection PyUnresolvedReferences
 class GridOrigin:
     """ Mixin class for gridOriginLatitude/Longitude/Vertical.
     Used in Data Conding Formats 2,5,6
@@ -899,6 +905,7 @@ class GridOrigin:
         self.grid_origin_vertical = self.__grid_origin_vertical_type__()
 
 
+# noinspection PyUnresolvedReferences
 class GridSpacing:
     """Mixin class for gridSpacingLongitudinal/Latitudinal/Vertical.  Probably used with :class:`GridOrigin`
     in Data Conding Formats 2,5,6"""
@@ -966,6 +973,7 @@ class GridSpacing:
         self.grid_spacing_vertical = self.__grid_spacing_vertical_type__()
 
 
+# noinspection PyUnresolvedReferences
 class StartSequence:
     """Mixin class for startSequence.  Data Coding Formats 2,5,6 """
     __start_sequence_hdf_name__ = "startSequence"

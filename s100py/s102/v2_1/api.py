@@ -17,11 +17,28 @@ Change FeatureInformation datatype to H5T_FLOAT from H5T_NATIVE_FLOAT - per tabl
 """
 
 del DisplayScaleMixin
+del TrackingListValues
+del TrackingListValuesList
+del TrackingListSetList
+del TrackingListCoverage
+del TrackingListGroupList
+del TrackingListCoveragesList
+del TrackingListCoverageDataset
+del FeatureCodesTrackingMixin
+del S102RootTrackingMixin
 
 
 # removed the tracking list mixin
 class FeatureCodes(v2_0.FeatureCodesBase):
-    pass
+    def feature_name_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.feature_name = self.__feature_name_type__([BATHY_COVERAGE, ], dtype=h5py_string_dtype)
+
+    def feature_code_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, ], dtype=h5py_string_dtype)
 
 
 # removed min/max display scale mixin
@@ -77,12 +94,6 @@ class S102FeatureInformationDataset(v2_0.S102FeatureInformationDataset):
         return S102FeatureInformation
 
 
-class TrackingListCoverageDataset(S102FeatureInformationDataset):
-    @property
-    def metadata_name(self) -> str:
-        return TRACKING_COVERAGE
-
-
 class BathymetryCoverageDataset(S102FeatureInformationDataset):
     @property
     def metadata_name(self) -> str:
@@ -101,60 +112,19 @@ class S102Root(v2_0.S102RootBase):
 
 class S102File(v2_0.S102File):
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-102.2.1')
+
     def __init__(self, name, *args, **kywrds):
-        super().__init__(name, *args, root=S102Root, **kywrds)
+        if 'root' not in kywrds:
+            kywrds['root'] = S102Root  # inherited classes will specify their own root type
+        super().__init__(name, *args, **kywrds)
+
+    @property
+    def z_down(self) -> bool:  # reverse Z direction
+        return True
 
     def upgrade(self, s102_obj):
         raise NotImplementedError(f"Haven't implemented the upgrade of existing data yet")
 
-    def set_defaults(self, overwrite=True):
+    def set_defaults(self, overwrite=True):  # remove tracking list
         self.create_empty_metadata()  # init the root with a fully filled out empty metadata set
         self._set_bathy_defaults()
-
-    def load_bag(self, bagfile, output_file, metadata: dict = None) -> S102File:
-        """
-        Parameters
-        ----------
-        bagfile
-            Either a path to a raster file that GDAL can open or a gdal.Dataset object.
-        output_file
-            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
-        metadata
-            Supports the metadata options in :any:`from_from_arrays_with_metadata`.
-            In addition, 'resample_resolution' can supplied to use a particular resolution using gdal "MODE=RESAMPLED_GRID"
-        Returns
-        -------
-
-        """
-        # @todo update method docstring for possible metadata fields
-        if metadata is None:
-            metadata = {}
-        else:
-            metadata = metadata.copy()
-
-        if isinstance(bagfile, gdal.Dataset):
-            bag = bagfile
-        else:
-            bag = gdal.Open(bagfile)
-
-        # check for and resample variable resolution BAG if able
-        gdal_metadata = bag.GetMetadata()
-        if 'HAS_SUPERGRIDS' in gdal_metadata and gdal_metadata['HAS_SUPERGRIDS'] == 'TRUE':
-            bag_filename = bag.GetFileList()[0]
-            if "resample_resolution" in metadata:
-                res = metadata["resample_resolution"]
-                bag = None
-                bag = gdal.OpenEx(bag_filename, open_options=['MODE=RESAMPLED_GRID', f'RESX={res}', f'RESY={res}'])
-            else:
-                warnings.warn(f'No resampling resolution provided for variable resolution bag {bag_filename}.  Using overview resolution.',
-                              category=RuntimeWarning)
-
-        # populate the issueDate if possible from a simple string search
-        if 'issueDate' not in metadata:
-            xml_str = bag.GetMetadata('xml:BAG')[0]
-            root = et.fromstring(xml_str)
-            elem = root.find(".//" + gco + "Date")
-            if elem is not None and elem.text:
-                metadata['issueDate'] = elem.text
-
-        self.load_gdal(bag, metadata=metadata, flip_z=True)

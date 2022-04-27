@@ -85,7 +85,8 @@ def check_s102_data(s102obj):
     group = b.bathymetry_group[0]
     assert group.origin.coordinate[0] == s102obj.root.west_bound_longitude
     assert group.values.depth.shape == (179, 179)
-    assert numpy.min(group.values.depth) == pytest.approx(-68.44306, 0.0001)
+    # depending on if the z is positive up or down the min depth can be 68.4 or 36.1, using min avoids the 1000000 nodata value
+    assert numpy.min(group.values.depth) == pytest.approx(-68.44306, 0.0001) or numpy.min(group.values.depth) == pytest.approx(36.18454, 0.0001)
 
 
 def test_make_from_gdal(bagname, output_path):
@@ -170,8 +171,7 @@ def test_tif_conversion(tifname, temp_bagname):
     assert min_data == new_s102.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.depth[min_row, min_col]
 
 
-def test_subdivide():
-    fname = r"C:\Pydro22_Dev\NOAA\site-packages\Python38\git_repos\s100py\tests\s102\F00788_SR_8m.bag.s102.h5"
-    s102_file = s102.S102File(fname, "r")
-    s102_file.subdivide(fname, 2, 3)
-    pass
+def test_subdivide(output_path):
+    # output_path = r"C:\Pydro22_Dev\NOAA\site-packages\Python38\git_repos\s100py\tests\s102\F00788_SR_8m.bag.s102.h5"
+    s102_file = s102.S102File(output_path, "r")
+    s102_file.subdivide(output_path, 2, 3)

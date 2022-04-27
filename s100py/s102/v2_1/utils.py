@@ -1,6 +1,6 @@
 from s100py.s102.v2_0 import utils as v2_0
 from s100py.s102.v2_0.utils import *
-from s100py.s102.v2_0.api import DEPTH, UNCERTAINTY, S102File, S102Exception
+from s100py.s102.v2_1.api import DEPTH, UNCERTAINTY, S102File, S102Exception
 
 create_s102 = S102File.create_s102
 from_arrays = S102File.from_arrays

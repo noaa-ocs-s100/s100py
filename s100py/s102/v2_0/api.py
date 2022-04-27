@@ -1044,11 +1044,6 @@ class FeatureCodesBase(GroupFBase):
     def __feature_name_type__(self):
         return numpy.array
 
-    def feature_name_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.feature_name = self.__feature_name_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
-
     @property
     def feature_name(self) -> s1xx_sequence:
         return self._attributes[self.__feature_name_hdf_name__]
@@ -1056,11 +1051,6 @@ class FeatureCodesBase(GroupFBase):
     @feature_name.setter
     def feature_name(self, val: s1xx_sequence):
         self._attributes[self.__feature_name_hdf_name__] = val
-
-    def feature_code_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
 
     @property
     def __bathymetry_coverage_dataset_type__(self):
@@ -1084,6 +1074,16 @@ class FeatureCodesBase(GroupFBase):
 # noinspection PyUnresolvedReferences
 class FeatureCodesTrackingMixin:
     __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
+
+    def feature_name_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.feature_name = self.__feature_name_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
+
+    def feature_code_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
 
     @property
     def __tracking_list_coverage_type__(self):
@@ -1119,6 +1119,10 @@ class S102RootBase(S100Root):
     @property
     def __version__(self) -> int:
         return 1
+
+    @property
+    def z_down(self) -> bool:
+        return False
 
     @property
     def feature_information(self) -> FeatureCodesBase:
@@ -1201,7 +1205,9 @@ class S102File(S1XXFile):
     depth_keys = ("depth", "depths", 'elevation', "elevations", "S102_Elevation")
 
     def __init__(self, name, *args, **kywrds):
-        super().__init__(name, *args, root=S102Root, **kywrds)
+        if 'root' not in kywrds:
+            kywrds['root'] = S102Root  # inherited classes will specify their own root type
+        super().__init__(name, *args, **kywrds)
 
     def subdivide(self, path, rows, cols):
         # hp5y does not have the ability to repack the data.
@@ -1892,7 +1898,7 @@ class S102File(S1XXFile):
             if elem is not None and elem.text:
                 metadata['issueDate'] = elem.text
 
-        self.load_gdal(bag, metadata=metadata)
+        self.load_gdal(bag, metadata=metadata, flip_z=self.z_down)
 
 
 # # S102File = S102File_2_0
