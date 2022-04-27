@@ -449,7 +449,7 @@ class BathymetryCoverageBase(S1xxObject):
         self._attributes[self.__axis_names_hdf_name__] = val
 
     @property
-    def __axis_names_type__(self) -> Type[str]:
+    def __axis_names_type__(self) -> Type[numpy.ndarray]:
         return numpy.ndarray
 
     def axis_names_create(self):
@@ -534,6 +534,8 @@ class BathymetryCoverageBase(S1xxObject):
         self.start_sequence = self.__start_sequence_type__()
 
 
+# mixin uses _attributes from the main class - ignore its warnings
+# noinspection PyUnresolvedReferences
 class DisplayScaleMixin:
     __maximum_display_scale_hdf_name__ = "maximumDisplayScale"  #: HDF5 naming
     __minimum_display_scale_hdf_name__ = "minimumDisplayScale"  #: HDF5 naming
@@ -579,7 +581,7 @@ class DisplayScaleMixin:
         return self._attributes[self.__maximum_display_scale_hdf_name__]
 
     @maximum_display_scale.setter
-    def maximimum_display_scale(self, val: int):
+    def maximum_display_scale(self, val: int):
         self._attributes[self.__maximum_display_scale_hdf_name__] = val
 
 
@@ -1033,7 +1035,6 @@ class FeatureCodesBase(GroupFBase):
 
     __feature_name_hdf_name__ = "featureName"  #: HDF5 naming
     __bathymetry_coverage_dataset_hdf_name__ = BATHY_COVERAGE
-    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
 
     @property
     def __version__(self) -> int:
@@ -1079,7 +1080,11 @@ class FeatureCodesBase(GroupFBase):
         self._attributes[self.__bathymetry_coverage_dataset_hdf_name__] = val
 
 
+# mixin uses _attributes from the main class - ignore its errors
+# noinspection PyUnresolvedReferences
 class FeatureCodesTrackingMixin:
+    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
+
     @property
     def __tracking_list_coverage_type__(self):
         return TrackingListCoverageDataset
@@ -1110,7 +1115,6 @@ class S102RootBase(S100Root):
     """
     __feature_information_hdf_name__ = "Group_F"  #: HDF5 naming
     __bathymetry_coverage_hdf_name__ = BATHY_COVERAGE
-    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
 
     @property
     def __version__(self) -> int:
@@ -1154,7 +1158,11 @@ class S102RootBase(S100Root):
         self._attributes[self.__bathymetry_coverage_hdf_name__] = val
 
 
+# mixin uses _attributes from the main class - ignore its errors
+# noinspection PyUnresolvedReferences
 class S102RootTrackingMixin:
+    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
+
     @property
     def __tracking_list_coverage_type__(self):
         return TrackingListContainer
@@ -1215,18 +1223,11 @@ class S102File(S1XXFile):
         base_path = pathlib.Path(path).with_suffix("")
         try:
             tmpname = tempfile.mktemp(".h5", "tmp")
-            print("remove this")
-            tmpname = base_path.with_suffix(".tmp.h5")
-            try:
-                os.remove(tmpname)
-            except FileNotFoundError:
-                pass
-            print("to here")
             shutil.copy(self.filename, tmpname)
         except FileExistsError:
             tmpname = tempfile.mktemp(".h5", "tmp")
             shutil.copy(self.name, tmpname)
-        tmp = S102File(tmpname, "r+")
+        tmp = self.__class__(tmpname, "r+")
         # delete the bathy and uncertainty
         # @FIXME @TODO add a remove hdf5 method
         del tmp[tmp.root.bathymetry_coverage.bathymetry_coverage[0]._hdf5_path]  # force the data out of hdf5
@@ -1258,7 +1259,7 @@ class S102File(S1XXFile):
                     raw_out.attrs[name] = tmp.attrs[name]  # out.create(n, a, dtype=a.dtype)
                 raw_out.close()
 
-                out = S102File(str(out_path), "r+")
+                out = self.__class__(str(out_path), "r+")
                 out.root.bathymetry_coverage.bathymetry_coverage_create()  # we deleted the bathymetry_coverage above, so make a new container
 
                 start_row = row_indices[r]
@@ -1276,7 +1277,7 @@ class S102File(S1XXFile):
         tmp.close()
         del tmp
         try:
-            os.remove(tmp)
+            os.remove(tmpname)
         except (FileNotFoundError, PermissionError):
             print(f"Failed to remove temp file {tmpname}")
         return fnames
@@ -1291,7 +1292,7 @@ class S102File(S1XXFile):
         valid_epsg += list(numpy.arange(32701, 32760 + 1))
         return valid_epsg
 
-    def update(self, s102_obj):
+    def upgrade(self, s102_obj):
         raise NotImplementedError(f"Haven't implemented the upgrade of existing data yet")
 
     def print_overview(self, display_nodes=10):
@@ -1307,6 +1308,7 @@ class S102File(S1XXFile):
         hdf5 = self.get_depth_dataset()
         print(hdf5.attrs)
 
+    # noinspection PyUnboundLocalVariable
     def get_depth_dataset(self):
         for k in self.top_level_keys:
             if k in self:
@@ -1342,7 +1344,6 @@ class S102File(S1XXFile):
                 v = gp[k]
                 break
         try:
-            v
             return v
         except NameError:
             raise KeyError(str(self.value_level_keys) + " were not found in " + str(list(gp.keys())))
@@ -1355,6 +1356,7 @@ class S102File(S1XXFile):
             if k in v.dtype.names:
                 return v[k]
         raise KeyError(str(self.depth_keys) + " were not found in " + str(list(v.dtype.names)))
+
 
     @classmethod
     def _get_S102File(cls, output_file):
@@ -1377,47 +1379,9 @@ class S102File(S1XXFile):
         data_file = cls._get_S102File(output_file)
         data_file.set_defaults(overwrite=overwrite)
         return data_file
-
-    def set_defaults(self, overwrite=True) -> S102File:
-        """ Creates or updates an S102File object.
-        Default values are set for any data that don't have options or are mandatory to be filled in the S102 spec.
-
-        Parameters
-        ----------
-        output_file
-            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
-        overwrite
-            If updating an existing file then set this option to False in order to retain data (not sure this is needed).
-
-        Returns
-        -------
-        S102File
-            The object created or updated by this function.
-
-
-        """
-        # @fixme @todo -- I think this will overwrite no matter what, need to look into that
-        self.create_empty_metadata()  # init the root with a fully filled out empty metadata set
-        root = self.root
-        bathy_cov_dset = root.feature_information.bathymetry_coverage_dataset
-        bathy_depth_info = bathy_cov_dset.append_new_item()  # bathy_cov_dset.append(bathy_cov_dset.metadata_type())
-        bathy_depth_info.initialize_properties(True, overwrite=overwrite)
-        bathy_depth_info.code = DEPTH
-        bathy_depth_info.name = DEPTH
-        # these are auto-filled by the api
-        # bathy_depth_info.unit_of_measure="metres"
-        # bathy_depth_info.fill_value=1000000.0
-        # bathy_depth_info.datatype=H5T_NATIVE_FLOAT
-        # bathy_depth_info.lower = -12000
-        # bathy_depth_info.upper = 12000
-        # bathy_depth_info.closure = "closedInterval"
-
-        bathy_uncertainty_info = bathy_cov_dset.append_new_item()
-        bathy_uncertainty_info.initialize_properties(True, overwrite=overwrite)
-        bathy_uncertainty_info.code = UNCERTAINTY
-        bathy_uncertainty_info.name = UNCERTAINTY
-
+    def _set_tracking_defaults(self, overwrite=True):
         # I'm not sure what to put here, yet
+        root = self.root
         tracking_cov = root.feature_information.tracking_list_coverage
 
         track_info = tracking_cov.append_new_item()  # append(tracking_cov.metadata_type())
@@ -1449,6 +1413,51 @@ class S102File(S1XXFile):
         track_info.name = "List Series"
         track_info.unit_of_measure = "N/A"
 
+    def set_defaults(self, overwrite=True):
+        """ Creates or updates an S102File object.
+        Default values are set for any data that don't have options or are mandatory to be filled in the S102 spec.
+
+        Parameters
+        ----------
+        output_file
+            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+        overwrite
+            If updating an existing file then set this option to False in order to retain data (not sure this is needed).
+
+        Returns
+        -------
+        S102File
+            The object created or updated by this function.
+
+
+        """
+        # @fixme @todo -- I think this will overwrite no matter what, need to look into that
+        self.create_empty_metadata()  # init the root with a fully filled out empty metadata set
+        self._set_bathy_defaults()
+        self._set_tracking_defaults()
+
+    def _set_bathy_defaults(self, overwrite=True):
+        """ This function initializes the values in more recent versions of the spec to reduce redundant code in later modules
+        """
+        root = self.root
+        bathy_cov_dset = root.feature_information.bathymetry_coverage_dataset
+        bathy_depth_info = bathy_cov_dset.append_new_item()  # bathy_cov_dset.append(bathy_cov_dset.metadata_type())
+        bathy_depth_info.initialize_properties(True, overwrite=overwrite)
+        bathy_depth_info.code = DEPTH
+        bathy_depth_info.name = DEPTH
+        # these are auto-filled by the api
+        # bathy_depth_info.unit_of_measure="metres"
+        # bathy_depth_info.fill_value=1000000.0
+        # bathy_depth_info.datatype=H5T_NATIVE_FLOAT
+        # bathy_depth_info.lower = -12000
+        # bathy_depth_info.upper = 12000
+        # bathy_depth_info.closure = "closedInterval"
+
+        bathy_uncertainty_info = bathy_cov_dset.append_new_item()
+        bathy_uncertainty_info.initialize_properties(True, overwrite=overwrite)
+        bathy_uncertainty_info.code = UNCERTAINTY
+        bathy_uncertainty_info.name = UNCERTAINTY
+
         root.bathymetry_coverage.axis_names = numpy.array(["Longitude", "Latitude"])  # row major order means X/longitude first
         root.bathymetry_coverage.sequencing_rule_scan_direction = "Longitude, Latitude"
         root.bathymetry_coverage.common_point_rule = 1  # average
@@ -1466,6 +1475,13 @@ class S102File(S1XXFile):
         """  Creates or updates an S102File object based on numpy array/h5py datasets.
         Calls :any:`create_s102` then fills in the HDF5 datasets with the supplied depth_grid and uncert_grid.
         Fills the number of points areas and any other appropriate places in the HDF5 file per the S102 spec.
+
+        For most parameters, see S102File.load_arrays
+
+        Parameters
+        ----------
+        output_file
+            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
         """
         data_file = cls.create_s102(output_file)
         data_file.load_arrays(depth_grid, uncert_grid, nodata_value=nodata_value,
@@ -1489,8 +1505,6 @@ class S102File(S1XXFile):
         uncert_grid
             The uncertainty dataset to embed in the object.
             If None then a numpy.zeros array will be created in the appropriate shape to be stored in the file.
-        output_file
-            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
         nodata_value
             Value used to denote an empty cell in the grid.  Used in finding the min/max and then converted to the S102 fillValue.
         flip_x
@@ -1501,6 +1515,10 @@ class S102File(S1XXFile):
             Flips are done here so we can implement a chunked read/write to save memory
         overwrite
             If updating an existing file then set this option to False in order to retain data (not sure this is needed).
+        flip_z
+            boolean if the data should be reversed in z coordinate (i.e. the original grid is upside down)
+            Flips are done here so we can implement a chunked read/write to save memory.
+            This is after overwrite for backwards compatibility.
 
         Returns
         -------
@@ -1574,8 +1592,10 @@ class S102File(S1XXFile):
 
         bathy_group_object.values_create()
         grid = bathy_group_object.values
-        # @todo -- need to make sure nodata values are correct, especially if converting something other than bag which is supposed to have the same nodata value
-        # @todo -- Add logic that if the grids are gdal raster bands then read in blocks and use h5py slicing to write in blocks.  Slower but saves resources
+        # @todo -- need to make sure nodata values are correct,
+        #   especially if converting something other than bag which is supposed to have the same nodata value
+        # @todo -- Add logic that if the grids are gdal raster bands then read in blocks and use h5py slicing to write in blocks.
+        #   Slower but saves resources
         if flip_x:
             depth_grid = numpy.fliplr(depth_grid)
             uncert_grid = numpy.fliplr(uncert_grid)
@@ -1598,13 +1618,24 @@ class S102File(S1XXFile):
     @classmethod
     def from_arrays_with_metadata(cls, depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, metadata: dict, output_file, nodata_value=None,
                                   overwrite: bool = True, flip_z: bool = False) -> S102File:  # raw arrays and metadata accepted
+        """  Creates or updates an S102File object based on numpy array/h5py datasets.
+        Calls :any:`create_s102` then fills in the HDF5 datasets with the supplied depth_grid and uncert_grid.
+        Fills the number of points areas and any other appropriate places in the HDF5 file per the S102 spec.
+
+        For most parameters, see S102File.load_arrays
+
+        Parameters
+        ----------
+        output_file
+            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+        """
         data_file = cls.create_s102(output_file)
         data_file.load_arrays_with_metadata(depth_grid, uncert_grid, metadata, nodata_value=nodata_value,
                                   overwrite=overwrite, flip_z=flip_z)
         return data_file
 
     def load_arrays_with_metadata(self, depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, metadata: dict, nodata_value=None,
-                                  overwrite: bool = True, flip_z: bool = False) -> S102File:  # raw arrays and metadata accepted
+                                  overwrite: bool = True, flip_z: bool = False):  # raw arrays and metadata accepted
         """ Fills or creates an :any:`S102File` from the given arguments.
 
         Parameters
@@ -1717,11 +1748,20 @@ class S102File(S1XXFile):
 
     @classmethod
     def from_gdal(cls, input_raster, output_file, metadata: dict = None, flip_z=False) -> S102File:  # gdal instance or filename accepted
+        """  Fills or creates an :any:`S102File` from the given arguments.
+
+        For most parameters, see :any:`S102File.load_arrays`
+
+        Parameters
+        ----------
+        output_file
+            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+        """
         data_file = cls.create_s102(output_file)
         data_file.load_gdal(input_raster, metadata=metadata, flip_z=flip_z)
         return data_file
 
-    def load_gdal(self, input_raster, metadata: dict = None, flip_z=False) -> S102File:  # gdal instance or filename accepted
+    def load_gdal(self, input_raster, metadata: dict = None, flip_z=False):  # gdal instance or filename accepted
         """ Fills or creates an :any:`S102File` from the given arguments.
 
         Parameters
@@ -1795,18 +1835,25 @@ class S102File(S1XXFile):
 
     @classmethod
     def from_bag(cls, bagfile, output_file, metadata: dict = None) -> S102File:
+        """  Fills or creates an :any:`S102File` from the given arguments.
+
+        For most parameters, see :any:`S102File.load_arrays`
+
+        Parameters
+        ----------
+        output_file
+            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+        """
         data_file = cls.create_s102(output_file)
         data_file.load_bag(bagfile=bagfile, metadata=metadata)
         return data_file
 
-    def load_bag(self, bagfile, output_file, metadata: dict = None) -> S102File:
+    def load_bag(self, bagfile, metadata: dict = None):
         """
         Parameters
         ----------
         bagfile
             Either a path to a raster file that GDAL can open or a gdal.Dataset object.
-        output_file
-            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
         metadata
             Supports the metadata options in :any:`from_from_arrays_with_metadata`.
             In addition, 'resample_resolution' can supplied to use a particular resolution using gdal "MODE=RESAMPLED_GRID"

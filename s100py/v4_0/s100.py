@@ -1431,7 +1431,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
         self._attributes[self.__axis_names_hdf_name__] = val
 
     @property
-    def __axis_names_type__(self) -> Type[str]:
+    def __axis_names_type__(self) -> Type[numpy.array]:
         return numpy.array
 
     def axis_names_create(self):

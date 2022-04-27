@@ -101,52 +101,15 @@ class S102Root(v2_0.S102RootBase):
 
 class S102File(v2_0.S102File):
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-102.2.1')
-    def update(self, s102_obj):
+    def __init__(self, name, *args, **kywrds):
+        super().__init__(name, *args, root=S102Root, **kywrds)
+
+    def upgrade(self, s102_obj):
         raise NotImplementedError(f"Haven't implemented the upgrade of existing data yet")
 
-    def set_defaults(self, overwrite=True) -> S102File:
-        """ Creates or updates an S102File object.
-        Default values are set for any data that don't have options or are mandatory to be filled in the S102 spec.
-
-        Parameters
-        ----------
-        output_file
-            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
-        overwrite
-            If updating an existing file then set this option to False in order to retain data (not sure this is needed).
-
-        Returns
-        -------
-        S102File
-            The object created or updated by this function.
-
-
-        """
-        # @fixme @todo -- I think this will overwrite no matter what, need to look into that
+    def set_defaults(self, overwrite=True):
         self.create_empty_metadata()  # init the root with a fully filled out empty metadata set
-        root = self.root
-        bathy_cov_dset = root.feature_information.bathymetry_coverage_dataset
-        bathy_depth_info = bathy_cov_dset.append_new_item()  # bathy_cov_dset.append(bathy_cov_dset.metadata_type())
-        bathy_depth_info.initialize_properties(True, overwrite=overwrite)
-        bathy_depth_info.code = DEPTH
-        bathy_depth_info.name = DEPTH
-        # these are auto-filled by the api:
-        # unit_of_measure, fill_value, datatype, lower, upper, closure
-
-        bathy_uncertainty_info = bathy_cov_dset.append_new_item()
-        bathy_uncertainty_info.initialize_properties(True, overwrite=overwrite)
-        bathy_uncertainty_info.code = UNCERTAINTY
-        bathy_uncertainty_info.name = UNCERTAINTY
-
-        root.bathymetry_coverage.axis_names = numpy.array(["Longitude", "Latitude"])  # row major order means X/longitude first
-        root.bathymetry_coverage.sequencing_rule_scan_direction = "Longitude, Latitude"
-        root.bathymetry_coverage.common_point_rule = 1  # average
-        # root.bathymetry_coverage.data_coding_format = 2  # default
-        # root.bathymetry_coverage.dimension = 2  # default value
-        root.bathymetry_coverage.interpolation_type = 1  # nearest neighbor
-        root.bathymetry_coverage.num_instances = 1  # how many Bathycoverages
-        root.bathymetry_coverage.sequencing_rule_type = 1  # linear
-        del root.bathymetry_coverage.time_uncertainty
+        self._set_bathy_defaults()
 
     def load_bag(self, bagfile, output_file, metadata: dict = None) -> S102File:
         """
