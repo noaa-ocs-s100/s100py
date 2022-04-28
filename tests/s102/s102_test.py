@@ -182,7 +182,15 @@ def test_s102_versions(bagname):
     from s100py.s102 import v2_0, v2_1
     metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
     bagname = pathlib.Path(bagname)
-    f = v2_0.api.S102File.from_bag(bagname, bagname.with_suffix(".2_0.h5"), metadata=metadata)
-    assert "2.0" in str(f.root.product_specification)
+    f20 = v2_0.api.S102File.from_bag(bagname, bagname.with_suffix(".2_0.h5"), metadata=metadata)
+    assert "2.0" in str(f20.root.product_specification)
+    f20.close()
     f21 = v2_1.api.S102File.from_bag(bagname, bagname.with_suffix(".2_1.h5"), metadata=metadata)
     assert "2.1" in str(f21.root.product_specification)
+    f21.close()
+    open20 = s100.open(bagname.with_suffix(".2_0.h5"))
+    open21 = s100.open(bagname.with_suffix(".2_1.h5"))
+    assert "2.0" in str(open20.root.product_specification)
+    assert isinstance(open20, v2_0.api.S102File)
+    assert "2.1" in str(open21.root.product_specification)
+    assert isinstance(open21, v2_1.api.S102File)
