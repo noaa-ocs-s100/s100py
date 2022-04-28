@@ -901,6 +901,7 @@ class S1XXFile(h5py.File):
     attrs           a dictionary-like to add/read metadata about the current group
     create_group    to make a group containing datasets and/or metadata
     """
+    PRODUCT_SPECIFICATION = "unknown"
 
     def __init__(self, name, *args, **kywrds):
         # @TODO: This is the NAVO default setting, have to decide if that is best and handle other options too.
@@ -933,6 +934,7 @@ class S1XXFile(h5py.File):
 
     def create_empty_metadata(self):
         self.root = self.__root_type__(True)
+        self.root.product_specification = self.PRODUCT_SPECIFICATION
 
     def show_keys(self, obj, indent=0):
         try:  # print attributes of dataset or group

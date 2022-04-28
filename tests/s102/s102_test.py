@@ -175,3 +175,14 @@ def test_subdivide(output_path):
     # output_path = r"C:\Pydro22_Dev\NOAA\site-packages\Python38\git_repos\s100py\tests\s102\F00788_SR_8m.bag.s102.h5"
     s102_file = s102.S102File(output_path, "r")
     s102_file.subdivide(output_path, 2, 3)
+
+
+# @TODO iterate the versions using fixtures so all the functions run against all the versions
+def test_s102_versions(bagname):
+    from s100py.s102 import v2_0, v2_1
+    metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+    bagname = pathlib.Path(bagname)
+    f = v2_0.api.S102File.from_bag(bagname, bagname.with_suffix(".2_0.h5"), metadata=metadata)
+    assert "2.0" in str(f.root.product_specification)
+    f21 = v2_1.api.S102File.from_bag(bagname, bagname.with_suffix(".2_1.h5"), metadata=metadata)
+    assert "2.1" in str(f21.root.product_specification)

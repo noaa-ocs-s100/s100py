@@ -31,7 +31,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py.s102"
 
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype
-from ...v4_0.s100 import GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
+from ...v4_0.s100 import S100File, GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule
 
@@ -1035,6 +1035,17 @@ class FeatureCodesBase(GroupFBase):
 
     __feature_name_hdf_name__ = "featureName"  #: HDF5 naming
     __bathymetry_coverage_dataset_hdf_name__ = BATHY_COVERAGE
+    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
+
+    def feature_name_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.feature_name = self.__feature_name_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
+
+    def feature_code_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
 
     @property
     def __version__(self) -> int:
@@ -1073,18 +1084,6 @@ class FeatureCodesBase(GroupFBase):
 # mixin uses _attributes from the main class - ignore its errors
 # noinspection PyUnresolvedReferences
 class FeatureCodesTrackingMixin:
-    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
-
-    def feature_name_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.feature_name = self.__feature_name_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
-
-    def feature_code_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
-
     @property
     def __tracking_list_coverage_type__(self):
         return TrackingListCoverageDataset
@@ -1121,10 +1120,6 @@ class S102RootBase(S100Root):
         return 1
 
     @property
-    def z_down(self) -> bool:
-        return False
-
-    @property
     def feature_information(self) -> FeatureCodesBase:
         """Feature Information stored in GroupF in the HDF5 using :class:`FeatureCodes`"""
         return self._attributes[self.__feature_information_hdf_name__]
@@ -1135,7 +1130,7 @@ class S102RootBase(S100Root):
 
     @property
     def __feature_information_type__(self):
-        return FeatureCodesBase
+        return FeatureCodes
 
     def feature_information_create(self):
         # noinspection PyAttributeOutsideInit
@@ -1191,7 +1186,7 @@ class S102Root(S102RootBase, S102RootTrackingMixin):
         return FeatureCodes
 
 
-class S102File(S1XXFile):
+class S102File(S100File):
     PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-102.2.0')
     # these keys allow backward compatibility with NAVO data, the first key is current at time of writing
     top_level_keys = ('BathymetryCoverage', 'S102_Grid', 'S102_BathymetryCoverage')
@@ -1208,6 +1203,11 @@ class S102File(S1XXFile):
         if 'root' not in kywrds:
             kywrds['root'] = S102Root  # inherited classes will specify their own root type
         super().__init__(name, *args, **kywrds)
+
+    @property
+    def z_down(self) -> bool:
+        return False
+
 
     def subdivide(self, path, rows, cols):
         # hp5y does not have the ability to repack the data.
@@ -1385,6 +1385,7 @@ class S102File(S1XXFile):
         data_file = cls._get_S102File(output_file)
         data_file.set_defaults(overwrite=overwrite)
         return data_file
+
     def _set_tracking_defaults(self, overwrite=True):
         # I'm not sure what to put here, yet
         root = self.root
@@ -1796,7 +1797,7 @@ class S102File(S1XXFile):
         if isinstance(input_raster, gdal.Dataset):
             dataset = input_raster
         else:
-            dataset = gdal.Open(input_raster)
+            dataset = gdal.Open(str(input_raster))
 
         # @todo @fixme -- transform the coordinate system to a WGS84.  Strictly this may not end up being square, so how do we handle
         #  transform = osr.CoordinateTransformation( src_srs, tgt_srs)
@@ -1876,7 +1877,7 @@ class S102File(S1XXFile):
         if isinstance(bagfile, gdal.Dataset):
             bag = bagfile
         else:
-            bag = gdal.Open(bagfile)
+            bag = gdal.Open(str(bagfile))
 
         # check for and resample variable resolution BAG if able
         gdal_metadata = bag.GetMetadata()
