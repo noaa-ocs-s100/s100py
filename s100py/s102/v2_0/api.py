@@ -1037,11 +1037,6 @@ class FeatureCodesBase(GroupFBase):
     __bathymetry_coverage_dataset_hdf_name__ = BATHY_COVERAGE
     __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
 
-    def feature_name_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.feature_name = self.__feature_name_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
-
     def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
@@ -1050,18 +1045,6 @@ class FeatureCodesBase(GroupFBase):
     @property
     def __version__(self) -> int:
         return 1
-
-    @property
-    def __feature_name_type__(self):
-        return numpy.array
-
-    @property
-    def feature_name(self) -> s1xx_sequence:
-        return self._attributes[self.__feature_name_hdf_name__]
-
-    @feature_name.setter
-    def feature_name(self, val: s1xx_sequence):
-        self._attributes[self.__feature_name_hdf_name__] = val
 
     @property
     def __bathymetry_coverage_dataset_type__(self):
@@ -1100,6 +1083,24 @@ class FeatureCodesTrackingMixin:
     @tracking_list_coverage.setter
     def tracking_list_coverage(self, val: TrackingListCoverageDataset):
         self._attributes[self.__tracking_list_coverage_hdf_name__] = val
+
+    @property
+    def __feature_name_type__(self):
+        return numpy.array
+
+    @property
+    def feature_name(self) -> s1xx_sequence:
+        return self._attributes[self.__feature_name_hdf_name__]
+
+    @feature_name.setter
+    def feature_name(self, val: s1xx_sequence):
+        self._attributes[self.__feature_name_hdf_name__] = val
+
+    def feature_name_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.feature_name = self.__feature_name_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
+
 
 
 class FeatureCodes(FeatureCodesBase, FeatureCodesTrackingMixin):
@@ -1194,7 +1195,7 @@ class S102File(S100File):
     tracking_list_second_level = ("TrackingListCoverage.01",)
     tracking_list_group_level = ("Group.001",)
     second_level_keys = (
-        'BathymetryCoverage.01', 'S102_Grid.01', 'S102_BathymetryCoverage.01', 'BathymetryCoverage_01', 'S102_Grid_01', 'S102_BathymetryCoverage_01',)
+        'BathymetryCoverage.001', 'BathymetryCoverage.01', 'S102_Grid.01', 'S102_BathymetryCoverage.01', 'BathymetryCoverage_01', 'S102_Grid_01', 'S102_BathymetryCoverage_01',)
     group_level_keys = ('Group.001', 'Group_001',)
     value_level_keys = ("values",)
     depth_keys = ("depth", "depths", 'elevation', "elevations", "S102_Elevation")
@@ -1298,8 +1299,25 @@ class S102File(S100File):
         valid_epsg += list(numpy.arange(32701, 32760 + 1))
         return valid_epsg
 
-    def upgrade(self, s102_obj):
-        raise NotImplementedError(f"Haven't implemented the upgrade of existing data yet")
+    @staticmethod
+    def upgrade_in_place(s100_object):
+        try:
+            spec = s100_object.root.product_specification
+        except:
+            spec = "unknown"
+        raise S102Exception(f"Could not upgrade file of type {spec}")
+
+    @classmethod
+    def upgrade(cls, src_filename, dest_filename=None, mode='r'):
+        if dest_filename is None:
+            dest_filename = src_filename
+        else:
+            shutil.copy(src_filename, dest_filename)
+        s100_object = S100File(dest_filename, "r+")
+        cls.upgrade_in_place(s100_object)
+        s100_object.close()
+        del s100_object
+        cls(dest_filename, mode)
 
     def print_overview(self, display_nodes=10):
         depths = self.get_depths()
@@ -1900,6 +1918,7 @@ class S102File(S100File):
                 metadata['issueDate'] = elem.text
 
         self.load_gdal(bag, metadata=metadata, flip_z=self.z_down)
+
 
 
 # # S102File = S102File_2_0

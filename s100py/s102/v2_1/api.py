@@ -14,6 +14,7 @@ Removed TrackingList  --  4.2.1.1.8 TrackingListCoverage
 Removed min/max display scale -- 4.2.1.1.1.2 and 4.2.1.1.1.5 BathymetryCoverage semantics
 Added flip_z parameters in utils since z orientation is going from positive up to positive down
 Change FeatureInformation datatype to H5T_FLOAT from H5T_NATIVE_FLOAT - per table 10-3 
+featureName and featureCode were both used in 2.0 doc, was corrected to only use featureCode in 2.1 
 """
 
 del DisplayScaleMixin
@@ -30,11 +31,6 @@ del S102RootTrackingMixin
 
 # removed the tracking list mixin
 class FeatureCodes(v2_0.FeatureCodesBase):
-    def feature_name_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.feature_name = self.__feature_name_type__([BATHY_COVERAGE, ], dtype=h5py_string_dtype)
-
     def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
@@ -122,8 +118,69 @@ class S102File(v2_0.S102File):
     def z_down(self) -> bool:  # reverse Z direction
         return True
 
-    def upgrade(self, s102_obj):
-        raise NotImplementedError(f"Haven't implemented the upgrade of existing data yet")
+    @staticmethod
+    def upgrade_in_place(s100_object):
+        if s100_object.root.product_specification != v2_0.S102File.PRODUCT_SPECIFICATION:
+            v2_0.S102File.upgrade_in_place(s100_object)
+        if s100_object.root.product_specification == v2_0.S102File.PRODUCT_SPECIFICATION:
+            # update product specification
+            s100_object.root.product_specification = S102File.PRODUCT_SPECIFICATION
+            # remove TrackingList
+            del s100_object['TrackingListCoverage']
+            del s100_object['Group_F']['TrackingListCoverage']
+            del s100_object['Group_F']['featureName']
+            fc20 = s100_object['Group_F']['featureCode']
+            if fc20[0] in (b'BathymetryCoverage', 'BathymetryCoverage'):
+                fc21 = fc20[:1]  # keep the bathymetery and delete the trackinglist
+            elif fc20[1] in (b'BathymetryCoverage', 'BathymetryCoverage'):
+                fc21 = fc20[1:]  # keep the bathymetery and delete the trackinglist
+            del s100_object['Group_F']['featureCode']
+            s100_object['Group_F'].create_dataset('featureCode', data=fc21)
+
+            # remove display scale and reverse the Z direction
+            for top in v2_0.S102File.top_level_keys:
+                try:
+                    bathy_top = s100_object[top]
+                    groupf_bathy = s100_object['Group_F'][top]
+                    # get the fill value to use when reversing the Z value
+                    fill_val = float(groupf_bathy[0]['fillValue'])
+                    # update the datatype definition
+                    groupf_bathy[0]['datatype'] = b'H5T_FLOAT'
+                    groupf_bathy[1]['datatype'] = b'H5T_FLOAT'
+                    # depth_string = groupf_bathy[0]['code']
+                except KeyError:
+                    pass
+                else:
+                    for second in v2_0.S102File.second_level_keys:
+                        try:
+                            bathy_cov = bathy_top[second]
+                        except KeyError:
+                            pass
+                        else:
+                            for group in v2_0.S102File.group_level_keys:
+                                try:
+                                    bathy_group = bathy_cov[group]
+                                except KeyError:
+                                    pass
+                                else:
+                                    try:
+                                        del bathy_group[v2_0.DisplayScaleMixin.__maximum_display_scale_hdf_name__]
+                                    except KeyError:
+                                        pass
+                                    try:
+                                        del bathy_group[v2_0.DisplayScaleMixin.__minimum_display_scale_hdf_name__]
+                                    except KeyError:
+                                        pass
+                                    try:
+                                        depth_uncert = bathy_group['values']
+                                        # h5py does not allow editing via fancy slicing se we need to convert to numpy, edit and then put it back
+                                        # i.e. depth[depth!=fill_val] *= -1 won't work but doesn't raise an error either
+                                        a = numpy.array(depth_uncert['depth'])
+                                        a[a != fill_val] *= -1
+                                        depth_uncert['depth'] = a
+                                    except KeyError:
+                                        pass
+
 
     def set_defaults(self, overwrite=True):  # remove tracking list
         self.create_empty_metadata()  # init the root with a fully filled out empty metadata set
