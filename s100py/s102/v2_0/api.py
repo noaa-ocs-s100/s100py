@@ -1317,7 +1317,7 @@ class S102File(S100File):
         cls.upgrade_in_place(s100_object)
         s100_object.close()
         del s100_object
-        cls(dest_filename, mode)
+        return cls(dest_filename, mode)
 
     def print_overview(self, display_nodes=10):
         depths = self.get_depths()

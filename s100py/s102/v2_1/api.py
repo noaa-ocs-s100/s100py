@@ -124,7 +124,7 @@ class S102File(v2_0.S102File):
             v2_0.S102File.upgrade_in_place(s100_object)
         if s100_object.root.product_specification == v2_0.S102File.PRODUCT_SPECIFICATION:
             # update product specification
-            s100_object.root.product_specification = S102File.PRODUCT_SPECIFICATION
+            s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
             # remove TrackingList
             del s100_object['TrackingListCoverage']
             del s100_object['Group_F']['TrackingListCoverage']
