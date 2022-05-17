@@ -29,6 +29,7 @@ del FeatureCodesTrackingMixin
 del S102RootTrackingMixin
 
 
+
 # removed the tracking list mixin
 class FeatureCodes(v2_0.FeatureCodesBase):
     def feature_code_create(self):
@@ -37,12 +38,25 @@ class FeatureCodes(v2_0.FeatureCodesBase):
         self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, ], dtype=h5py_string_dtype)
 
 
-# removed min/max display scale mixin
-class BathymetryCoverage(v2_0.BathymetryCoverageBase):
+# removed min/max display scale mixin and change to Group_001  "." to "_"
+class BathymetryCoverageBase(v2_0.BathymetryCoverageBase):
+    """ This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
+
+    4.2.1.1.1 and Figure 4.4 of v2.0.0
+    also see section 12.3 and table 12.5
+
+    """
+
+    write_format_str = ".%02d"
+
+
+class BathymetryCoverage(BathymetryCoverageBase):
     pass
 
 
 class BathymetryGroupList(v2_0.BathymetryGroupList):
+    write_format_str = "_%03d"
+
     @property
     def metadata_type(self) -> type:
         return BathymetryCoverage
@@ -55,6 +69,8 @@ class BathymetryFeatureInstance(v2_0.BathymetryFeatureInstance):
 
 
 class BathymetryCoveragesList(v2_0.BathymetryCoveragesList):
+    write_format_str = ".%02d"
+
     @property
     def metadata_type(self) -> Type[BathymetryFeatureInstance]:
         return BathymetryFeatureInstance
@@ -180,6 +196,12 @@ class S102File(v2_0.S102File):
                                         depth_uncert['depth'] = a
                                     except KeyError:
                                         pass
+                                    # standardize with the 2.1 required Group_001
+                                    if group != "Group_001":
+                                        bathy_cov.move(group, "Group_001")
+                            # standardize with the 2.1 required BathymetryCoverage.01
+                            if second != "BathymetryCoverage.01":
+                                bathy_top.move(second, "BathymetryCoverage.01")
 
 
     def set_defaults(self, overwrite=True):  # remove tracking list
