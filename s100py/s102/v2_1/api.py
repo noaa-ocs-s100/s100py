@@ -29,15 +29,6 @@ del FeatureCodesTrackingMixin
 del S102RootTrackingMixin
 
 
-
-# removed the tracking list mixin
-class FeatureCodes(v2_0.FeatureCodesBase):
-    def feature_code_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, ], dtype=h5py_string_dtype)
-
-
 # removed min/max display scale mixin and change to Group_001  "." to "_"
 class BathymetryCoverageBase(v2_0.BathymetryCoverageBase):
     """ This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
@@ -92,7 +83,7 @@ class BathymetryContainer(v2_0.BathymetryContainer):
         return BathymetryCoveragesList
 
 
-class S102FeatureInformation(v2_0.FeatureInformation):
+class S102FeatureInformation(v2_0.S102FeatureInformation):
 
     def datatype_create(self):
         # noinspection PyAttributeOutsideInit
@@ -111,6 +102,17 @@ class BathymetryCoverageDataset(S102FeatureInformationDataset):
     def metadata_name(self) -> str:
         return BATHY_COVERAGE
 
+
+# removed the tracking list mixin and update the BathymetryCoverageDataset
+class FeatureCodes(v2_0.FeatureCodesBase):
+    def feature_code_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, ], dtype=h5py_string_dtype)
+
+    @property
+    def __bathymetry_coverage_dataset_type__(self):
+        return BathymetryCoverageDataset
 
 class S102Root(v2_0.S102RootBase):
     @property
@@ -161,8 +163,17 @@ class S102File(v2_0.S102File):
                     # get the fill value to use when reversing the Z value
                     fill_val = float(groupf_bathy[0]['fillValue'])
                     # update the datatype definition
-                    groupf_bathy[0]['datatype'] = b'H5T_FLOAT'
-                    groupf_bathy[1]['datatype'] = b'H5T_FLOAT'
+                    # groupf_bathy[0]['datatype'] = 'H5T_FLOAT' fails to adjust the file as the groupf_bathy[0] creates a temporary copy
+                    # groupf_bathy[0, 'datatype'] = 'H5T_FLOAT' raises a typeError about changing the datatype
+                    # copying the data with temp=groupf_bathy[0] then changing values then setting groupf_bathy[0]=temp seems to work
+                    # similar to revising the depth values later in this function
+                    for nrow in range(len(groupf_bathy)):
+                        row = groupf_bathy[nrow]
+                        row['datatype'] = 'H5T_FLOAT'
+                        if row['name'].lower() in ("uncertainty", b"uncertainty"):
+                            row['lower'] = 0
+                            row['closure'] = 'gtLeInterval'
+                        groupf_bathy[nrow] = row
                     # depth_string = groupf_bathy[0]['code']
                 except KeyError:
                     pass
@@ -202,6 +213,18 @@ class S102File(v2_0.S102File):
                             # standardize with the 2.1 required BathymetryCoverage.01
                             if second != "BathymetryCoverage.01":
                                 bathy_top.move(second, "BathymetryCoverage.01")
+
+
+    def _set_bathy_defaults(self, overwrite=True):
+        """ This function initializes the values in more recent versions of the spec to reduce redundant code in later modules
+        """
+        super()._set_bathy_defaults(overwrite=overwrite)
+        root = self.root
+        bathy_cov_dset = root.feature_information.bathymetry_coverage_dataset
+
+        bathy_uncertainty_info = bathy_cov_dset[1]
+        bathy_uncertainty_info.lower = 0
+        bathy_uncertainty_info.closure = "gtLeInterval"
 
 
     def set_defaults(self, overwrite=True):  # remove tracking list
