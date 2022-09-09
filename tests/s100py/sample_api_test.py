@@ -362,7 +362,7 @@ class S999Root(s1xx.S1xxObject):
 
 
 class S999File(s1xx.S1XXFile):
-    PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-Fake')
+    PRODUCT_SPECIFICATION = 'INT.IHO.S-Fake'
 
     def __init__(self, *args, **kywrds):
         # kywrds['root'] = S999Root

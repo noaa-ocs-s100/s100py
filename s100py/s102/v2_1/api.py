@@ -125,7 +125,7 @@ class S102Root(v2_0.S102RootBase):
 
 
 class S102File(v2_0.S102File):
-    PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-102.2.1')
+    PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.1'
 
     def __init__(self, name, *args, **kywrds):
         if 'root' not in kywrds:

@@ -1188,7 +1188,7 @@ class S102Root(S102RootBase, S102RootTrackingMixin):
 
 
 class S102File(S100File):
-    PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-102.2.0')
+    PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.0'
     # these keys allow backward compatibility with NAVO data, the first key is current at time of writing
     top_level_keys = ('BathymetryCoverage', 'S102_Grid', 'S102_BathymetryCoverage')
     tracking_list_top_level = ("TrackingListCoverage",)
@@ -1594,14 +1594,6 @@ class S102File(S100File):
         bathy_group_object.extent.high.coord_values[0:2] = [rows, cols]
 
         try:
-            depth_max = depth_grid[depth_grid != nodata_value].max()
-            depth_min = depth_grid[depth_grid != nodata_value].min()
-        except ValueError:  # an empty depth array (all values == nodata) will cause this, subdivide() may cause this or data to be updated later
-            depth_min = depth_max = nodata_value
-        bathy_group_object.maximum_depth = depth_max
-        bathy_group_object.minimum_depth = depth_min
-
-        try:
             uncertainty_max = uncert_grid[uncert_grid != nodata_value].max()
             uncertainty_min = uncert_grid[uncert_grid != nodata_value].min()
         except ValueError:  # an empty uncertainty array (all values == nodata) will cause this
@@ -1629,6 +1621,14 @@ class S102File(S100File):
             uncert_grid = numpy.flipud(uncert_grid)
         if flip_z:
             depth_grid[depth_grid != nodata_value] *= -1
+
+        try:
+            depth_max = depth_grid[depth_grid != nodata_value].max()
+            depth_min = depth_grid[depth_grid != nodata_value].min()
+        except ValueError:  # an empty depth array (all values == nodata) will cause this, subdivide() may cause this or data to be updated later
+            depth_min = depth_max = nodata_value
+        bathy_group_object.maximum_depth = depth_max
+        bathy_group_object.minimum_depth = depth_min
 
         if nodata_value != root.feature_information.bathymetry_coverage_dataset[0].fill_value:
             depth_grid = numpy.copy(depth_grid)

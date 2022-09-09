@@ -13,7 +13,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py"
 
-from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxDatasetBase, S1XXFile, h5py_string_dtype, is_sub_class
+from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxDatasetBase, S1XXFile, h5py_string_dtype, is_sub_class, h5py_string_comp
 
 EDITION = 4.0
 
@@ -102,7 +102,7 @@ class VERTICAL_DATUM(Enum):
     HAT = 30
 
 
-HORIZONTAL_DATUM_REFERENCE = numpy.string_('EPSG')
+HORIZONTAL_DATUM_REFERENCE = 'EPSG'
 REGULAR = 'Regularly-gridded arrays2'
 DATA_CODING_FORMAT = Enum(value="DATA_CODING_FORMAT",
                           names=[
@@ -214,8 +214,8 @@ class SEQUENCING_RULE_TYPE(Enum):
     Hilbert = 6
 
 
-SEQUENCING_RULE_SCAN_DIRECTION = numpy.string_('longitude,latitude')
-START_SEQUENCE = numpy.string_('0,0')
+SEQUENCING_RULE_SCAN_DIRECTION = 'longitude,latitude'
+START_SEQUENCE = '0,0'
 
 
 class DirectPosition(S1xxObject):
@@ -2047,7 +2047,7 @@ class S100Root(GeographicBoundingBox):
 
 
 class S100File(S1XXFile):
-    PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-100.4.0')
+    PRODUCT_SPECIFICATION = 'INT.IHO.S-100.4.0'
 
     def __init__(self, *args, **kywrds):
         if 'root' not in kywrds:

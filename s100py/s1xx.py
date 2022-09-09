@@ -26,6 +26,10 @@ try:
 except:
     h5py_string_dtype = h5py.string_dtype(encoding='utf-8', length=None)
 
+def h5py_string_comp(h5py_val, cmp_str):
+    # h5py <3.0 returns a string, >3.0 returns bytes
+    return h5py_val in (cmp_str, bytes(cmp_str, "utf-8"))
+
 
 def is_sub_class(cls, clsinfo):
     """ Python 3.7+ changed the behavior of issubclass to raise an exception if the cls object is not a class.

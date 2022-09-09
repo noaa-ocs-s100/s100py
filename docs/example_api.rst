@@ -408,7 +408,7 @@ The file is derived from a h5py.File object and will accept any of the creation 
 All we need to do is add a product specification string and add a 'root' keyword. ::
 
     class S999File(s1xx.S1XXFile):
-        PRODUCT_SPECIFICATION = numpy.string_('INT.IHO.S-Fake')
+        PRODUCT_SPECIFICATION = 'INT.IHO.S-Fake'
 
         def __init__(self, *args, **kywrds):
             # kywrds['root'] = S999Root
