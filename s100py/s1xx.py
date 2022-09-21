@@ -97,6 +97,8 @@ class S1xxObject(ABC):
     __version__ must be overridden.
     To call a base class property use super().property, e.g. super().__version__
     This base class is built from the version 2.0.0 that was eventually published Nov. 2019
+
+    Note: attributes of type 'python int' will be stored as numpy int32 per S100 table 10c-1.
     """
     _attr_name_suffix = "_hdf_name__"
 
@@ -273,7 +275,11 @@ class S1xxObject(ABC):
 
             else:
                 logging.debug(key + " simple type: " + str(val))
-                group_object.attrs[key] = val
+                # force int to numpy.int32 since linux will use numpy.int64 by default
+                if isinstance(val, int):
+                    group_object.attrs.create(key, val, dtype=numpy.int32)
+                else:
+                    group_object.attrs[key] = val
 
     def write(self, group_object):
         """ write the contained data and all it's children into an HDF5 file using h5py.
