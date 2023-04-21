@@ -56,7 +56,7 @@ For enumeration data types use this template which is very similar
 
 ::
 
-    __$attr$_hdf_name__ = return "$SELECTION$"  #: HDF5 naming
+    __$attr$_hdf_name__ = "$SELECTION$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
