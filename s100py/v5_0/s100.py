@@ -1,3 +1,4 @@
+from itertools import chain
 try:
     from ... import s1xx
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
@@ -8,8 +9,28 @@ from ..v4_0 import s100 as v4_0
 from ..v4_0.s100 import *
 
 EDITION = 5.0
+# @TODO add support for Positioning group (S100 v5.0 10c-9.10.1, 10c-9.10.2 and table 10c-16) for DataCodingFormats 1,3,4,7,8
+#   Basically makes a 1D dataset array of the positions and attributes (like Z).
+#   For TINs  DCF=7
+#   Optionally has triangles dataset NumTriangles x 3 -- array of the 3 node indices for positions
+#   Optionally has adjacency dataset NumTriangles x3 -- array of the indices or the triangles that share an edge with each triangle side
+#   adjacency[i][0] = triangle adjacent to the edge specified by triangles[i][0] & triangles[i][1]
+#   adjacency[i][1] = triangle adjacent to edge triangles[i][1] & triangles[i][2]
+#   adjacency[i][2] = triangle adjacent to edge triangles[i][2] & triangles[i][0]
+#   Elements for edges without adjacent triangles are filled with the value -1
+#   Applicable only for dataCodingFormat = 7 (TIN), but optional even for TIN.
 
-# Table 10c-4 and Table 10c-23
+# Python doesn't allow extending an enum, so we have to create a new one with the additions
+# TODO does this work (show all values) in sphinx?
+class __VERTICAL_DATUM_additions(Enum):
+    """ S100 v5 Part 17 Vertical and Sounding Datum
+    Added balticSeaChartDatum2000 = 44
+    """
+    balticSeaChartDatum2000 = 44
+VERTICAL_DATUM = Enum('VERTICAL_DATUM', [(i.name, i.value) for i in chain(v4_0.VERTICAL_DATUM, __VERTICAL_DATUM_additions)])
+
+# Table 10c-4 and Table 10c-23, added values 8 and 9 for Fixed stations - stationwise and Feature oriented regular grid
+# @TODO if chaining works above for vertical datum then use for Data Coding Format too
 DATA_CODING_FORMAT = Enum(value="DATA_CODING_FORMAT",
                           names=[
                               ('Time series at fixed stations', 1),
@@ -98,6 +119,26 @@ VERTICAL_CS = Enum(value="VERTICAL_CS",
                             ('Depth', 6498),
                             ('Height', 6499),
                      ])
+
+DATA_OFFSET_CODE = Enum(value="DATA_OFFSET_CODE",
+                        names=[
+                            ('XMin, YMin', 1),
+                            ('XMax, YMax', 2),
+                            ('XMax, YMin', 3),
+                            ('XMin, YMax', 4),
+                            ('Barycenter', 5),
+                            ('Lower left', 1),
+                            ('Upper right', 2),
+                            ('Lower right', 3),
+                            ('Upper left', 4),
+                            ('Centroid', 5),
+                        ])
+
+class FeatureInstanceDCF8(NumberOfStations, FeatureInstanceBase):
+    """ Fixed stations - stationwise from S100 v5.0 Table 10c-12"""
+
+""" Feature Oriented Regular Grid from S100 v5.0 Table 10c-12 """
+FeatureInstanceDCF9 = FeatureInstanceDCF2
 
 
 class S100Root(v4_0.S100Root):
@@ -499,6 +540,78 @@ the EPSG documentation."""
         # pylint: disable=attribute-defined-outside-init
         self.vertical_datum = self.__vertical_datum_type__()
 
+
+class DataOffset:
+    """ Mixin class for DataOffsetCode and DataOffsetVector.
+    At least used in Data Coding Format 2,5,6,9
+    """
+    __data_offset_code_hdf_name__ = "dataOffsetCode"  #: HDF5 naming
+    __data_offset_vector_hdf_name__ = "dataOffsetVector"  #: HDF5 naming
+
+    @property
+    def data_offset_code(self) -> DATA_OFFSET_CODE:
+        return self._attributes[self.__data_offset_code_hdf_name__]
+
+    @data_offset_code.setter
+    def data_offset_code(self, val: Union[int, str, DATA_OFFSET_CODE]):
+        self.set_enum_attribute(val, self.__data_offset_code_hdf_name__, self.__data_offset_code_type__)
+
+    @property
+    def __data_offset_code_type__(self) -> Type[DATA_OFFSET_CODE]:
+        return DATA_OFFSET_CODE
+
+    def data_offset_code_create(self):
+        """ Creates a blank, empty or zero value for data_offset_code
+        """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.data_offset_code = list(self.data_offset_code_type)[0]
+
+    # FIXME - this is an array not just a float
+    @property
+    def data_offset_vector(self) -> s1xx_sequence:
+        return self._attributes[self.__data_offset_vector_hdf_name__]
+
+    @data_offset_vector.setter
+    def data_offset_vector(self, val: s1xx_sequence):
+        self._attributes[self.__data_offset_vector_hdf_name__] = val
+
+    @property
+    def __data_offset_vector_type__(self) -> Type[numpy.array]:
+        return numpy.array
+
+    def data_offset_vector_create(self):
+        """ Creates a blank, empty or zero value for data_offset_vector"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.data_offset_vector = self.__data_offset_vector_type__()
+
+    featureAttributeTable->
+
+class FeatureContainerDCF8(FeatureContainer):
+    """ Container for Data Coding Format 8 """
+
+    def data_coding_format_create(self):
+        self.data_coding_format = self.__data_coding_format_type__(8)
+
+
+class FeatureContainerDCF2(DataOffset, v4_0.FeatureContainerDCF2):
+    pass
+
+
+class FeatureContainerDCF5(DataOffset, v4_0.FeatureContainerDCF5):
+    pass
+
+
+class FeatureContainerDCF6(DataOffset, v4_0.FeatureContainerDCF6):
+    pass
+
+
+class FeatureContainerDCF9(DataOffset, SequencingRule, FeatureContainer):
+    """ Container for Data Coding Format 9 """
+
+    def data_coding_format_create(self):
+        self.data_coding_format = self.__data_coding_format_type__(9)
 
 
 class S100File(v4_0.S100File):

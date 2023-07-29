@@ -1,7 +1,7 @@
 import pathlib
 
 from .v4_0 import s100 as v4_0
-from .v4_0.s100 import *
+from .v5_0.s100 import *
 import s100py.s102
 
 def open(filename: (str, pathlib.Path), mode: str = "r") -> S1XXFile:
