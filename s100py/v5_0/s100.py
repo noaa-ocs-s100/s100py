@@ -134,11 +134,117 @@ DATA_OFFSET_CODE = Enum(value="DATA_OFFSET_CODE",
                             ('Centroid', 5),
                         ])
 
+
+
+class FeatureContainer(v4_0.FeatureContainer):
+    """ Feature Container from S100 v5.0 Table 10c-9
+    The feature attribute table was added, primarily for S102 to supply extended information about the origin of the data.
+    The Data Coding Format must be 9 to use the feature attribute table.
+    """
+    __feature_attribute_table_hdf_name__ = "featureAttributeTable"  #: HDF5 naming
+
+    @property
+    def feature_attribute_table(self) -> s1xx_sequence:
+        return self._attributes[self.__feature_attribute_table_hdf_name__]
+
+    @feature_attribute_table.setter
+    def feature_attribute_table(self, val: s1xx_sequence):
+        self._attributes[self.__feature_attribute_table_hdf_name__] = val
+
+    @property
+    def __feature_attribute_table_type__(self) -> Type[numpy.array]:
+        return numpy.array
+
+    def feature_attribute_table_create(self):
+        """ Creates a blank, empty or zero value for feature_attribute_table"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        # FIXME @TODO -- this has to be an arbitrary number of strings, is this limiting it to two?
+        self.feature_attribute_table = self.__feature_attribute_table_type__(["", ""], dtype=h5py_string_dtype)
+
+class DataOffset:
+    """ Mixin class for Data Offset from S100 v5.0 Table 10c-10
+    Added dataOffsetCode and dataOffsetVector to the featureContainer for DataCodingFormats 2,5,6,9.
+    """
+    __data_offset_code_hdf_name__ = "dataOffsetCode"  #: HDF5 naming
+    __data_offset_vector_hdf_name__ = "dataOffsetVector"  #: HDF5 naming
+
+    @property
+    def data_offset_code(self) -> DATA_OFFSET_CODE:
+        return self._attributes[self.__data_offset_code_hdf_name__]
+
+    @data_offset_code.setter
+    def data_offset_code(self, val: Union[int, str, DATA_OFFSET_CODE]):
+        self.set_enum_attribute(val, self.__data_offset_code_hdf_name__, self.__data_offset_code_type__)
+
+    @property
+    def __data_offset_code_type__(self) -> Type[DATA_OFFSET_CODE]:
+        return DATA_OFFSET_CODE
+
+    def data_offset_code_create(self):
+        """ Creates a blank, empty or zero value for data_offset_code
+        """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.data_offset_code = list(self.data_offset_code_type)[0]
+
+    # FIXME - this is an array not just a float
+    @property
+    def data_offset_vector(self) -> s1xx_sequence:
+        return self._attributes[self.__data_offset_vector_hdf_name__]
+
+    @data_offset_vector.setter
+    def data_offset_vector(self, val: s1xx_sequence):
+        self._attributes[self.__data_offset_vector_hdf_name__] = val
+
+    @property
+    def __data_offset_vector_type__(self) -> Type[numpy.array]:
+        return numpy.array
+
+    def data_offset_vector_create(self):
+        """ Creates a blank, empty or zero value for data_offset_vector"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.data_offset_vector = self.__data_offset_vector_type__()
+
+
 class FeatureInstanceDCF8(NumberOfStations, FeatureInstanceBase):
     """ Fixed stations - stationwise from S100 v5.0 Table 10c-12"""
 
-""" Feature Oriented Regular Grid from S100 v5.0 Table 10c-12 """
-FeatureInstanceDCF9 = FeatureInstanceDCF2
+class FeatureContainerDCF9(DataOffset, SequencingRule, FeatureContainer):
+    """ Feature Oriented Regular Grid from S100 v5.0 Table 10c-12
+    Container for Data Coding Format 9 """
+
+    def data_coding_format_create(self):
+        self.data_coding_format = self.__data_coding_format_type__(9)
+
+class FeatureContainerDCF2(DataOffset, v4_0.FeatureContainerDCF2):
+    pass
+
+
+class FeatureContainerDCF5(DataOffset, v4_0.FeatureContainerDCF5):
+    pass
+
+
+class FeatureContainerDCF6(DataOffset, v4_0.FeatureContainerDCF6):
+    pass
+
+
+# FIXME @TODO - this FeatureInformationDataset class in v4.0 writes the compound array to the HDF5 file.
+#  Do we need a new Compound type that does this instead (we didn't implement any other compounds in v4.0)
+#  The FeatureContainer's new feature_attribute_table needs to be stored similarly.  Also be able to store an array of compounds
+# class FeatureInformationDataset(S1xxDatasetBase, ABC):  # Chunking
+#     """ This class comes from S100 -- 10c-9.5 Feature information group.
+#     This class serves to keep a list of FeatureInformation objects which will be turned into a compound array
+#     of strings in the HDF5 file.
+#
+#     The metadata_name property must be overridden.
+#     The metadata_type will likely be overridden with a specific subclass for the s100+ spec
+#     """
+#
+#     @property
+#     def metadata_type(self) -> Type[FeatureInformation]:
+#         return FeatureInformation
 
 
 class S100Root(v4_0.S100Root):
@@ -541,77 +647,12 @@ the EPSG documentation."""
         self.vertical_datum = self.__vertical_datum_type__()
 
 
-class DataOffset:
-    """ Mixin class for DataOffsetCode and DataOffsetVector.
-    At least used in Data Coding Format 2,5,6,9
-    """
-    __data_offset_code_hdf_name__ = "dataOffsetCode"  #: HDF5 naming
-    __data_offset_vector_hdf_name__ = "dataOffsetVector"  #: HDF5 naming
-
-    @property
-    def data_offset_code(self) -> DATA_OFFSET_CODE:
-        return self._attributes[self.__data_offset_code_hdf_name__]
-
-    @data_offset_code.setter
-    def data_offset_code(self, val: Union[int, str, DATA_OFFSET_CODE]):
-        self.set_enum_attribute(val, self.__data_offset_code_hdf_name__, self.__data_offset_code_type__)
-
-    @property
-    def __data_offset_code_type__(self) -> Type[DATA_OFFSET_CODE]:
-        return DATA_OFFSET_CODE
-
-    def data_offset_code_create(self):
-        """ Creates a blank, empty or zero value for data_offset_code
-        """
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.data_offset_code = list(self.data_offset_code_type)[0]
-
-    # FIXME - this is an array not just a float
-    @property
-    def data_offset_vector(self) -> s1xx_sequence:
-        return self._attributes[self.__data_offset_vector_hdf_name__]
-
-    @data_offset_vector.setter
-    def data_offset_vector(self, val: s1xx_sequence):
-        self._attributes[self.__data_offset_vector_hdf_name__] = val
-
-    @property
-    def __data_offset_vector_type__(self) -> Type[numpy.array]:
-        return numpy.array
-
-    def data_offset_vector_create(self):
-        """ Creates a blank, empty or zero value for data_offset_vector"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.data_offset_vector = self.__data_offset_vector_type__()
-
-    featureAttributeTable->
-
 class FeatureContainerDCF8(FeatureContainer):
     """ Container for Data Coding Format 8 """
 
     def data_coding_format_create(self):
         self.data_coding_format = self.__data_coding_format_type__(8)
 
-
-class FeatureContainerDCF2(DataOffset, v4_0.FeatureContainerDCF2):
-    pass
-
-
-class FeatureContainerDCF5(DataOffset, v4_0.FeatureContainerDCF5):
-    pass
-
-
-class FeatureContainerDCF6(DataOffset, v4_0.FeatureContainerDCF6):
-    pass
-
-
-class FeatureContainerDCF9(DataOffset, SequencingRule, FeatureContainer):
-    """ Container for Data Coding Format 9 """
-
-    def data_coding_format_create(self):
-        self.data_coding_format = self.__data_coding_format_type__(9)
 
 
 class S100File(v4_0.S100File):

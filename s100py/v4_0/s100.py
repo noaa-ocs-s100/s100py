@@ -1168,16 +1168,16 @@ class FeatureInstanceDCF7(NumberOfNodes, FeatureInstanceBase):
     __number_of_triangles_hdf_name__ = "numberOfTriangles"  #: HDF5 naming
     
     @property
-    def number_of_triangles(self) -> :
+    def number_of_triangles(self) -> int:
         return self._attributes[self.__number_of_triangles_hdf_name__]
     
     @number_of_triangles.setter
-    def number_of_triangles(self, val: ):
+    def number_of_triangles(self, val: int):
         self._attributes[self.__number_of_triangles_hdf_name__] = val
     
     @property
-    def __number_of_triangles_type__(self) -> Type[]:
-        return 
+    def __number_of_triangles_type__(self) -> Type[int]:
+        return int
     
     def number_of_triangles_create(self):
         """ Creates a blank, empty or zero value for number_of_triangles"""
@@ -1455,7 +1455,10 @@ class FeatureInformation(S1xxObject):
 
 
 class Chunking:
-    """ This is a mixin to supply chunking attributes to any other class """
+    """ This is a mixin to supply chunking attributes to any other class.
+     This was removed in s100 v5.0 and served no purpose and since there was no official verifications for v4.0,
+     we are dropping it here as well and potentially breaking backwards compatibility of code.
+     """
     __chunking_hdf_name__ = "chunking"  #: HDF5 naming
 
     @property
@@ -1480,7 +1483,7 @@ class Chunking:
         self.chunking = self.__chunking_type__()
 
 
-class FeatureInformationDataset(Chunking, S1xxDatasetBase, ABC):
+class FeatureInformationDataset(S1xxDatasetBase, ABC):  # Chunking
     """ This class comes from S100 -- 10c-9.5 Feature information group.
     This class serves to keep a list of FeatureInformation objects which will be turned into a compound array
     of strings in the HDF5 file.
@@ -1845,7 +1848,7 @@ class FeatureContainerDCF3(InterpolationType, FeatureContainer):
         self.data_coding_format = self.__data_coding_format_type__(3)
 
 
-class FeatureContainerDCF4(InterpolationType, FeatureContainer):
+class FeatureContainerDCF4(FeatureContainer):
     """ Container for Data Coding Format 4 """
 
     def data_coding_format_create(self):
