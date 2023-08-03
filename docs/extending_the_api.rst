@@ -30,7 +30,7 @@ What it does:
 
 Code to put in your live template ::
 
-    __$attr$_hdf_name__ = $SELECTION$"  #: HDF5 naming
+    __$attr$_hdf_name__ = "$SELECTION$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:

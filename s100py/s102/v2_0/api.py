@@ -1107,7 +1107,7 @@ class FeatureCodes(FeatureCodesBase, FeatureCodesTrackingMixin):
     pass
 
 
-class S102RootBase(S100Root):
+class S102RootMixin:
     """The root group contains a feature information group and N feature containers.
     In S102 there are currently two feature containers which are the 'coverages'  bathymetry and tracking list.
     The coverage names are determined from the matching CoveragesAttributes
@@ -1181,7 +1181,7 @@ class S102RootTrackingMixin:
         self._attributes[self.__tracking_list_coverage_hdf_name__] = val
 
 
-class S102Root(S102RootBase, S102RootTrackingMixin):
+class S102Root(S102RootMixin, S102RootTrackingMixin, S100Root):
     @property
     def __feature_information_type__(self):
         return FeatureCodes
