@@ -114,7 +114,7 @@ class FeatureCodes(v2_0.FeatureCodesBase):
     def __bathymetry_coverage_dataset_type__(self):
         return BathymetryCoverageDataset
 
-class S102Root(v2_0.S102RootBase):
+class S102Root(v2_0.S102Root):
     @property
     def __feature_information_type__(self):
         return FeatureCodes

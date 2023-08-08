@@ -208,3 +208,10 @@ def test_s102_version_upgrade(bagname):
     f21 = v2_1.api.S102File.upgrade(bagname.with_suffix(".2_0_to_2_1.h5"))
     assert "2.1" in str(f21.root.product_specification)
     f21.close()
+
+
+def test_rat():
+    tiffname = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff"
+    metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+    new_s102 = s102.from_gdal(bagname, output_path, metadata=metadata)
+

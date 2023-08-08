@@ -1181,7 +1181,7 @@ class S102RootTrackingMixin:
         self._attributes[self.__tracking_list_coverage_hdf_name__] = val
 
 
-class S102Root(S102RootMixin, S102RootTrackingMixin, S100Root):
+class S102Root(S102RootMixin, S100Root):
     @property
     def __feature_information_type__(self):
         return FeatureCodes

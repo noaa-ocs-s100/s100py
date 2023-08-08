@@ -870,3 +870,90 @@ class S102File(v2_1.S102File):
     def set_defaults(self, overwrite=True):  # remove tracking list
         self.create_empty_metadata()  # init the root with a fully filled out empty metadata set
         self._set_bathy_defaults()
+
+    @classmethod
+    def from_gdal(cls, input_raster, output_file, metadata: dict = None, flip_z=False) -> S102File:  # gdal instance or filename accepted
+        """  Fills or creates an :any:`S102File` from the given arguments.
+
+        For most parameters, see :any:`S102File.load_arrays`
+
+        Parameters
+        ----------
+        output_file
+            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+        """
+        data_file = cls.create_s102(output_file)
+        data_file.load_gdal(input_raster, metadata=metadata, flip_z=flip_z)
+        return data_file
+
+    def load_gdal(self, input_raster, metadata: dict = None, flip_z=False):  # gdal instance or filename accepted
+        """ Fills or creates an :any:`S102File` from the given arguments.
+
+        Parameters
+        ----------
+        input_raster
+            Either a path to a raster file that GDAL can open or a gdal.Dataset object.
+        output_file
+            Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
+        metadata
+            A dictionary of metadata describing the grids passed in.
+            All the metadata used in :any:`from_from_arrays_with_metadata` can be specified and
+            would override the values that would have been populated based on the GDAL data.
+
+            horizontalDatumReference, horizontalDatumValue, origin, res will be determined from GDAL if not otherwise specified.
+
+        Returns
+        -------
+        S102File
+
+        """
+        if metadata is None:
+            metadata = {}
+        else:
+            metadata = metadata.copy()
+
+        if isinstance(input_raster, gdal.Dataset):
+            dataset = input_raster
+        else:
+            dataset = gdal.Open(str(input_raster))
+
+        # @todo @fixme -- transform the coordinate system to a WGS84.  Strictly this may not end up being square, so how do we handle
+        #  transform = osr.CoordinateTransformation( src_srs, tgt_srs)
+        # Until we have a working datum engine this module should not do datum transformations - GR 20200402
+        if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
+            metadata["horizontalDatumReference"] = "EPSG"
+            sr = osr.SpatialReference(dataset.GetProjection())
+            epsg = sr.GetAuthorityCode(None)
+            # FIXME: this is likely incorrect. We probably don't want to get the code of the geographic CRS when the CRS is projected
+            if epsg is None and sr.IsProjected():
+                sr = sr.CloneGeogCS()
+            if epsg:
+                metadata["horizontalDatumValue"] = int(epsg)
+            else:
+                if sr.GetAttrValue("GEOGCS") == 'WGS 84':
+                    metadata["horizontalDatumValue"] = 4326
+                # elif sr.GetAttrValue("GEOGCS") == 'North_American_Datum_1983':
+                #    metadata["horizontalDatumValue"] = 4269
+                else:
+                    raise S102Exception("Projection not understood, was searching for an EPSG code and found " + osr.SpatialReference(
+                        dataset.GetProjection()).ExportToWkt())
+
+        if "epoch" not in metadata:
+            # @todo We should be able to pull this from the WKT
+            pass
+
+        raster_band = dataset.GetRasterBand(1)
+        depth_nodata_value = raster_band.GetNoDataValue()
+        uncertainty_band = dataset.GetRasterBand(2)
+
+        ulx, dxx, dxy, uly, dyx, dyy = dataset.GetGeoTransform()
+        if dxy != 0.0 or dyx != 0.0:
+            raise S102Exception("raster is not north up but is rotated, this is not handled at this time")
+
+        if "origin" not in metadata:
+            # shift the gdal geotransform corner point to reference the node (pixel is center) rather than cell (pixel is area)
+            metadata["origin"] = [ulx + dxx / 2, uly + dyy / 2]
+        if "res" not in metadata:
+            metadata["res"] = [dxx, dyy]
+        self.load_arrays_with_metadata(raster_band.ReadAsArray(), uncertainty_band.ReadAsArray(), metadata,
+                                                   nodata_value=depth_nodata_value, flip_z=flip_z)
