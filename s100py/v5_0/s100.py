@@ -140,6 +140,18 @@ class FeatureContainer(v4_0.FeatureContainer):
     """ Feature Container from S100 v5.0 Table 10c-9
     The feature attribute table was added, primarily for S102 to supply extended information about the origin of the data.
     The Data Coding Format must be 9 to use the feature attribute table.
+    The Columns will be "id" followed by an arbitrary number of column names.
+    Each "id" is an unsigned integer that matches the values in the values record of a data values group.
+
+    Additional columns
+    The number of additional columns depends on the information to be transported.  The number must always be greater than zero (>0).
+    Table 10c-8 defines that the name of the "feature container group" must always correspond to the
+    camelCase name of an object of the type "Feature Type" of the IHO Geospatial Information (GI) Registry, Data Dictionary Register.
+    The names of the other columns are based on the attributes of the selected feature type of the Data Dictionary Register.
+    Due to the mapping form of the attributes in the HDF5 format, only simple data types (see clause 10c-7) can be used.
+    For the mapping of complex data types, a corresponding notation by means of a dot is necessary.
+    The respective levels of the complex data type are separated by a dot up to the simple data type;
+    for example, "surveyDateRange.dateEnd" & "surveyDateRange.dateStart".
     """
     __feature_attribute_table_hdf_name__ = "featureAttributeTable"  #: HDF5 naming
 
@@ -211,6 +223,9 @@ class DataOffset:
 class FeatureInstanceDCF8(NumberOfStations, FeatureInstanceBase):
     """ Fixed stations - stationwise from S100 v5.0 Table 10c-12"""
 
+class FeatureInstanceDCF9(FeatureInstanceDCF2):
+    pass
+
 class FeatureContainerDCF9(DataOffset, SequencingRule, FeatureContainer):
     """ Feature Oriented Regular Grid from S100 v5.0 Table 10c-12
     Container for Data Coding Format 9 """
@@ -260,7 +275,7 @@ class S100Root(v4_0.S100Root):
     __name_of_horizontal_datum_hdf_name__ = "nameOfHorizontalDatum"  #: HDF5 naming
     __prime_meridian_hdf_name__ = "primeMeridian"  #: HDF5 naming
     __spheriod_hdf_name__ = "spheriod"  #: HDF5 naming
-    __projection_method_hdf_name__ = "projectionMethod->PROJECTION_METHOD"  #: HDF5 naming
+    __projection_method_hdf_name__ = "projectionMethod"  #: HDF5 naming
     __projection_parameter_1_hdf_name__ = "projectionParameter1"  #: HDF5 naming
     __projection_parameter_2_hdf_name__ = "projectionParameter2"  #: HDF5 naming
     __projection_parameter_3_hdf_name__ = "projectionParameter3"  #: HDF5 naming

@@ -8,6 +8,10 @@ from ..v2_1 import api as v2_1
 # Anything not overridden in this module will use whatever was available in the previous version
 from ..v2_1.api import *
 
+from ...v5_0.s100 import S100File, GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
+    FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
+    CommonPointRule
+
 EDITION = 2.2
 
 QUALITY_COVERAGE = "QualityOfSurveyCoverage"

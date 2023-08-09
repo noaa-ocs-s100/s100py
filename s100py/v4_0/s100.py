@@ -633,6 +633,11 @@ class VertexPoint(S1xxObject):
         self.value = self.__value_type__([2, ], numpy.float)
 
 
+# FIXME @TODO Add base class (maybe full implementation for many of the datasets) for FeatureInstanceBase
+#  Positioning, Group_IDX, Group_TL, cellGeometry, uncertainty, extent, domainExtent.verticalElement, domainExtent.polygon
+#  This would be added to the FeatureInstanceBase - See S100 v4.0 table 10c-11 and 10c-12
+
+
 class FeatureInstanceBase(GeographicBoundingBox):
     """ The feature instance group attributes from table 10c-12 in S100 spec
     """
