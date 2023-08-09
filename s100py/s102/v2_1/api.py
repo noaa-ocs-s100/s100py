@@ -35,7 +35,16 @@ from ...v4_0.s100 import S100File, GridCoordinate, DirectPosition, GeographicExt
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule
 
-EDITION = 2.0
+EDITION = 2.1
+
+CHANGELOG = """
+Removed TrackingList  --  4.2.1.1.8 TrackingListCoverage
+Removed min/max display scale -- 4.2.1.1.1.2 and 4.2.1.1.1.5 BathymetryCoverage semantics
+Added flip_z parameters in utils since z orientation is going from positive up to positive down
+Change FeatureInformation datatype to H5T_FLOAT from H5T_NATIVE_FLOAT - per table 10-3 
+featureName and featureCode were both used in 2.0 doc, was corrected to only use featureCode in 2.1 
+"""
+
 
 class S102Exception(S100Exception):
     pass
@@ -217,6 +226,7 @@ class BathymetryValues(S1xxGridsBase):
         return [self.depth_dtype, self.uncertainty_dtype]
 
 
+# v2.1 Chagne to .01 from .001
 class BathymetryCoverageBase(S1xxObject):
     """ This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
 
@@ -224,8 +234,8 @@ class BathymetryCoverageBase(S1xxObject):
     also see section 12.3 and table 12.5
 
     """
-
-    write_format_str = ".%03d"
+    # Changed to %02d in v2.1
+    write_format_str = ".%02d"
 
     __values_hdf_name__ = "values"  #: HDF5 naming
     __minimum_depth_hdf_name__ = "minimumDepth"  #: HDF5 naming
@@ -534,254 +544,20 @@ class BathymetryCoverageBase(S1xxObject):
         self.start_sequence = self.__start_sequence_type__()
 
 
-# mixin uses _attributes from the main class - ignore its warnings
-# noinspection PyUnresolvedReferences
-class DisplayScaleMixin:
-    __maximum_display_scale_hdf_name__ = "maximumDisplayScale"  #: HDF5 naming
-    __minimum_display_scale_hdf_name__ = "minimumDisplayScale"  #: HDF5 naming
-
-    @property
-    def minimum_display_scale(self) -> int:
-        """From 4.2.1.1.1.2,
-        The larger value of the ratio of the linear dimensions of the features of a dataset presented in the display and
-        the actual dimensions of the features represented (largest scale) of the scale range of the dataset.
-        A list of display scale ranges is available in Figure 11.1, 1st column
-        """
-        return self._attributes[self.__minimum_display_scale_hdf_name__]
-
-    @minimum_display_scale.setter
-    def minimum_display_scale(self, val: int):
-        self._attributes[self.__minimum_display_scale_hdf_name__] = val
-
-    @property
-    def __minimum_display_scale_type__(self):
-        return float
-
-    def minimum_display_scale_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.minimum_display_scale = self.__minimum_display_scale_type__()
-
-    @property
-    def __maximum_display_scale_type__(self):
-        return float
-
-    def maximum_display_scale_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.maximum_display_scale = self.__maximum_display_scale_type__()
-
-    @property
-    def maximum_display_scale(self) -> int:
-        """From 4.2.1.1.1.5,
-        The smaller value of the ratio of the linear dimensions of the features of a dataset presented in the display and
-        the actual dimensions of the features represented (smallest scale) of the scale range of the dataset.
-        A list of display scale ranges is available in Table 11.1, 1st column
-        """
-        return self._attributes[self.__maximum_display_scale_hdf_name__]
-
-    @maximum_display_scale.setter
-    def maximum_display_scale(self, val: int):
-        self._attributes[self.__maximum_display_scale_hdf_name__] = val
-
-
-class BathymetryCoverage(BathymetryCoverageBase, DisplayScaleMixin):
+# v2.1 removed min/max display scale mixin
+class BathymetryCoverage(BathymetryCoverageBase):
     pass
 
 class SurfaceCorrectionValues(VertexPoint):
     pass
 
 
-# this S102_SurfaceCorrectionValues may not be right as the docs refer to S100_VertexPoint,
-# but I'm betting they would both change if there ever is an update
-class TrackingListValues(SurfaceCorrectionValues):
-    """ From 4.2.1.1.10 of S102 v2.0.0
-    """
-    __track_code_hdf_name__ = "trackCode"  #: HDF5 naming
-    __list_series_hdf_name__ = "listSeries"  #: HDF5 naming
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def track_code(self) -> str:
-        """ From 4.2.1.1.10.2,
-        The optional attribute trackCode has the value type CharacterString which may contain a text string
-        describing the reason for the override of the corresponding depth and uncertainty values in the bathymetry coverage.
-        This is a user definable field with values defined in the lineage metadata.
-
-        Returns
-        -------
-
-        """
-        return self._attributes[self.__track_code_hdf_name__]
-
-    @track_code.setter
-    def track_code(self, val: str):
-        self._attributes[self.__track_code_hdf_name__] = val
-
-    @property
-    def __track_code_type__(self):
-        return str
-
-    def track_code_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.track_code = self.__track_code_type__()
-
-    @property
-    def list_series(self) -> int:
-        """From 4.2.1.1.10.3,
-        The attribute listSeries has the value type Integer which contains an index number into a list of metadata
-        elements describing the reason for the override of the corresponding depth and uncertainty values in the bathymetry coverage.
-        """
-        return self._attributes[self.__list_series_hdf_name__]
-
-    @list_series.setter
-    def list_series(self, val: int):
-        self._attributes[self.__list_series_hdf_name__] = val
-
-    @property
-    def __list_series_type__(self):
-        return int
-
-    def list_series_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.list_series = self.__list_series_type__()
-
-
-class TrackingListValuesList(S102MetadataListBase):
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_name(self) -> str:
-        return "point"
-
-    @property
-    def metadata_type(self) -> type:
-        return TrackingListValues
-
-
-class TrackingListSetList(S102MetadataListBase):
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_name(self) -> str:
-        return "set"
-
-    @property
-    def metadata_type(self) -> type:
-        return TrackingListValuesList
-
-
-class TrackingListCoverage(CommonPointRule, S1xxObject):
-    """ 4.2.1.1.9 and Figure 4.4 of v2.0.0
-    commonPointRule is defined to be an S100_PointCoverage with a value of default and it therefore optional.
-    a metadata attribute from S100 is allowed but not necessary as well.
-
-    """
-    write_format_str = ".%02d"
-
-    __domain_extent_hdf_name__ = "domainExtent"  #: HDF5 naming
-    __common_point_rule_hdf_name__ = "commonPointRule"  #: HDF5 naming
-    __set_hdf_name__ = "set"  #: HDF5 naming
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def domain_extent(self) -> S102MetadataListBase:
-        return self._attributes[self.__domain_extent_hdf_name__]
-
-    @domain_extent.setter
-    def domain_extent(self, val: S102MetadataListBase):
-        self._attributes[self.__domain_extent_hdf_name__] = val
-
-    @property
-    def __domain_extent_type__(self):
-        return GeographicExtent
-
-    def domain_extent_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.domain_extent = self.__domain_extent_type__()
-
-    def common_point_rule_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.common_point_rule = self.__common_point_rule_type__["average"]
-
-    @property
-    def __set_type__(self):
-        return TrackingListSetList
-
-    def set_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.set = self.__set_type__()
-
-    @property
-    def set(self) -> S102MetadataListBase:
-        """
-        Returns
-        -------
-        TrackingListValuesList
-            list of TrackingListValues
-        """
-        return self._attributes[self.__set_hdf_name__]
-
-    @set.setter
-    def set(self, val: S102MetadataListBase):
-        self._attributes[self.__set_hdf_name__] = val
-
-    # @TODO  I don't think this is right, but not sure where I found it
-    #
-    # __geometry_hdf_name__ = "geometry"  #: HDF5 naming
-    #
-    # @property
-    # def geometry(self) -> S1xxObject:
-    #     return self._attributes[self.__geometry_hdf_name__]
-    #
-    # @geometry.setter
-    # def geometry(self, val: S1xxObject):
-    #     self._attributes[self.__geometry_hdf_name__] = val
-    #
-    # __value_hdf_name__ = "value"  #: HDF5 naming
-    #
-    # @property
-    # def value(self) -> s1xx_sequence:
-    #     return self._attributes[self.__value_hdf_name__]
-    #
-    # @value.setter
-    # def value(self, val: s1xx_sequence):
-    #     self._attributes[self.__value_hdf_name__] = val
-
-
-class TrackingListGroupList(S102MetadataListBase):
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_name(self) -> str:
-        return "Group"
-
-    @property
-    def metadata_type(self) -> type:
-        return TrackingListCoverage
-
-
+# v2.1 change to Group_001  "." to "_"
 class BathymetryGroupList(S102MetadataListBase):
     """ This is the list of Group.NNN that are held as a list.
     Each Group.NNN has a dataset of depth and uncertainty.
     """
+    write_format_str = "_%03d"
 
     @property
     def __version__(self) -> int:
@@ -794,23 +570,6 @@ class BathymetryGroupList(S102MetadataListBase):
     @property
     def metadata_type(self) -> type:
         return BathymetryCoverage
-
-
-class TrackingListCoveragesList(S102MetadataListBase):
-    """ 4.2.1.1.9 and Figure 4.4 and Table 10.1 of v2.0.0
-    """
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_name(self) -> str:
-        return TRACKING_COVERAGE
-
-    @property
-    def metadata_type(self) -> type:
-        return TrackingListGroupList
 
 
 class BathymetryFeatureInstance(FeatureInstanceDCF2):
@@ -851,6 +610,7 @@ class BathymetryCoveragesList(S102MetadataListBase):
     This is the set of BathymetryCoverage.NN that act like a list here.
     They will contain a list of Groups.NNN as well as other attributes etc.
     """
+    write_format_str = ".%02d"
 
     @property
     def __version__(self) -> int:
@@ -913,47 +673,6 @@ class BathymetryContainer(FeatureContainerDCF2):
         self.dimension = self.__dimension_type__(2)
 
 
-class TrackingListContainer(FeatureContainerDCF2):
-    """
-    Table 10.1 of v2.0.0
-    """
-
-    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE + r"[\._]\d+"
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    def data_coding_format_create(self):
-        """ Creates a blank, empty or zero value for data_coding_format"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.data_coding_format = self.__data_coding_format_type__(1)  # point set
-
-    @property
-    def __tracking_list_coverage_type__(self):
-        return TrackingListCoveragesList
-
-    def tracking_list_coverage_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.tracking_list_coverage = self.__tracking_list_coverage_type__()
-
-    @property
-    def tracking_list_coverage(self) -> S1xxObject:
-        """ The tracking list data, a list of TrackingListCoverage
-        Returns
-        -------
-        S102MetadataListBase
-            Contains a list of TrackingListCoverage objects via the TrackingListCoveragesList class
-        """
-        return self._attributes[self.__tracking_list_coverage_hdf_name__]
-
-    @tracking_list_coverage.setter
-    def tracking_list_coverage(self, val: S1xxObject):
-        self._attributes[self.__tracking_list_coverage_hdf_name__] = val
-
-
 class S102FeatureInformation(FeatureInformation):
     """ S102 specifc version of FeatureInformation.
     Sets defaults of uom.name to metres, fillValue to 1000000, upper and lower to 12000, -12000 and closure to closedInterval
@@ -981,7 +700,7 @@ class S102FeatureInformation(FeatureInformation):
     def datatype_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.datatype = self.__datatype_type__("H5T_NATIVE_FLOAT")
+        self.datatype = self.__datatype_type__("H5T_FLOAT")
 
     def lower_create(self):
         # noinspection PyAttributeOutsideInit
@@ -1015,12 +734,6 @@ class S102FeatureInformationDataset(FeatureInformationDataset, ABC):
     @property
     def metadata_type(self) -> Type[S102FeatureInformation]:
         return S102FeatureInformation
-
-
-class TrackingListCoverageDataset(S102FeatureInformationDataset):
-    @property
-    def metadata_name(self) -> str:
-        return TRACKING_COVERAGE
 
 
 class BathymetryCoverageDataset(S102FeatureInformationDataset):
@@ -1064,50 +777,19 @@ class FeatureCodesBase(GroupFBase):
         self._attributes[self.__bathymetry_coverage_dataset_hdf_name__] = val
 
 
-# mixin uses _attributes from the main class - ignore its errors
-# noinspection PyUnresolvedReferences
-class FeatureCodesTrackingMixin:
-    @property
-    def __tracking_list_coverage_type__(self):
-        return TrackingListCoverageDataset
-
-    def tracking_list_coverage_create(self):
+class FeatureCodes(FeatureCodesBase):
+    def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.tracking_list_coverage = self.__tracking_list_coverage_type__()
+        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, ], dtype=h5py_string_dtype)
 
     @property
-    def tracking_list_coverage(self) -> TrackingListCoverageDataset:
-        return self._attributes[self.__tracking_list_coverage_hdf_name__]
-
-    @tracking_list_coverage.setter
-    def tracking_list_coverage(self, val: TrackingListCoverageDataset):
-        self._attributes[self.__tracking_list_coverage_hdf_name__] = val
-
-    @property
-    def __feature_name_type__(self):
-        return numpy.array
-
-    @property
-    def feature_name(self) -> s1xx_sequence:
-        return self._attributes[self.__feature_name_hdf_name__]
-
-    @feature_name.setter
-    def feature_name(self, val: s1xx_sequence):
-        self._attributes[self.__feature_name_hdf_name__] = val
-
-    def feature_name_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.feature_name = self.__feature_name_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
+    def __bathymetry_coverage_dataset_type__(self):
+        return BathymetryCoverageDataset
 
 
 
-class FeatureCodes(FeatureCodesBase, FeatureCodesTrackingMixin):
-    pass
-
-
-class S102RootMixin:
+class S102Root(S100Root):
     """The root group contains a feature information group and N feature containers.
     In S102 there are currently two feature containers which are the 'coverages'  bathymetry and tracking list.
     The coverage names are determined from the matching CoveragesAttributes
@@ -1158,37 +840,8 @@ class S102RootMixin:
         self._attributes[self.__bathymetry_coverage_hdf_name__] = val
 
 
-# mixin uses _attributes from the main class - ignore its errors
-# noinspection PyUnresolvedReferences
-class S102RootTrackingMixin:
-    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
-
-    @property
-    def __tracking_list_coverage_type__(self):
-        return TrackingListContainer
-
-    def tracking_list_coverage_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.tracking_list_coverage = self.__tracking_list_coverage_type__()
-
-    @property
-    def tracking_list_coverage(self) -> S1xxObject:
-        return self._attributes[self.__tracking_list_coverage_hdf_name__]
-
-    @tracking_list_coverage.setter
-    def tracking_list_coverage(self, val: S1xxObject):
-        self._attributes[self.__tracking_list_coverage_hdf_name__] = val
-
-
-class S102Root(S102RootMixin, S100Root):
-    @property
-    def __feature_information_type__(self):
-        return FeatureCodes
-
-
 class S102File(S100File):
-    PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.0'
+    PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.1'
     # these keys allow backward compatibility with NAVO data, the first key is current at time of writing
     top_level_keys = ('BathymetryCoverage', 'S102_Grid', 'S102_BathymetryCoverage')
     tracking_list_top_level = ("TrackingListCoverage",)
@@ -1206,8 +859,8 @@ class S102File(S100File):
         super().__init__(name, *args, **kywrds)
 
     @property
-    def z_down(self) -> bool:
-        return False
+    def z_down(self) -> bool:  # reverse Z direction
+        return True
 
 
     def subdivide(self, path, rows, cols):
@@ -1298,14 +951,6 @@ class S102File(S100File):
         valid_epsg += list(numpy.arange(32601, 32660 + 1))
         valid_epsg += list(numpy.arange(32701, 32760 + 1))
         return valid_epsg
-
-    @staticmethod
-    def upgrade_in_place(s100_object):
-        try:
-            spec = s100_object.root.product_specification
-        except:
-            spec = "unknown"
-        raise S102Exception(f"Could not upgrade file of type {spec}")
 
     @classmethod
     def upgrade(cls, src_filename, dest_filename=None, mode='r'):
@@ -1492,6 +1137,12 @@ class S102File(S100File):
         root.bathymetry_coverage.num_instances = 1  # how many Bathycoverages
         root.bathymetry_coverage.sequencing_rule_type = 1  # linear
         del root.bathymetry_coverage.time_uncertainty
+
+        bathy_cov_dset = root.feature_information.bathymetry_coverage_dataset
+
+        bathy_uncertainty_info = bathy_cov_dset[1]
+        bathy_uncertainty_info.lower = 0
+        bathy_uncertainty_info.closure = "gtLeInterval"
 
     @classmethod
     def from_arrays(cls, depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_file, nodata_value=None,
@@ -1919,6 +1570,84 @@ class S102File(S100File):
 
         self.load_gdal(bag, metadata=metadata, flip_z=self.z_down)
 
+
+    @staticmethod
+    def upgrade_in_place(s100_object):
+        if s100_object.root.product_specification != v2_0.S102File.PRODUCT_SPECIFICATION:
+            v2_0.S102File.upgrade_in_place(s100_object)
+        if s100_object.root.product_specification == v2_0.S102File.PRODUCT_SPECIFICATION:
+            # update product specification
+            s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
+            # remove TrackingList
+            del s100_object['TrackingListCoverage']
+            del s100_object['Group_F']['TrackingListCoverage']
+            del s100_object['Group_F']['featureName']
+            fc20 = s100_object['Group_F']['featureCode']
+            if fc20[0] in (b'BathymetryCoverage', 'BathymetryCoverage'):
+                fc21 = fc20[:1]  # keep the bathymetery and delete the trackinglist
+            elif fc20[1] in (b'BathymetryCoverage', 'BathymetryCoverage'):
+                fc21 = fc20[1:]  # keep the bathymetery and delete the trackinglist
+            del s100_object['Group_F']['featureCode']
+            s100_object['Group_F'].create_dataset('featureCode', data=fc21)
+
+            # remove display scale and reverse the Z direction
+            for top in v2_0.S102File.top_level_keys:
+                try:
+                    bathy_top = s100_object[top]
+                    groupf_bathy = s100_object['Group_F'][top]
+                    # get the fill value to use when reversing the Z value
+                    fill_val = float(groupf_bathy[0]['fillValue'])
+                    # update the datatype definition
+                    # groupf_bathy[0]['datatype'] = 'H5T_FLOAT' fails to adjust the file as the groupf_bathy[0] creates a temporary copy
+                    # groupf_bathy[0, 'datatype'] = 'H5T_FLOAT' raises a typeError about changing the datatype
+                    # copying the data with temp=groupf_bathy[0] then changing values then setting groupf_bathy[0]=temp seems to work
+                    # similar to revising the depth values later in this function
+                    for nrow in range(len(groupf_bathy)):
+                        row = groupf_bathy[nrow]
+                        row['datatype'] = 'H5T_FLOAT'
+                        if row['name'].lower() in ("uncertainty", b"uncertainty"):
+                            row['lower'] = 0
+                            row['closure'] = 'gtLeInterval'
+                        groupf_bathy[nrow] = row
+                    # depth_string = groupf_bathy[0]['code']
+                except KeyError:
+                    pass
+                else:
+                    for second in v2_0.S102File.second_level_keys:
+                        try:
+                            bathy_cov = bathy_top[second]
+                        except KeyError:
+                            pass
+                        else:
+                            for group in v2_0.S102File.group_level_keys:
+                                try:
+                                    bathy_group = bathy_cov[group]
+                                except KeyError:
+                                    pass
+                                else:
+                                    try:
+                                        del bathy_group[v2_0.DisplayScaleMixin.__maximum_display_scale_hdf_name__]
+                                    except KeyError:
+                                        pass
+                                    try:
+                                        del bathy_group[v2_0.DisplayScaleMixin.__minimum_display_scale_hdf_name__]
+                                    except KeyError:
+                                        pass
+                                    try:
+                                        depth_uncert = bathy_group['values']
+                                        # h5py does not allow editing via fancy slicing se we need to convert to numpy, edit and then put it back
+                                        # i.e. depth[depth!=fill_val] *= -1 won't work but doesn't raise an error either
+                                        a = numpy.array(depth_uncert['depth'])
+                                        a[a != fill_val] *= -1
+                                        depth_uncert['depth'] = a
+                                    except KeyError:
+                                        pass
+                                    # standardize with the 2.1 required Group_001
+                                    if group != "Group_001":
+                                        bathy_cov.move(group, "Group_001")
+                            # standardize with the 2.1 required BathymetryCoverage.01
+                            if second != "BathymetryCoverage.01":
+                                bathy_top.move(second, "BathymetryCoverage.01")
 
 
 # # S102File = S102File_2_0
