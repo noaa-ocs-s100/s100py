@@ -16,6 +16,8 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxDatasetBase, S1XXFile, h5py_string_dtype, is_sub_class, h5py_string_comp
 
 EDITION = 5.0
+PRODUCT_SPECIFICATION = 'INT.IHO.S-100.5.0'
+
 
 # @TODO add support for Positioning group (S100 v5.0 10c-9.10.1, 10c-9.10.2 and table 10c-16) for DataCodingFormats 1,3,4,7,8
 #   Basically makes a 1D dataset array of the positions and attributes (like Z).
@@ -2770,7 +2772,7 @@ the EPSG documentation."""
 
 
 class S100File(S1XXFile):
-    PRODUCT_SPECIFICATION = 'INT.IHO.S-100.5.0'
+    PRODUCT_SPECIFICATION = PRODUCT_SPECIFICATION
 
     def __init__(self, *args, **kywrds):
         if 'root' not in kywrds:

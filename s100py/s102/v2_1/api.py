@@ -34,8 +34,10 @@ from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1
 from ...v4_0.s100 import S100File, GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule
+from .. import v2_0
 
 EDITION = 2.1
+PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.1'
 
 CHANGELOG = """
 Removed TrackingList  --  4.2.1.1.8 TrackingListCoverage
@@ -827,7 +829,7 @@ class S102Root(S100Root):
 
 
 class S102File(S100File):
-    PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.1'
+    PRODUCT_SPECIFICATION = PRODUCT_SPECIFICATION
     # these keys allow backward compatibility with NAVO data, the first key is current at time of writing
     top_level_keys = ('BathymetryCoverage', 'S102_Grid', 'S102_BathymetryCoverage')
     second_level_keys = (
@@ -1521,9 +1523,9 @@ class S102File(S100File):
 
     @staticmethod
     def upgrade_in_place(s100_object):
-        if s100_object.root.product_specification != v2_0.S102File.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification != v2_0.PRODUCT_SPECIFICATION:
             v2_0.S102File.upgrade_in_place(s100_object)
-        if s100_object.root.product_specification == v2_0.S102File.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification == v2_0.PRODUCT_SPECIFICATION:
             # update product specification
             s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
             # remove TrackingList

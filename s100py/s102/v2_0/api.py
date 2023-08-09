@@ -36,6 +36,7 @@ from ...v4_0.s100 import S100File, GridCoordinate, DirectPosition, GeographicExt
     CommonPointRule
 
 EDITION = 2.0
+PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.0'
 
 class S102Exception(S100Exception):
     pass
@@ -1188,7 +1189,7 @@ class S102Root(S102RootMixin, S100Root):
 
 
 class S102File(S100File):
-    PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.0'
+    PRODUCT_SPECIFICATION = PRODUCT_SPECIFICATION
     # these keys allow backward compatibility with NAVO data, the first key is current at time of writing
     top_level_keys = ('BathymetryCoverage', 'S102_Grid', 'S102_BathymetryCoverage')
     tracking_list_top_level = ("TrackingListCoverage",)

@@ -16,6 +16,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxDatasetBase, S1XXFile, h5py_string_dtype, is_sub_class, h5py_string_comp
 
 EDITION = 4.0
+PRODUCT_SPECIFICATION = 'INT.IHO.S-100.4.0'
 
 
 class S100Exception(Exception):
@@ -2192,7 +2193,7 @@ class S100Root(GeographicBoundingBox):
 
 
 class S100File(S1XXFile):
-    PRODUCT_SPECIFICATION = 'INT.IHO.S-100.4.0'
+    PRODUCT_SPECIFICATION = PRODUCT_SPECIFICATION
 
     def __init__(self, *args, **kywrds):
         if 'root' not in kywrds:

@@ -1,5 +1,7 @@
 import shutil
 
+from .v2_0 import api as v2_0
+from .v2_1 import api as v2_1
 from .v2_2 import api as v2_2
 from .v2_2.api import *
 

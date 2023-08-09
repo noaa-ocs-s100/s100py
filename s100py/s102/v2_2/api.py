@@ -33,11 +33,13 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype
 from ...v5_0.s100 import S100File, GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
-    CommonPointRule
+    CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase
 
-from ..v2_1.S102File import PRODUCT_SPECIFICATION as v2_1_PRODUCT_SPECIFICATION
+from .. import v2_0
+from .. import v2_1
 
 EDITION = 2.2
+PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.2'
 
 CHANGELOG = """
 v2.1
@@ -1391,7 +1393,7 @@ class FeatureAttributeRecord(S1xxObject):
                 self.__closure_hdf_name__]
 
 
-class FeatureAttributeDataset(S1xxDatasetBase):  # Chunking
+class FeatureAttributeDataset(S1xxDatasetBase):
     """ This class comes from S102 -- 10.2.7 Feature information group.
     This class serves to keep a list of FeatureAttributeRecord objects which will be turned into a compound array
     of strings in the HDF5 file.
@@ -1548,7 +1550,7 @@ class S102Root(S100Root):
 
 
 class S102File(S100File):
-    PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.2'
+    PRODUCT_SPECIFICATION = PRODUCT_SPECIFICATION
     # these keys allow backward compatibility with NAVO data, the first key is current at time of writing
     top_level_keys = ('BathymetryCoverage', 'S102_Grid', 'S102_BathymetryCoverage')
     second_level_keys = (
@@ -2177,6 +2179,8 @@ class S102File(S100File):
             metadata["res"] = [dxx, dyy]
         self.load_arrays_with_metadata(raster_band.ReadAsArray(), uncertainty_band.ReadAsArray(), metadata,
                                                    nodata_value=depth_nodata_value, flip_z=flip_z)
+        # FIXME
+        raise NotImplementedError('Upgrade not implemented for S102 v2.2')
 
     @classmethod
     def from_bag(cls, bagfile, output_file, metadata: dict = None) -> S102File:
@@ -2242,13 +2246,13 @@ class S102File(S100File):
 
     @staticmethod
     def upgrade_in_place(s100_object):
-        if s100_object.root.product_specification != v2_1.S102File.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification != v2_1.PRODUCT_SPECIFICATION:
             v2_1.S102File.upgrade_in_place(s100_object)
         # FIXME this function is not complete
         raise NotImplementedError('Upgrade not implemented for S102 v2.2')
-        if s100_object.root.product_specification != v2_0.S102File.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification != v2_0.PRODUCT_SPECIFICATION:
             v2_0.S102File.upgrade_in_place(s100_object)
-        if s100_object.root.product_specification == v2_0.S102File.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification == v2_0.PRODUCT_SPECIFICATION:
             # update product specification
             s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
             # remove TrackingList
