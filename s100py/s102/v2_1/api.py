@@ -51,7 +51,6 @@ class S102Exception(S100Exception):
 
 
 BATHY_COVERAGE = "BathymetryCoverage"
-TRACKING_COVERAGE = "TrackingListCoverage"
 DEPTH = "depth"
 UNCERTAINTY = "uncertainty"
 
@@ -742,18 +741,17 @@ class BathymetryCoverageDataset(S102FeatureInformationDataset):
         return BATHY_COVERAGE
 
 
-class FeatureCodesBase(GroupFBase):
+class FeatureCodes(GroupFBase):
     """ Table 10.1 and sect 10.2.1 of v2.0.0
     """
 
     __feature_name_hdf_name__ = "featureName"  #: HDF5 naming
     __bathymetry_coverage_dataset_hdf_name__ = BATHY_COVERAGE
-    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
 
     def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, TRACKING_COVERAGE], dtype=h5py_string_dtype)
+        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE], dtype=h5py_string_dtype)
 
     @property
     def __version__(self) -> int:
@@ -775,18 +773,6 @@ class FeatureCodesBase(GroupFBase):
     @bathymetry_coverage_dataset.setter
     def bathymetry_coverage_dataset(self, val: BathymetryCoverageDataset):
         self._attributes[self.__bathymetry_coverage_dataset_hdf_name__] = val
-
-
-class FeatureCodes(FeatureCodesBase):
-    def feature_code_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, ], dtype=h5py_string_dtype)
-
-    @property
-    def __bathymetry_coverage_dataset_type__(self):
-        return BathymetryCoverageDataset
-
 
 
 class S102Root(S100Root):
@@ -844,9 +830,6 @@ class S102File(S100File):
     PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.1'
     # these keys allow backward compatibility with NAVO data, the first key is current at time of writing
     top_level_keys = ('BathymetryCoverage', 'S102_Grid', 'S102_BathymetryCoverage')
-    tracking_list_top_level = ("TrackingListCoverage",)
-    tracking_list_second_level = ("TrackingListCoverage.01",)
-    tracking_list_group_level = ("Group.001",)
     second_level_keys = (
         'BathymetryCoverage.001', 'BathymetryCoverage.01', 'S102_Grid.01', 'S102_BathymetryCoverage.01', 'BathymetryCoverage_01', 'S102_Grid_01', 'S102_BathymetryCoverage_01',)
     group_level_keys = ('Group.001', 'Group_001',)
@@ -1049,40 +1032,6 @@ class S102File(S100File):
         data_file.set_defaults(overwrite=overwrite)
         return data_file
 
-    def _set_tracking_defaults(self, overwrite=True):
-        # I'm not sure what to put here, yet
-        root = self.root
-        tracking_cov = root.feature_information.tracking_list_coverage
-
-        track_info = tracking_cov.append_new_item()  # append(tracking_cov.metadata_type())
-        track_info.initialize_properties(True, overwrite=overwrite)
-        track_info.code = "X"
-        track_info.name = "X"
-        track_info.unit_of_measure = "N/A"
-
-        track_info = tracking_cov.append_new_item()
-        track_info.initialize_properties(True, overwrite=overwrite)
-        track_info.code = "Y"
-        track_info.name = "Y"
-        track_info.unit_of_measure = "N/A"
-
-        track_info = tracking_cov.append_new_item()
-        track_info.initialize_properties(True, overwrite=overwrite)
-        track_info.code = "originalValue"
-        track_info.name = "Original Value"
-
-        track_info = tracking_cov.append_new_item()
-        track_info.initialize_properties(True, overwrite=overwrite)
-        track_info.code = "trackCode"
-        track_info.name = "Track Code"
-        track_info.unit_of_measure = "N/A"
-
-        track_info = tracking_cov.append_new_item()
-        track_info.initialize_properties(True, overwrite=overwrite)
-        track_info.code = "listSeries"
-        track_info.name = "List Series"
-        track_info.unit_of_measure = "N/A"
-
     def set_defaults(self, overwrite=True):
         """ Creates or updates an S102File object.
         Default values are set for any data that don't have options or are mandatory to be filled in the S102 spec.
@@ -1104,7 +1053,6 @@ class S102File(S100File):
         # @fixme @todo -- I think this will overwrite no matter what, need to look into that
         self.create_empty_metadata()  # init the root with a fully filled out empty metadata set
         self._set_bathy_defaults()
-        self._set_tracking_defaults()
 
     def _set_bathy_defaults(self, overwrite=True):
         """ This function initializes the values in more recent versions of the spec to reduce redundant code in later modules
