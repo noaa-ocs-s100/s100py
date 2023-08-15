@@ -154,6 +154,7 @@ class DataGroupObject(s1xx.S1xxObject):
 
     def name_of_data_create(self):
         """ Creates an enumerated value of 'spam' (because it's first in the list) """
+        # Make the enum into a list and take the first value
         self.name_of_data = list(self.__name_of_data_type__)[0]
 
     @property

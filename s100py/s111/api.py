@@ -561,6 +561,7 @@ class SurfaceCurrentContainer(FeatureContainerDCF2):
 
     def type_of_current_data_create(self):
         """ Creates a value using the first item in the enumeration of type_of_current_data"""
+        # Make the enum into a list and take the first value
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.type_of_current_data = list(self.__type_of_current_data_type__)[0]
@@ -662,6 +663,7 @@ class S111Root(S100Root):
 
     def depth_type_index_create(self):
         """ Creates a value using the first item in the enumeration of depth_type_index"""
+        # Make the enum into a list and take the first value
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.depth_type_index = list(self.__depth_type_index_type__)[0]

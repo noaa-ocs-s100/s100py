@@ -1594,11 +1594,15 @@ class FeatureContainer(CommonPointRule, S1xxObject):
     def __coordinate_size_type__(self) -> Type[s1xx_sequence]:
         return numpy.ndarray
 
+    @property
+    def coordinate_size_dtype(self) -> Type[int]:
+        return numpy.int
+
     def coordinate_size_create(self):
         """ Creates a blank, empty or zero value for coordinate_size"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.coordinate_size = self.__coordinate_size_type__()
+        self.coordinate_size = self.__coordinate_size_type__([], self.coordinate_size_dtype)
 
     @property
     def data_coding_format(self) -> DATA_CODING_FORMAT:

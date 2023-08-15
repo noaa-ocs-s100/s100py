@@ -198,6 +198,7 @@ the standard template, so there is a second one just for enumerations in :any:`e
 
         def name_of_data_create(self):
             """ Creates an enumerated value of 'spam' (because it's first in the list) """
+            # Make the enum into a list and take the first value
             self.name_of_data = list(self.__name_of_data_type__)[0]
 
         __data_grid_hdf_name__ = "dataGrid"  #: HDF5 naming

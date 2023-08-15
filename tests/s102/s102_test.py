@@ -9,9 +9,16 @@ import numpy
 from osgeo import gdal
 
 from s100py import s100, s102
+from s100py.s102 import v2_0
+from s100py.s102 import v2_1
+from s100py.s102 import v2_2
 
 local_path = pathlib.Path(__file__).parent
 
+# FIXME reinstate the other versions
+@pytest.fixture(scope="module", params=[v2_2,]) # v2_1, v2_0])
+def s102(request):
+    yield request.param
 
 def h5py_string_comp(h5py_val, cmp_str):
     # h5py <3.0 returns a string, >3.0 returns bytes
@@ -210,8 +217,29 @@ def test_s102_version_upgrade(bagname):
     f21.close()
 
 
-def test_rat():
-    tiffname = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff"
+# tiffname = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff"
+# output_path = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.h5"
+# @TODO reduce the size of the test dataset and add it to the test directory
+def test_rat(s102, tifname=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff", output_path=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.h5"):
     metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
-    new_s102 = s102.from_gdal(bagname, output_path, metadata=metadata)
+    try:
+        os.remove(output_path)
+    except (FileNotFoundError, PermissionError):
+        pass
 
+    new_outname = str(output_path)+f".{s102.api.EDITION}.h5"
+    new_s102_20 = s102.utils.from_gdal(tifname, new_outname, metadata=metadata)
+    try:
+        os.remove(new_outname)
+    except (FileNotFoundError, PermissionError):
+        pass
+
+# test_rat(str(local_path.joinpath("F00788_SR_8m.tif")), output_path)
+# test_rat(tiffname, output_path)
+metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+out_path = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.h5"
+try:
+    os.remove(out_path)
+except (FileNotFoundError, PermissionError):
+    pass
+new_s102_20 = v2_2.utils.from_gdal(r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff", out_path, metadata=metadata)

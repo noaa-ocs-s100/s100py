@@ -305,13 +305,18 @@ class S1xxObject(ABC):
         for key, val in self._attributes.items():
             if isinstance(val, s1xx_sequence_types):  # this looks inside the typing.Union to see what arrays should be treated like this
                 logging.debug(key + " array: " + str(val.shape))
-                # convert any strings to bytes or h5py will fail to write the unicode
-                # converted_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in val]
-                converted_vals = [v if not isinstance(v, bytes) else v.decode() for v in val]
                 try:
                     del group_object[key]
                 except KeyError:
                     pass  # didn't exist, no error
+                # convert any strings to bytes or h5py will fail to write the unicode
+                # converted_vals = [v if not isinstance(v, str) else v.encode("utf-8") for v in val]
+                try:
+                    len(val)
+                    converted_vals = [v if not isinstance(v, bytes) else v.decode() for v in val]
+                except TypeError:  # this occurs when the ndarray is uninitialized -- skip writing.
+                    logging.debug(f"{key}  array: {val.shape} is uninitialized, skipping write")
+                    continue
                 # We are only supporting single column data, check the dtype that the convert function found
                 revised_vals = convert_numpy_strings_to_h5py([converted_vals])
                 # Now re-package so it shows up as a single column in hdf5 - not sure why the revised_vals array would have

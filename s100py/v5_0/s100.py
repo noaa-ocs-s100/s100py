@@ -1730,11 +1730,15 @@ class FeatureContainer(CommonPointRule, S1xxObject):
     def __coordinate_size_type__(self) -> Type[s1xx_sequence]:
         return numpy.ndarray
 
+    @property
+    def coordinate_size_dtype(self) -> Type[int]:
+        return numpy.int
+
     def coordinate_size_create(self):
         """ Creates a blank, empty or zero value for coordinate_size"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.coordinate_size = self.__coordinate_size_type__()
+        self.coordinate_size = self.__coordinate_size_type__([], self.coordinate_size_dtype)
 
     @property
     def data_coding_format(self) -> DATA_CODING_FORMAT:
@@ -2018,9 +2022,10 @@ class DataOffset:
     def data_offset_code_create(self):
         """ Creates a blank, empty or zero value for data_offset_code
         """
+        # Make the enum into a list and take the first value
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.data_offset_code = list(self.data_offset_code_type)[0]
+        self.data_offset_code = list(self.__data_offset_code_type__)[0]
 
     # FIXME - this is an array not just a float
     @property
@@ -2039,7 +2044,7 @@ class DataOffset:
         """ Creates a blank, empty or zero value for data_offset_vector"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.data_offset_vector = self.__data_offset_vector_type__()
+        self.data_offset_vector = self.__data_offset_vector_type__([0, 0], dtype=float)
 
 
 class FeatureContainerDCF1(FeatureContainer):
@@ -2432,7 +2437,7 @@ class S100Root(GeographicBoundingBox):
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.type_of_horizontal_crs = list(self.type_of_horizontal_crs_type)[0]
+        self.type_of_horizontal_crs = list(self.__type_of_horizontal_crs_type__)[0]
 
     @property
     def horizontal_crs(self) -> int:
@@ -2469,7 +2474,7 @@ class S100Root(GeographicBoundingBox):
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.horizontal_cs = list(self.horizontal_cs_type)[0]
+        self.horizontal_cs = list(self.__horizontal_cs_type__)[0]
 
     @property
     def horizontal_datum(self) -> int:
@@ -2566,7 +2571,7 @@ the EPSG documentation."""
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.projection_method = list(self.projection_method_type)[0]
+        self.projection_method = list(self.__projection_method_type__)[0]
 
     @property
     def projection_parameter_1(self) -> float:
@@ -2711,7 +2716,7 @@ the EPSG documentation."""
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_cs = list(self.vertical_cs_type)[0]
+        self.vertical_cs = list(self.__vertical_cs_type__)[0]
 
 
     @property
@@ -2731,7 +2736,7 @@ the EPSG documentation."""
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_coordinate_base = list(self.vertical_coordinate_base_type)[0]
+        self.vertical_coordinate_base = list(self.__vertical_coordinate_base_type__)[0]
 
     @property
     def vertical_datum_reference(self) -> VERTICAL_DATUM_REFERENCE:
@@ -2750,7 +2755,7 @@ the EPSG documentation."""
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum_reference = list(self.vertical_datum_reference_type)[0]
+        self.vertical_datum_reference = list(self.__vertical_datum_reference_type__)[0]
 
     @property
     def vertical_datum(self) -> int:
