@@ -12,6 +12,7 @@ import logging
 import functools
 from abc import ABC, abstractmethod
 from typing import Callable, Iterator, Union, Optional, List, Type
+from enum import Enum
 
 import xml
 import xml.etree.ElementTree
@@ -22,6 +23,7 @@ import numpy
 import h5py
 try:
     from osgeo import gdal, osr
+    gdal.UseExceptions()
 except:
     pass
 
@@ -78,6 +80,18 @@ START_SEQUENCE: Starting location of the scan.
 
 """
 
+class BATHYMETRIC_UNCERTAINTY_TYPE(Enum):
+    """ Note: while a Vertical Datum can be created with the shorthand aliases, ex: MLWS, the string written and
+    returned from the file/S100 object will be the official long name, e.g. "meanLowWaterSprings" etc.
+    S100 Part 4a Metadata
+
+    S100 v5 Part 17 Vertical and Sounding Datum
+    Added balticSeaChartDatum2000 = 44
+    """
+    rawStandardDeviation = 1
+    cUBEStandardDeviation = 2
+    productUncertainty = 3
+    historicalStandardDeviation = 4
 
 # figure 4.4 in section 4.2.1 of v2.0.0 shows an overview of many of the S102 classes used
 # Annex B in the S102 spec has an example layout (still determining if it matches the docs)
@@ -1121,6 +1135,7 @@ class FeatureAttributeRecord(S1xxObject):
     __date_end_hdf_name__ = "surveyDateRange.dateEnd"  #: HDF5 naming
     __source_survey_id_hdf_name__ = "sourceSurveyID"  #: HDF5 naming
     __survey_authority_hdf_name__ = "surveyAuthority"  #: HDF5 naming
+    __bathymetric_uncertainty_type_hdf_name__ = "bathymetricUncertaintyType"  #: HDF5 naming
 
     @property
     def id(self) -> int:
@@ -1338,7 +1353,6 @@ class FeatureAttributeRecord(S1xxObject):
         # pylint: disable=attribute-defined-outside-init
         self.date_end = self.__date_end_type__()
 
-
     @property
     def source_survey_id(self) -> str:
         return self._attributes[self.__source_survey_id_hdf_name__]
@@ -1356,7 +1370,6 @@ class FeatureAttributeRecord(S1xxObject):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.source_survey_id = self.__source_survey_id_type__()
-
 
     @property
     def survey_authority(self) -> str:
@@ -1376,7 +1389,24 @@ class FeatureAttributeRecord(S1xxObject):
         # pylint: disable=attribute-defined-outside-init
         self.survey_authority = self.__survey_authority_type__()
 
+    @property
+    def bathymetric_uncertainty_type(self) -> BATHYMETRIC_UNCERTAINTY_TYPE:
+        return self._attributes[self.__bathymetric_uncertainty_type_hdf_name__]
 
+    @bathymetric_uncertainty_type.setter
+    def bathymetric_uncertainty_type(self, val: Union[int, str, BATHYMETRIC_UNCERTAINTY_TYPE]):
+        self.set_enum_attribute(val, self.__bathymetric_uncertainty_type_hdf_name__, self.__bathymetric_uncertainty_type_type__)
+
+    @property
+    def __bathymetric_uncertainty_type_type__(self) -> Type[BATHYMETRIC_UNCERTAINTY_TYPE]:
+        return BATHYMETRIC_UNCERTAINTY_TYPE
+
+    def bathymetric_uncertainty_type_create(self):
+        """ Creates a blank, empty or zero value for bathymetric_uncertainty_type
+        """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.bathymetric_uncertainty_type = list(self.bathymetric_uncertainty_type_type)[0]
 
     @property
     def __version__(self) -> int:
@@ -1838,7 +1868,7 @@ class S102File(S100File):
 
     def load_arrays(self, depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, nodata_value=None,
                     flip_x: bool = False, flip_y: bool = False, overwrite: bool = True,
-                    flip_z: bool = False):  # num_array, or list of lists accepted
+                    flip_z: bool = False, quality_grid=None):  # num_array, or list of lists accepted
 
         """  Updates an S102File object based on numpy array/h5py datasets.
         Calls :any:`create_s102` then fills in the HDF5 datasets with the supplied depth_grid and uncert_grid.
@@ -1866,6 +1896,8 @@ class S102File(S100File):
             boolean if the data should be reversed in z coordinate (i.e. the original grid is upside down)
             Flips are done here so we can implement a chunked read/write to save memory.
             This is after overwrite for backwards compatibility.
+        quality_grid
+            The quality dataset to embed in the object. Optional for S102, leave as None if not needed.
 
         Returns
         -------
@@ -1890,6 +1922,21 @@ class S102File(S100File):
         del bathy_01.date_time_of_first_record
         bathy_01.num_grp = 1
 
+        if quality_grid is not None:  # I'd like to just do a loop on bathy and quality but they have some different names and might have different values at some point in the future.
+            try:
+                quality_01 = root.quality_coverage.quality_coverage[0]
+            except IndexError:
+                quality_01 = root.quality_coverage.quality_coverage.append_new_item()
+            quality_01.initialize_properties(recursively_create_children=True, overwrite=overwrite)
+
+            del quality_01.grid_spacing_vertical
+            del quality_01.grid_origin_vertical
+            del quality_01.number_of_times
+            del quality_01.time_record_interval
+            del quality_01.date_time_of_last_record
+            del quality_01.date_time_of_first_record
+            quality_01.num_grp = 1
+
         try:
             bathy_group_object = bathy_01.bathymetry_group[0]
         except IndexError:
@@ -1903,12 +1950,28 @@ class S102File(S100File):
         if depth_grid.shape != uncert_grid.shape:
             raise S102Exception("Depth and Uncertainty grids have different shapes")
 
+        if quality_grid is not None:
+            try:
+                quality_group_object = quality_01.quality_group[0]
+            except IndexError:
+                quality_group_object = quality_01.quality_group.append_new_item()
+            if depth_grid.shape != quality_grid.shape:
+                raise S102Exception("Depth and Quality grids have different shapes")
+
         bathy_01.num_points_latitudinal = rows
         bathy_01.num_points_longitudinal = cols
         bathy_01.start_sequence = "0,0"
         del bathy_01.num_points_vertical
         del bathy_01.vertical_extent_maximum_z
         del bathy_01.vertical_extent_minimum_z
+
+        if quality_grid is not None:
+            quality_01.num_points_latitudinal = rows
+            quality_01.num_points_longitudinal = cols
+            quality_01.start_sequence = "0,0"
+            del quality_01.num_points_vertical
+            del quality_01.vertical_extent_maximum_z
+            del quality_01.vertical_extent_minimum_z
 
         bathy_group_object.extent_create()
         bathy_group_object.extent.initialize_properties(True, overwrite=overwrite)
@@ -1930,7 +1993,27 @@ class S102File(S100File):
         bathy_group_object.origin.dimension = 2
 
         bathy_group_object.values_create()
+
+        if quality_grid is not None:
+            quality_group_object.extent_create()
+            quality_group_object.extent.initialize_properties(True, overwrite=overwrite)
+            quality_group_object.extent.low.coord_values[0:2] = [0, 0]
+            quality_group_object.extent.high.coord_values[0:2] = [rows, cols]
+
+            quality_group_object.minimum_uncertainty = uncertainty_min
+            quality_group_object.maximum_uncertainty = uncertainty_max
+
+            quality_group_object.dimension = 2
+
+            quality_group_object.origin_create()
+            quality_group_object.origin.initialize_properties(True, overwrite=overwrite)
+            quality_group_object.origin.dimension = 2
+
+            quality_group_object.values_create()
+
         grid = bathy_group_object.values
+        if quality_grid is not None:
+            quality_values = quality_group_object.values
         # @todo -- need to make sure nodata values are correct,
         #   especially if converting something other than bag which is supposed to have the same nodata value
         # @todo -- Add logic that if the grids are gdal raster bands then read in blocks and use h5py slicing to write in blocks.
@@ -1938,12 +2021,17 @@ class S102File(S100File):
         if flip_x:
             depth_grid = numpy.fliplr(depth_grid)
             uncert_grid = numpy.fliplr(uncert_grid)
+            if quality_grid is not None:
+                quality_grid = numpy.fliplr(quality_grid)
         if flip_y:
             depth_grid = numpy.flipud(depth_grid)
             uncert_grid = numpy.flipud(uncert_grid)
+            if quality_grid is not None:
+                quality_grid = numpy.flipud(quality_grid)
         if flip_z:
             depth_grid[depth_grid != nodata_value] *= -1
 
+        raise S102Exception("Not implemented yet - min/max values and NaN fill values?")
         try:
             depth_max = depth_grid[depth_grid != nodata_value].max()
             depth_min = depth_grid[depth_grid != nodata_value].min()
@@ -1954,6 +2042,7 @@ class S102File(S100File):
 
         if nodata_value != root.feature_information.bathymetry_coverage_dataset[0].fill_value:
             depth_grid = numpy.copy(depth_grid)
+            # fixme  -- does this work with NANs?
             depth_grid[depth_grid == nodata_value] = root.feature_information.bathymetry_coverage_dataset[0].fill_value
             uncert_grid = numpy.copy(uncert_grid)
             uncert_grid[uncert_grid == nodata_value] = root.feature_information.bathymetry_coverage_dataset[1].fill_value
@@ -1982,7 +2071,7 @@ class S102File(S100File):
         return data_file
 
     def load_arrays_with_metadata(self, depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, metadata: dict, nodata_value=None,
-                                  overwrite: bool = True, flip_z: bool = False):  # raw arrays and metadata accepted
+                                  overwrite: bool = True, flip_z: bool = False, quality_grid=None):  # raw arrays and metadata accepted
         """ Fills or creates an :any:`S102File` from the given arguments.
 
         Parameters
@@ -2024,7 +2113,7 @@ class S102File(S100File):
         flip_y = True if res_y < 0 else False
 
         self.load_arrays(depth_grid, uncert_grid, nodata_value=nodata_value, overwrite=overwrite, flip_x=flip_x, flip_y=flip_y,
-                                flip_z=flip_z)
+                                flip_z=flip_z, quality_grid=quality_grid)
 
         rows, cols = depth_grid.shape
         corner_x, corner_y = metadata['origin']
@@ -2096,6 +2185,7 @@ class S102File(S100File):
     @classmethod
     def from_gdal(cls, input_raster, output_file, metadata: dict = None, flip_z=False) -> S102File:  # gdal instance or filename accepted
         """  Fills or creates an :any:`S102File` from the given arguments.
+        Assumes that depth is in band 1, uncertainty is in band 2, quality is in band 3.
 
         For most parameters, see :any:`S102File.load_arrays`
 
@@ -2168,6 +2258,7 @@ class S102File(S100File):
         depth_nodata_value = raster_band.GetNoDataValue()
         uncertainty_band = dataset.GetRasterBand(2)
 
+
         ulx, dxx, dxy, uly, dyx, dyy = dataset.GetGeoTransform()
         if dxy != 0.0 or dyx != 0.0:
             raise S102Exception("raster is not north up but is rotated, this is not handled at this time")
@@ -2177,10 +2268,15 @@ class S102File(S100File):
             metadata["origin"] = [ulx + dxx / 2, uly + dyy / 2]
         if "res" not in metadata:
             metadata["res"] = [dxx, dyy]
+        if dataset.RasterCount > 2:
+            quality_band = dataset.GetRasterBand(3)
+            qual_data = quality_band.ReadAsArray()
+        else:
+            qual_data = None
         self.load_arrays_with_metadata(raster_band.ReadAsArray(), uncertainty_band.ReadAsArray(), metadata,
-                                                   nodata_value=depth_nodata_value, flip_z=flip_z)
+                                                   nodata_value=depth_nodata_value, flip_z=flip_z, quality_grid=qual_data)
         # FIXME
-        raise NotImplementedError('Upgrade not implemented for S102 v2.2')
+        raise NotImplementedError('RAT not implemented for S102 v2.2')
 
     @classmethod
     def from_bag(cls, bagfile, output_file, metadata: dict = None) -> S102File:
