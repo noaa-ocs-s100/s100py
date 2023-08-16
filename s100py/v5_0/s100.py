@@ -288,9 +288,9 @@ PROJECTION_METHOD = Enum(value="PROJECTION_METHODS",
 # Table 10c-6
 HORIZONTAL_CS = Enum(value="HORIZONTAL_CS",
                         names=[
-                            ('Lat Lon', 6422),
-                            ('Easting, Northing', 4400),
-                            ('Northing, Easting', 4500),
+                            ('Lat, Lon (degrees)', 6422),
+                            ('Easting, Northing (m)', 4400),
+                            ('Northing, Easting (m)', 4500),
                      ])
 
 #Table 10c-6
@@ -745,22 +745,6 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     def write(self, hdf5_object):
         super().write(hdf5_object)
-        # find any group_NNN objects
-        chunking = None
-        for _pattern, group_attrib in self.get_standard_list_properties().items():
-            group_list = self.__getattribute__(group_attrib)
-            for grp in group_list:
-                # now we are going to take advantage of the h5py interface to get the chunks attribute from each dataset
-                # the S100 spec says things should be written with datasets named 'values'
-                # if this does not hold true in the future then we could search for datasets generically here
-                try:
-                    chunking = hdf5_object[grp._hdf5_path.split("/")[-1] + '/values'].chunks
-                except KeyError:
-                    pass
-        if chunking is not None:
-            self.instance_chunking = chunking
-            # now that we updated the chunking attribute we need to re-write them (but not the datasets etc)
-            self.write_simple_attributes(hdf5_object)
 
     @property
     def vertical_extent_minimum_z(self) -> float:
@@ -902,52 +886,6 @@ class FeatureInstanceBase(GeographicBoundingBox):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.date_time_of_last_record = self.__date_time_of_last_record_type__()
-
-
-class FeatureInstanceBase_WithChunk(FeatureInstanceBase):
-    """ In S100 v5.0 Instance Chunking is removed.
-    We are breaking backwards compatibility with S100 v4.0 and earlier by removing this feature.
-    Given that it was somewhat useless and only our code was using it at this point,
-    I'm not going to bother with a deprecation cycle.
-    """
-    __instance_chunking_hdf_name__ = "instanceChunking"
-
-    @property
-    def instance_chunking(self) -> str:
-        """ instance chunking will return a string but accept a string or an iterable of ints which it will format to a string.
-
-        From S100:
-
-        Chunk size for values dataset. If present, this attribute overrides the setting in Group_F for this feature instance
-
-        The format is a comma-separated string of (string representations of) positive integers
-        (except that there is only one number for a 1-dimensional values dataset). The number
-        of integers in the string must correspond to the dimension of the values dataset. For
-        example, “50” for a 1-dimensional array; “150,200” for a 2-dimensional array
-
-        Note: (1) The quotes are not part of the representation. (2) The dimension of the
-        values dataset is its array rank, not the number of spatial dimensions for the coverage
-        feature"""
-
-        return self._attributes[self.__instance_chunking_hdf_name__]
-
-    @instance_chunking.setter
-    def instance_chunking(self, val: Union[str, list, tuple]):
-        if isinstance(val, str):
-            pass
-        else:
-            val = ",".join(str(a) for a in val)
-        self._attributes[self.__instance_chunking_hdf_name__] = val
-
-    @property
-    def __instance_chunking_type__(self) -> Type[str]:
-        return str
-
-    def instance_chunking_create(self):
-        """ Creates a blank, empty or zero value for instance_chunking"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.instance_chunking = self.__instance_chunking_type__()
 
 
 # noinspection PyUnresolvedReferences
@@ -1563,52 +1501,11 @@ class FeatureInformation(S1xxObject):
         self.closure = self.__closure_type__()
 
 
-class Chunking:
-    """ This is a mixin to supply chunking attributes to any other class.
-     This was removed in s100 v5.0 and served no purpose and since there was no official verifications for v4.0,
-     we are dropping it here as well and potentially breaking backwards compatibility of code.
-     """
-    __chunking_hdf_name__ = "chunking"  #: HDF5 naming
-
-    @property
-    def chunking(self) -> str:
-        return self._attributes[self.__chunking_hdf_name__]
-
-    @chunking.setter
-    def chunking(self, val: Union[str, list, tuple]):
-        if isinstance(val, str):
-            pass
-        else:
-            val = ",".join(str(a) for a in val)
-        self._attributes[self.__chunking_hdf_name__] = val
-
-    @property
-    def __chunking_type__(self) -> Type[str]:
-        return str
-
-    def chunking_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.chunking = self.__chunking_type__()
-
-
 # FIXME @TODO - this FeatureInformationDataset class in v4.0 writes the compound array to the HDF5 file.
 #  Do we need a new Compound type that does this instead (we didn't implement any other compounds in v4.0)
 #  The FeatureContainer's new feature_attribute_table needs to be stored similarly.  Also be able to store an array of compounds
-# class FeatureInformationDataset(S1xxDatasetBase, ABC):  # Chunking
-#     """ This class comes from S100 -- 10c-9.5 Feature information group.
-#     This class serves to keep a list of FeatureInformation objects which will be turned into a compound array
-#     of strings in the HDF5 file.
-#
-#     The metadata_name property must be overridden.
-#     The metadata_type will likely be overridden with a specific subclass for the s100+ spec
-#     """
-#
-#     @property
-#     def metadata_type(self) -> Type[FeatureInformation]:
-#         return FeatureInformation
 
-class FeatureInformationDataset(S1xxDatasetBase, ABC):  # Chunking
+class FeatureInformationDataset(S1xxDatasetBase, ABC):
     """ This class comes from S100 -- 10c-9.5 Feature information group.
     This class serves to keep a list of FeatureInformation objects which will be turned into a compound array
     of strings in the HDF5 file.
@@ -2187,52 +2084,10 @@ class S100Root(GeographicBoundingBox):
 
     def write(self, group_object):
         super().write(group_object)
-        # any grids that were had datasets which possible chunking should now be written
-        # and we can look through those to get the overall chunking attribute
-        # and put that into the GroupF FeatureInformation object
         feat_info = None
         for property_name in self.get_standard_properties():
             if is_sub_class(self.__getattribute__("__" + property_name + "_type__"), GroupFBase):
                 feat_info = self.__getattribute__(property_name)
-        # we have the GroupF data now, we can look at the names of the FeatureInstances and then search each for its respective chunking
-        if feat_info is not None:
-            # this will be the names of the feature instances
-            # e.g. BathymetryCoverage for S102 or SurfaceCurrent for S111
-            for feat_name in feat_info.feature_code:
-                # get the associated python name for the feature, e.g. turn SurfaceCurrent into surface_current
-                chunking = None
-                try:
-                    python_name = self.get_standard_properties_mapping()[feat_name]
-                except KeyError:
-                    python_name = self.get_standard_properties_mapping()[feat_name.decode()]
-                # grab the root/SurfaceCurrent data
-                feat_container = self.__getattribute__(python_name)
-                # now look through all the SurfaceCurrent_01, SurfaceCurrent_02...
-                # so find the list object (there really only should be one and it should match the naming but we'll be general here)
-                for pattern, list_name in feat_container.get_standard_list_properties().items():
-                    try:
-                        list_of_features = feat_container.__getattribute__(list_name)
-                    except KeyError:  # not initialized
-                        list_of_features = []
-                    for feat_instance in list_of_features:
-                        try:
-                            chunking = feat_instance.instance_chunking
-                        except:
-                            pass
-                if chunking is not None:
-                    # find the GroupF feature dataset, e.g. /GroupF/SurrfaceCurrent
-                    try:
-                        groupf_python_name = feat_info.get_standard_properties_mapping()[feat_name]
-                    except KeyError:
-                        groupf_python_name = feat_info.get_standard_properties_mapping()[feat_name.decode()]
-                    # Get the python object
-                    feat_info_dataset = feat_info.__getattribute__(groupf_python_name)
-                    # set chunking
-                    feat_info_dataset.chunking = chunking
-                    # and now use HDF5 pathing to write the chunking part back out
-                    # in theory whis would work from any level, not just the root
-                    relative_hdf5_dataset_path = "/".join(feat_info_dataset._hdf5_path.split("/")[-2:])
-                    feat_info_dataset.write_simple_attributes(group_object[relative_hdf5_dataset_path])
 
     @property
     def feature_information(self) -> GroupFBase:
@@ -2457,24 +2312,25 @@ class S100Root(GeographicBoundingBox):
         # pylint: disable=attribute-defined-outside-init
         self.horizontal_crs = self.__horizontal_crs_type__()
 
+    # Even though the horizontal_cs is an enum, it is stored as an int per the spec in table 10c-6
     @property
-    def horizontal_cs(self) -> HORIZONTAL_CS:
+    def horizontal_cs(self) -> int:
         return self._attributes[self.__horizontal_cs_hdf_name__]
 
     @horizontal_cs.setter
-    def horizontal_cs(self, val: Union[int, str, HORIZONTAL_CS]):
+    def horizontal_cs(self, val: Union[int]):
         self.set_enum_attribute(val, self.__horizontal_cs_hdf_name__, self.__horizontal_cs_type__)
 
     @property
-    def __horizontal_cs_type__(self) -> Type[HORIZONTAL_CS]:
-        return HORIZONTAL_CS
+    def __horizontal_cs_type__(self) -> Type[int]:
+        return int
 
     def horizontal_cs_create(self):
         """ Creates a blank, empty or zero value for horizontal_cs
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.horizontal_cs = list(self.__horizontal_cs_type__)[0]
+        self.horizontal_cs = list(HORIZONTAL_CS)[0].value  # this is limited to an enumerated list but they specify it as an int
 
     @property
     def horizontal_datum(self) -> int:

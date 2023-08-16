@@ -259,7 +259,11 @@ class S1xxObject(ABC):
             elif isinstance(val, Enum):
                 logging.debug(key + " enumeration: " + str(val))
                 enum_as_dict = collections.OrderedDict([[item.name, item.value] for item in type(val)])
-                int_type = numpy.uint8
+                if max(enum_as_dict.values())> 255:
+                    # use a larger int type if needed, will raise TypeError: Unable to insert new enumeration member (value redefinition) otherwise
+                    int_type = numpy.uint16
+                else:
+                    int_type = numpy.uint8
                 try:  # enum_dtype is added in h5py 2.10
                     enumtype = h5py.enum_dtype(enum_as_dict, int_type)
                 except AttributeError:  # special_dtype is for h5py <= 2.9
