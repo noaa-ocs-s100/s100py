@@ -220,7 +220,7 @@ def test_s102_version_upgrade(bagname):
 # tiffname = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff"
 # output_path = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.h5"
 # @TODO reduce the size of the test dataset and add it to the test directory
-def test_rat(s102, tifname=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff", output_path=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.h5"):
+def test_rat(s102, tifname=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.tiff", output_path=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.h5"):
     metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
     try:
         os.remove(output_path)
@@ -237,9 +237,9 @@ def test_rat(s102, tifname=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.ti
 # test_rat(str(local_path.joinpath("F00788_SR_8m.tif")), output_path)
 # test_rat(tiffname, output_path)
 metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
-out_path = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.h5"
+out_path = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.2_2.h5"
 try:
     os.remove(out_path)
 except (FileNotFoundError, PermissionError):
     pass
-new_s102_20 = v2_2.utils.from_gdal(r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff", out_path, metadata=metadata)
+new_s102_20 = v2_2.utils.from_gdal(r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.tiff", out_path, metadata=metadata)
