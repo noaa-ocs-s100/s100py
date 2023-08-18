@@ -88,6 +88,7 @@ class BATHYMETRIC_UNCERTAINTY_TYPE(Enum):
     S100 v5 Part 17 Vertical and Sounding Datum
     Added balticSeaChartDatum2000 = 44
     """
+    unknown = 0
     rawStandardDeviation = 1
     cUBEStandardDeviation = 2
     productUncertainty = 3
@@ -251,7 +252,7 @@ class BathymetryValues(S1xxGridsBase):
 # v2.1 removed min/max display scale mixin
 class BathymetryCoverage(S1xxObject):
     """ This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
-
+    S100 v4.0 table 10c-18
     4.2.1.1.1 and Figure 4.4 of v2.0.0
     also see section 12.3 and table 12.5
 
@@ -267,7 +268,7 @@ class BathymetryCoverage(S1xxObject):
     __origin_hdf_name__ = "origin"  #: HDF5 naming
     __offset_vectors_hdf_name__ = "offsetVectors"  #: HDF5 naming
     __dimension_hdf_name__ = "dimension"  #: HDF5 naming
-    __axis_names_hdf_name__ = "axisNames"  #: HDF5 naming
+    # @FIXME - extent (and others?) should be up a level at the BathymetryCoverage.01 group - s100 v4.0 Table 10c-11
     __extent_hdf_name__ = "extent"  #: HDF5 naming
     __sequencing_rule_hdf_name__ = "sequencingRule"  #: HDF5 naming
     __start_sequence_hdf_name__ = "startSequence"  #: HDF5 naming
@@ -467,30 +468,6 @@ class BathymetryCoverage(S1xxObject):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.dimension = self.__dimension_type__(2)
-
-    @property
-    def axis_names(self) -> s1xx_sequence:
-        """sequence of character strings From 4.2.1.1.1.11,
-        The attribute axisNames has the value class Sequence<CharacterString> that shall be used to assign names to the grid axis.
-        The grid axis names shall be "Latitude" and "Longitude" for unprojected data sets or “Northing” and “Easting” in a projected space
-        """
-        return self._attributes[self.__axis_names_hdf_name__]
-
-    @axis_names.setter
-    def axis_names(self, val: s1xx_sequence):
-        self._attributes[self.__axis_names_hdf_name__] = val
-
-    @property
-    def __axis_names_type__(self) -> Type[numpy.ndarray]:
-        return numpy.ndarray
-
-    def axis_names_create(self):
-        """ The attribute axisNames has the value class Sequence<CharacterString> that shall be used to assign names to the grid axis.
-        The grid axis names shall be "Latitude" and "Longitude" for unprojected data sets or “Northing” and “Easting” in a projected space.
-        """
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.axis_names = numpy.array(["", ""], dtype=h5py_string_dtype)
 
     @property
     def extent(self) -> GridEnvelope:
@@ -776,6 +753,7 @@ class QualityOfSurvey_GroupNNN(S1xxObject):
     __offset_vectors_hdf_name__ = "offsetVectors"  #: HDF5 naming
     __dimension_hdf_name__ = "dimension"  #: HDF5 naming
     __axis_names_hdf_name__ = "axisNames"  #: HDF5 naming
+    # FIXME @TODO extent is supposed to be up a level or two - see the bathymetry extent as an equivalent
     __extent_hdf_name__ = "extent"  #: HDF5 naming
     __sequencing_rule_hdf_name__ = "sequencingRule"  #: HDF5 naming
     __start_sequence_hdf_name__ = "startSequence"  #: HDF5 naming
@@ -1051,7 +1029,7 @@ class QualityOfSurveyContainer(FeatureContainerDCF9):
     """
     #: attribute name will be automatically determined based on the containing list's index
     __quality_of_survey_hdf_name__ = QUALITY_OF_SURVEY + r"[\._]\d+"
-
+    # featureAttributeTable is inherited via FeatureContainerDCF9 from S100 v5.0
     @property
     def __version__(self) -> int:
         return 1
@@ -1091,6 +1069,18 @@ class QualityOfSurveyContainer(FeatureContainerDCF9):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.dimension = self.__dimension_type__(2)
+
+    # @TODO fixme reduce/remove these as possible and make compound dataset for feature attribute records
+    @property
+    def __feature_attribute_table_type__(self) -> Type[QualityOfSurveyDataset]:
+        return QualityOfSurveyDataset
+
+    def feature_attribute_table_create(self):
+        """ Creates a blank, empty or zero value for feature_attribute_table"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        # FIXME @TODO -- this has to be an arbitrary number of strings, is this limiting it to two?
+        self.feature_attribute_table = self.__feature_attribute_table_type__()
 
 
 class QualityOfSurveysList(S102MetadataListBase):
@@ -1410,14 +1400,22 @@ class FeatureAttributeRecord(S1xxObject):
         return 1
 
     def get_write_order(self):
-        return [self.__code_hdf_name__,
-                self.__name_hdf_name__,
-                self.__unit_of_measure_hdf_name__,
-                self.__fill_value_hdf_name__,
-                self.__datatype_hdf_name__,
-                self.__lower_hdf_name__,
-                self.__upper_hdf_name__,
-                self.__closure_hdf_name__]
+        return [self.__id_hdf_name__,
+                self.__data_assessment_hdf_name__,
+                self.__least_depth_of_detected_features_measured_hdf_name__,
+                self.__significant_features_detected_hdf_name__,
+                self.__size_of_features_detected_hdf_name__,
+                self.__feature_size_var_hdf_name__,
+                self.__full_seafloor_coverage_achieved_hdf_name__,
+                self.__bathy_coverage_hdf_name__,
+                self.__uncertainty_fixed_hdf_name__,
+                self.__uncertainty_variable_factor_hdf_name__,
+                self.__date_start_hdf_name__,
+                self.__date_end_hdf_name__,
+                self.__source_survey_id_hdf_name__,
+                self.__survey_authority_hdf_name__,
+                self.__bathymetric_uncertainty_type_hdf_name__,
+                ]
 
 
 # TODO FIXME - somewhere here needs to be the featureAttributeTable from 10.2.7 (or 10.2.8) and table 10.6 (Table 14) that holds the list of FeatureAttributeRecords
@@ -1432,6 +1430,7 @@ class FeatureAttributeDataset(S1xxDatasetBase):
     @property
     def metadata_type(self) -> Type[FeatureAttributeRecord]:
         return FeatureAttributeRecord
+
 
 # @TODO just put the metadata_name in the FeatureAttributeDataset?
 class QualityOfSurveyDataset(FeatureAttributeDataset):
@@ -2303,11 +2302,32 @@ class S102File(S100File):
             qual_data = quality_band.ReadAsArray()
         else:
             qual_data = None
+        # Fill the QualityOfSurvey table
+        if qual_data is not None:
+            table = self.root.quality_of_survey.feature_attribute_table
+            rat = quality_band.GetDefaultRAT()
+            column_map = {rat.GetNameOfCol(ncol):ncol for ncol in range(rat.GetColumnCount())}
+
+            for nrow in range(rat.GetRowCount()):
+                rec = table.append_new_item()
+                rec.id = rat.GetValueAsInt(nrow, column_map['value'])
+                rec.data_assessment = rat.GetValueAsInt(nrow, column_map['data_assessment'])
+                rec.least_depth_of_detected_features_measured = rat.GetValueAsInt(nrow, column_map['feature_least_depth'])
+                rec.significant_features_detected = rat.GetValueAsInt(nrow, column_map['significant_features'])
+                rec.size_of_features_detected = rat.GetValueAsDouble(nrow, column_map['feature_size'])
+                rec.feature_size_var = 0  # set to "does not scale with depth" instead of rat.GetValueAsDouble(nrow, column_map[''])
+                rec.full_seafloor_coverage_achieved = rat.GetValueAsInt(nrow, column_map['coverage'])
+                rec.bathy_coverage = rat.GetValueAsInt(nrow, column_map['bathy_coverage'])
+                rec.uncertainty_fixed = rat.GetValueAsDouble(nrow, column_map['horizontal_uncert_fixed'])
+                rec.uncertainty_variable_factor = rat.GetValueAsDouble(nrow, column_map['horizontal_uncert_var'])
+                rec.date_start = rat.GetValueAsString(nrow, column_map['survey_date_start'])
+                rec.date_end = rat.GetValueAsString(nrow, column_map['survey_date_end'])
+                rec.source_survey_id = rat.GetValueAsString(nrow, column_map['source_survey_id'])
+                rec.survey_authority = rat.GetValueAsString(nrow, column_map['source_institution'])
+                rec.bathymetric_uncertainty_type = 0  # use "unknown" instead of rat.GetValueAsInt(nrow, column_map[''])
+
         self.load_arrays_with_metadata(raster_band.ReadAsArray(), uncertainty_band.ReadAsArray(), metadata,
                                                    nodata_value=depth_nodata_value, flip_z=flip_z, quality_grid=qual_data)
-        # FIXME
-        raise NotImplementedError('RAT not implemented for S102 v2.2')
-        # Fill the QualityOfSurvey table
 
     @classmethod
     def from_bag(cls, bagfile, output_file, metadata: dict = None) -> S102File:

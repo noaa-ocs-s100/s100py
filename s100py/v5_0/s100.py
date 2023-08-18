@@ -1787,7 +1787,6 @@ class FeatureContainer(CommonPointRule, S1xxObject):
         self.feature_attribute_table = self.__feature_attribute_table_type__(["", ""], dtype=h5py_string_dtype)
 
 
-
 class SequencingRule:
     """ Mixin class for Sequencing Rule.  At least used in Data Coding Format 2,5,6
     """

@@ -242,7 +242,7 @@ base class::
 For the last datatype we'll make the compound dataset "datasetWithNames".  This is to encapsulate S100 specs that lay out
 data with names, like attributes, but say they belong in a dataset.   The :any:`s1xx.S1xxDatasetBase` takes care of this.
 Similar to the List we just made above, this class uses a list to keep an arbitrary number of data arrays and read/write
-them to HDF%.
+them to HDF5.
 
 For example, the S100 spec Table 10c-8 describes a compound array stored as a dataset which is more naturally used
 as a multiple lists of attributes.  Our example will make a datatype to hold three attributes and a datatype that
