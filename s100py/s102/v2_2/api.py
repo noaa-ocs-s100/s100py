@@ -1990,14 +1990,6 @@ class S102File(S100File):
         bathy_group_object.extent.low.coord_values[0:2] = [0, 0]
         bathy_group_object.extent.high.coord_values[0:2] = [rows, cols]
 
-        try:
-            uncertainty_max = uncert_grid[uncert_grid != nodata_value].max()
-            uncertainty_min = uncert_grid[uncert_grid != nodata_value].min()
-        except ValueError:  # an empty uncertainty array (all values == nodata) will cause this
-            uncertainty_max = uncertainty_min = nodata_value
-        bathy_group_object.minimum_uncertainty = uncertainty_min
-        bathy_group_object.maximum_uncertainty = uncertainty_max
-
         bathy_group_object.dimension = 2
 
         bathy_group_object.origin_create()
@@ -2027,40 +2019,53 @@ class S102File(S100File):
         if flip_z:
             depth_grid[depth_grid != nodata_value] *= -1
 
-        try:
-            depth_max = depth_grid[depth_grid != nodata_value].max()
-            depth_min = depth_grid[depth_grid != nodata_value].min()
-        except ValueError:  # an empty depth array (all values == nodata) will cause this, subdivide() may cause this or data to be updated later
-            depth_min = depth_max = nodata_value
-        bathy_group_object.maximum_depth = depth_max
-        bathy_group_object.minimum_depth = depth_min
-
         # @TODO backport this to 2.1, 2.0
         # change the grids to use the no data values specified in the S102 file
         depth_mask = None
         uncert_mask = None
+        fill_value = root.feature_information.bathymetry_coverage_dataset[0].fill_value
+        uncert_fill_value = root.feature_information.bathymetry_coverage_dataset[1].fill_value
         if numpy.isnan(nodata_value):  # if the nodata value is nan then use the fill value from the dataset
-            if not numpy.isnan(root.feature_information.bathymetry_coverage_dataset[0].fill_value):  # if fill value isn't also NaN then use it
+            if not numpy.isnan(fill_value):  # if fill value isn't also NaN then use it
                 depth_mask = numpy.isnan(depth_grid)
                 uncert_mask = numpy.isnan(uncert_grid)
                 if quality_grid is not None:
                     quality_mask = numpy.isnan(quality_grid)
         # the fill value is nan and nodata wasn't OR
         # Both fills are numbers - make sure they match
-        elif numpy.isnan(root.feature_information.bathymetry_coverage_dataset[0].fill_value) or \
-            nodata_value != root.feature_information.bathymetry_coverage_dataset[0].fill_value:
+        elif numpy.isnan(fill_value) or \
+            nodata_value != fill_value:
             depth_mask = depth_grid == nodata_value
             uncert_mask = uncert_grid == nodata_value
             if quality_grid is not None:
                 quality_mask = quality_grid == nodata_value
         if depth_mask is not None:
             depth_grid = numpy.copy(depth_grid)
-            depth_grid[depth_mask] = root.feature_information.bathymetry_coverage_dataset[0].fill_value
+            depth_grid[depth_mask] = fill_value
             uncert_grid = numpy.copy(uncert_grid)
-            uncert_grid[uncert_mask] = root.feature_information.bathymetry_coverage_dataset[1].fill_value
+            uncert_grid[uncert_mask] = uncert_fill_value
             if quality_grid is not None:
                 quality_grid = numpy.copy(quality_grid)
                 quality_grid[quality_mask] = root.feature_information.quality_of_survey_dataset[0].fill_value  # will be zero per spec
+
+        # Do this after the fill value is set
+        try:
+            depth_max = depth_grid[depth_grid != fill_value].max()
+            depth_min = depth_grid[depth_grid != fill_value].min()
+        except ValueError:  # an empty depth array (all values == nodata) will cause this, subdivide() may cause this or data to be updated later
+            depth_min = depth_max = nodata_value
+        bathy_group_object.maximum_depth = depth_max
+        bathy_group_object.minimum_depth = depth_min
+
+        try:
+            uncertainty_max = uncert_grid[uncert_grid != uncert_fill_value].max()
+            uncertainty_min = uncert_grid[uncert_grid != uncert_fill_value].min()
+        except ValueError:  # an empty uncertainty array (all values == nodata) will cause this
+            uncertainty_max = uncertainty_min = nodata_value
+        bathy_group_object.minimum_uncertainty = uncertainty_min
+        bathy_group_object.maximum_uncertainty = uncertainty_max
+
+
         grid.depth = depth_grid
         grid.uncertainty = uncert_grid
         if quality_grid is not None:
