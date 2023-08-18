@@ -1799,6 +1799,11 @@ class S102File(S100File):
         """
         # @fixme @todo -- I think this will overwrite no matter what, need to look into that
         self.create_empty_metadata()  # init the root with a fully filled out empty metadata set
+        r = self.root
+        del r.horizontal_cs, r.projection_parameter_1, r.projection_parameter_2, r.projection_parameter_3
+        del r.projection_parameter_4, r.projection_parameter_5, r.false_easting, r.false_northing
+        del r.name_of_horizontal_datum, r.type_of_horizontal_crs, r.horizontal_datum, r.prime_meridian, r.spheriod, r.projection_method
+        del r.name_of_horizontal_crs, r.epoch
         self._set_bathy_defaults()
         self._set_quality_defaults()  # added for DataCodingFormat9 only -- need to make this optional
 
@@ -1849,6 +1854,7 @@ class S102File(S100File):
         root.bathymetry_coverage.num_instances = 1  # how many Bathycoverages
         root.bathymetry_coverage.sequencing_rule_type = 1  # linear
         del root.bathymetry_coverage.time_uncertainty
+        del root.bathymetry_coverage.feature_attribute_table  # this only goes in the QualityOfSurvey group
 
 
     @classmethod
@@ -2187,11 +2193,11 @@ class S102File(S100File):
         if "horizontalDatumValue" in metadata or overwrite:
             source_epsg = int(metadata.get("horizontalDatumValue", 0))
             if source_epsg in self.get_valid_epsg():
-                root.horizontal_datum_value = source_epsg
+                root.horizontal_crs = source_epsg
             else:
                 raise ValueError(f'The provided EPSG code {source_epsg} is not within the S102 specified values.')
         srs = osr.SpatialReference()
-        srs.ImportFromEPSG(root.horizontal_datum_value)
+        srs.ImportFromEPSG(root.horizontal_crs)
         if srs.IsProjected():
             axes = ["Easting", "Northing"]  # ["Northing", "Easting"]  # row major instead of
         else:
