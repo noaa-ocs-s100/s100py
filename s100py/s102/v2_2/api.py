@@ -1072,8 +1072,8 @@ class QualityOfSurveyContainer(FeatureContainerDCF9):
 
     # @TODO fixme reduce/remove these as possible and make compound dataset for feature attribute records
     @property
-    def __feature_attribute_table_type__(self) -> Type[QualityOfSurveyDataset]:
-        return QualityOfSurveyDataset
+    def __feature_attribute_table_type__(self) -> Type[FeatureAttributeDataset]:
+        return FeatureAttributeDataset
 
     def feature_attribute_table_create(self):
         """ Creates a blank, empty or zero value for feature_attribute_table"""
@@ -1431,13 +1431,10 @@ class FeatureAttributeDataset(S1xxDatasetBase):
     def metadata_type(self) -> Type[FeatureAttributeRecord]:
         return FeatureAttributeRecord
 
-
-# @TODO just put the metadata_name in the FeatureAttributeDataset?
-class QualityOfSurveyDataset(FeatureAttributeDataset):
     # analogous to BathymetryCoverageDataset
     @property
     def metadata_name(self) -> str:
-        return QUALITY_OF_SURVEY
+        return "featureAttributeTable"
 
 
 class QualityCoverageDataset(S102FeatureInformationDataset):
@@ -2063,6 +2060,11 @@ class S102File(S100File):
         if quality_grid is not None:
             # there are no metadata attributes (min/max) for QualityOfSurvey Group_001 - see 10.2.10
             quality_group_object.values_create()
+            try:
+                if not numpy.issubdtype(quality_grid.dtype, numpy.integer):
+                    quality_grid = quality_grid.astype(numpy.uint32)
+            except:
+                pass
             quality_group_object.values = quality_grid  # @TODO is this right or do we need to do like depth+uncertainty
             # quality_group_object.values.quality_of_survey = quality_grid
 
