@@ -2161,6 +2161,15 @@ class S102File(S100File):
         bathy_01 = root.bathymetry_coverage.bathymetry_coverage[0]
         bathy_group_object = bathy_01.bathymetry_group[0]
 
+        raise NotImplementedError("The bounds are supposed to be in degrees regardless of CRS")
+        raise NotImplementedError("QualityOfSurvey.001 should be .01 and Group.001 should be _001")
+        raise NotImplementedError("Confirm the vertical_coordinate_base, vertical_datum_reference, vertical_datum are correct")
+        root.vertical_cs = VERTICAL_CS.Height
+        root.vertical_coordinate_base = VERTICAL_COORDINATE_BASE.verticalDatum
+        root.vertical_datum_reference = VERTICAL_DATUM_REFERENCE.s100VerticalDatum
+        root.vertical_datum = VERTICAL_DATUM.MLLW
+
+
         root.east_bound_longitude = maxx
         root.west_bound_longitude = minx
         root.south_bound_latitude = miny
