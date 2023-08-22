@@ -754,7 +754,6 @@ class QualityOfSurvey_GroupNNN(S1xxObject):
     __origin_hdf_name__ = "origin"  #: HDF5 naming
     __offset_vectors_hdf_name__ = "offsetVectors"  #: HDF5 naming
     __dimension_hdf_name__ = "dimension"  #: HDF5 naming
-    __axis_names_hdf_name__ = "axisNames"  #: HDF5 naming
     # FIXME @TODO extent is supposed to be up a level or two - see the bathymetry extent as an equivalent
     __extent_hdf_name__ = "extent"  #: HDF5 naming
     __sequencing_rule_hdf_name__ = "sequencingRule"  #: HDF5 naming
@@ -876,30 +875,6 @@ class QualityOfSurvey_GroupNNN(S1xxObject):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.dimension = self.__dimension_type__(2)
-
-    @property
-    def axis_names(self) -> s1xx_sequence:
-        """sequence of character strings From 4.2.1.1.1.11,
-        The attribute axisNames has the value class Sequence<CharacterString> that shall be used to assign names to the grid axis.
-        The grid axis names shall be "Latitude" and "Longitude" for unprojected data sets or “Northing” and “Easting” in a projected space
-        """
-        return self._attributes[self.__axis_names_hdf_name__]
-
-    @axis_names.setter
-    def axis_names(self, val: s1xx_sequence):
-        self._attributes[self.__axis_names_hdf_name__] = val
-
-    @property
-    def __axis_names_type__(self) -> Type[numpy.ndarray]:
-        return numpy.ndarray
-
-    def axis_names_create(self):
-        """ The attribute axisNames has the value class Sequence<CharacterString> that shall be used to assign names to the grid axis.
-        The grid axis names shall be "Latitude" and "Longitude" for unprojected data sets or “Northing” and “Easting” in a projected space.
-        """
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.axis_names = numpy.array(["", ""], dtype=h5py_string_dtype)
 
     @property
     def extent(self) -> GridEnvelope:
@@ -2178,10 +2153,11 @@ class S102File(S100File):
 
         # raise NotImplementedError("The bounds are supposed to be in degrees regardless of CRS")
         # raise NotImplementedError("QualityOfSurvey.001 should be .01 and Group.001 should be _001")
-        # root.vertical_cs = VERTICAL_CS.Depth
-        root.vertical_coordinate_base = VERTICAL_COORDINATE_BASE.verticalDatum
-        root.vertical_datum_reference = metadata.get('verticalDatumReference', VERTICAL_DATUM_REFERENCE.s100VerticalDatum)
-        root.vertical_datum = metadata.get("verticalDatum", VERTICAL_DATUM.MLLW)
+        if "verticalDatumReference" in metadata or "verticalDatum" in metadata or overwrite:
+            # root.vertical_cs = VERTICAL_CS.Depth
+            root.vertical_coordinate_base = VERTICAL_COORDINATE_BASE.verticalDatum
+            root.vertical_datum_reference = metadata.get('verticalDatumReference', VERTICAL_DATUM_REFERENCE.s100VerticalDatum)
+            root.vertical_datum = metadata.get("verticalDatum", VERTICAL_DATUM.MLLW)
 
         # these names are taken from the S100/S102 attribute names
         # but are hard coded here to allow the S102 spec to change but not affect any tools built on these utility functions
@@ -2224,6 +2200,10 @@ class S102File(S100File):
         bathy_01.grid_origin_latitude = miny
         bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
         bathy_01.grid_spacing_latitudinal = abs(res_y)
+        bathy_group_object.origin.coordinate = numpy.array([minx, miny])
+
+        root.bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
+        root.bathymetry_coverage.sequencing_rule_scan_direction = ", ".join(axes)
         # consider making this a loop - for instance in [bathy_01, quality_01]
         if quality_grid is not None:
             quality_01 = root.quality_of_survey.quality_of_survey[0]
@@ -2236,11 +2216,9 @@ class S102File(S100File):
             quality_01.grid_origin_latitude = miny
             quality_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
             quality_01.grid_spacing_latitudinal = abs(res_y)
-        bathy_group_object.origin.coordinate = numpy.array([minx, miny])
+            root.quality_of_survey.axis_names = numpy.array(axes)  # row major order means X/longitude first
+            root.quality_of_survey.sequencing_rule_scan_direction = ", ".join(axes)
 
-        bathy_group_object.axis_names = numpy.array(axes)  # row major order means X/longitude first
-        root.bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
-        root.bathymetry_coverage.sequencing_rule_scan_direction = ", ".join(axes)
 
         if "epoch" in metadata or overwrite:
             root.epoch = metadata.get("epoch", "")  # e.g. "G1762"  this is the 2013-10-16 WGS84 used by CRS
