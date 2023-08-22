@@ -51,7 +51,8 @@ Added flip_z parameters in utils since z orientation is going from positive up t
 Change FeatureInformation datatype to H5T_FLOAT from H5T_NATIVE_FLOAT - per table 10-3 
 featureName and featureCode were both used in 2.0 doc, was corrected to only use featureCode in 2.1
 v2.2
-Add QualityOfSurvey for RasterAttribute storage 
+Add QualityOfSurvey for RasterAttribute storage.
+Revisions to the horizontal and vertical datum attributes at the root level.
 """
 
 
@@ -744,7 +745,7 @@ class QualityOfSurvey_GroupNNN(S1xxObject):
 
     """
 
-    write_format_str = ".%03d"
+    write_format_str = ".%02d"
 
     __values_hdf_name__ = "values"  #: HDF5 naming
     # @TODO are these metadata attributes applicable to the QualityCoverage (feature attribute table) or only the BathymetryCoverage objects?
@@ -977,6 +978,7 @@ class QualityGroupList(S102MetadataListBase):
     """ This is the list of Group.NNN that are held as a list.
     Each Group.NNN has a dataset of depth and uncertainty.
     """
+    write_format_str = "_%03d"
 
     @property
     def __version__(self) -> int:
@@ -1572,6 +1574,13 @@ class S102Root(S100Root):
         # pylint: disable=attribute-defined-outside-init
         self.quality_of_survey = self.__quality_of_survey_type__()
 
+    def vertical_cs_create(self):
+        """ Sets the vertical_cs to Depth as S102 specifies
+        """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.vertical_cs = VERTICAL_CS.Depth
+
 
 class S102File(S100File):
     PRODUCT_SPECIFICATION = PRODUCT_SPECIFICATION
@@ -2125,6 +2134,10 @@ class S102File(S100File):
                     An empty string ("") is the default.
                 - "issueDate":
                 - "metadataFile": File name for the associated discovery metatadata (xml)
+                = "verticalDatumReference": VERTICAL_DATUM_REFERENCE enumeration value.
+                    VERTICAL_DATUM_REFERENCE.s100VerticalDatum is the default
+                - "verticalDatum": VERTICAL_DATUM enumeration value or EPSG code based on "verticalDatumReference".
+                    VERTICAL_DATUM.MLLW is the default
         output_file
             Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
         nodata_value
@@ -2162,13 +2175,11 @@ class S102File(S100File):
         bathy_group_object = bathy_01.bathymetry_group[0]
 
         raise NotImplementedError("The bounds are supposed to be in degrees regardless of CRS")
-        raise NotImplementedError("QualityOfSurvey.001 should be .01 and Group.001 should be _001")
-        raise NotImplementedError("Confirm the vertical_coordinate_base, vertical_datum_reference, vertical_datum are correct")
-        root.vertical_cs = VERTICAL_CS.Height
+        # raise NotImplementedError("QualityOfSurvey.001 should be .01 and Group.001 should be _001")
+        # root.vertical_cs = VERTICAL_CS.Depth
         root.vertical_coordinate_base = VERTICAL_COORDINATE_BASE.verticalDatum
-        root.vertical_datum_reference = VERTICAL_DATUM_REFERENCE.s100VerticalDatum
-        root.vertical_datum = VERTICAL_DATUM.MLLW
-
+        root.vertical_datum_reference = metadata.get('verticalDatumReference', VERTICAL_DATUM_REFERENCE.s100VerticalDatum)
+        root.vertical_datum = metadata.get("verticalDatum", VERTICAL_DATUM.MLLW)
 
         root.east_bound_longitude = maxx
         root.west_bound_longitude = minx
