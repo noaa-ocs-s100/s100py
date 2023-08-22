@@ -35,7 +35,8 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype
 from ...v5_0.s100 import S100File, GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
-    CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase
+    CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, \
+    VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_COORDINATE_BASE, VERTICAL_DATUM
 
 from .. import v2_0
 from .. import v2_1
@@ -1090,6 +1091,7 @@ class QualityOfSurveysList(S102MetadataListBase):
     This is the set of QualityOfSurvey.NN that act like a list here.
     They will contain a list of Groups.NNN as well as other attributes etc.
     """
+    write_format_str = ".%02d"
 
     @property
     def __version__(self) -> int:
@@ -1686,7 +1688,7 @@ class S102File(S100File):
         """
         Create and return the list of valid EPSG codes for S-102 version 2.0.
         """
-        valid_epsg = [4326, 5041, 5042]
+        valid_epsg = [4326, 5041, 5042]  # , 6318, 6319 are NAD83
         valid_epsg += list(numpy.arange(32601, 32660 + 1))
         valid_epsg += list(numpy.arange(32701, 32760 + 1))
         return valid_epsg
@@ -2174,42 +2176,12 @@ class S102File(S100File):
         bathy_01 = root.bathymetry_coverage.bathymetry_coverage[0]
         bathy_group_object = bathy_01.bathymetry_group[0]
 
-        raise NotImplementedError("The bounds are supposed to be in degrees regardless of CRS")
+        # raise NotImplementedError("The bounds are supposed to be in degrees regardless of CRS")
         # raise NotImplementedError("QualityOfSurvey.001 should be .01 and Group.001 should be _001")
         # root.vertical_cs = VERTICAL_CS.Depth
         root.vertical_coordinate_base = VERTICAL_COORDINATE_BASE.verticalDatum
         root.vertical_datum_reference = metadata.get('verticalDatumReference', VERTICAL_DATUM_REFERENCE.s100VerticalDatum)
         root.vertical_datum = metadata.get("verticalDatum", VERTICAL_DATUM.MLLW)
-
-        root.east_bound_longitude = maxx
-        root.west_bound_longitude = minx
-        root.south_bound_latitude = miny
-        root.north_bound_latitude = maxy
-
-        bathy_01.east_bound_longitude = maxx
-        bathy_01.west_bound_longitude = minx
-        bathy_01.south_bound_latitude = miny
-        bathy_01.north_bound_latitude = maxy
-        bathy_01.grid_origin_latitude = miny
-
-        bathy_01.grid_origin_longitude = minx
-        bathy_01.grid_origin_latitude = miny
-        bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
-        bathy_01.grid_spacing_latitudinal = abs(res_y)
-        # consider making this a loop - for instance in [bathy_01, quality_01]
-        if quality_grid is not None:
-            quality_01 = root.quality_of_survey.quality_of_survey[0]
-            quality_01.east_bound_longitude = maxx
-            quality_01.west_bound_longitude = minx
-            quality_01.south_bound_latitude = miny
-            quality_01.north_bound_latitude = maxy
-            quality_01.grid_origin_latitude = miny
-
-            quality_01.grid_origin_longitude = minx
-            quality_01.grid_origin_latitude = miny
-            quality_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
-            quality_01.grid_spacing_latitudinal = abs(res_y)
-        bathy_group_object.origin.coordinate = numpy.array([minx, miny])
 
         # these names are taken from the S100/S102 attribute names
         # but are hard coded here to allow the S102 spec to change but not affect any tools built on these utility functions
@@ -2225,8 +2197,46 @@ class S102File(S100File):
         srs.ImportFromEPSG(root.horizontal_crs)
         if srs.IsProjected():
             axes = ["Easting", "Northing"]  # ["Northing", "Easting"]  # row major instead of
+            wgs = osr.SpatialReference()
+            wgs.ImportFromEPSG(4326)  # 4326 is WGS84 geodetic - and S102 specifies WGS84
+            transform = osr.CoordinateTransformation(srs, wgs)
+            # mytransf = Transformer.from_crs(root.horizontal_crs, CRS.from_epsg(4326), always_xy=True)
+            south_lat, west_lon = transform.TransformPoint(minx, miny)[:2]
+            north_lat, east_lon = transform.TransformPoint(maxx, maxy)[:2]
         else:
             axes = ["Longitude", "Latitude"]  # ["Latitude", "Longitude"]  # row major instead of
+            south_lat, west_lon = miny, minx
+            north_lat, east_lon = maxy, maxx
+
+
+        root.east_bound_longitude = east_lon
+        root.west_bound_longitude = west_lon
+        root.south_bound_latitude = south_lat
+        root.north_bound_latitude = north_lat
+
+        bathy_01.east_bound_longitude = east_lon
+        bathy_01.west_bound_longitude = west_lon
+        bathy_01.south_bound_latitude = south_lat
+        bathy_01.north_bound_latitude = north_lat
+
+        # S102 says this is in the CRS of the data (projected) while S100 says units of Arc Degrees (lat/lon)
+        bathy_01.grid_origin_longitude = minx
+        bathy_01.grid_origin_latitude = miny
+        bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
+        bathy_01.grid_spacing_latitudinal = abs(res_y)
+        # consider making this a loop - for instance in [bathy_01, quality_01]
+        if quality_grid is not None:
+            quality_01 = root.quality_of_survey.quality_of_survey[0]
+            quality_01.east_bound_longitude = east_lon
+            quality_01.west_bound_longitude = west_lon
+            quality_01.south_bound_latitude = south_lat
+            quality_01.north_bound_latitude = north_lat
+
+            quality_01.grid_origin_longitude = minx
+            quality_01.grid_origin_latitude = miny
+            quality_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
+            quality_01.grid_spacing_latitudinal = abs(res_y)
+        bathy_group_object.origin.coordinate = numpy.array([minx, miny])
 
         bathy_group_object.axis_names = numpy.array(axes)  # row major order means X/longitude first
         root.bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
