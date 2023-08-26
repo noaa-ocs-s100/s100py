@@ -273,7 +273,7 @@ class S1xxObject(ABC):
                 if use_enum:
                     logging.debug(key + " enumeration: " + str(val))
                     enum_as_dict = collections.OrderedDict([[item.name, item.value] for item in type(val)])
-                    if max(enum_as_dict.values())> 255:
+                    if max(enum_as_dict.values()) > 255:
                         # use a larger int type if needed, will raise TypeError: Unable to insert new enumeration member (value redefinition) otherwise
                         int_type = numpy.uint16
                     else:

@@ -33,7 +33,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py.s102"
 
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype
-from ...v5_0.s100 import S100File, GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
+from ...v5_0.s100 import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, \
     VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_COORDINATE_BASE, VERTICAL_DATUM
@@ -866,7 +866,7 @@ class FeatureAttributeRecord(S1xxObject):
 
     @property
     def __id_type__(self) -> Type[int]:
-        return int
+        return numpy.uint32
 
     def id_create(self):
         """ Creates a blank, empty or zero value for id"""
@@ -884,7 +884,7 @@ class FeatureAttributeRecord(S1xxObject):
 
     @property
     def __data_assessment_type__(self) -> Type[int]:
-        return int
+        return numpy.uint8
 
     def data_assessment_create(self):
         """ Creates a blank, empty or zero value for data_assessment"""
@@ -902,7 +902,7 @@ class FeatureAttributeRecord(S1xxObject):
 
     @property
     def __least_depth_of_detected_features_measured_type__(self) -> Type[int]:
-        return int
+        return numpy.uint8
 
     def least_depth_of_detected_features_measured_create(self):
         """ Creates a blank, empty or zero value for least_depth_of_detected_features_measured"""
@@ -920,7 +920,7 @@ class FeatureAttributeRecord(S1xxObject):
 
     @property
     def __significant_features_detected_type__(self) -> Type[int]:
-        return int
+        return numpy.uint8
 
     def significant_features_detected_create(self):
         """ Creates a blank, empty or zero value for significant_features_detected"""
@@ -938,7 +938,7 @@ class FeatureAttributeRecord(S1xxObject):
 
     @property
     def __size_of_features_detected_type__(self) -> Type[float]:
-        return float
+        return numpy.float32
 
     def size_of_features_detected_create(self):
         """ Creates a blank, empty or zero value for size_of_features_detected"""
@@ -956,7 +956,7 @@ class FeatureAttributeRecord(S1xxObject):
 
     @property
     def __feature_size_var_type__(self) -> Type[float]:
-        return float
+        return numpy.float32
 
     def feature_size_var_create(self):
         """ Creates a blank, empty or zero value for feature_size_var"""
@@ -974,7 +974,7 @@ class FeatureAttributeRecord(S1xxObject):
 
     @property
     def __full_seafloor_coverage_achieved_type__(self) -> Type[int]:
-        return int
+        return numpy.uint8
 
     def full_seafloor_coverage_achieved_create(self):
         """ Creates a blank, empty or zero value for full_seafloor_coverage_achieved"""
@@ -992,7 +992,7 @@ class FeatureAttributeRecord(S1xxObject):
 
     @property
     def __bathy_coverage_type__(self) -> Type[int]:
-        return int
+        return numpy.uint8
 
     def bathy_coverage_create(self):
         """ Creates a blank, empty or zero value for bathy_coverage"""
@@ -1010,7 +1010,7 @@ class FeatureAttributeRecord(S1xxObject):
 
     @property
     def __uncertainty_fixed_type__(self) -> Type[float]:
-        return float
+        return numpy.float32
 
     def uncertainty_fixed_create(self):
         """ Creates a blank, empty or zero value for uncertainty_fixed"""
@@ -1028,7 +1028,7 @@ class FeatureAttributeRecord(S1xxObject):
 
     @property
     def __uncertainty_variable_factor_type__(self) -> Type[float]:
-        return float
+        return numpy.float32
 
     def uncertainty_variable_factor_create(self):
         """ Creates a blank, empty or zero value for uncertainty_variable_factor"""
@@ -1669,6 +1669,9 @@ class S102File(S100File):
             bathy_01 = root.bathymetry_coverage.bathymetry_coverage.append_new_item()
         bathy_01.initialize_properties(recursively_create_children=True, overwrite=overwrite)
 
+        del root.geographic_identifier
+        del root.bathymetry_coverage.data_offset_vector
+        del root.bathymetry_coverage.data_offset_code
         del bathy_01.grid_spacing_vertical
         del bathy_01.grid_origin_vertical
         del bathy_01.number_of_times
@@ -1684,6 +1687,8 @@ class S102File(S100File):
                 quality_01 = root.quality_of_survey.quality_of_survey.append_new_item()
             quality_01.initialize_properties(recursively_create_children=True, overwrite=overwrite)
 
+            del root.quality_of_survey.data_offset_vector
+            del root.quality_of_survey.data_offset_code
             del quality_01.grid_spacing_vertical
             del quality_01.grid_origin_vertical
             del quality_01.number_of_times
@@ -1728,16 +1733,17 @@ class S102File(S100File):
             del quality_01.vertical_extent_maximum_z
             del quality_01.vertical_extent_minimum_z
 
-        bathy_group_object.extent_create()
-        bathy_group_object.extent.initialize_properties(True, overwrite=overwrite)
-        bathy_group_object.extent.low.coord_values[0:2] = [0, 0]
-        bathy_group_object.extent.high.coord_values[0:2] = [rows, cols]
+        bathy_01.extent_create()
+        bathy_01.extent = numpy.array([[0,0], [rows, cols]], bathy_01.extent_dtype)
+        # bathy_01.extent.initialize_properties(True, overwrite=overwrite)
+        # bathy_01.extent.low.coord_values[0:2] = [0, 0]
+        # bathy_01.extent.high.coord_values[0:2] = [rows, cols]
 
         bathy_group_object.dimension = 2
 
-        bathy_group_object.origin_create()
-        bathy_group_object.origin.initialize_properties(True, overwrite=overwrite)
-        bathy_group_object.origin.dimension = 2
+        # bathy_group_object.origin_create()
+        # bathy_group_object.origin.initialize_properties(True, overwrite=overwrite)
+        # bathy_group_object.origin.dimension = 2
 
         bathy_group_object.values_create()
 
@@ -1957,7 +1963,7 @@ class S102File(S100File):
         bathy_01.grid_origin_latitude = miny
         bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
         bathy_01.grid_spacing_latitudinal = abs(res_y)
-        bathy_group_object.origin.coordinate = numpy.array([minx, miny])
+        # bathy_group_object.origin.coordinate = numpy.array([minx, miny])
 
         root.bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
         root.bathymetry_coverage.sequencing_rule_scan_direction = ", ".join(axes)

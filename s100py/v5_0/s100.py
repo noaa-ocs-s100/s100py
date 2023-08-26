@@ -533,45 +533,45 @@ class Point(S1xxObject):
         self.position = self.__position_type__()
 
 
-class GeographicExtent(S1xxObject):
-    """ 4.2.1.1.12 of v2.0.0
-    The class EX_GeographicExtent is a metadata class from ISO 19115.
-    It is a component of the metaclass EX_Extent.
-    The use of EX_GeographicExtent is optional.
-    When used it describes the spatial boundaries of the Tracking List elements within the bounds established by CV_GridEnvelope for the BathymetryCoverage.
-    That is, the tracking list may carry information corresponding only to a portion of the spatial extent covered by the BathymetryCoverage.
-    There is one attribute and one subtype.
-    """
+# class GeographicExtent(S1xxObject):
+#     """ 4.2.1.1.12 of v2.0.0
+#     The class EX_GeographicExtent is a metadata class from ISO 19115.
+#     It is a component of the metaclass EX_Extent.
+#     The use of EX_GeographicExtent is optional.
+#     When used it describes the spatial boundaries of the Tracking List elements within the bounds established by CV_GridEnvelope for the BathymetryCoverage.
+#     That is, the tracking list may carry information corresponding only to a portion of the spatial extent covered by the BathymetryCoverage.
+#     There is one attribute and one subtype.
+#     """
+#
+#     __extent_type_code_hdf_name__ = "extentTypeCode"  #: HDF5 naming
+#
+#     @property
+#     def __version__(self) -> int:
+#         return 1
+#
+#     @property
+#     def extent_type_code(self) -> bool:
+#         """ The attribute extentTypeCode is a Boolean value.
+#         It is used to indicate whether the bounding polygon/box encompasses an area covered by the data or an area where data is not present.
+#         In S-102 it is set to 1.
+#         """
+#         return self._attributes[self.__extent_type_code_hdf_name__]
+#
+#     @extent_type_code.setter
+#     def extent_type_code(self, val: bool):
+#         self._attributes[self.__extent_type_code_hdf_name__] = val
+#
+#     @property
+#     def __extent_type_code_type__(self):
+#         return bool
+#
+#     def extent_type_code_create(self):
+#         # noinspection PyAttributeOutsideInit
+#         # pylint: disable=attribute-defined-outside-init
+#         self.extent_type_code = self.__extent_type_code_type__()
+#
 
-    __extent_type_code_hdf_name__ = "extentTypeCode"  #: HDF5 naming
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def extent_type_code(self) -> bool:
-        """ The attribute extentTypeCode is a Boolean value.
-        It is used to indicate whether the bounding polygon/box encompasses an area covered by the data or an area where data is not present.
-        In S-102 it is set to 1.
-        """
-        return self._attributes[self.__extent_type_code_hdf_name__]
-
-    @extent_type_code.setter
-    def extent_type_code(self, val: bool):
-        self._attributes[self.__extent_type_code_hdf_name__] = val
-
-    @property
-    def __extent_type_code_type__(self):
-        return bool
-
-    def extent_type_code_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.extent_type_code = self.__extent_type_code_type__()
-
-
-class GeographicBoundingBox(GeographicExtent):
+class GeographicBoundingBox(S1xxObject):  # GeographicExtent
     """ S100 Tables 10C-6 and 10c-12
     see also 4.2.1.1.13 of S102 v2.0.0
     The class EX_GeographicBoundingBox is a metadata class from ISO 19115.
@@ -904,7 +904,7 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def __extent_type__(self) -> Type[GridEnvelope]:
-        # FIXME is this a numpy array or s1xx list
+        # FIXME is this a numpy array or s1xx list and what is its layout?
         return numpy.ndarray  # GridEnvelope
 
     @property
@@ -1963,13 +1963,13 @@ class DataOffset:
 
     @property
     def __data_offset_vector_type__(self) -> Type[numpy.array]:
-        return numpy.array
+        return numpy.ndarray
 
     def data_offset_vector_create(self):
         """ Creates a blank, empty or zero value for data_offset_vector"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.data_offset_vector = self.__data_offset_vector_type__([0, 0], dtype=float)
+        self.data_offset_vector =numpy.array([0, 0], dtype=float)
 
 
 class FeatureContainerDCF1(FeatureContainer):
