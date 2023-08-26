@@ -606,7 +606,7 @@ class GeographicBoundingBox(GeographicExtent):
 
     @property
     def __west_bound_longitude_type__(self):
-        return float
+        return numpy.float32
 
     def west_bound_longitude_create(self):
         # noinspection PyAttributeOutsideInit
@@ -624,7 +624,7 @@ class GeographicBoundingBox(GeographicExtent):
 
     @property
     def __east_bound_longitude_type__(self):
-        return float
+        return numpy.float32
 
     def east_bound_longitude_create(self):
         # noinspection PyAttributeOutsideInit
@@ -642,7 +642,7 @@ class GeographicBoundingBox(GeographicExtent):
 
     @property
     def __south_bound_latitude_type__(self):
-        return float
+        return numpy.float32
 
     def south_bound_latitude_create(self):
         # noinspection PyAttributeOutsideInit
@@ -660,7 +660,7 @@ class GeographicBoundingBox(GeographicExtent):
 
     @property
     def __north_bound_latitude_type__(self):
-        return float
+        return numpy.float32
 
     def north_bound_latitude_create(self):
         # noinspection PyAttributeOutsideInit
@@ -742,6 +742,7 @@ class FeatureInstanceBase(GeographicBoundingBox):
     # @TODO  @FIXME -- first and last records are supposed to be datetime but S100 doc says 'character'  Need to create a datetime handler
     __date_time_of_first_record_hdf_name__ = "dateTimeOfFirstRecord"
     __date_time_of_last_record_hdf_name__ = "dateTimeOfLastRecord"
+    __extent_hdf_name__ = "extent"  #: HDF5 naming
 
     def write(self, hdf5_object):
         super().write(hdf5_object)
@@ -799,7 +800,7 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def __num_grp_type__(self) -> Type[int]:
-        return int
+        return numpy.uint32
 
     def num_grp_create(self):
         """ Creates a blank, empty or zero value for num_grp"""
@@ -936,7 +937,7 @@ class GridOrigin:
 
     @property
     def __grid_origin_longitude_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def grid_origin_longitude_create(self):
         """ Creates a blank, empty or zero value for grid_origin_longitude"""
@@ -955,7 +956,7 @@ class GridOrigin:
 
     @property
     def __grid_origin_latitude_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def grid_origin_latitude_create(self):
         """ Creates a blank, empty or zero value for grid_origin_latitude"""
@@ -1003,7 +1004,7 @@ class GridSpacing:
 
     @property
     def __grid_spacing_longitudinal_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def grid_spacing_longitudinal_create(self):
         """ Creates a blank, empty or zero value for grid_spacing_longitudinal"""
@@ -1023,7 +1024,7 @@ class GridSpacing:
 
     @property
     def __grid_spacing_latitudinal_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def grid_spacing_latitudinal_create(self):
         """ Creates a blank, empty or zero value for grid_spacing_latitudinal"""
@@ -1146,7 +1147,7 @@ class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanc
 
     @property
     def __num_points_longitudinal_type__(self) -> Type[int]:
-        return int
+        return numpy.uint32
 
     def num_points_longitudinal_create(self):
         """ Creates a blank, empty or zero value for num_points_longitudinal"""
@@ -1165,7 +1166,7 @@ class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanc
 
     @property
     def __num_points_latitudinal_type__(self) -> Type[int]:
-        return int
+        return numpy.uint32
 
     def num_points_latitudinal_create(self):
         """ Creates a blank, empty or zero value for num_points_latitudinal"""
@@ -1700,7 +1701,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
 
     @property
     def __dimension_type__(self) -> Type[int]:
-        return int
+        return numpy.uint8
 
     def dimension_create(self):
         """ Creates a blank, empty or zero value for dimension"""
@@ -1721,7 +1722,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
 
     @property
     def __horizontal_position_uncertainty_type__(self) -> Type[float]:
-        return float
+        return numpy.float32
 
     def horizontal_position_uncertainty_create(self):
         """ Creates a blank, empty or zero value for horizontal_position_uncertainty"""
@@ -1742,7 +1743,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
 
     @property
     def __vertical_uncertainty_type__(self) -> Type[float]:
-        return float
+        return numpy.float32
 
     def vertical_uncertainty_create(self):
         """ Creates a blank, empty or zero value for vertical_uncertainty"""
@@ -1765,7 +1766,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
 
     @property
     def __time_uncertainty_type__(self) -> Type[float]:
-        return float
+        return numpy.float32
 
     def time_uncertainty_create(self):
         """ Creates a blank, empty or zero value for time_uncertainty"""
@@ -1787,7 +1788,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
 
     @property
     def __num_instances_type__(self) -> Type[int]:
-        return int
+        return numpy.uint32
 
     def num_instances_create(self):
         """ Creates a blank, empty or zero value for num_instances"""
@@ -2331,7 +2332,7 @@ class S100Root(GeographicBoundingBox):
 
     @property
     def __horizontal_crs_type__(self) -> Type[int]:
-        return int
+        return numpy.int32
 
     def horizontal_crs_create(self):
         """ Creates a blank, empty or zero value for horizontal_crs"""
@@ -2350,7 +2351,7 @@ class S100Root(GeographicBoundingBox):
 
     @property
     def __horizontal_cs_type__(self) -> Type[int]:
-        return int
+        return numpy.int32
 
     def horizontal_cs_create(self):
         """ Creates a blank, empty or zero value for horizontal_cs
@@ -2369,7 +2370,7 @@ class S100Root(GeographicBoundingBox):
 
     @property
     def __horizontal_datum_type__(self) -> Type[int]:
-        return int
+        return numpy.int32
 
     def horizontal_datum_create(self):
         """ Creates a blank, empty or zero value for horizontal_datum"""
@@ -2406,7 +2407,7 @@ class S100Root(GeographicBoundingBox):
 
     @property
     def __prime_meridian_type__(self) -> Type[int]:
-        return int
+        return numpy.int32
 
     def prime_meridian_create(self):
         """ Creates a blank, empty or zero value for prime_meridian"""
@@ -2429,7 +2430,7 @@ the EPSG documentation."""
 
     @property
     def __spheriod_type__(self) -> Type[int]:
-        return int
+        return numpy.int32
 
     def spheriod_create(self):
         """ Creates a blank, empty or zero value for spheriod"""
@@ -2447,14 +2448,14 @@ the EPSG documentation."""
 
     @property
     def __projection_method_type__(self) -> Type[PROJECTION_METHOD]:
-        return PROJECTION_METHOD
+        return numpy.int32  # PROJECTION_METHOD
 
     def projection_method_create(self):
         """ Creates a blank, empty or zero value for projection_method
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.projection_method = list(self.__projection_method_type__)[0]
+        self.projection_method = list(PROJECTION_METHOD)[0]
 
     @property
     def projection_parameter_1(self) -> float:
@@ -2466,7 +2467,7 @@ the EPSG documentation."""
 
     @property
     def __projection_parameter_1_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def projection_parameter_1_create(self):
         """ Creates a blank, empty or zero value for projection_parameter_1"""
@@ -2484,7 +2485,7 @@ the EPSG documentation."""
 
     @property
     def __projection_parameter_2_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def projection_parameter_2_create(self):
         """ Creates a blank, empty or zero value for projection_parameter_2"""
@@ -2502,7 +2503,7 @@ the EPSG documentation."""
 
     @property
     def __projection_parameter_3_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def projection_parameter_3_create(self):
         """ Creates a blank, empty or zero value for projection_parameter_3"""
@@ -2520,7 +2521,7 @@ the EPSG documentation."""
 
     @property
     def __projection_parameter_4_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def projection_parameter_4_create(self):
         """ Creates a blank, empty or zero value for projection_parameter_4"""
@@ -2538,7 +2539,7 @@ the EPSG documentation."""
 
     @property
     def __projection_parameter_5_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def projection_parameter_5_create(self):
         """ Creates a blank, empty or zero value for projection_parameter_5"""
@@ -2556,7 +2557,7 @@ the EPSG documentation."""
 
     @property
     def __false_northing_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def false_northing_create(self):
         """ Creates a blank, empty or zero value for false_northing"""
@@ -2574,7 +2575,7 @@ the EPSG documentation."""
 
     @property
     def __false_easting_type__(self) -> Type[float]:
-        return float
+        return numpy.float64
 
     def false_easting_create(self):
         """ Creates a blank, empty or zero value for false_easting"""
@@ -2592,14 +2593,14 @@ the EPSG documentation."""
 
     @property
     def __vertical_cs_type__(self) -> Type[VERTICAL_CS]:
-        return VERTICAL_CS
+        return numpy.int32  # VERTICAL_CS
 
     def vertical_cs_create(self):
         """ Creates a blank, empty or zero value for vertical_cs
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_cs = list(self.__vertical_cs_type__)[0]
+        self.vertical_cs = list(VERTICAL_CS)[0]
 
 
     @property
@@ -2631,14 +2632,14 @@ the EPSG documentation."""
 
     @property
     def __vertical_datum_reference_type__(self) -> Type[VERTICAL_DATUM_REFERENCE]:
-        return VERTICAL_DATUM_REFERENCE
+        return numpy.uint16  # VERTICAL_DATUM_REFERENCE
 
     def vertical_datum_reference_create(self):
         """ Creates a blank, empty or zero value for vertical_datum_reference
         """
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum_reference = list(self.__vertical_datum_reference_type__)[0]
+        self.vertical_datum_reference = list(VERTICAL_DATUM_REFERENCE)[0]
 
     @property
     def vertical_datum(self) -> int:

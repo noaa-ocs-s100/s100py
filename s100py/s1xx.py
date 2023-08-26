@@ -256,34 +256,49 @@ class S1xxObject(ABC):
             elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
                 logging.debug(key + " datetime: {}", val)
                 group_object.attrs[key] = val.isoformat()
-            elif isinstance(val, Enum):
-                logging.debug(key + " enumeration: " + str(val))
-                enum_as_dict = collections.OrderedDict([[item.name, item.value] for item in type(val)])
-                if max(enum_as_dict.values())> 255:
-                    # use a larger int type if needed, will raise TypeError: Unable to insert new enumeration member (value redefinition) otherwise
-                    int_type = numpy.uint16
-                else:
-                    int_type = numpy.uint8
-                try:  # enum_dtype is added in h5py 2.10
-                    enumtype = h5py.enum_dtype(enum_as_dict, int_type)
-                except AttributeError:  # special_dtype is for h5py <= 2.9
-                    enumtype = h5py.special_dtype(enum=(int_type, enum_as_dict))
-                try:
-                    group_object.attrs.create(key, val.value, dtype=enumtype)
-                except TypeError:  # h5py isn't accepting OrderedDict, convert to dict
-                    try:
-                        enumtype = h5py.enum_dtype(dict(enum_as_dict), int_type)
-                    except AttributeError:
-                        enumtype = h5py.special_dtype(enum=(int_type, dict(enum_as_dict)))
-                    group_object.attrs.create(key, val.value, dtype=enumtype)
+            else:  # Enum or simple types
+                # The trick here is to make any plain integers into Enum() if appropriate (like typeOfHorizontalCRS)
+                # but also to make any supplied Enumerations into plain integers if appropriate (like projectionMethod)
 
-            else:
-                logging.debug(key + " simple type: " + str(val))
-                # force int to numpy.int32 since linux will use numpy.int64 by default
-                if isinstance(val, int):
-                    group_object.attrs.create(key, val, dtype=numpy.int32)
-                else:
-                    group_object.attrs[key] = val
+                # Does the spec want an Enum, python type (Int or Float) or a specific type (like numpy.uint8)
+                # As of S100 v5.0 the product specs S102 v2.2, S104 v1.1 and S111 v 1.2 they are specifying more strictly the data types overriding the general S100 type.
+                expected_items = self.get_standard_properties_mapping()
+                use_type = self.__getattribute__("__" + expected_items[key] + "_type__")
+                use_enum = issubclass(use_type, Enum)  # Does the spec want to store an Enum
+                if use_enum and not isinstance(val, Enum):  # is a plain integer or something
+                    val = use_type(val)  # convert to an enumeration locally
+                if not use_enum and isinstance(val, Enum):  # should be a plain integer
+                    val = val.value  # convert to an integer locally
+
+                if use_enum:
+                    logging.debug(key + " enumeration: " + str(val))
+                    enum_as_dict = collections.OrderedDict([[item.name, item.value] for item in type(val)])
+                    if max(enum_as_dict.values())> 255:
+                        # use a larger int type if needed, will raise TypeError: Unable to insert new enumeration member (value redefinition) otherwise
+                        int_type = numpy.uint16
+                    else:
+                        int_type = numpy.uint8
+                    try:  # enum_dtype is added in h5py 2.10
+                        enumtype = h5py.enum_dtype(enum_as_dict, int_type)
+                    except AttributeError:  # special_dtype is for h5py <= 2.9
+                        enumtype = h5py.special_dtype(enum=(int_type, enum_as_dict))
+                    try:
+                        group_object.attrs.create(key, val.value, dtype=enumtype)
+                    except TypeError:  # h5py isn't accepting OrderedDict, convert to dict
+                        try:
+                            enumtype = h5py.enum_dtype(dict(enum_as_dict), int_type)
+                        except AttributeError:
+                            enumtype = h5py.special_dtype(enum=(int_type, dict(enum_as_dict)))
+                        group_object.attrs.create(key, val.value, dtype=enumtype)
+                else:  # plain types, maybe Int or numpy.int32 for example
+                    logging.debug(key + " simple type: " + str(val))
+                    # Make our default integer type numpy.int32 since linux will use numpy.int64 by default
+                    if issubclass(use_type, int):
+                        group_object.attrs.create(key, val, dtype=numpy.int32)
+                    elif issubclass(use_type, (str, datetime.date, datetime.datetime, datetime.time)):
+                        group_object.attrs[key] = val
+                    else:
+                        group_object.attrs.create(key, val, dtype=use_type)
 
     def write(self, group_object):
         """ write the contained data and all it's children into an HDF5 file using h5py.

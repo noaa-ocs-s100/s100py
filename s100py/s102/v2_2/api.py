@@ -309,7 +309,7 @@ class BathymetryCoverage(S1xxObject):
 
     @property
     def __minimum_depth_type__(self):
-        return float
+        return numpy.float32
 
     def minimum_depth_create(self):
         # noinspection PyAttributeOutsideInit
@@ -330,7 +330,7 @@ class BathymetryCoverage(S1xxObject):
 
     @property
     def __maximum_depth_type__(self):
-        return float
+        return numpy.float32
 
     def maximum_depth_create(self):
         # noinspection PyAttributeOutsideInit
@@ -365,7 +365,7 @@ class BathymetryCoverage(S1xxObject):
 
     @property
     def __minimum_uncertainty_type__(self):
-        return float
+        return numpy.float32
 
     def minimum_uncertainty_create(self):
         # noinspection PyAttributeOutsideInit
@@ -386,7 +386,7 @@ class BathymetryCoverage(S1xxObject):
 
     @property
     def __maximum_uncertainty_type__(self):
-        return float
+        return numpy.float32
 
     def maximum_uncertainty_create(self):
         # noinspection PyAttributeOutsideInit
@@ -422,6 +422,13 @@ class BathymetryFeatureInstance(FeatureInstanceDCF2):
     """ Basic template for HDF5 naming of the attribute.  
     Attribute name will be automatically determined based on the list's index of the data. 
     """
+
+    @property
+    def __num_grp_type__(self) -> Type[int]:
+        return numpy.uint8
+
+    def num_grp_create(self):
+        self.num_grp = self.__num_grp_type__(1)
 
     @property
     def __bathymetry_group_type__(self):
@@ -479,6 +486,10 @@ class BathymetryContainer(FeatureContainerDCF9):
     @property
     def __version__(self) -> int:
         return 1
+
+    @property
+    def __num_instances_type__(self) -> Type[int]:
+        return numpy.uint8  # S102 reduces this from uint32
 
     @property
     def __bathymetry_coverage_type__(self):
@@ -704,6 +715,13 @@ class QualityFeatureInstance(FeatureInstanceDCF9):
     """
 
     @property
+    def __num_grp_type__(self) -> Type[int]:
+        return numpy.uint8  # S102 only
+
+    def num_grp_create(self):
+        self.num_grp = self.__num_grp_type__(1)
+
+    @property
     def __quality_group_type__(self):
         return QualityGroupList
 
@@ -726,6 +744,11 @@ class QualityFeatureInstance(FeatureInstanceDCF9):
     def quality_group(self, val: S102MetadataListBase):
         self._attributes[self.__quality_group_hdf_name__] = val
 
+    @property
+    def __east_bound_longitude_type__(self):
+        return numpy.float32
+
+
 
 class QualityOfSurveyContainer(FeatureContainerDCF9):
     """ This is the QualityOfSurvey right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
@@ -737,6 +760,10 @@ class QualityOfSurveyContainer(FeatureContainerDCF9):
     @property
     def __version__(self) -> int:
         return 1
+
+    @property
+    def __num_instances_type__(self) -> Type[int]:
+        return numpy.uint8  # S102 reduces this from uint32
 
     @property
     def __quality_of_survey_type__(self):
@@ -1205,7 +1232,6 @@ class FeatureCodes(GroupFBase):
         self._attributes[self.__quality_of_survey_dataset_hdf_name__] = val
 
 
-
 class S102Root(S100Root):
     """The root group contains a feature information group and N feature containers.
     In S102 there are currently two feature containers which are the 'coverages'  bathymetry and tracking list.
@@ -1218,6 +1244,11 @@ class S102Root(S100Root):
     __bathymetry_coverage_hdf_name__ = BATHY_COVERAGE
     __quality_of_survey_hdf_name__ = QUALITY_OF_SURVEY  #: HDF5 naming
 
+    # If the S100 file has a type that doesn't match the product spec (like float32 vs float64) then you can just override the type function.
+    # @property
+    # def __east_bound_longitude_type__(self):
+    #     return numpy.float32
+    #
     @property
     def __version__(self) -> int:
         return 1
