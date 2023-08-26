@@ -887,6 +887,34 @@ class FeatureInstanceBase(GeographicBoundingBox):
         # pylint: disable=attribute-defined-outside-init
         self.date_time_of_last_record = self.__date_time_of_last_record_type__()
 
+    @property
+    def extent(self) -> GridEnvelope:
+        """ v5.0 Table 10c-11 Structure fo Feature Instance Groups (optional)
+
+        From 4.2.1.1.1.12,
+        The attribute extent has the value class CV_GridEnvelope that shall contain the extent of the spatial domain of the coverage.
+        It uses the value class CV_GridEnvelope which provides the grid coordinate values for the diametrically opposed corners of the grid.
+        The default is that this value is derived from the bounding box for the data set or tile in a multi tile data set"""
+        return self._attributes[self.__extent_hdf_name__]
+
+    @extent.setter
+    def extent(self, val: GridEnvelope):
+        self._attributes[self.__extent_hdf_name__] = val
+
+    @property
+    def __extent_type__(self) -> Type[GridEnvelope]:
+        # FIXME is this a numpy array or s1xx list
+        return numpy.ndarray  # GridEnvelope
+
+    @property
+    def extent_dtype(self) -> Type[int]:
+        return numpy.int
+
+    def extent_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.extent = self.__extent_type__([], self.extent_dtype)
+
 
 # noinspection PyUnresolvedReferences
 class GridOrigin:

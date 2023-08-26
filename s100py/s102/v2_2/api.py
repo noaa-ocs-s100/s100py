@@ -253,7 +253,7 @@ class BathymetryValues(S1xxGridsBase):
 # v2.1 Chagne to .01 from .001
 # v2.1 removed min/max display scale mixin
 class BathymetryCoverage(S1xxObject):
-    """ This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
+    """ This is the "Values" Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
     S100 v4.0 table 10c-18
     4.2.1.1.1 and Figure 4.4 of v2.0.0
     also see section 12.3 and table 12.5
@@ -267,13 +267,6 @@ class BathymetryCoverage(S1xxObject):
     __maximum_depth_hdf_name__ = "maximumDepth"  #: HDF5 naming
     __minimum_uncertainty_hdf_name__ = "minimumUncertainty"  #: HDF5 naming
     __maximum_uncertainty_hdf_name__ = "maximumUncertainty"  #: HDF5 naming
-    __origin_hdf_name__ = "origin"  #: HDF5 naming
-    __offset_vectors_hdf_name__ = "offsetVectors"  #: HDF5 naming
-    __dimension_hdf_name__ = "dimension"  #: HDF5 naming
-    # @FIXME - extent (and others?) should be up a level at the BathymetryCoverage.01 group - s100 v4.0 Table 10c-11
-    __extent_hdf_name__ = "extent"  #: HDF5 naming
-    __sequencing_rule_hdf_name__ = "sequencingRule"  #: HDF5 naming
-    __start_sequence_hdf_name__ = "startSequence"  #: HDF5 naming
 
     @property
     def values(self) -> BathymetryValues:
@@ -399,150 +392,6 @@ class BathymetryCoverage(S1xxObject):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.maximum_uncertainty = self.__maximum_uncertainty_type__()
-
-    @property
-    def origin(self) -> DirectPosition:
-        """From 4.2.1.1.1.8,
-        The attribute origin has the value class DirectPosition which is a position that shall locate the origin of the rectified grid
-        in the coordinate reference system.
-        This attribute is required. There is no default
-        """
-        return self._attributes[self.__origin_hdf_name__]
-
-    @origin.setter
-    def origin(self, val: DirectPosition):
-        self._attributes[self.__origin_hdf_name__] = val
-
-    @property
-    def __origin_type__(self):
-        return DirectPosition
-
-    def origin_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.origin = self.__origin_type__()
-
-    @property
-    def __origin_attribute_type__(self) -> Type[DirectPosition]:
-        return DirectPosition
-
-    @property
-    def offset_vectors(self) -> s1xx_sequence:
-        """sequence of s102 Vectors  From 4.2.1.1.1.9 in S102 v2.0.0
-        The attribute offsetVectors has the value class Sequence<Vector> that shall be a sequence of offset vector elements
-        that determine the grid spacing in each direction.
-        The data type Vector is specified in ISO/TS 19103. This attribute is required.
-        There is no default.
-        """
-        return self._attributes[self.__offset_vectors_hdf_name__]
-
-    @offset_vectors.setter
-    def offset_vectors(self, val: s1xx_sequence):
-        self._attributes[self.__offset_vectors_hdf_name__] = val
-
-    @property
-    def __offset_vectors_type__(self):
-        return numpy.ndarray
-
-    def offset_vectors_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.offset_vectors = self.__offset_vectors_type__([2, ], numpy.float64)
-
-    @property
-    def dimension(self) -> int:
-        """From 4.2.1.1.1.10,
-        The attribute dimension has the value class Integer that shall identify the dimensionality of the grid.
-        The value of the grid dimension in this product specification is 2.
-        This value is fixed in this Product Specification and does not need to be encoded
-        """
-        return self._attributes[self.__dimension_hdf_name__]
-
-    @dimension.setter
-    def dimension(self, val: int):
-        self._attributes[self.__dimension_hdf_name__] = val
-
-    @property
-    def __dimension_type__(self):
-        return int
-
-    def dimension_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.dimension = self.__dimension_type__(2)
-
-    @property
-    def extent(self) -> GridEnvelope:
-        """From 4.2.1.1.1.12,
-        The attribute extent has the value class CV_GridEnvelope that shall contain the extent of the spatial domain of the coverage.
-        It uses the value class CV_GridEnvelope which provides the grid coordinate values for the diametrically opposed corners of the grid.
-        The default is that this value is derived from the bounding box for the data set or tile in a multi tile data set"""
-        return self._attributes[self.__extent_hdf_name__]
-
-    @extent.setter
-    def extent(self, val: GridEnvelope):
-        self._attributes[self.__extent_hdf_name__] = val
-
-    @property
-    def __extent_type__(self) -> Type[GridEnvelope]:
-        return GridEnvelope
-
-    def extent_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.extent = self.__extent_type__()
-
-    @property
-    def sequencing_rule(self) -> SequenceRule:
-        """From 4.2.1.1.1.13,
-        The attribute sequencingRule has the value class CV_SequenceRule (ISO 19123) that shall
-        describe how the grid points are ordered for association to the elements of the sequence values.
-        The default value is "Linear".
-        No other options are allowed.
-        (note that for S100: Only the values "linear" (for a simple regular cell size grid) and "Morton" (for a
-        Quad Tree Grid) shall be used for data that conforms to this standard.)
-        """
-        return self._attributes[self.__sequencing_rule_hdf_name__]
-
-    @sequencing_rule.setter
-    def sequencing_rule(self, val: SequenceRule):
-        self._attributes[self.__sequencing_rule_hdf_name__] = val
-
-    @property
-    def __sequencing_rule_type__(self):
-        return SequenceRule
-
-    def sequencing_rule_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.sequencing_rule = self.__sequencing_rule_type__()
-
-    @property
-    def start_sequence(self) -> GridCoordinate:
-        """ From4.2.1.1.1.14,
-        The attribute startSequence has the value class CV_GridCoordinate that shall identify the grid
-        point to be associated with the first record in the values sequence.
-        The default value is the lower left corner of the grid.
-        No other options are allowed.
-
-        Returns
-        -------
-
-        """
-        return self._attributes[self.__start_sequence_hdf_name__]
-
-    @start_sequence.setter
-    def start_sequence(self, val: GridCoordinate):
-        self._attributes[self.__start_sequence_hdf_name__] = val
-
-    @property
-    def __start_sequence_type__(self):
-        return GridCoordinate
-
-    def start_sequence_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.start_sequence = self.__start_sequence_type__()
 
 
 # v2.1 change to Group_001  "." to "_"
@@ -739,7 +588,7 @@ class BathymetryCoverageDataset(S102FeatureInformationDataset):
 
 # @TODO can I just derive quality from the bathy?
 class QualityOfSurvey_GroupNNN(S1xxObject):
-    """ This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
+    """ This is the "Values" Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
 
     4.2.1.1.1 and Figure 4.4 of v2.0.0
     also see section 12.3 and table 12.5
@@ -751,13 +600,7 @@ class QualityOfSurvey_GroupNNN(S1xxObject):
     __values_hdf_name__ = "values"  #: HDF5 naming
     # @TODO are these metadata attributes applicable to the QualityCoverage (feature attribute table) or only the BathymetryCoverage objects?
     #  They come from the S100 spec while S102 says no attributes (did they mean no additional attributes?)
-    __origin_hdf_name__ = "origin"  #: HDF5 naming
     __offset_vectors_hdf_name__ = "offsetVectors"  #: HDF5 naming
-    __dimension_hdf_name__ = "dimension"  #: HDF5 naming
-    # FIXME @TODO extent is supposed to be up a level or two - see the bathymetry extent as an equivalent
-    __extent_hdf_name__ = "extent"  #: HDF5 naming
-    __sequencing_rule_hdf_name__ = "sequencingRule"  #: HDF5 naming
-    __start_sequence_hdf_name__ = "startSequence"  #: HDF5 naming
 
     @property
     def values(self) -> numpy.ndarray:
@@ -806,28 +649,6 @@ class QualityOfSurvey_GroupNNN(S1xxObject):
         return 1
 
     @property
-    def origin(self) -> DirectPosition:
-        """From 4.2.1.1.1.8,
-        The attribute origin has the value class DirectPosition which is a position that shall locate the origin of the rectified grid
-        in the coordinate reference system.
-        This attribute is required. There is no default
-        """
-        return self._attributes[self.__origin_hdf_name__]
-
-    @origin.setter
-    def origin(self, val: DirectPosition):
-        self._attributes[self.__origin_hdf_name__] = val
-
-    @property
-    def __origin_type__(self):
-        return DirectPosition
-
-    def origin_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.origin = self.__origin_type__()
-
-    @property
     def __origin_attribute_type__(self) -> Type[DirectPosition]:
         return DirectPosition
 
@@ -853,101 +674,6 @@ class QualityOfSurvey_GroupNNN(S1xxObject):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.offset_vectors = self.__offset_vectors_type__([2, ], numpy.float64)
-
-    @property
-    def dimension(self) -> int:
-        """From 4.2.1.1.1.10,
-        The attribute dimension has the value class Integer that shall identify the dimensionality of the grid.
-        The value of the grid dimension in this product specification is 2.
-        This value is fixed in this Product Specification and does not need to be encoded
-        """
-        return self._attributes[self.__dimension_hdf_name__]
-
-    @dimension.setter
-    def dimension(self, val: int):
-        self._attributes[self.__dimension_hdf_name__] = val
-
-    @property
-    def __dimension_type__(self):
-        return int
-
-    def dimension_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.dimension = self.__dimension_type__(2)
-
-    @property
-    def extent(self) -> GridEnvelope:
-        """From 4.2.1.1.1.12,
-        The attribute extent has the value class CV_GridEnvelope that shall contain the extent of the spatial domain of the coverage.
-        It uses the value class CV_GridEnvelope which provides the grid coordinate values for the diametrically opposed corners of the grid.
-        The default is that this value is derived from the bounding box for the data set or tile in a multi tile data set"""
-        return self._attributes[self.__extent_hdf_name__]
-
-    @extent.setter
-    def extent(self, val: GridEnvelope):
-        self._attributes[self.__extent_hdf_name__] = val
-
-    @property
-    def __extent_type__(self) -> Type[GridEnvelope]:
-        return GridEnvelope
-
-    def extent_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.extent = self.__extent_type__()
-
-    @property
-    def sequencing_rule(self) -> SequenceRule:
-        """From 4.2.1.1.1.13,
-        The attribute sequencingRule has the value class CV_SequenceRule (ISO 19123) that shall
-        describe how the grid points are ordered for association to the elements of the sequence values.
-        The default value is "Linear".
-        No other options are allowed.
-        (note that for S100: Only the values "linear" (for a simple regular cell size grid) and "Morton" (for a
-        Quad Tree Grid) shall be used for data that conforms to this standard.)
-        """
-        return self._attributes[self.__sequencing_rule_hdf_name__]
-
-    @sequencing_rule.setter
-    def sequencing_rule(self, val: SequenceRule):
-        self._attributes[self.__sequencing_rule_hdf_name__] = val
-
-    @property
-    def __sequencing_rule_type__(self):
-        return SequenceRule
-
-    def sequencing_rule_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.sequencing_rule = self.__sequencing_rule_type__()
-
-    @property
-    def start_sequence(self) -> GridCoordinate:
-        """ From4.2.1.1.1.14,
-        The attribute startSequence has the value class CV_GridCoordinate that shall identify the grid
-        point to be associated with the first record in the values sequence.
-        The default value is the lower left corner of the grid.
-        No other options are allowed.
-
-        Returns
-        -------
-
-        """
-        return self._attributes[self.__start_sequence_hdf_name__]
-
-    @start_sequence.setter
-    def start_sequence(self, val: GridCoordinate):
-        self._attributes[self.__start_sequence_hdf_name__] = val
-
-    @property
-    def __start_sequence_type__(self):
-        return GridCoordinate
-
-    def start_sequence_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.start_sequence = self.__start_sequence_type__()
 
 
 class QualityGroupList(S102MetadataListBase):
