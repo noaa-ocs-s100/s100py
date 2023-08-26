@@ -1670,6 +1670,7 @@ class S102File(S100File):
         bathy_01.initialize_properties(recursively_create_children=True, overwrite=overwrite)
 
         del root.geographic_identifier
+        del root.meta_features
         del root.bathymetry_coverage.data_offset_vector
         del root.bathymetry_coverage.data_offset_code
         del bathy_01.grid_spacing_vertical
@@ -1872,7 +1873,8 @@ class S102File(S100File):
                 - "epoch":
                 - "geographicIdentifier": Location of the data, ex: "Long Beach, CA, USA".
                     An empty string ("") is the default.
-                - "issueDate":
+                - "issueDate":  ISO 8601 date string, ex: "2019-01-01"
+                - "issueTime": ISO 8601 time string, ex: "00:00:00"
                 - "metadataFile": File name for the associated discovery metatadata (xml)
                 = "verticalDatumReference": VERTICAL_DATUM_REFERENCE enumeration value.
                     VERTICAL_DATUM_REFERENCE.s100VerticalDatum is the default
@@ -1947,16 +1949,16 @@ class S102File(S100File):
             south_lat, west_lon = miny, minx
             north_lat, east_lon = maxy, maxx
 
-
         root.east_bound_longitude = east_lon
         root.west_bound_longitude = west_lon
         root.south_bound_latitude = south_lat
         root.north_bound_latitude = north_lat
 
-        bathy_01.east_bound_longitude = east_lon
-        bathy_01.west_bound_longitude = west_lon
-        bathy_01.south_bound_latitude = south_lat
-        bathy_01.north_bound_latitude = north_lat
+        # S102 says this is in the CRS of the data (projected) against S100 which says units of Arc Degrees (lat/lon)
+        bathy_01.east_bound_longitude = maxx
+        bathy_01.west_bound_longitude = minx
+        bathy_01.south_bound_latitude = miny
+        bathy_01.north_bound_latitude = maxy
 
         # S102 says this is in the CRS of the data (projected) while S100 says units of Arc Degrees (lat/lon)
         bathy_01.grid_origin_longitude = minx
@@ -1985,10 +1987,18 @@ class S102File(S100File):
 
         if "epoch" in metadata or overwrite:
             root.epoch = metadata.get("epoch", "")  # e.g. "G1762"  this is the 2013-10-16 WGS84 used by CRS
+            if not root.epoch:  # remove optional field if empty
+                del root.epoch
         if "geographicIdentifier" in metadata or overwrite:
             root.geographic_identifier = metadata.get("geographicIdentifier", "")
+            if not root.geographic_identifier:  # remove optional field if empty
+                del root.geographic_identifier
         if "issueDate" in metadata or overwrite:
             root.issue_date = metadata.get('issueDate', "")  # datetime.date.today().isoformat()
+        if "issueTime" in metadata or overwrite:
+            root.issue_time = metadata.get('issueTime', "")  # datetime.date.today().isoformat()
+            if not root.issue_time:  # remove optional field if empty
+                del root.issue_time
         if "metadataFile" in metadata or overwrite:
             root.metadata = metadata.get('metadataFile', "")  # datetime.date.today().isoformat()
 
