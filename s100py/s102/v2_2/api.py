@@ -1149,6 +1149,13 @@ class FeatureAttributeRecord(S1xxObject):
                 self.__bathymetric_uncertainty_type_hdf_name__,
                 ]
 
+    def get_write_dtypes(self):
+        expected_items = self.get_standard_properties_mapping()
+        dtypes = []
+        for key in self.get_write_order():
+            use_type = self.__getattribute__("__" + expected_items[key] + "_type__")
+            dtypes.append((key, use_type))
+        return dtypes
 
 # TODO FIXME - somewhere here needs to be the featureAttributeTable from 10.2.7 (or 10.2.8) and table 10.6 (Table 14) that holds the list of FeatureAttributeRecords
 class FeatureAttributeDataset(S1xxDatasetBase):

@@ -58,22 +58,37 @@ class FixedTimeZones(datetime.tzinfo):
         return datetime.timedelta(0)
 
 
-def convert_numpy_strings_to_h5py(vals, names=None):
+def make_enum_dtype(enum_class):
+    enum_as_dict = dict([[item.name, item.value] for item in enum_class])
+    if max(enum_as_dict.values()) > 255:
+        # use a larger int type if needed, will raise TypeError: Unable to insert new enumeration member (value redefinition) otherwise
+        int_type = numpy.uint16
+    else:
+        int_type = numpy.uint8
+    try:
+        enumtype = h5py.enum_dtype(enum_as_dict, int_type)
+    except AttributeError:
+        enumtype = h5py.special_dtype(enum=(int_type, enum_as_dict))
+    return enumtype
+
+
+def convert_numpy_types_to_h5py(vals, dtypes=None, names=None):
     """ change numpy arrays with "U" into array using the h5py special string_dtype that translates to utf-8 in the file.
 
     Parameters
     ----------
     vals
         a list or array
+    dtypes
+        optional list of dtypes to use with the record array -- note: dtype specifies the names and types so no need for names parameter
     names
         optional list of names to use with the record array
-
     Returns
     -------
     A new numpy array which will have h5py special types embedded for the strings
 
     """
-    rec_array = numpy.core.records.fromarrays(vals, names=names)
+    rec_array = numpy.core.records.fromarrays(vals, dtype=dtypes, names=names)
     new_dtype = []
     for i in range(len(rec_array.dtype)):
         nm = rec_array.dtype.names[i]
@@ -82,11 +97,17 @@ def convert_numpy_strings_to_h5py(vals, names=None):
                 dt = h5py.special_dtype(vlen=str)
             except:  # h5py >=2.10
                 dt = h5py.string_dtype(encoding='utf-8', length=None)
+        elif dtypes and issubclass(dtypes[i][1], Enum):
+            dt = make_enum_dtype(dtypes[i][1])
         else:
             dt = rec_array.dtype[i].descr[0][1]
         new_dtype.append((nm, dt))
     rec_array_revised = numpy.core.records.fromarrays(vals, dtype=new_dtype)
     return rec_array_revised
+
+
+def convert_numpy_strings_to_h5py(vals, names=None):
+    return convert_numpy_types_to_h5py(vals, names=names)
 
 
 class S1xxObject(ABC):
@@ -272,24 +293,8 @@ class S1xxObject(ABC):
 
                 if use_enum:
                     logging.debug(key + " enumeration: " + str(val))
-                    enum_as_dict = collections.OrderedDict([[item.name, item.value] for item in type(val)])
-                    if max(enum_as_dict.values()) > 255:
-                        # use a larger int type if needed, will raise TypeError: Unable to insert new enumeration member (value redefinition) otherwise
-                        int_type = numpy.uint16
-                    else:
-                        int_type = numpy.uint8
-                    try:  # enum_dtype is added in h5py 2.10
-                        enumtype = h5py.enum_dtype(enum_as_dict, int_type)
-                    except AttributeError:  # special_dtype is for h5py <= 2.9
-                        enumtype = h5py.special_dtype(enum=(int_type, enum_as_dict))
-                    try:
-                        group_object.attrs.create(key, val.value, dtype=enumtype)
-                    except TypeError:  # h5py isn't accepting OrderedDict, convert to dict
-                        try:
-                            enumtype = h5py.enum_dtype(dict(enum_as_dict), int_type)
-                        except AttributeError:
-                            enumtype = h5py.special_dtype(enum=(int_type, dict(enum_as_dict)))
-                        group_object.attrs.create(key, val.value, dtype=enumtype)
+                    enumtype = make_enum_dtype(type(val))
+                    group_object.attrs.create(key, val.value, dtype=enumtype)
                 else:  # plain types, maybe Int or numpy.int32 for example
                     logging.debug(key + " simple type: " + str(val))
                     # Make our default integer type numpy.int32 since linux will use numpy.int64 by default
@@ -379,6 +384,15 @@ class S1xxObject(ABC):
         Returns
         -------
         A list of key names if order is important, None otherwise.
+        """
+        return None
+
+    def get_write_dtypes(self):
+        """ Override this method if the data types of attributes/groups/dataset items is important
+
+        Returns
+        -------
+        A list of tuples having key names and type, None otherwise.
         """
         return None
 
@@ -816,7 +830,7 @@ class S1xxDatasetBase(list, S1xxWritesGroupObjects):
         if len(self) > 0:
             val = self[0]
             write_keys = []
-            if val.get_write_order():  # @todo I think bathycoverage and trackingcoverage in the feature information may want to be ordered
+            if val.get_write_order():  # @todo I think bathycoverage in the feature information may want to be ordered
                 write_keys.extend(val.get_write_order())
 
             # to preserve order of other keys - iterate instead of using set logic
@@ -824,6 +838,13 @@ class S1xxDatasetBase(list, S1xxWritesGroupObjects):
                 if key not in write_keys:
                     write_keys.append(key)
             # write_keys.extend(set(self._attributes.keys()).difference(write_keys))
+            dtypes = []
+            expected_items = val.get_standard_properties_mapping()
+            for key in write_keys:
+                use_type = val.__getattribute__("__" + expected_items[key] + "_type__")
+                dtypes.append(use_type)
+            dtypes = val.get_write_dtypes()
+
             write_array = []
             for val in self:
                 list_vals = []
@@ -853,7 +874,7 @@ class S1xxDatasetBase(list, S1xxWritesGroupObjects):
             # but to create that without specifying type we need to transpose first then call 'fromarrays'
             transposed_array = list(map(list, zip(*write_array)))
             if write_keys:
-                rec_array_revised = convert_numpy_strings_to_h5py(transposed_array, write_keys)
+                rec_array_revised = convert_numpy_types_to_h5py(transposed_array, dtypes=dtypes, names=write_keys)
             else:
                 rec_array_revised = h5py.Empty("")
                 raise ValueError(self.metadata_name + " had no data fields defined to write - this would create an h5py.Empty dataset")
