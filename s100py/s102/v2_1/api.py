@@ -1204,9 +1204,9 @@ class S102File(S100File):
 
         bathy_group_object.dimension = 2
 
-        bathy_group_object.origin_create()
-        bathy_group_object.origin.initialize_properties(True, overwrite=overwrite)
-        bathy_group_object.origin.dimension = 2
+        # bathy_group_object.origin_create()
+        # bathy_group_object.origin.initialize_properties(True, overwrite=overwrite)
+        # bathy_group_object.origin.dimension = 2
 
         bathy_group_object.values_create()
         grid = bathy_group_object.values
@@ -1220,22 +1220,50 @@ class S102File(S100File):
         if flip_y:
             depth_grid = numpy.flipud(depth_grid)
             uncert_grid = numpy.flipud(uncert_grid)
-        if flip_z:
-            depth_grid[depth_grid != nodata_value] *= -1
 
+        # change the grids to use the no data values specified in the S102 file
+        depth_mask = None
+        uncert_mask = None
+        fill_value = root.feature_information.bathymetry_coverage_dataset[0].fill_value
+        uncert_fill_value = root.feature_information.bathymetry_coverage_dataset[1].fill_value
+
+        # Numpy comparison using NaN doesn't work (must use isnan function)
+        # so check for NaN first and convert everything to a non-NaN (S102 uses 1000000)
+        if numpy.isnan(nodata_value):  # if the nodata value is nan then use the fill value from the dataset
+            if not numpy.isnan(fill_value):  # if fill value isn't also NaN then use it
+                depth_mask = numpy.isnan(depth_grid)
+                uncert_mask = numpy.isnan(uncert_grid)
+        # the fill value is nan and nodata wasn't OR
+        # Both fills are numbers - make sure they match
+        elif numpy.isnan(fill_value) or \
+                nodata_value != fill_value:
+            depth_mask = depth_grid == nodata_value
+            uncert_mask = uncert_grid == nodata_value
+        if depth_mask is not None:
+            depth_grid = numpy.copy(depth_grid)
+            depth_grid[depth_mask] = fill_value
+            uncert_grid = numpy.copy(uncert_grid)
+            uncert_grid[uncert_mask] = uncert_fill_value
+
+        # flip the z values if requested now that we have fixed the possible NaN logic issue
+        if flip_z:
+            depth_grid[depth_grid != fill_value] *= -1
+        # Do this after the fill value is set
         try:
-            depth_max = depth_grid[depth_grid != nodata_value].max()
-            depth_min = depth_grid[depth_grid != nodata_value].min()
+            depth_max = depth_grid[depth_grid != fill_value].max()
+            depth_min = depth_grid[depth_grid != fill_value].min()
         except ValueError:  # an empty depth array (all values == nodata) will cause this, subdivide() may cause this or data to be updated later
             depth_min = depth_max = nodata_value
         bathy_group_object.maximum_depth = depth_max
         bathy_group_object.minimum_depth = depth_min
 
-        if nodata_value != root.feature_information.bathymetry_coverage_dataset[0].fill_value:
-            depth_grid = numpy.copy(depth_grid)
-            depth_grid[depth_grid == nodata_value] = root.feature_information.bathymetry_coverage_dataset[0].fill_value
-            uncert_grid = numpy.copy(uncert_grid)
-            uncert_grid[uncert_grid == nodata_value] = root.feature_information.bathymetry_coverage_dataset[1].fill_value
+        try:
+            uncertainty_max = uncert_grid[uncert_grid != uncert_fill_value].max()
+            uncertainty_min = uncert_grid[uncert_grid != uncert_fill_value].min()
+        except ValueError:  # an empty uncertainty array (all values == nodata) will cause this
+            uncertainty_max = uncertainty_min = nodata_value
+        bathy_group_object.minimum_uncertainty = uncertainty_min
+        bathy_group_object.maximum_uncertainty = uncertainty_max
 
         grid.depth = depth_grid
         grid.uncertainty = uncert_grid
@@ -1284,7 +1312,8 @@ class S102File(S100File):
                 - "epoch":
                 - "geographicIdentifier": Location of the data, ex: "Long Beach, CA, USA".
                     An empty string ("") is the default.
-                - "issueDate":
+                - "issueDate":  ISO 8601 date string, ex: "2019-01-01"
+                - "issueTime": ISO 8601 time string, ex: "00:00:00"
                 - "metadataFile": File name for the associated discovery metatadata (xml)
         output_file
             Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
@@ -1320,24 +1349,6 @@ class S102File(S100File):
         # now add the additional metadata
         root = self.root
         bathy_01 = root.bathymetry_coverage.bathymetry_coverage[0]
-        bathy_group_object = bathy_01.bathymetry_group[0]
-
-        root.east_bound_longitude = maxx
-        root.west_bound_longitude = minx
-        root.south_bound_latitude = miny
-        root.north_bound_latitude = maxy
-        bathy_01.east_bound_longitude = maxx
-        bathy_01.west_bound_longitude = minx
-        bathy_01.south_bound_latitude = miny
-        bathy_01.north_bound_latitude = maxy
-        bathy_01.grid_origin_latitude = miny
-
-        bathy_01.grid_origin_longitude = minx
-        bathy_01.grid_origin_latitude = miny
-        bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
-        bathy_01.grid_spacing_latitudinal = abs(res_y)
-
-        bathy_group_object.origin.coordinate = numpy.array([minx, miny])
 
         # these names are taken from the S100/S102 attribute names
         # but are hard coded here to allow the S102 spec to change but not affect any tools built on these utility functions
@@ -1353,10 +1364,34 @@ class S102File(S100File):
         srs.ImportFromEPSG(root.horizontal_datum_value)
         if srs.IsProjected():
             axes = ["Easting", "Northing"]  # ["Northing", "Easting"]  # row major instead of
+            wgs = osr.SpatialReference()
+            wgs.ImportFromEPSG(4326)  # 4326 is WGS84 geodetic - and S102 specifies WGS84
+            transform = osr.CoordinateTransformation(srs, wgs)
+            # mytransf = Transformer.from_crs(root.horizontal_crs, CRS.from_epsg(4326), always_xy=True)
+            south_lat, west_lon = transform.TransformPoint(minx, miny)[:2]
+            north_lat, east_lon = transform.TransformPoint(maxx, maxy)[:2]
         else:
             axes = ["Longitude", "Latitude"]  # ["Latitude", "Longitude"]  # row major instead of
+            south_lat, west_lon = miny, minx
+            north_lat, east_lon = maxy, maxx
 
-        bathy_group_object.axis_names = numpy.array(axes)  # row major order means X/longitude first
+        root.east_bound_longitude = east_lon
+        root.west_bound_longitude = west_lon
+        root.south_bound_latitude = south_lat
+        root.north_bound_latitude = north_lat
+
+        # S102 says this is in the CRS of the data (projected) against S100 which says units of Arc Degrees (lat/lon)
+        bathy_01.east_bound_longitude = maxx
+        bathy_01.west_bound_longitude = minx
+        bathy_01.south_bound_latitude = miny
+        bathy_01.north_bound_latitude = maxy
+
+        # S102 says this is in the CRS of the data (projected) while S100 says units of Arc Degrees (lat/lon)
+        bathy_01.grid_origin_longitude = minx
+        bathy_01.grid_origin_latitude = miny
+        bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
+        bathy_01.grid_spacing_latitudinal = abs(res_y)
+
         root.bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
         root.bathymetry_coverage.sequencing_rule_scan_direction = ", ".join(axes)
 
@@ -1365,7 +1400,11 @@ class S102File(S100File):
         if "geographicIdentifier" in metadata or overwrite:
             root.geographic_identifier = metadata.get("geographicIdentifier", "")
         if "issueDate" in metadata or overwrite:
-            root.issue_date = metadata.get('issueDate', "")  # datetime.date.today().isoformat()
+            root.issue_date = metadata.get('issueDate', datetime.date.today().isoformat())
+        if "issueTime" in metadata or overwrite:
+            root.issue_time = metadata.get('issueTime', "")  # datetime.datetime.now().time().isoformat()
+            if not root.issue_time:  # remove optional field if empty
+                del root.issue_time
         if "metadataFile" in metadata or overwrite:
             root.metadata = metadata.get('metadataFile', "")  # datetime.date.today().isoformat()
 
@@ -1425,9 +1464,11 @@ class S102File(S100File):
             metadata["horizontalDatumReference"] = "EPSG"
             sr = osr.SpatialReference(dataset.GetProjection())
             epsg = sr.GetAuthorityCode(None)
-            # FIXME: this is likely incorrect. We probably don't want to get the code of the geographic CRS when the CRS is projected
             if epsg is None and sr.IsProjected():
-                sr = sr.CloneGeogCS()
+                crs_2d = osr.SpatialReference(dataset.GetProjection())
+                # in GDAL 3.2 this was added which may make getting the horizontal CRS more obvious
+                crs_2d.DemoteTo2D()
+                epsg = crs_2d.GetAuthorityCode(None)
             if epsg:
                 metadata["horizontalDatumValue"] = int(epsg)
             else:

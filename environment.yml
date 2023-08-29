@@ -13,4 +13,4 @@ dependencies:
   - numpydoc
   - h5py
   - numpy
-  - gdal
+  - gdal >= 3.2

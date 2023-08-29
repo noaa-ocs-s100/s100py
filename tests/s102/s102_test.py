@@ -1,4 +1,5 @@
 import pytest
+import logging
 
 import os
 import pathlib
@@ -14,6 +15,15 @@ from s100py.s102 import v2_1
 from s100py.s102 import v2_2
 
 local_path = pathlib.Path(__file__).parent
+
+
+def remove_file(pth, quiet=True):
+    """Remove a file if it exists"""
+    try:
+        os.remove(pth)
+    except (FileNotFoundError, PermissionError):  #
+        if not quiet:
+            logging.warning(f"{pth} not found")
 
 # FIXME reinstate the other versions
 @pytest.fixture(scope="module", params=[v2_2,]) # v2_1, v2_0])
@@ -49,31 +59,19 @@ def tifname():
 def temp_bagname(bagname):
     fname = bagname + ".copy.bag"
     yield fname
-    try:
-        os.remove(fname)
-    except (FileNotFoundError, PermissionError):
-        pass
-
+    remove_file(fname)
 
 @pytest.fixture(scope="module")
 def output_path(bagname):
     out_path = bagname + ".s102_output_test.h5"
     yield out_path
-    try:
-        os.remove(out_path)
-    except (FileNotFoundError, PermissionError):
-        pass
-
+    remove_file(out_path)
 
 @pytest.fixture(scope="module")
 def copy_path(bagname):
     out_path = bagname + ".s102_output_test.copy.h5"
     yield out_path
-    try:
-        os.remove(out_path)
-    except (FileNotFoundError, PermissionError):
-        pass
-
+    remove_file(out_path)
 
 def check_s102_data(s102obj):
     assert s102obj.root
@@ -97,10 +95,7 @@ def check_s102_data(s102obj):
 
 
 def test_make_from_gdal(bagname, output_path):
-    try:
-        os.remove(output_path)
-    except FileNotFoundError:
-        pass
+    remove_file(output_path)
     # the sample data is in NAD83 so does not meet spec - test that it's caught
     pytest.raises(s102.S102Exception, s102.from_gdal, *(bagname, output_path))
 
@@ -112,10 +107,7 @@ def test_make_from_gdal(bagname, output_path):
 
 
 def test_make_from_bag(bagname, output_path):
-    try:
-        os.remove(output_path)
-    except FileNotFoundError:
-        pass
+    remove_file(output_path)
     # the sample data is in NAD83 so does not meet spec - test that it's caught
     pytest.raises(s102.S102Exception, s102.from_bag, *(bagname, output_path))
 
@@ -135,10 +127,7 @@ def test_read_s102(output_path):
 def test_copy_s102(output_path, copy_path):
     s102_read_test = s102.S102File(output_path, "r")
     check_s102_data(s102_read_test)
-    try:
-        os.remove(copy_path)
-    except FileNotFoundError:
-        pass
+    remove_file(copy_path)
     s102_copy_root_test = s102.S102File(copy_path, "w")
     s102_copy_root_test.root = s102_read_test.root
     s102_copy_root_test.write()
@@ -149,10 +138,7 @@ def test_copy_s102(output_path, copy_path):
 
 def test_tif_conversion(tifname, temp_bagname):
     # test that nodata is changed to 1000000 and that passing a gdal instance works instead of filename
-    try:
-        os.remove(temp_bagname)
-    except FileNotFoundError:
-        pass
+    remove_file(temp_bagname)
     gdal_data = gdal.Open(tifname)
     depth_raster = gdal_data.GetRasterBand(1)
     orig = depth_raster.ReadAsArray()
@@ -222,24 +208,29 @@ def test_s102_version_upgrade(bagname):
 # @TODO reduce the size of the test dataset and add it to the test directory
 def test_rat(s102, tifname=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.tiff", output_path=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.h5"):
     metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
-    try:
-        os.remove(output_path)
-    except (FileNotFoundError, PermissionError):
-        pass
-
+    remove_file(output_path)
     new_outname = str(output_path)+f".{s102.api.EDITION}.h5"
     new_s102_20 = s102.utils.from_gdal(tifname, new_outname, metadata=metadata)
-    try:
-        os.remove(new_outname)
-    except (FileNotFoundError, PermissionError):
-        pass
-
+    remove_file(new_outname)
 # test_rat(str(local_path.joinpath("F00788_SR_8m.tif")), output_path)
 # test_rat(tiffname, output_path)
-metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
-out_path = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.2_2.h5"
-try:
-    os.remove(out_path)
-except (FileNotFoundError, PermissionError):
-    pass
-new_s102_20 = v2_2.utils.from_gdal(r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.tiff", out_path, metadata=metadata)
+if 0:
+    metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+    out_path = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.2_2.h5"
+    remove_file(out_path)
+    new_s102_20 = v2_2.utils.from_gdal(r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.tiff", out_path, metadata=metadata)
+
+metadata = {'geographicIdentifier': "Hudson River"}
+bags = [r"C:\Data\S57_and_S100_testData\S102\S102_v2.2\NBS_US4NY1CQ_20230221.bag",]
+tiffs = [r"C:\Data\S57_and_S100_testData\S102\S102_v2.2\NBS_US4NY1CQ_20230221_162221_base.tiff",]
+for tif in tiffs:
+    remove_file(tif+".2_2.h5")
+    s102_22 = v2_2.utils.from_gdal(tif, tif+".2_2.h5", metadata=metadata, flip_z=True)  # bluetopo tiff is in elevation instead of depth
+    remove_file(tif+".2_1.h5")
+    s102_21 = v2_1.utils.from_gdal(tif, tif+".2_1.h5", metadata=metadata, flip_z=True)  # bluetopo tiff is in elevation instead of depth
+
+for bag in bags:
+    remove_file(bag+".2_2.h5")
+    s102_22 = v2_2.utils.from_bag(bag, bag+".2_2.h5", metadata=metadata)
+    remove_file(bag+".2_1.h5")
+    s102_21 = v2_1.utils.from_bag(bag, bag+".2_1.h5", metadata=metadata)

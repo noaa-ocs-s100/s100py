@@ -1773,8 +1773,6 @@ class S102File(S100File):
             uncert_grid = numpy.flipud(uncert_grid)
             if quality_grid is not None:
                 quality_grid = numpy.flipud(quality_grid)
-        if flip_z:
-            depth_grid[depth_grid != nodata_value] *= -1
 
         # @TODO backport this to 2.1, 2.0
         # change the grids to use the no data values specified in the S102 file
@@ -1782,6 +1780,9 @@ class S102File(S100File):
         uncert_mask = None
         fill_value = root.feature_information.bathymetry_coverage_dataset[0].fill_value
         uncert_fill_value = root.feature_information.bathymetry_coverage_dataset[1].fill_value
+
+        # Numpy comparison using NaN doesn't work (must use isnan function)
+        # so check for NaN first and convert everything to a non-NaN (S102 uses 1000000)
         if numpy.isnan(nodata_value):  # if the nodata value is nan then use the fill value from the dataset
             if not numpy.isnan(fill_value):  # if fill value isn't also NaN then use it
                 depth_mask = numpy.isnan(depth_grid)
@@ -1805,6 +1806,9 @@ class S102File(S100File):
                 quality_grid = numpy.copy(quality_grid)
                 quality_grid[quality_mask] = root.feature_information.quality_of_survey_dataset[0].fill_value  # will be zero per spec
 
+        # flip the z values if requested now that we have fixed the possible NaN logic issue
+        if flip_z:
+            depth_grid[depth_grid != fill_value] *= -1
         # Do this after the fill value is set
         try:
             depth_max = depth_grid[depth_grid != fill_value].max()
@@ -1874,7 +1878,8 @@ class S102File(S100File):
                 - "res": tuple of the resolution (cell size) of each grid cell (x, y).
                     Lower left corner is the first point of both resolutions are positive.
                     If a resolution is negative then the grid will be flipped in that dimension and the origin adjusted accordingly.
-                - "horizontalDatumReference": See :any:`S102Root` horizontal_datum_reference, ex: "EPSG".
+                - "horizontalDatumReference": Removed in S102 v2.2
+                    See :any:`S102Root` horizontal_datum_reference, ex: "EPSG".
                     "EPSG" is the default value.
                 - "horizontalDatumValue":  The value for the horizontal data such as the EPSG code ex: 32611
                 - "epoch":
@@ -1921,10 +1926,7 @@ class S102File(S100File):
         # now add the additional metadata
         root = self.root
         bathy_01 = root.bathymetry_coverage.bathymetry_coverage[0]
-        bathy_group_object = bathy_01.bathymetry_group[0]
 
-        # raise NotImplementedError("The bounds are supposed to be in degrees regardless of CRS")
-        # raise NotImplementedError("QualityOfSurvey.001 should be .01 and Group.001 should be _001")
         if "verticalDatumReference" in metadata or "verticalDatum" in metadata or overwrite:
             # root.vertical_cs = VERTICAL_CS.Depth
             root.vertical_coordinate_base = VERTICAL_COORDINATE_BASE.verticalDatum
@@ -1933,8 +1935,8 @@ class S102File(S100File):
 
         # these names are taken from the S100/S102 attribute names
         # but are hard coded here to allow the S102 spec to change but not affect any tools built on these utility functions
-        if "horizontalDatumReference" in metadata or overwrite:
-            root.horizontal_datum_reference = metadata.get("horizontalDatumReference", "EPSG")
+        # if "horizontalDatumReference" in metadata or overwrite:
+        #     root.horizontal_datum_reference = metadata.get("horizontalDatumReference", "EPSG")
         if "horizontalDatumValue" in metadata or overwrite:
             source_epsg = int(metadata.get("horizontalDatumValue", 0))
             if source_epsg in self.get_valid_epsg():
@@ -1972,7 +1974,6 @@ class S102File(S100File):
         bathy_01.grid_origin_latitude = miny
         bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
         bathy_01.grid_spacing_latitudinal = abs(res_y)
-        # bathy_group_object.origin.coordinate = numpy.array([minx, miny])
 
         root.bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
         root.bathymetry_coverage.sequencing_rule_scan_direction = ", ".join(axes)
@@ -2001,7 +2002,7 @@ class S102File(S100File):
             if not root.geographic_identifier:  # remove optional field if empty
                 del root.geographic_identifier
         if "issueDate" in metadata or overwrite:
-            root.issue_date = metadata.get('issueDate', "")  # datetime.date.today().isoformat()
+            root.issue_date = metadata.get('issueDate', datetime.date.today().isoformat())  # datetime.date.today().isoformat()
         if "issueTime" in metadata or overwrite:
             root.issue_time = metadata.get('issueTime', "")  # datetime.date.today().isoformat()
             if not root.issue_time:  # remove optional field if empty
@@ -2062,13 +2063,14 @@ class S102File(S100File):
         # @todo @fixme -- transform the coordinate system to a WGS84.  Strictly this may not end up being square, so how do we handle
         #  transform = osr.CoordinateTransformation( src_srs, tgt_srs)
         # Until we have a working datum engine this module should not do datum transformations - GR 20200402
-        if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
-            metadata["horizontalDatumReference"] = "EPSG"
+        if "horizontalDatumValue" not in metadata:
             sr = osr.SpatialReference(dataset.GetProjection())
             epsg = sr.GetAuthorityCode(None)
-            # FIXME: this is likely incorrect. We probably don't want to get the code of the geographic CRS when the CRS is projected
             if epsg is None and sr.IsProjected():
-                sr = sr.CloneGeogCS()
+                crs_2d = osr.SpatialReference(dataset.GetProjection())
+                # in GDAL 3.2 this was added which may make getting the horizontal CRS more obvious
+                crs_2d.DemoteTo2D()
+                epsg = crs_2d.GetAuthorityCode(None)
             if epsg:
                 metadata["horizontalDatumValue"] = int(epsg)
             else:
