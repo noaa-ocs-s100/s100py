@@ -2258,14 +2258,14 @@ class S100Root(GeographicBoundingBox):
         # self._attributes[self.__vertical_datum_hdf_name__] = val
 
     @property
-    def __vertical_datum_type__(self) -> Type[Enum]:
-        return VERTICAL_DATUM
+    def __vertical_datum_type__(self) -> Type[int]:
+        return numpy.int32
 
     def vertical_datum_create(self):
         """ Creates a blank, empty or zero value for vertical_datum"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum = self.__vertical_datum_type__["MLLW"]
+        self.vertical_datum = VERTICAL_DATUM["MLLW"]
 
     @property
     def meta_features(self) -> str:
@@ -2632,7 +2632,7 @@ the EPSG documentation."""
 
     @property
     def __vertical_datum_reference_type__(self) -> Type[VERTICAL_DATUM_REFERENCE]:
-        return numpy.uint16  # VERTICAL_DATUM_REFERENCE
+        return VERTICAL_DATUM_REFERENCE
 
     def vertical_datum_reference_create(self):
         """ Creates a blank, empty or zero value for vertical_datum_reference

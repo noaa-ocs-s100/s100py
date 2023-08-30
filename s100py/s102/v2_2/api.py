@@ -28,14 +28,14 @@ except:
     pass
 
 try:
-    from ... import s1xx
+    from ... import s1xx, s100
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s102"
 
-from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype
+from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype, make_enum_dtype
 from ...v5_0.s100 import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
-    CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, \
+    CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, InterpolationType, \
     VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_COORDINATE_BASE, VERTICAL_DATUM
 
 from .. import v2_0
@@ -476,7 +476,7 @@ class BathymetryCoveragesList(S102MetadataListBase):
 
 # TODO FIXME If this is not a feature attributed grid then it should be DataCodingFormat2
 #  (which has an additional interpolation attribute) and not any QualityOfSurvey structures
-class BathymetryContainer(FeatureContainerDCF9):
+class BathymetryContainer(FeatureContainerDCF9, InterpolationType):
     """ This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named BathymetryCoverage.NN
     """
@@ -705,6 +705,7 @@ class QualityGroupList(S102MetadataListBase):
     def metadata_type(self) -> type:
         return QualityOfSurvey_GroupNNN
 
+
 class QualityFeatureInstance(FeatureInstanceDCF9):
     """ This will be the QualityCoverage.001 element in HDF5.
     It will contain a Group.NNN which will have the "values" dataset of the deptha dn uncertainty.
@@ -749,8 +750,8 @@ class QualityFeatureInstance(FeatureInstanceDCF9):
         return numpy.float32
 
 
-
-class QualityOfSurveyContainer(FeatureContainerDCF9):
+# S102 adds the interpolationType
+class QualityOfSurveyContainer(FeatureContainerDCF9, InterpolationType):
     """ This is the QualityOfSurvey right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named QualityOfSurvey.NN
     """
@@ -1321,6 +1322,10 @@ class S102Root(S100Root):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.vertical_cs = VERTICAL_CS.Depth
+
+    @property
+    def __vertical_datum_type__(self) -> Type[int]:
+        return numpy.uint16
 
 
 class S102File(S100File):
@@ -2196,85 +2201,51 @@ class S102File(S100File):
 
     @staticmethod
     def upgrade_in_place(s100_object):
-        if s100_object.root.product_specification != v2_1.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification != v2_1.api.PRODUCT_SPECIFICATION:
             v2_1.S102File.upgrade_in_place(s100_object)
-        # FIXME this function is not complete
-        raise NotImplementedError('Upgrade not implemented for S102 v2.2')
-        if s100_object.root.product_specification != v2_0.PRODUCT_SPECIFICATION:
-            v2_0.S102File.upgrade_in_place(s100_object)
-        if s100_object.root.product_specification == v2_0.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification == v2_1.api.PRODUCT_SPECIFICATION:
             # update product specification
             s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
-            # remove TrackingList
-            del s100_object['TrackingListCoverage']
-            del s100_object['Group_F']['TrackingListCoverage']
-            del s100_object['Group_F']['featureName']
-            fc20 = s100_object['Group_F']['featureCode']
-            if fc20[0] in (b'BathymetryCoverage', 'BathymetryCoverage'):
-                fc21 = fc20[:1]  # keep the bathymetery and delete the trackinglist
-            elif fc20[1] in (b'BathymetryCoverage', 'BathymetryCoverage'):
-                fc21 = fc20[1:]  # keep the bathymetery and delete the trackinglist
-            del s100_object['Group_F']['featureCode']
-            s100_object['Group_F'].create_dataset('featureCode', data=fc21)
+            # Update horizontal CRS
+            del s100_object.attrs['horizontalDatumReference']
+            s100_object.attrs.create('horizontalCRS', s100_object.attrs['horizontalDatumValue'], dtype=numpy.int32)
+            del s100_object.attrs['horizontalDatumValue']
 
-            # remove display scale and reverse the Z direction
-            for top in v2_0.S102File.top_level_keys:
-                try:
-                    bathy_top = s100_object[top]
-                    groupf_bathy = s100_object['Group_F'][top]
-                    # get the fill value to use when reversing the Z value
-                    fill_val = float(groupf_bathy[0]['fillValue'])
-                    # update the datatype definition
-                    # groupf_bathy[0]['datatype'] = 'H5T_FLOAT' fails to adjust the file as the groupf_bathy[0] creates a temporary copy
-                    # groupf_bathy[0, 'datatype'] = 'H5T_FLOAT' raises a typeError about changing the datatype
-                    # copying the data with temp=groupf_bathy[0] then changing values then setting groupf_bathy[0]=temp seems to work
-                    # similar to revising the depth values later in this function
-                    for nrow in range(len(groupf_bathy)):
-                        row = groupf_bathy[nrow]
-                        row['datatype'] = 'H5T_FLOAT'
-                        if row['name'].lower() in ("uncertainty", b"uncertainty"):
-                            row['lower'] = 0
-                            row['closure'] = 'gtLeInterval'
-                        groupf_bathy[nrow] = row
-                    # depth_string = groupf_bathy[0]['code']
-                except KeyError:
-                    pass
-                else:
-                    for second in v2_0.S102File.second_level_keys:
-                        try:
-                            bathy_cov = bathy_top[second]
-                        except KeyError:
-                            pass
-                        else:
-                            for group in v2_0.S102File.group_level_keys:
-                                try:
-                                    bathy_group = bathy_cov[group]
-                                except KeyError:
-                                    pass
-                                else:
-                                    try:
-                                        del bathy_group[v2_0.DisplayScaleMixin.__maximum_display_scale_hdf_name__]
-                                    except KeyError:
-                                        pass
-                                    try:
-                                        del bathy_group[v2_0.DisplayScaleMixin.__minimum_display_scale_hdf_name__]
-                                    except KeyError:
-                                        pass
-                                    try:
-                                        depth_uncert = bathy_group['values']
-                                        # h5py does not allow editing via fancy slicing se we need to convert to numpy, edit and then put it back
-                                        # i.e. depth[depth!=fill_val] *= -1 won't work but doesn't raise an error either
-                                        a = numpy.array(depth_uncert['depth'])
-                                        a[a != fill_val] *= -1
-                                        depth_uncert['depth'] = a
-                                    except KeyError:
-                                        pass
-                                    # standardize with the 2.1 required Group_001
-                                    if group != "Group_001":
-                                        bathy_cov.move(group, "Group_001")
-                            # standardize with the 2.1 required BathymetryCoverage.01
-                            if second != "BathymetryCoverage.01":
-                                bathy_top.move(second, "BathymetryCoverage.01")
+            def change_attr_type(obj, name, new_type):
+                """Convenience function to change the type of an attribute which happened a lot in v2.2"""
+                if name in obj.attrs:
+                    temp = obj.attrs[name]
+                    del obj.attrs[name]
+                    obj.attrs.create(name, temp, dtype=new_type)
+            for name in ['westBoundLongitude', 'eastBoundLongitude', 'southBoundLatitude', 'northBoundLatitude']:
+                change_attr_type(s100_object, name, numpy.float32)
+                change_attr_type(s100_object['BathymetryCoverage']['BathymetryCoverage.01'], name, numpy.float32)
+            change_attr_type(s100_object['BathymetryCoverage'], 'dimension', numpy.uint8)
+            change_attr_type(s100_object['BathymetryCoverage'], 'horizontalPositionUncertainty', numpy.float32)
+            change_attr_type(s100_object['BathymetryCoverage'], 'verticalUncertainty', numpy.float32)
+            change_attr_type(s100_object['BathymetryCoverage'], 'numInstances', numpy.uint8)
+            try:
+                # This was a mistake in s100py created data.
+                del s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['extentTypeCode']
+            except KeyError:
+                pass
+            change_attr_type(s100_object['BathymetryCoverage']['BathymetryCoverage.01'], 'numGRP', numpy.uint8)
+            # Update the vertical CRS
+            s100_object.attrs.create('verticalCS', 6498, dtype=numpy.int32)
+            s100_object.attrs.create('verticalCoordinateBase', 2, dtype=make_enum_dtype(VERTICAL_COORDINATE_BASE))
+            try:
+                # This was a mistake in s100py created data.
+                del s100_object['BathymetryCoverage']['BathymetryCoverage.01']['Group_001'].attrs['dimension']
+            except KeyError:
+                pass
+            # changes min/max values to single precision.
+            for name in ['maximumDepth', 'maximumUncertainty', 'minimumDepth', 'minimumUncertainty']:
+                change_attr_type(s100_object['BathymetryCoverage']['BathymetryCoverage.01']['Group_001'], name, numpy.float32)
+            try:
+                # This was a mistake in s100py created data.
+                del s100_object['BathymetryCoverage']['BathymetryCoverage.01']['Group_001']['extent']
+            except KeyError:
+                pass
 
 
 # # S102File = S102File_2_0

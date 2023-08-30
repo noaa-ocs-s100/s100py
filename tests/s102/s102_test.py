@@ -219,18 +219,22 @@ if 0:
     out_path = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.2_2.h5"
     remove_file(out_path)
     new_s102_20 = v2_2.utils.from_gdal(r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.tiff", out_path, metadata=metadata)
+if 0:
+    metadata = {'geographicIdentifier': "Hudson River"}
+    bags = [r"C:\Data\S102\S102_v2.2\NBS_US4NY1CQ_20230221.bag",]
+    tiffs = [r"C:\Data\S102\S102_v2.2\NBS_US4NY1CQ_20230221_162221_base.tiff",]
+    for tif in tiffs:
+        remove_file(tif+".2_2.h5")
+        s102_22 = v2_2.utils.from_gdal(tif, tif+".2_2.h5", metadata=metadata, flip_z=True)  # bluetopo tiff is in elevation instead of depth
+        remove_file(tif+".2_1.h5")
+        s102_21 = v2_1.utils.from_gdal(tif, tif+".2_1.h5", metadata=metadata, flip_z=True)  # bluetopo tiff is in elevation instead of depth
 
-metadata = {'geographicIdentifier': "Hudson River"}
-bags = [r"C:\Data\S57_and_S100_testData\S102\S102_v2.2\NBS_US4NY1CQ_20230221.bag",]
-tiffs = [r"C:\Data\S57_and_S100_testData\S102\S102_v2.2\NBS_US4NY1CQ_20230221_162221_base.tiff",]
-for tif in tiffs:
-    remove_file(tif+".2_2.h5")
-    s102_22 = v2_2.utils.from_gdal(tif, tif+".2_2.h5", metadata=metadata, flip_z=True)  # bluetopo tiff is in elevation instead of depth
-    remove_file(tif+".2_1.h5")
-    s102_21 = v2_1.utils.from_gdal(tif, tif+".2_1.h5", metadata=metadata, flip_z=True)  # bluetopo tiff is in elevation instead of depth
-
-for bag in bags:
-    remove_file(bag+".2_2.h5")
-    s102_22 = v2_2.utils.from_bag(bag, bag+".2_2.h5", metadata=metadata)
-    remove_file(bag+".2_1.h5")
-    s102_21 = v2_1.utils.from_bag(bag, bag+".2_1.h5", metadata=metadata)
+    for bag in bags:
+        remove_file(bag+".2_2.h5")
+        s102_22 = v2_2.utils.from_bag(bag, bag+".2_2.h5", metadata=metadata)
+        remove_file(bag+".2_1.h5")
+        s102_21 = v2_1.utils.from_bag(bag, bag+".2_1.h5", metadata=metadata)
+if 0:
+    # test upgrade of v2.1 to v2.2
+    remove_file(r"C:\data\S102\S102_v2.2\NBS_US4NY1CQ_20230221_162221_base.tiff.2_1_to_2_2.h5")
+    sf22 = v2_2.api.S102File.upgrade(r"C:\data\S102\S102_v2.2\NBS_US4NY1CQ_20230221_162221_base.tiff.2_1.h5", r"C:\data\S102\S102_v2.2\NBS_US4NY1CQ_20230221_162221_base.tiff.2_1_to_2_2.h5")
