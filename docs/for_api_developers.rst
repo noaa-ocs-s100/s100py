@@ -36,5 +36,9 @@ Inside of each S100 data class are data values and functions related to each dat
 For a "dataname" value there are two properties, __dataname_type__ and __dataname_hdf_name__,
 and a function dataname_create.
 
+Note, with S100 v5.0 the product specs S102, S104, S111 starting stricter types.
+Specifying a numpy type in the __dataname_type__ property will write the data as that specific type in the HDF5.
+The python type hints can still be "float" but the "__dataname_type__" would be "numpy.float32".
+
 When the File is being written any data that has not been set or initialized will be omitted.
 This way optional data will not appear in the HDF5 file at all.

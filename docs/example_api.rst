@@ -115,6 +115,12 @@ To recap:
     - __\*_type__ to help the user of the api know the type to use and for the api to load from disk
     - \*_create to make empty objects or supply default values as specified by S100
 
+NOTE:
+    For the _type__ property a general python type (int, float) can be used or a numpy type (numpy.int32, numpy.float64).
+    If a numpy type is used then the data can be set with a python value but will be stored in HDF5 as the specific type.
+    General python types will end up as whatever type the os platform uses.
+    We have observed Linux using int64 while Windows uses int32 for int.
+
 Now let's try a datatype that has eastBoundLongitude, westBoundLongitude, northBoundLongitude, southBoundLatitude and
 utmZone.  The first four attributes are already part of an :any:`s100.GeographicBoundingBox` so let's derive a class
 from there.
