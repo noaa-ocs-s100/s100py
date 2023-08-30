@@ -154,7 +154,10 @@ class S1xxObject(ABC):
         if item in self._attributes or item in self.get_standard_properties_mapping():
             del self._attributes[item]
         elif item in self.get_standard_properties():
-            del self._attributes[eval("self.__{}_hdf_name__".format(item))]
+            try:
+                del self._attributes[eval("self.__{}_hdf_name__".format(item))]
+            except KeyError:  # ignore if the thing to be deleted wasn't found
+                pass
         else:
             del self.__dict__[item]
 
@@ -639,7 +642,8 @@ class S1xxObject(ABC):
                                             decimal_sec, tzinfo=zone)
 
             if not match:
-                print("failed to parse date and/or time from '" + val + "' storing as string in ", hdf_name)
+                if val:  # don't print messages on blank values
+                    print("failed to parse date and/or time from '" + val + "' storing as string in ", hdf_name)
 
         if isinstance(val, (datetime.datetime, datetime.date, datetime.time)):
             if isinstance(val, datetime.datetime):

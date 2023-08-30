@@ -1565,7 +1565,7 @@ class S102File(S100File):
     @staticmethod
     def upgrade_in_place(s100_object):
         if s100_object.root.product_specification != v2_0.PRODUCT_SPECIFICATION:
-            v2_0.S102File.upgrade_in_place(s100_object)
+            v2_0.api.S102File.upgrade_in_place(s100_object)
         if s100_object.root.product_specification == v2_0.PRODUCT_SPECIFICATION:
             # update product specification
             s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
@@ -1617,11 +1617,11 @@ class S102File(S100File):
                                     pass
                                 else:
                                     try:
-                                        del bathy_group[v2_0.DisplayScaleMixin.__maximum_display_scale_hdf_name__]
+                                        del bathy_group[v2_0.api.DisplayScaleMixin.__maximum_display_scale_hdf_name__]
                                     except KeyError:
                                         pass
                                     try:
-                                        del bathy_group[v2_0.DisplayScaleMixin.__minimum_display_scale_hdf_name__]
+                                        del bathy_group[v2_0.api.DisplayScaleMixin.__minimum_display_scale_hdf_name__]
                                     except KeyError:
                                         pass
                                     try:

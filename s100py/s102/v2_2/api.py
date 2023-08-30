@@ -51,9 +51,11 @@ Removed min/max display scale -- 4.2.1.1.1.2 and 4.2.1.1.1.5 BathymetryCoverage 
 Added flip_z parameters in utils since z orientation is going from positive up to positive down
 Change FeatureInformation datatype to H5T_FLOAT from H5T_NATIVE_FLOAT - per table 10-3 
 featureName and featureCode were both used in 2.0 doc, was corrected to only use featureCode in 2.1
+
 v2.2
 Add QualityOfSurvey for RasterAttribute storage.
 Revisions to the horizontal and vertical datum attributes at the root level.
+Stricter datatypes per S102 (but not S100) spec
 """
 
 
@@ -1383,7 +1385,7 @@ class S102File(S100File):
         grid = bathy_group_object.values
         depth_grid = grid.depth
         uncert_grid = grid.uncertainty
-        origin = bathy_group_object.origin.coordinate
+        origin = numpy.array([bathy_01.grid_origin_longitude, bathy_01.grid_origin_latitude])
         res_x = bathy_01.grid_spacing_longitudinal
         res_y = bathy_01.grid_spacing_latitudinal
         res = numpy.array([res_x, res_y])
@@ -1947,9 +1949,9 @@ class S102File(S100File):
             if source_epsg in self.get_valid_epsg():
                 root.horizontal_crs = source_epsg
             else:
-                raise ValueError(f'The provided EPSG code {source_epsg} is not within the S102 specified values.')
+                raise S102Exception(f'The provided EPSG code {source_epsg} is not within the S102 specified values.')
         srs = osr.SpatialReference()
-        srs.ImportFromEPSG(root.horizontal_crs)
+        srs.ImportFromEPSG(int(root.horizontal_crs))
         if srs.IsProjected():
             axes = ["Easting", "Northing"]  # ["Northing", "Easting"]  # row major instead of
             wgs = osr.SpatialReference()
@@ -1968,35 +1970,29 @@ class S102File(S100File):
         root.south_bound_latitude = south_lat
         root.north_bound_latitude = north_lat
 
-        # S102 says this is in the CRS of the data (projected) against S100 which says units of Arc Degrees (lat/lon)
-        bathy_01.east_bound_longitude = maxx
-        bathy_01.west_bound_longitude = minx
-        bathy_01.south_bound_latitude = miny
-        bathy_01.north_bound_latitude = maxy
-
-        # S102 says this is in the CRS of the data (projected) while S100 says units of Arc Degrees (lat/lon)
-        bathy_01.grid_origin_longitude = minx
-        bathy_01.grid_origin_latitude = miny
-        bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
-        bathy_01.grid_spacing_latitudinal = abs(res_y)
-
-        root.bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
-        root.bathymetry_coverage.sequencing_rule_scan_direction = ", ".join(axes)
-        # consider making this a loop - for instance in [bathy_01, quality_01]
+        feature_instance_groups = [bathy_01]
         if quality_grid is not None:
             quality_01 = root.quality_of_survey.quality_of_survey[0]
-            quality_01.east_bound_longitude = east_lon
-            quality_01.west_bound_longitude = west_lon
-            quality_01.south_bound_latitude = south_lat
-            quality_01.north_bound_latitude = north_lat
-
-            quality_01.grid_origin_longitude = minx
-            quality_01.grid_origin_latitude = miny
-            quality_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
-            quality_01.grid_spacing_latitudinal = abs(res_y)
+            feature_instance_groups.append(quality_01)
             root.quality_of_survey.axis_names = numpy.array(axes)  # row major order means X/longitude first
             root.quality_of_survey.sequencing_rule_scan_direction = ", ".join(axes)
 
+        # the bathymetry_coverage.01 and quality_of_survey.01 are defined to have the same attributes
+        for instance in feature_instance_groups:
+            # S102 says this is in the CRS of the data (projected) against S100 which says units of Arc Degrees (lat/lon)
+            instance.east_bound_longitude = maxx
+            instance.west_bound_longitude = minx
+            instance.south_bound_latitude = miny
+            instance.north_bound_latitude = maxy
+
+            # S102 says this is in the CRS of the data (projected) while S100 says units of Arc Degrees (lat/lon)
+            instance.grid_origin_longitude = minx
+            instance.grid_origin_latitude = miny
+            instance.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
+            instance.grid_spacing_latitudinal = abs(res_y)
+
+        root.bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
+        root.bathymetry_coverage.sequencing_rule_scan_direction = ", ".join(axes)
 
         if "epoch" in metadata or overwrite:
             root.epoch = metadata.get("epoch", "")  # e.g. "G1762"  this is the 2013-10-16 WGS84 used by CRS
@@ -2201,9 +2197,9 @@ class S102File(S100File):
 
     @staticmethod
     def upgrade_in_place(s100_object):
-        if s100_object.root.product_specification != v2_1.api.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification != v2_1.PRODUCT_SPECIFICATION:
             v2_1.S102File.upgrade_in_place(s100_object)
-        if s100_object.root.product_specification == v2_1.api.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification == v2_1.PRODUCT_SPECIFICATION:
             # update product specification
             s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
             # Update horizontal CRS

@@ -54,6 +54,12 @@ def tifname():
     fname = str(local_path.joinpath("F00788_SR_8m.tif"))
     yield fname
 
+@pytest.fixture(scope="module")
+def tif_with_rat_name():
+    # made with:   gdalwarp -of GTiff -srcnodata 1000000.0 -co "COMPRESS=LZW" -dstnodata 9999.0 F00788_SR_8m.bag F00788_SR_8m.tif
+    fname = str(local_path.joinpath("BlueTopo_BC25M26L_20221102b.tiff"))
+    yield fname
+
 
 @pytest.fixture(scope="module")
 def temp_bagname(bagname):
@@ -68,6 +74,12 @@ def output_path(bagname):
     remove_file(out_path)
 
 @pytest.fixture(scope="module")
+def output_with_rat_path(tif_with_rat_name):
+    out_path = tif_with_rat_name + ".s102_output_rat_test.h5"
+    yield out_path
+    remove_file(out_path)
+
+@pytest.fixture(scope="module")
 def copy_path(bagname):
     out_path = bagname + ".s102_output_test.copy.h5"
     yield out_path
@@ -75,26 +87,72 @@ def copy_path(bagname):
 
 def check_s102_data(s102obj):
     assert s102obj.root
-    assert s102obj.root.horizontal_datum_reference == "EPSG"
-    # read with lower level h5py access too
-    assert h5py_string_comp(s102obj.attrs['horizontalDatumReference'], "EPSG")
+    if hasattr(s102obj.root, 'horizontal_datum_reference'):  # v2.1 and prior
+        assert s102obj.root.horizontal_datum_reference == "EPSG"
+        # read with lower level h5py access too
+        assert h5py_string_comp(s102obj.attrs['horizontalDatumReference'], "EPSG")
+        assert s102obj.root.horizontal_datum_value == 32610
+    else:  # v2.2 and later
+        assert s102obj.root.horizontal_crs == 32610
+    assert s102obj.root.west_bound_longitude == pytest.approx(-122.679, .001)
+    assert s102obj.root.east_bound_longitude == pytest.approx(-122.660, .001)
+    assert s102obj.root.north_bound_latitude == pytest.approx(48.159, .001)
+    assert s102obj.root.south_bound_latitude == pytest.approx(48.147, .001)
 
-    assert s102obj.root.horizontal_datum_value == 32610
-    assert s102obj.root.west_bound_longitude > 523816
-    assert s102obj.root.west_bound_longitude < 523817
-    assert s102obj.root.east_bound_longitude > 525240
-    assert s102obj.root.east_bound_longitude < 525241
     b = s102obj.root.bathymetry_coverage.bathymetry_coverage[0]
+
+    assert b.west_bound_longitude == pytest.approx(523816, 1)
+    assert b.east_bound_longitude == pytest.approx(525240, 1)
+    assert b.north_bound_latitude == pytest.approx(5332689, 1)
+    assert b.south_bound_latitude == pytest.approx(5334113, 1)
+
+
     assert b.num_points_latitudinal == 179
-    assert b.east_bound_longitude == s102obj.root.east_bound_longitude
     group = b.bathymetry_group[0]
-    assert group.origin.coordinate[0] == s102obj.root.west_bound_longitude
     assert group.values.depth.shape == (179, 179)
     # depending on if the z is positive up or down the min depth can be 68.4 or 36.1, using min avoids the 1000000 nodata value
     assert numpy.min(group.values.depth) == pytest.approx(-68.44306, 0.0001) or numpy.min(group.values.depth) == pytest.approx(36.18454, 0.0001)
 
 
-def test_make_from_gdal(bagname, output_path):
+def check_s102_rat_data(s102obj):
+    assert s102obj.root
+    if hasattr(s102obj.root, 'horizontal_datum_reference'):  # v2.1 and prior
+        assert s102obj.root.horizontal_datum_reference == "EPSG"
+        # read with lower level h5py access too
+        assert h5py_string_comp(s102obj.attrs['horizontalDatumReference'], "EPSG")
+        assert s102obj.root.horizontal_datum_value == 32610
+    else:  # v2.2 and later
+        assert s102obj.root.horizontal_crs == 32615
+    assert s102obj.root.west_bound_longitude == pytest.approx(-95.993, .001)
+    assert s102obj.root.east_bound_longitude == pytest.approx(-94.806, .001)
+    assert s102obj.root.north_bound_latitude == pytest.approx(26.414, .001)
+    assert s102obj.root.south_bound_latitude == pytest.approx(25.186, .001)
+
+    b = s102obj.root.bathymetry_coverage.bathymetry_coverage[0]
+    q = s102obj.root.quality_of_survey.quality_of_survey[0]
+    for instance in (b, q):
+        assert instance.west_bound_longitude == pytest.approx(198254, 1)
+        assert instance.east_bound_longitude == pytest.approx(319873, 1)
+        assert instance.north_bound_latitude == pytest.approx(2922835, 1)
+        assert instance.south_bound_latitude == pytest.approx(2788956, 1)
+
+        assert instance.grid_origin_latitude == pytest.approx(2788956, 1)
+        assert instance.grid_origin_longitude == pytest.approx(198254, 1)
+        assert instance.grid_spacing_latitudinal == pytest.approx(1352.32, .01)
+        assert instance.grid_spacing_longitudinal == pytest.approx(1228.48, .01)
+
+    assert b.num_points_latitudinal == 100
+    group = b.bathymetry_group[0]
+    assert group.values.depth.shape == (100, 100)
+    # depending on if the z is positive up or down the min depth can be 68.4 or 36.1, using min avoids the 1000000 nodata value
+    assert numpy.min(group.values.depth) == pytest.approx(791.93, 0.0001) or numpy.min(group.values.depth) == pytest.approx(-3541.02, 0.0001)
+    qgroup = q.quality_group[0]
+    assert numpy.min(qgroup.values) == 0
+    assert numpy.max(qgroup.values) == 1188907
+    assert numpy.min(qgroup.values[qgroup.values > 0]) == 11134
+
+
+def test_make_from_gdal(s102, bagname, output_path):
     remove_file(output_path)
     # the sample data is in NAD83 so does not meet spec - test that it's caught
     pytest.raises(s102.S102Exception, s102.from_gdal, *(bagname, output_path))
@@ -106,7 +164,7 @@ def test_make_from_gdal(bagname, output_path):
     check_s102_data(new_s102)
 
 
-def test_make_from_bag(bagname, output_path):
+def test_make_from_bag(s102, bagname, output_path):
     remove_file(output_path)
     # the sample data is in NAD83 so does not meet spec - test that it's caught
     pytest.raises(s102.S102Exception, s102.from_bag, *(bagname, output_path))
@@ -118,13 +176,13 @@ def test_make_from_bag(bagname, output_path):
     check_s102_data(new_s102)
 
 
-def test_read_s102(output_path):
+def test_read_s102(s102, output_path):
     s102_read_test = s102.S102File(output_path, "r")
     check_s102_data(s102_read_test)
     s102_read_test.close()
 
 
-def test_copy_s102(output_path, copy_path):
+def test_copy_s102(s102, output_path, copy_path):
     s102_read_test = s102.S102File(output_path, "r")
     check_s102_data(s102_read_test)
     remove_file(copy_path)
@@ -136,7 +194,7 @@ def test_copy_s102(output_path, copy_path):
     s102_copy_root_test.close()
 
 
-def test_tif_conversion(tifname, temp_bagname):
+def test_tif_conversion(s102, tifname, temp_bagname):
     # test that nodata is changed to 1000000 and that passing a gdal instance works instead of filename
     remove_file(temp_bagname)
     gdal_data = gdal.Open(tifname)
@@ -164,7 +222,7 @@ def test_tif_conversion(tifname, temp_bagname):
     assert min_data == new_s102.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.depth[min_row, min_col]
 
 
-def test_subdivide(output_path):
+def test_subdivide(s102, output_path):
     # output_path = r"C:\Pydro22_Dev\NOAA\site-packages\Python38\git_repos\s100py\tests\s102\F00788_SR_8m.bag.s102.h5"
     s102_file = s102.S102File(output_path, "r")
     s102_file.subdivide(output_path, 2, 3)
@@ -195,23 +253,31 @@ def test_s102_version_upgrade(bagname):
     from s100py.s102 import v2_0, v2_1
     metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
     bagname = pathlib.Path(bagname)
-    f20 = v2_0.api.S102File.from_bag(bagname, bagname.with_suffix(".2_0_to_2_1.h5"), metadata=metadata)
+    upgrade_name = bagname.with_suffix(".2_0_to_2_2.h5")
+    f20 = v2_0.api.S102File.from_bag(bagname, upgrade_name, metadata=metadata)
     assert "2.0" in str(f20.root.product_specification)
     f20.close()
-    f21 = v2_1.api.S102File.upgrade(bagname.with_suffix(".2_0_to_2_1.h5"))
+    f21 = v2_1.api.S102File.upgrade(upgrade_name)
     assert "2.1" in str(f21.root.product_specification)
     f21.close()
+    f22 = v2_2.api.S102File.upgrade(upgrade_name)
+    assert "2.2" in str(f22.root.product_specification)
+    f22.close()
 
 
 # tiffname = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff"
 # output_path = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.h5"
 # @TODO reduce the size of the test dataset and add it to the test directory
-def test_rat(s102, tifname=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.tiff", output_path=r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.h5"):
-    metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
-    remove_file(output_path)
-    new_outname = str(output_path)+f".{s102.api.EDITION}.h5"
-    new_s102_20 = s102.utils.from_gdal(tifname, new_outname, metadata=metadata)
-    remove_file(new_outname)
+def test_rat(s102, tif_with_rat_name, output_with_rat_path):
+    # the sample data is in NAD83 so does not meet spec - test that it's caught
+    pytest.raises(s102.S102Exception, s102.from_gdal, *(tif_with_rat_name, output_with_rat_path))
+
+    # override the metadata for the datum to WGS84 zone 10N and go from there
+    metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32615}
+    # The tiff is in elevation so flip the z
+    new_s102_20 = s102.from_gdal(tif_with_rat_name, output_with_rat_path, metadata=metadata, flip_z=True)
+    check_s102_rat_data(new_s102_20)
+
 # test_rat(str(local_path.joinpath("F00788_SR_8m.tif")), output_path)
 # test_rat(tiffname, output_path)
 if 0:
@@ -221,8 +287,39 @@ if 0:
     new_s102_20 = v2_2.utils.from_gdal(r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102b.tiff", out_path, metadata=metadata)
 if 0:
     metadata = {'geographicIdentifier': "Hudson River"}
-    bags = [r"C:\Data\S102\S102_v2.2\NBS_US4NY1CQ_20230221.bag",]
-    tiffs = [r"C:\Data\S102\S102_v2.2\NBS_US4NY1CQ_20230221_162221_base.tiff",]
+    bags = [r"C:\Data\S102\S102_v2.2\NBS_US4NY1CQ_20230221.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCII_20230602.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCJH_20230110.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCJI_20230221.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCKG_20230110.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCKH_20230110.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCLG_20230110.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCLH_20230221.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCMG_20230110.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCMH_20230110.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCNG_20230110.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCNH_20230221.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCOG_20230110.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCGH_20230602.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCHH_20230602.bag",
+            r"C:\data\S102\S102_v2.2\NBS_US5NYCIH_20230602.bag",]
+    tiffs = [r"C:\Data\S102\S102_v2.2\NBS_US4NY1CQ_20230221_162221_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCMG_20230110_095405_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCMH_20230110_095405_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCNG_20230110_095405_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCNH_20230221_162221_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCOG_20230110_095405_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCGH_20230602_121207_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCHH_20230602_121207_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCIH_20230602_121207_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCII_20230602_121207_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCJH_20230110_095405_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCJI_20230221_162221_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCKG_20230110_095405_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCKH_20230110_095405_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCLG_20230110_095405_base.tiff",
+             r"C:\data\S102\S102_v2.2\NBS_US5NYCLH_20230221_162221_base.tiff",
+             ]
     for tif in tiffs:
         remove_file(tif+".2_2.h5")
         s102_22 = v2_2.utils.from_gdal(tif, tif+".2_2.h5", metadata=metadata, flip_z=True)  # bluetopo tiff is in elevation instead of depth
