@@ -1,12 +1,16 @@
 import shutil
 
+from .v2_0 import api as v2_0
 from .v2_1 import api as v2_1
-from .v2_1.api import *
+from .v2_2 import api as v2_2
+from .v2_2.api import *
 
 
 def open(name, *args, version=EDITION, **kwargs):
     obj = None
-    if version == 2.1:
+    if version == 2.2:
+        obj = v2_2.S102File(name, *args, **kwargs)
+    elif version == 2.1:
         obj = v2_1.S102File(name, *args, **kwargs)
     elif version == 2.0:
         obj = v2_0.S102File(name, *args, **kwargs)

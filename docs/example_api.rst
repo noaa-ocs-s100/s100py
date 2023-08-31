@@ -115,6 +115,12 @@ To recap:
     - __\*_type__ to help the user of the api know the type to use and for the api to load from disk
     - \*_create to make empty objects or supply default values as specified by S100
 
+NOTE:
+    For the _type__ property a general python type (int, float) can be used or a numpy type (numpy.int32, numpy.float64).
+    If a numpy type is used then the data can be set with a python value but will be stored in HDF5 as the specific type.
+    General python types will end up as whatever type the os platform uses.
+    We have observed Linux using int64 while Windows uses int32 for int.
+
 Now let's try a datatype that has eastBoundLongitude, westBoundLongitude, northBoundLongitude, southBoundLatitude and
 utmZone.  The first four attributes are already part of an :any:`s100.GeographicBoundingBox` so let's derive a class
 from there.
@@ -198,6 +204,7 @@ the standard template, so there is a second one just for enumerations in :any:`e
 
         def name_of_data_create(self):
             """ Creates an enumerated value of 'spam' (because it's first in the list) """
+            # Make the enum into a list and take the first value
             self.name_of_data = list(self.__name_of_data_type__)[0]
 
         __data_grid_hdf_name__ = "dataGrid"  #: HDF5 naming
@@ -241,7 +248,7 @@ base class::
 For the last datatype we'll make the compound dataset "datasetWithNames".  This is to encapsulate S100 specs that lay out
 data with names, like attributes, but say they belong in a dataset.   The :any:`s1xx.S1xxDatasetBase` takes care of this.
 Similar to the List we just made above, this class uses a list to keep an arbitrary number of data arrays and read/write
-them to HDF%.
+them to HDF5.
 
 For example, the S100 spec Table 10c-8 describes a compound array stored as a dataset which is more naturally used
 as a multiple lists of attributes.  Our example will make a datatype to hold three attributes and a datatype that

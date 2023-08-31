@@ -12,6 +12,7 @@ import logging
 import functools
 from abc import ABC, abstractmethod
 from typing import Callable, Iterator, Union, Optional, List, Type
+from enum import Enum
 
 import xml
 import xml.etree.ElementTree
@@ -22,29 +23,39 @@ import numpy
 import h5py
 try:
     from osgeo import gdal, osr
+    gdal.UseExceptions()
 except:
     pass
 
 try:
-    from ... import s1xx
+    from ... import s1xx, s100
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s102"
 
-from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype
-from ...v4_0.s100 import S100File, GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
+from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype, make_enum_dtype
+from ...v5_0.s100 import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
-    CommonPointRule
-from .. import v2_0
+    CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, InterpolationType, \
+    VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_COORDINATE_BASE, VERTICAL_DATUM
 
-EDITION = 2.1
-PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.1'
+from .. import v2_0
+from .. import v2_1
+
+EDITION = 2.2
+PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.2'
 
 CHANGELOG = """
+v2.1
 Removed TrackingList  --  4.2.1.1.8 TrackingListCoverage
 Removed min/max display scale -- 4.2.1.1.1.2 and 4.2.1.1.1.5 BathymetryCoverage semantics
 Added flip_z parameters in utils since z orientation is going from positive up to positive down
 Change FeatureInformation datatype to H5T_FLOAT from H5T_NATIVE_FLOAT - per table 10-3 
-featureName and featureCode were both used in 2.0 doc, was corrected to only use featureCode in 2.1 
+featureName and featureCode were both used in 2.0 doc, was corrected to only use featureCode in 2.1
+
+v2.2
+Add QualityOfSurvey for RasterAttribute storage.
+Revisions to the horizontal and vertical datum attributes at the root level.
+Stricter datatypes per S102 (but not S100) spec
 """
 
 
@@ -53,6 +64,7 @@ class S102Exception(S100Exception):
 
 
 BATHY_COVERAGE = "BathymetryCoverage"
+QUALITY_OF_SURVEY = "QualityOfSurvey"
 DEPTH = "depth"
 UNCERTAINTY = "uncertainty"
 
@@ -72,6 +84,19 @@ START_SEQUENCE: Starting location of the scan.
 
 """
 
+class BATHYMETRIC_UNCERTAINTY_TYPE(Enum):
+    """ Note: while a Vertical Datum can be created with the shorthand aliases, ex: MLWS, the string written and
+    returned from the file/S100 object will be the official long name, e.g. "meanLowWaterSprings" etc.
+    S100 Part 4a Metadata
+
+    S100 v5 Part 17 Vertical and Sounding Datum
+    Added balticSeaChartDatum2000 = 44
+    """
+    unknown = 0
+    rawStandardDeviation = 1
+    cUBEStandardDeviation = 2
+    productUncertainty = 3
+    historicalStandardDeviation = 4
 
 # figure 4.4 in section 4.2.1 of v2.0.0 shows an overview of many of the S102 classes used
 # Annex B in the S102 spec has an example layout (still determining if it matches the docs)
@@ -228,9 +253,10 @@ class BathymetryValues(S1xxGridsBase):
 
 
 # v2.1 Chagne to .01 from .001
-class BathymetryCoverageBase(S1xxObject):
-    """ This is the Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
-
+# v2.1 removed min/max display scale mixin
+class BathymetryCoverage(S1xxObject):
+    """ This is the "Values" Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
+    S100 v4.0 table 10c-18
     4.2.1.1.1 and Figure 4.4 of v2.0.0
     also see section 12.3 and table 12.5
 
@@ -243,13 +269,6 @@ class BathymetryCoverageBase(S1xxObject):
     __maximum_depth_hdf_name__ = "maximumDepth"  #: HDF5 naming
     __minimum_uncertainty_hdf_name__ = "minimumUncertainty"  #: HDF5 naming
     __maximum_uncertainty_hdf_name__ = "maximumUncertainty"  #: HDF5 naming
-    __origin_hdf_name__ = "origin"  #: HDF5 naming
-    __offset_vectors_hdf_name__ = "offsetVectors"  #: HDF5 naming
-    __dimension_hdf_name__ = "dimension"  #: HDF5 naming
-    __axis_names_hdf_name__ = "axisNames"  #: HDF5 naming
-    __extent_hdf_name__ = "extent"  #: HDF5 naming
-    __sequencing_rule_hdf_name__ = "sequencingRule"  #: HDF5 naming
-    __start_sequence_hdf_name__ = "startSequence"  #: HDF5 naming
 
     @property
     def values(self) -> BathymetryValues:
@@ -292,7 +311,7 @@ class BathymetryCoverageBase(S1xxObject):
 
     @property
     def __minimum_depth_type__(self):
-        return float
+        return numpy.float32
 
     def minimum_depth_create(self):
         # noinspection PyAttributeOutsideInit
@@ -313,7 +332,7 @@ class BathymetryCoverageBase(S1xxObject):
 
     @property
     def __maximum_depth_type__(self):
-        return float
+        return numpy.float32
 
     def maximum_depth_create(self):
         # noinspection PyAttributeOutsideInit
@@ -348,7 +367,7 @@ class BathymetryCoverageBase(S1xxObject):
 
     @property
     def __minimum_uncertainty_type__(self):
-        return float
+        return numpy.float32
 
     def minimum_uncertainty_create(self):
         # noinspection PyAttributeOutsideInit
@@ -369,188 +388,12 @@ class BathymetryCoverageBase(S1xxObject):
 
     @property
     def __maximum_uncertainty_type__(self):
-        return float
+        return numpy.float32
 
     def maximum_uncertainty_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.maximum_uncertainty = self.__maximum_uncertainty_type__()
-
-    @property
-    def origin(self) -> DirectPosition:
-        """From 4.2.1.1.1.8,
-        The attribute origin has the value class DirectPosition which is a position that shall locate the origin of the rectified grid
-        in the coordinate reference system.
-        This attribute is required. There is no default
-        """
-        return self._attributes[self.__origin_hdf_name__]
-
-    @origin.setter
-    def origin(self, val: DirectPosition):
-        self._attributes[self.__origin_hdf_name__] = val
-
-    @property
-    def __origin_type__(self):
-        return DirectPosition
-
-    def origin_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.origin = self.__origin_type__()
-
-    @property
-    def __origin_attribute_type__(self) -> Type[DirectPosition]:
-        return DirectPosition
-
-    @property
-    def offset_vectors(self) -> s1xx_sequence:
-        """sequence of s102 Vectors  From 4.2.1.1.1.9 in S102 v2.0.0
-        The attribute offsetVectors has the value class Sequence<Vector> that shall be a sequence of offset vector elements
-        that determine the grid spacing in each direction.
-        The data type Vector is specified in ISO/TS 19103. This attribute is required.
-        There is no default.
-        """
-        return self._attributes[self.__offset_vectors_hdf_name__]
-
-    @offset_vectors.setter
-    def offset_vectors(self, val: s1xx_sequence):
-        self._attributes[self.__offset_vectors_hdf_name__] = val
-
-    @property
-    def __offset_vectors_type__(self):
-        return numpy.ndarray
-
-    def offset_vectors_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.offset_vectors = self.__offset_vectors_type__([2, ], numpy.float64)
-
-    @property
-    def dimension(self) -> int:
-        """From 4.2.1.1.1.10,
-        The attribute dimension has the value class Integer that shall identify the dimensionality of the grid.
-        The value of the grid dimension in this product specification is 2.
-        This value is fixed in this Product Specification and does not need to be encoded
-        """
-        return self._attributes[self.__dimension_hdf_name__]
-
-    @dimension.setter
-    def dimension(self, val: int):
-        self._attributes[self.__dimension_hdf_name__] = val
-
-    @property
-    def __dimension_type__(self):
-        return int
-
-    def dimension_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.dimension = self.__dimension_type__(2)
-
-    @property
-    def axis_names(self) -> s1xx_sequence:
-        """sequence of character strings From 4.2.1.1.1.11,
-        The attribute axisNames has the value class Sequence<CharacterString> that shall be used to assign names to the grid axis.
-        The grid axis names shall be "Latitude" and "Longitude" for unprojected data sets or “Northing” and “Easting” in a projected space
-        """
-        return self._attributes[self.__axis_names_hdf_name__]
-
-    @axis_names.setter
-    def axis_names(self, val: s1xx_sequence):
-        self._attributes[self.__axis_names_hdf_name__] = val
-
-    @property
-    def __axis_names_type__(self) -> Type[numpy.ndarray]:
-        return numpy.ndarray
-
-    def axis_names_create(self):
-        """ The attribute axisNames has the value class Sequence<CharacterString> that shall be used to assign names to the grid axis.
-        The grid axis names shall be "Latitude" and "Longitude" for unprojected data sets or “Northing” and “Easting” in a projected space.
-        """
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.axis_names = numpy.array(["", ""], dtype=h5py_string_dtype)
-
-    @property
-    def extent(self) -> GridEnvelope:
-        """From 4.2.1.1.1.12,
-        The attribute extent has the value class CV_GridEnvelope that shall contain the extent of the spatial domain of the coverage.
-        It uses the value class CV_GridEnvelope which provides the grid coordinate values for the diametrically opposed corners of the grid.
-        The default is that this value is derived from the bounding box for the data set or tile in a multi tile data set"""
-        return self._attributes[self.__extent_hdf_name__]
-
-    @extent.setter
-    def extent(self, val: GridEnvelope):
-        self._attributes[self.__extent_hdf_name__] = val
-
-    @property
-    def __extent_type__(self) -> Type[GridEnvelope]:
-        return GridEnvelope
-
-    def extent_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.extent = self.__extent_type__()
-
-    @property
-    def sequencing_rule(self) -> SequenceRule:
-        """From 4.2.1.1.1.13,
-        The attribute sequencingRule has the value class CV_SequenceRule (ISO 19123) that shall
-        describe how the grid points are ordered for association to the elements of the sequence values.
-        The default value is "Linear".
-        No other options are allowed.
-        (note that for S100: Only the values "linear" (for a simple regular cell size grid) and "Morton" (for a
-        Quad Tree Grid) shall be used for data that conforms to this standard.)
-        """
-        return self._attributes[self.__sequencing_rule_hdf_name__]
-
-    @sequencing_rule.setter
-    def sequencing_rule(self, val: SequenceRule):
-        self._attributes[self.__sequencing_rule_hdf_name__] = val
-
-    @property
-    def __sequencing_rule_type__(self):
-        return SequenceRule
-
-    def sequencing_rule_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.sequencing_rule = self.__sequencing_rule_type__()
-
-    @property
-    def start_sequence(self) -> GridCoordinate:
-        """ From4.2.1.1.1.14,
-        The attribute startSequence has the value class CV_GridCoordinate that shall identify the grid
-        point to be associated with the first record in the values sequence.
-        The default value is the lower left corner of the grid.
-        No other options are allowed.
-
-        Returns
-        -------
-
-        """
-        return self._attributes[self.__start_sequence_hdf_name__]
-
-    @start_sequence.setter
-    def start_sequence(self, val: GridCoordinate):
-        self._attributes[self.__start_sequence_hdf_name__] = val
-
-    @property
-    def __start_sequence_type__(self):
-        return GridCoordinate
-
-    def start_sequence_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.start_sequence = self.__start_sequence_type__()
-
-
-# v2.1 removed min/max display scale mixin
-class BathymetryCoverage(BathymetryCoverageBase):
-    pass
-
-class SurfaceCorrectionValues(VertexPoint):
-    pass
 
 
 # v2.1 change to Group_001  "." to "_"
@@ -581,6 +424,13 @@ class BathymetryFeatureInstance(FeatureInstanceDCF2):
     """ Basic template for HDF5 naming of the attribute.  
     Attribute name will be automatically determined based on the list's index of the data. 
     """
+
+    @property
+    def __num_grp_type__(self) -> Type[int]:
+        return numpy.uint8
+
+    def num_grp_create(self):
+        self.num_grp = self.__num_grp_type__(1)
 
     @property
     def __bathymetry_group_type__(self):
@@ -626,7 +476,9 @@ class BathymetryCoveragesList(S102MetadataListBase):
         return BathymetryFeatureInstance
 
 
-class BathymetryContainer(FeatureContainerDCF2):
+# TODO FIXME If this is not a feature attributed grid then it should be DataCodingFormat2
+#  (which has an additional interpolation attribute) and not any QualityOfSurvey structures
+class BathymetryContainer(FeatureContainerDCF9, InterpolationType):
     """ This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named BathymetryCoverage.NN
     """
@@ -636,6 +488,10 @@ class BathymetryContainer(FeatureContainerDCF2):
     @property
     def __version__(self) -> int:
         return 1
+
+    @property
+    def __num_instances_type__(self) -> Type[int]:
+        return numpy.uint8  # S102 reduces this from uint32
 
     @property
     def __bathymetry_coverage_type__(self):
@@ -665,7 +521,7 @@ class BathymetryContainer(FeatureContainerDCF2):
         """ Creates a blank, empty or zero value for data_coding_format"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.data_coding_format = self.__data_coding_format_type__(2)  # regular grid
+        self.data_coding_format = self.__data_coding_format_type__(9)  # regular grid
 
     def dimension_create(self):
         """ Creates a blank, empty or zero value for dimension"""
@@ -743,17 +599,609 @@ class BathymetryCoverageDataset(S102FeatureInformationDataset):
         return BATHY_COVERAGE
 
 
+# @TODO can I just derive quality from the bathy?
+class QualityOfSurvey_GroupNNN(S1xxObject):
+    """ This is the "Values" Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
+
+    4.2.1.1.1 and Figure 4.4 of v2.0.0
+    also see section 12.3 and table 12.5
+
+    """
+
+    write_format_str = ".%02d"
+
+    __values_hdf_name__ = "values"  #: HDF5 naming
+    # @TODO are these metadata attributes applicable to the QualityCoverage (feature attribute table) or only the BathymetryCoverage objects?
+    #  They come from the S100 spec while S102 says no attributes (did they mean no additional attributes?)
+    __offset_vectors_hdf_name__ = "offsetVectors"  #: HDF5 naming
+
+    @property
+    def values(self) -> numpy.ndarray:
+        """ The grids for depth and uncertainty.
+
+        4.2.1.1.2.1 S102_BathymetryValues semantics
+
+        The class S102_BathymetryValues is related to BathymetryCoverage by a composition relationship in which an ordered sequence
+        of depth values provide data values for each grid cell.
+        The class S102_BathymetryValues inherits from S100_Grid
+
+        4.2.1.1.2.2 values
+
+        The attribute values has the value type S102_BathymetryValueRecord which is
+         a sequence of value items that shall assign values to the grid points.
+        There are two attributes in the bathymetry value record, depth and uncertainty in the S102_BathymetryValues class.
+        The definition for the depth is defined by the depthCorrectionType attribute in the S102_DataIdentification class.
+        The definition of the type of data in the values record is defined by the verticalUncertaintyType attribute
+        in the S102_DataIdentification class
+        """
+        return self._attributes[self.__values_hdf_name__]
+
+    @values.setter
+    def values(self, val: numpy.ndarray):
+        self._attributes[self.__values_hdf_name__] = val
+
+    # FIXME - is this an ndarray or needs a qualityValues class like BathmetryValues?
+    # Values for the BathymetryCoverageBase used BathymetryValues(S1xxGridBase) since it needed a compound array (depth, uncertainty)
+    # while the Quality can just use a ndarray to hold the integers.
+    @property
+    def __values_type__(self) -> Type[numpy.ndarray]:
+        return numpy.ndarray
+
+    @property
+    def quality_dtype(self) -> Type[int]:
+        return numpy.int
+
+    def values_create(self):
+        """ Creates a blank, empty or zero value for values"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.values = self.__values_type__([], self.quality_dtype)
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def __origin_attribute_type__(self) -> Type[DirectPosition]:
+        return DirectPosition
+
+    @property
+    def offset_vectors(self) -> s1xx_sequence:
+        """sequence of s102 Vectors  From 4.2.1.1.1.9 in S102 v2.0.0
+        The attribute offsetVectors has the value class Sequence<Vector> that shall be a sequence of offset vector elements
+        that determine the grid spacing in each direction.
+        The data type Vector is specified in ISO/TS 19103. This attribute is required.
+        There is no default.
+        """
+        return self._attributes[self.__offset_vectors_hdf_name__]
+
+    @offset_vectors.setter
+    def offset_vectors(self, val: s1xx_sequence):
+        self._attributes[self.__offset_vectors_hdf_name__] = val
+
+    @property
+    def __offset_vectors_type__(self):
+        return numpy.ndarray
+
+    def offset_vectors_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.offset_vectors = self.__offset_vectors_type__([2, ], numpy.float64)
+
+
+class QualityGroupList(S102MetadataListBase):
+    """ This is the list of Group.NNN that are held as a list.
+    Each Group.NNN has a dataset of depth and uncertainty.
+    """
+    write_format_str = "_%03d"
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def metadata_name(self) -> str:
+        return "Group"
+
+    @property
+    def metadata_type(self) -> type:
+        return QualityOfSurvey_GroupNNN
+
+
+class QualityFeatureInstance(FeatureInstanceDCF9):
+    """ This will be the QualityCoverage.001 element in HDF5.
+    It will contain a Group.NNN which will have the "values" dataset of the deptha dn uncertainty.
+    """
+    __quality_group_hdf_name__ = "Group" + r"[\._]\d+"
+    """ Basic template for HDF5 naming of the attribute.  
+    Attribute name will be automatically determined based on the list's index of the data. 
+    """
+
+    @property
+    def __num_grp_type__(self) -> Type[int]:
+        return numpy.uint8  # S102 only
+
+    def num_grp_create(self):
+        self.num_grp = self.__num_grp_type__(1)
+
+    @property
+    def __quality_group_type__(self):
+        return QualityGroupList
+
+    def quality_group_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.quality_group = self.__quality_group_type__()
+
+    @property
+    def quality_group(self) -> S102MetadataListBase:
+        """ The quality data, a list of qualitygroup
+        Returns
+        -------
+        S102MetadataListBase
+            Contains a list of QualityOfSurvey_GroupNNN objects via the QualityCoveragesList class
+        """
+        return self._attributes[self.__quality_group_hdf_name__]
+
+    @quality_group.setter
+    def quality_group(self, val: S102MetadataListBase):
+        self._attributes[self.__quality_group_hdf_name__] = val
+
+    @property
+    def __east_bound_longitude_type__(self):
+        return numpy.float32
+
+
+# S102 adds the interpolationType
+class QualityOfSurveyContainer(FeatureContainerDCF9, InterpolationType):
+    """ This is the QualityOfSurvey right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
+    This will hold child groups named QualityOfSurvey.NN
+    """
+    #: attribute name will be automatically determined based on the containing list's index
+    __quality_of_survey_hdf_name__ = QUALITY_OF_SURVEY + r"[\._]\d+"
+    # featureAttributeTable is inherited via FeatureContainerDCF9 from S100 v5.0
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def __num_instances_type__(self) -> Type[int]:
+        return numpy.uint8  # S102 reduces this from uint32
+
+    @property
+    def __quality_of_survey_type__(self):
+        return QualityOfSurveysList
+
+    def quality_of_survey_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.quality_of_survey = self.__quality_of_survey_type__()
+
+    @property
+    def quality_of_survey(self) -> S102MetadataListBase:
+        """ The quality_of_survey data, a list of QualityOfSurvey
+
+        Returns
+        -------
+        S102MetadataListBase
+            Contains a list of QualityOfSurvey objects via the QualityOfSurveyList class
+        """
+        return self._attributes[self.__quality_of_survey_hdf_name__]
+
+    @quality_of_survey.setter
+    def quality_of_survey(self, val: S102MetadataListBase):
+        self._attributes[self.__quality_of_survey_hdf_name__] = val
+
+    def data_coding_format_create(self):
+        """ Creates a blank, empty or zero value for data_coding_format"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.data_coding_format = self.__data_coding_format_type__(9)  # regular grid
+
+    def dimension_create(self):
+        """ Creates a blank, empty or zero value for dimension"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.dimension = self.__dimension_type__(2)
+
+    # @TODO fixme reduce/remove these as possible and make compound dataset for feature attribute records
+    @property
+    def __feature_attribute_table_type__(self) -> Type[FeatureAttributeDataset]:
+        return FeatureAttributeDataset
+
+    def feature_attribute_table_create(self):
+        """ Creates a blank, empty or zero value for feature_attribute_table"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        # FIXME @TODO -- this has to be an arbitrary number of strings, is this limiting it to two?
+        self.feature_attribute_table = self.__feature_attribute_table_type__()
+
+
+class QualityOfSurveysList(S102MetadataListBase):
+    """ 4.2.1.1.2 and Figure 4.4 and Table 10.1 of v2.0.0
+    This is the set of QualityOfSurvey.NN that act like a list here.
+    They will contain a list of Groups.NNN as well as other attributes etc.
+    """
+    write_format_str = ".%02d"
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def metadata_name(self) -> str:
+        return QUALITY_OF_SURVEY
+
+    @property
+    def metadata_type(self) -> Type[QualityFeatureInstance]:
+        return QualityFeatureInstance
+
+
+# The FeatureAttributeRecord is a new class in 2.2 and stores the quality values (basically the catzoc flags)
+# the FeatureInstance class from the dataCodingFormat will have integer values that refer to the ids in these records.
+class FeatureAttributeRecord(S1xxObject):
+    """ The records that the integer matrix refer to and the actual attribute values for the quality of coverage.
+    From section 10.2.7 and table 10.7
+    """
+    __id_hdf_name__ = "id"  #: HDF5 naming
+    __data_assessment_hdf_name__ = "dataAssessment"  #: HDF5 naming
+    __least_depth_of_detected_features_measured_hdf_name__ = "featuresDetected.leastDepthOfDetectedFeaturesMeasured"  #: HDF5 naming
+    __significant_features_detected_hdf_name__ = "featuresDetected.significantFeaturesDetected"  #: HDF5 naming
+    __size_of_features_detected_hdf_name__ = "featuresDetected.sizeOfFeaturesDetected"  #: HDF5 naming
+    __feature_size_var_hdf_name__ = "featureSizeVar"  #: HDF5 naming
+    __full_seafloor_coverage_achieved_hdf_name__ = "fullSeafloorCoverageAchieved"  #: HDF5 naming
+    __bathy_coverage_hdf_name__ = "bathyCoverage"  #: HDF5 naming
+    __uncertainty_fixed_hdf_name__ = "zoneOfConfidence.horizontalPositionUncertainty.uncertaintyFixed"  #: HDF5 naming
+    __uncertainty_variable_factor_hdf_name__ = "zoneOfConfidence.horizontalPositionUncertainty.uncertaintyVariableFactor"  #: HDF5 naming
+    __date_start_hdf_name__ = "surveyDateRange.dateStart"  #: HDF5 naming
+    __date_end_hdf_name__ = "surveyDateRange.dateEnd"  #: HDF5 naming
+    __source_survey_id_hdf_name__ = "sourceSurveyID"  #: HDF5 naming
+    __survey_authority_hdf_name__ = "surveyAuthority"  #: HDF5 naming
+    __bathymetric_uncertainty_type_hdf_name__ = "bathymetricUncertaintyType"  #: HDF5 naming
+
+    @property
+    def id(self) -> int:
+        return self._attributes[self.__id_hdf_name__]
+
+    @id.setter
+    def id(self, val:int):
+        self._attributes[self.__id_hdf_name__] = val
+
+    @property
+    def __id_type__(self) -> Type[int]:
+        return numpy.uint32
+
+    def id_create(self):
+        """ Creates a blank, empty or zero value for id"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.id = self.__id_type__()
+
+    @property
+    def data_assessment(self) -> int:
+        return self._attributes[self.__data_assessment_hdf_name__]
+
+    @data_assessment.setter
+    def data_assessment(self, val: int):
+        self._attributes[self.__data_assessment_hdf_name__] = val
+
+    @property
+    def __data_assessment_type__(self) -> Type[int]:
+        return numpy.uint8
+
+    def data_assessment_create(self):
+        """ Creates a blank, empty or zero value for data_assessment"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.data_assessment = self.__data_assessment_type__()
+
+    @property
+    def least_depth_of_detected_features_measured(self) -> int:
+        return self._attributes[self.__least_depth_of_detected_features_measured_hdf_name__]
+
+    @least_depth_of_detected_features_measured.setter
+    def least_depth_of_detected_features_measured(self, val: int):
+        self._attributes[self.__least_depth_of_detected_features_measured_hdf_name__] = val
+
+    @property
+    def __least_depth_of_detected_features_measured_type__(self) -> Type[int]:
+        return numpy.uint8
+
+    def least_depth_of_detected_features_measured_create(self):
+        """ Creates a blank, empty or zero value for least_depth_of_detected_features_measured"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.least_depth_of_detected_features_measured = self.__least_depth_of_detected_features_measured_type__()
+
+    @property
+    def significant_features_detected(self) -> int:
+        return self._attributes[self.__significant_features_detected_hdf_name__]
+
+    @significant_features_detected.setter
+    def significant_features_detected(self, val: int):
+        self._attributes[self.__significant_features_detected_hdf_name__] = val
+
+    @property
+    def __significant_features_detected_type__(self) -> Type[int]:
+        return numpy.uint8
+
+    def significant_features_detected_create(self):
+        """ Creates a blank, empty or zero value for significant_features_detected"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.significant_features_detected = self.__significant_features_detected_type__()
+
+    @property
+    def size_of_features_detected(self) -> float:
+        return self._attributes[self.__size_of_features_detected_hdf_name__]
+
+    @size_of_features_detected.setter
+    def size_of_features_detected(self, val: float):
+        self._attributes[self.__size_of_features_detected_hdf_name__] = val
+
+    @property
+    def __size_of_features_detected_type__(self) -> Type[float]:
+        return numpy.float32
+
+    def size_of_features_detected_create(self):
+        """ Creates a blank, empty or zero value for size_of_features_detected"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.size_of_features_detected = self.__size_of_features_detected_type__()
+
+    @property
+    def feature_size_var(self) -> float:
+        return self._attributes[self.__feature_size_var_hdf_name__]
+
+    @feature_size_var.setter
+    def feature_size_var(self, val: float):
+        self._attributes[self.__feature_size_var_hdf_name__] = val
+
+    @property
+    def __feature_size_var_type__(self) -> Type[float]:
+        return numpy.float32
+
+    def feature_size_var_create(self):
+        """ Creates a blank, empty or zero value for feature_size_var"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.feature_size_var = self.__feature_size_var_type__()
+
+    @property
+    def full_seafloor_coverage_achieved(self) -> int:
+        return self._attributes[self.__full_seafloor_coverage_achieved_hdf_name__]
+
+    @full_seafloor_coverage_achieved.setter
+    def full_seafloor_coverage_achieved(self, val: int):
+        self._attributes[self.__full_seafloor_coverage_achieved_hdf_name__] = val
+
+    @property
+    def __full_seafloor_coverage_achieved_type__(self) -> Type[int]:
+        return numpy.uint8
+
+    def full_seafloor_coverage_achieved_create(self):
+        """ Creates a blank, empty or zero value for full_seafloor_coverage_achieved"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.full_seafloor_coverage_achieved = self.__full_seafloor_coverage_achieved_type__()
+
+    @property
+    def bathy_coverage(self) -> int:
+        return self._attributes[self.__bathy_coverage_hdf_name__]
+
+    @bathy_coverage.setter
+    def bathy_coverage(self, val: int):
+        self._attributes[self.__bathy_coverage_hdf_name__] = val
+
+    @property
+    def __bathy_coverage_type__(self) -> Type[int]:
+        return numpy.uint8
+
+    def bathy_coverage_create(self):
+        """ Creates a blank, empty or zero value for bathy_coverage"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.bathy_coverage = self.__bathy_coverage_type__()
+
+    @property
+    def uncertainty_fixed(self) -> float:
+        return self._attributes[self.__uncertainty_fixed_hdf_name__]
+
+    @uncertainty_fixed.setter
+    def uncertainty_fixed(self, val: float):
+        self._attributes[self.__uncertainty_fixed_hdf_name__] = val
+
+    @property
+    def __uncertainty_fixed_type__(self) -> Type[float]:
+        return numpy.float32
+
+    def uncertainty_fixed_create(self):
+        """ Creates a blank, empty or zero value for uncertainty_fixed"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.uncertainty_fixed = self.__uncertainty_fixed_type__()
+
+    @property
+    def uncertainty_variable_factor(self) -> float:
+        return self._attributes[self.__uncertainty_variable_factor_hdf_name__]
+
+    @uncertainty_variable_factor.setter
+    def uncertainty_variable_factor(self, val: float):
+        self._attributes[self.__uncertainty_variable_factor_hdf_name__] = val
+
+    @property
+    def __uncertainty_variable_factor_type__(self) -> Type[float]:
+        return numpy.float32
+
+    def uncertainty_variable_factor_create(self):
+        """ Creates a blank, empty or zero value for uncertainty_variable_factor"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.uncertainty_variable_factor = self.__uncertainty_variable_factor_type__()
+
+    @property
+    def date_start(self) -> str:
+        return self._attributes[self.__date_start_hdf_name__]
+
+    @date_start.setter
+    def date_start(self, val: str):
+        self._attributes[self.__date_start_hdf_name__] = val
+
+    @property
+    def __date_start_type__(self) -> Type[str]:
+        return str
+
+    def date_start_create(self):
+        """ Creates a blank, empty or zero value for date_start"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.date_start = self.__date_start_type__()
+
+    @property
+    def date_end(self) -> str:
+        return self._attributes[self.__date_end_hdf_name__]
+
+    @date_end.setter
+    def date_end(self, val: str):
+        self._attributes[self.__date_end_hdf_name__] = val
+
+    @property
+    def __date_end_type__(self) -> Type[str]:
+        return str
+
+    def date_end_create(self):
+        """ Creates a blank, empty or zero value for date_end"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.date_end = self.__date_end_type__()
+
+    @property
+    def source_survey_id(self) -> str:
+        return self._attributes[self.__source_survey_id_hdf_name__]
+
+    @source_survey_id.setter
+    def source_survey_id(self, val: str):
+        self._attributes[self.__source_survey_id_hdf_name__] = val
+
+    @property
+    def __source_survey_id_type__(self) -> Type[str]:
+        return str
+
+    def source_survey_id_create(self):
+        """ Creates a blank, empty or zero value for source_survey_id"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.source_survey_id = self.__source_survey_id_type__()
+
+    @property
+    def survey_authority(self) -> str:
+        return self._attributes[self.__survey_authority_hdf_name__]
+
+    @survey_authority.setter
+    def survey_authority(self, val: str):
+        self._attributes[self.__survey_authority_hdf_name__] = val
+
+    @property
+    def __survey_authority_type__(self) -> Type[str]:
+        return str
+
+    def survey_authority_create(self):
+        """ Creates a blank, empty or zero value for survey_authority"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.survey_authority = self.__survey_authority_type__()
+
+    @property
+    def bathymetric_uncertainty_type(self) -> BATHYMETRIC_UNCERTAINTY_TYPE:
+        return self._attributes[self.__bathymetric_uncertainty_type_hdf_name__]
+
+    @bathymetric_uncertainty_type.setter
+    def bathymetric_uncertainty_type(self, val: Union[int, str, BATHYMETRIC_UNCERTAINTY_TYPE]):
+        self.set_enum_attribute(val, self.__bathymetric_uncertainty_type_hdf_name__, self.__bathymetric_uncertainty_type_type__)
+
+    @property
+    def __bathymetric_uncertainty_type_type__(self) -> Type[BATHYMETRIC_UNCERTAINTY_TYPE]:
+        return BATHYMETRIC_UNCERTAINTY_TYPE
+
+    def bathymetric_uncertainty_type_create(self):
+        """ Creates a blank, empty or zero value for bathymetric_uncertainty_type
+        """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.bathymetric_uncertainty_type = list(self.bathymetric_uncertainty_type_type)[0]
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    def get_write_order(self):
+        return [self.__id_hdf_name__,
+                self.__data_assessment_hdf_name__,
+                self.__least_depth_of_detected_features_measured_hdf_name__,
+                self.__significant_features_detected_hdf_name__,
+                self.__size_of_features_detected_hdf_name__,
+                self.__feature_size_var_hdf_name__,
+                self.__full_seafloor_coverage_achieved_hdf_name__,
+                self.__bathy_coverage_hdf_name__,
+                self.__uncertainty_fixed_hdf_name__,
+                self.__uncertainty_variable_factor_hdf_name__,
+                self.__date_start_hdf_name__,
+                self.__date_end_hdf_name__,
+                self.__source_survey_id_hdf_name__,
+                self.__survey_authority_hdf_name__,
+                self.__bathymetric_uncertainty_type_hdf_name__,
+                ]
+
+    def get_write_dtypes(self):
+        expected_items = self.get_standard_properties_mapping()
+        dtypes = []
+        for key in self.get_write_order():
+            use_type = self.__getattribute__("__" + expected_items[key] + "_type__")
+            dtypes.append((key, use_type))
+        return dtypes
+
+# TODO FIXME - somewhere here needs to be the featureAttributeTable from 10.2.7 (or 10.2.8) and table 10.6 (Table 14) that holds the list of FeatureAttributeRecords
+class FeatureAttributeDataset(S1xxDatasetBase):
+    """ This class comes from S102 -- 10.2.7 Feature information group.
+    This class serves to keep a list of FeatureAttributeRecord objects which will be turned into a compound array
+    of strings in the HDF5 file.
+
+    The metadata_name property must be overridden.
+    """
+
+    @property
+    def metadata_type(self) -> Type[FeatureAttributeRecord]:
+        return FeatureAttributeRecord
+
+    # analogous to BathymetryCoverageDataset
+    @property
+    def metadata_name(self) -> str:
+        return "featureAttributeTable"
+
+
+class QualityCoverageDataset(S102FeatureInformationDataset):
+    """ This is for the Group_F information group.
+    It is the same data structure as the BathymetryCoverageDataset.
+    Adds the QualityOfSurvey from S102 v2.2 section 10.2.2 and table 10.3
+    """
+    @property
+    def metadata_name(self) -> str:
+        return QUALITY_OF_SURVEY
+
+
 class FeatureCodes(GroupFBase):
     """ Table 10.1 and sect 10.2.1 of v2.0.0
+    Add the QualityOfSurvey from S102 v2.2 section 10.2.2 and table 10.3
     """
 
     __feature_name_hdf_name__ = "featureName"  #: HDF5 naming
     __bathymetry_coverage_dataset_hdf_name__ = BATHY_COVERAGE
+    __quality_of_survey_dataset_hdf_name__ = QUALITY_OF_SURVEY
 
     def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE], dtype=h5py_string_dtype)
+        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, QUALITY_OF_SURVEY], dtype=h5py_string_dtype)
 
     @property
     def __version__(self) -> int:
@@ -776,27 +1224,52 @@ class FeatureCodes(GroupFBase):
     def bathymetry_coverage_dataset(self, val: BathymetryCoverageDataset):
         self._attributes[self.__bathymetry_coverage_dataset_hdf_name__] = val
 
+    @property
+    def __quality_of_survey_dataset_type__(self):
+        return QualityCoverageDataset
+
+    def quality_of_survey_dataset_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.quality_of_survey_dataset = self.__quality_of_survey_dataset_type__()
+
+    @property
+    def quality_of_survey_dataset(self) -> QualityCoverageDataset:
+        return self._attributes[self.__quality_of_survey_dataset_hdf_name__]
+
+    @quality_of_survey_dataset.setter
+    def quality_of_survey_dataset(self, val: QualityCoverageDataset):
+        self._attributes[self.__quality_of_survey_dataset_hdf_name__] = val
+
 
 class S102Root(S100Root):
     """The root group contains a feature information group and N feature containers.
     In S102 there are currently two feature containers which are the 'coverages'  bathymetry and tracking list.
     The coverage names are determined from the matching CoveragesAttributes
     10.2 and Figure 10.1 of v2.0.0
+
+    v2.2 Adds the QualityOfSurvey from S102 v2.2 section 10.2.2 and table 10.3
     """
     __feature_information_hdf_name__ = "Group_F"  #: HDF5 naming
     __bathymetry_coverage_hdf_name__ = BATHY_COVERAGE
+    __quality_of_survey_hdf_name__ = QUALITY_OF_SURVEY  #: HDF5 naming
 
+    # If the S100 file has a type that doesn't match the product spec (like float32 vs float64) then you can just override the type function.
+    # @property
+    # def __east_bound_longitude_type__(self):
+    #     return numpy.float32
+    #
     @property
     def __version__(self) -> int:
         return 1
 
     @property
-    def feature_information(self) -> FeatureCodesBase:
+    def feature_information(self) -> FeatureCodes:
         """Feature Information stored in GroupF in the HDF5 using :class:`FeatureCodes`"""
         return self._attributes[self.__feature_information_hdf_name__]
 
     @feature_information.setter
-    def feature_information(self, val: FeatureCodesBase):
+    def feature_information(self, val: FeatureCodes):
         self._attributes[self.__feature_information_hdf_name__] = val
 
     @property
@@ -826,6 +1299,35 @@ class S102Root(S100Root):
     @bathymetry_coverage.setter
     def bathymetry_coverage(self, val: S1xxObject):
         self._attributes[self.__bathymetry_coverage_hdf_name__] = val
+
+    @property
+    def quality_of_survey(self) -> S1xxObject:
+        return self._attributes[self.__quality_of_survey_hdf_name__]
+
+    @quality_of_survey.setter
+    def quality_of_survey(self, val:S1xxObject):
+        self._attributes[self.__quality_of_survey_hdf_name__] = val
+
+    @property
+    def __quality_of_survey_type__(self) -> Type[S1xxObject]:
+        return QualityOfSurveyContainer
+
+    def quality_of_survey_create(self):
+        """ Creates a blank, empty or zero value for quality_of_survey"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.quality_of_survey = self.__quality_of_survey_type__()
+
+    def vertical_cs_create(self):
+        """ Sets the vertical_cs to Depth as S102 specifies
+        """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.vertical_cs = VERTICAL_CS.Depth
+
+    @property
+    def __vertical_datum_type__(self) -> Type[int]:
+        return numpy.uint16
 
 
 class S102File(S100File):
@@ -883,7 +1385,7 @@ class S102File(S100File):
         grid = bathy_group_object.values
         depth_grid = grid.depth
         uncert_grid = grid.uncertainty
-        origin = bathy_group_object.origin.coordinate
+        origin = numpy.array([bathy_01.grid_origin_longitude, bathy_01.grid_origin_latitude])
         res_x = bathy_01.grid_spacing_longitudinal
         res_y = bathy_01.grid_spacing_latitudinal
         res = numpy.array([res_x, res_y])
@@ -932,7 +1434,7 @@ class S102File(S100File):
         """
         Create and return the list of valid EPSG codes for S-102 version 2.0.
         """
-        valid_epsg = [4326, 5041, 5042]
+        valid_epsg = [4326, 5041, 5042]  # , 6318, 6319 are NAD83
         valid_epsg += list(numpy.arange(32601, 32660 + 1))
         valid_epsg += list(numpy.arange(32701, 32760 + 1))
         return valid_epsg
@@ -1054,7 +1556,27 @@ class S102File(S100File):
         """
         # @fixme @todo -- I think this will overwrite no matter what, need to look into that
         self.create_empty_metadata()  # init the root with a fully filled out empty metadata set
+        r = self.root
+        del r.horizontal_cs, r.projection_parameter_1, r.projection_parameter_2, r.projection_parameter_3
+        del r.projection_parameter_4, r.projection_parameter_5, r.false_easting, r.false_northing
+        del r.name_of_horizontal_datum, r.type_of_horizontal_crs, r.horizontal_datum, r.prime_meridian, r.spheriod, r.projection_method
+        del r.name_of_horizontal_crs, r.epoch
         self._set_bathy_defaults()
+        self._set_quality_defaults()  # added for DataCodingFormat9 only -- need to make this optional
+
+    def _set_quality_defaults(self, overwrite=True):
+        root = self.root
+        quality_dset = root.feature_information.quality_of_survey_dataset
+        quality_info = quality_dset.append_new_item()
+        quality_info.initialize_properties(True, overwrite=overwrite)
+        quality_info.code = "id"
+        quality_info.name = ""
+        quality_info.unit_of_measure = ""
+        quality_info.fill_value = 0
+        quality_info.datatype = "H5T_INTEGER"
+        quality_info.lower = 1
+        quality_info.upper = ""
+        quality_info.closure = "geSemiInterval"
 
     def _set_bathy_defaults(self, overwrite=True):
         """ This function initializes the values in more recent versions of the spec to reduce redundant code in later modules
@@ -1077,6 +1599,8 @@ class S102File(S100File):
         bathy_uncertainty_info.initialize_properties(True, overwrite=overwrite)
         bathy_uncertainty_info.code = UNCERTAINTY
         bathy_uncertainty_info.name = UNCERTAINTY
+        bathy_uncertainty_info.lower = 0
+        bathy_uncertainty_info.closure = "gtLeInterval"
 
         root.bathymetry_coverage.axis_names = numpy.array(["Longitude", "Latitude"])  # row major order means X/longitude first
         root.bathymetry_coverage.sequencing_rule_scan_direction = "Longitude, Latitude"
@@ -1087,12 +1611,8 @@ class S102File(S100File):
         root.bathymetry_coverage.num_instances = 1  # how many Bathycoverages
         root.bathymetry_coverage.sequencing_rule_type = 1  # linear
         del root.bathymetry_coverage.time_uncertainty
+        del root.bathymetry_coverage.feature_attribute_table  # this only goes in the QualityOfSurvey group
 
-        bathy_cov_dset = root.feature_information.bathymetry_coverage_dataset
-
-        bathy_uncertainty_info = bathy_cov_dset[1]
-        bathy_uncertainty_info.lower = 0
-        bathy_uncertainty_info.closure = "gtLeInterval"
 
     @classmethod
     def from_arrays(cls, depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, output_file, nodata_value=None,
@@ -1117,7 +1637,7 @@ class S102File(S100File):
 
     def load_arrays(self, depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, nodata_value=None,
                     flip_x: bool = False, flip_y: bool = False, overwrite: bool = True,
-                    flip_z: bool = False):  # num_array, or list of lists accepted
+                    flip_z: bool = False, quality_grid=None):  # num_array, or list of lists accepted
 
         """  Updates an S102File object based on numpy array/h5py datasets.
         Calls :any:`create_s102` then fills in the HDF5 datasets with the supplied depth_grid and uncert_grid.
@@ -1145,6 +1665,8 @@ class S102File(S100File):
             boolean if the data should be reversed in z coordinate (i.e. the original grid is upside down)
             Flips are done here so we can implement a chunked read/write to save memory.
             This is after overwrite for backwards compatibility.
+        quality_grid
+            The quality dataset to embed in the object. Optional for S102, leave as None if not needed.
 
         Returns
         -------
@@ -1161,6 +1683,10 @@ class S102File(S100File):
             bathy_01 = root.bathymetry_coverage.bathymetry_coverage.append_new_item()
         bathy_01.initialize_properties(recursively_create_children=True, overwrite=overwrite)
 
+        del root.geographic_identifier
+        del root.meta_features
+        del root.bathymetry_coverage.data_offset_vector
+        del root.bathymetry_coverage.data_offset_code
         del bathy_01.grid_spacing_vertical
         del bathy_01.grid_origin_vertical
         del bathy_01.number_of_times
@@ -1168,6 +1694,23 @@ class S102File(S100File):
         del bathy_01.date_time_of_last_record
         del bathy_01.date_time_of_first_record
         bathy_01.num_grp = 1
+
+        if quality_grid is not None:  # I'd like to just do a loop on bathy and quality but they have some different names and might have different values at some point in the future.
+            try:
+                quality_01 = root.quality_of_survey.quality_of_survey[0]
+            except IndexError:
+                quality_01 = root.quality_of_survey.quality_of_survey.append_new_item()
+            quality_01.initialize_properties(recursively_create_children=True, overwrite=overwrite)
+
+            del root.quality_of_survey.data_offset_vector
+            del root.quality_of_survey.data_offset_code
+            del quality_01.grid_spacing_vertical
+            del quality_01.grid_origin_vertical
+            del quality_01.number_of_times
+            del quality_01.time_record_interval
+            del quality_01.date_time_of_last_record
+            del quality_01.date_time_of_first_record
+            quality_01.num_grp = 1
 
         try:
             bathy_group_object = bathy_01.bathymetry_group[0]
@@ -1182,6 +1725,14 @@ class S102File(S100File):
         if depth_grid.shape != uncert_grid.shape:
             raise S102Exception("Depth and Uncertainty grids have different shapes")
 
+        if quality_grid is not None:
+            try:
+                quality_group_object = quality_01.quality_group[0]
+            except IndexError:
+                quality_group_object = quality_01.quality_group.append_new_item()
+            if depth_grid.shape != quality_grid.shape:
+                raise S102Exception("Depth and Quality grids have different shapes")
+
         bathy_01.num_points_latitudinal = rows
         bathy_01.num_points_longitudinal = cols
         bathy_01.start_sequence = "0,0"
@@ -1189,18 +1740,19 @@ class S102File(S100File):
         del bathy_01.vertical_extent_maximum_z
         del bathy_01.vertical_extent_minimum_z
 
-        bathy_group_object.extent_create()
-        bathy_group_object.extent.initialize_properties(True, overwrite=overwrite)
-        bathy_group_object.extent.low.coord_values[0:2] = [0, 0]
-        bathy_group_object.extent.high.coord_values[0:2] = [rows, cols]
+        if quality_grid is not None:
+            quality_01.num_points_latitudinal = rows
+            quality_01.num_points_longitudinal = cols
+            quality_01.start_sequence = "0,0"
+            del quality_01.num_points_vertical
+            del quality_01.vertical_extent_maximum_z
+            del quality_01.vertical_extent_minimum_z
 
-        try:
-            uncertainty_max = uncert_grid[uncert_grid != nodata_value].max()
-            uncertainty_min = uncert_grid[uncert_grid != nodata_value].min()
-        except ValueError:  # an empty uncertainty array (all values == nodata) will cause this
-            uncertainty_max = uncertainty_min = nodata_value
-        bathy_group_object.minimum_uncertainty = uncertainty_min
-        bathy_group_object.maximum_uncertainty = uncertainty_max
+        bathy_01.extent_create()
+        bathy_01.extent = numpy.array([[0,0], [rows, cols]], bathy_01.extent_dtype)
+        # bathy_01.extent.initialize_properties(True, overwrite=overwrite)
+        # bathy_01.extent.low.coord_values[0:2] = [0, 0]
+        # bathy_01.extent.high.coord_values[0:2] = [rows, cols]
 
         bathy_group_object.dimension = 2
 
@@ -1209,7 +1761,11 @@ class S102File(S100File):
         # bathy_group_object.origin.dimension = 2
 
         bathy_group_object.values_create()
+
         grid = bathy_group_object.values
+        if quality_grid is not None:
+            quality_group_object.values_create()
+            quality_grid_values = quality_group_object.values
         # @todo -- need to make sure nodata values are correct,
         #   especially if converting something other than bag which is supposed to have the same nodata value
         # @todo -- Add logic that if the grids are gdal raster bands then read in blocks and use h5py slicing to write in blocks.
@@ -1217,10 +1773,15 @@ class S102File(S100File):
         if flip_x:
             depth_grid = numpy.fliplr(depth_grid)
             uncert_grid = numpy.fliplr(uncert_grid)
+            if quality_grid is not None:
+                quality_grid = numpy.fliplr(quality_grid)
         if flip_y:
             depth_grid = numpy.flipud(depth_grid)
             uncert_grid = numpy.flipud(uncert_grid)
+            if quality_grid is not None:
+                quality_grid = numpy.flipud(quality_grid)
 
+        # @TODO backport this to 2.1, 2.0
         # change the grids to use the no data values specified in the S102 file
         depth_mask = None
         uncert_mask = None
@@ -1233,17 +1794,24 @@ class S102File(S100File):
             if not numpy.isnan(fill_value):  # if fill value isn't also NaN then use it
                 depth_mask = numpy.isnan(depth_grid)
                 uncert_mask = numpy.isnan(uncert_grid)
+                if quality_grid is not None:
+                    quality_mask = numpy.isnan(quality_grid)
         # the fill value is nan and nodata wasn't OR
         # Both fills are numbers - make sure they match
         elif numpy.isnan(fill_value) or \
-                nodata_value != fill_value:
+            nodata_value != fill_value:
             depth_mask = depth_grid == nodata_value
             uncert_mask = uncert_grid == nodata_value
+            if quality_grid is not None:
+                quality_mask = quality_grid == nodata_value
         if depth_mask is not None:
             depth_grid = numpy.copy(depth_grid)
             depth_grid[depth_mask] = fill_value
             uncert_grid = numpy.copy(uncert_grid)
             uncert_grid[uncert_mask] = uncert_fill_value
+            if quality_grid is not None:
+                quality_grid = numpy.copy(quality_grid)
+                quality_grid[quality_mask] = root.feature_information.quality_of_survey_dataset[0].fill_value  # will be zero per spec
 
         # flip the z values if requested now that we have fixed the possible NaN logic issue
         if flip_z:
@@ -1265,8 +1833,19 @@ class S102File(S100File):
         bathy_group_object.minimum_uncertainty = uncertainty_min
         bathy_group_object.maximum_uncertainty = uncertainty_max
 
+
         grid.depth = depth_grid
         grid.uncertainty = uncert_grid
+        if quality_grid is not None:
+            # there are no metadata attributes (min/max) for QualityOfSurvey Group_001 - see 10.2.10
+            quality_group_object.values_create()
+            try:
+                if not numpy.issubdtype(quality_grid.dtype, numpy.integer):
+                    quality_grid = quality_grid.astype(numpy.uint32)
+            except:
+                pass
+            quality_group_object.values = quality_grid  # @TODO is this right or do we need to do like depth+uncertainty
+            # quality_group_object.values.quality_of_survey = quality_grid
 
 
     @classmethod
@@ -1289,7 +1868,7 @@ class S102File(S100File):
         return data_file
 
     def load_arrays_with_metadata(self, depth_grid: s1xx_sequence, uncert_grid: s1xx_sequence, metadata: dict, nodata_value=None,
-                                  overwrite: bool = True, flip_z: bool = False):  # raw arrays and metadata accepted
+                                  overwrite: bool = True, flip_z: bool = False, quality_grid=None):  # raw arrays and metadata accepted
         """ Fills or creates an :any:`S102File` from the given arguments.
 
         Parameters
@@ -1306,7 +1885,8 @@ class S102File(S100File):
                 - "res": tuple of the resolution (cell size) of each grid cell (x, y).
                     Lower left corner is the first point of both resolutions are positive.
                     If a resolution is negative then the grid will be flipped in that dimension and the origin adjusted accordingly.
-                - "horizontalDatumReference": See :any:`S102Root` horizontal_datum_reference, ex: "EPSG".
+                - "horizontalDatumReference": Removed in S102 v2.2
+                    See :any:`S102Root` horizontal_datum_reference, ex: "EPSG".
                     "EPSG" is the default value.
                 - "horizontalDatumValue":  The value for the horizontal data such as the EPSG code ex: 32611
                 - "epoch":
@@ -1315,6 +1895,10 @@ class S102File(S100File):
                 - "issueDate":  ISO 8601 date string, ex: "2019-01-01"
                 - "issueTime": ISO 8601 time string, ex: "00:00:00"
                 - "metadataFile": File name for the associated discovery metatadata (xml)
+                = "verticalDatumReference": VERTICAL_DATUM_REFERENCE enumeration value.
+                    VERTICAL_DATUM_REFERENCE.s100VerticalDatum is the default
+                - "verticalDatum": VERTICAL_DATUM enumeration value or EPSG code based on "verticalDatumReference".
+                    VERTICAL_DATUM.MLLW is the default
         output_file
             Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
         nodata_value
@@ -1332,7 +1916,7 @@ class S102File(S100File):
         flip_y = True if res_y < 0 else False
 
         self.load_arrays(depth_grid, uncert_grid, nodata_value=nodata_value, overwrite=overwrite, flip_x=flip_x, flip_y=flip_y,
-                                flip_z=flip_z)
+                                flip_z=flip_z, quality_grid=quality_grid)
 
         rows, cols = depth_grid.shape
         corner_x, corner_y = metadata['origin']
@@ -1350,18 +1934,24 @@ class S102File(S100File):
         root = self.root
         bathy_01 = root.bathymetry_coverage.bathymetry_coverage[0]
 
+        if "verticalDatumReference" in metadata or "verticalDatum" in metadata or overwrite:
+            # root.vertical_cs = VERTICAL_CS.Depth
+            root.vertical_coordinate_base = VERTICAL_COORDINATE_BASE.verticalDatum
+            root.vertical_datum_reference = metadata.get('verticalDatumReference', VERTICAL_DATUM_REFERENCE.s100VerticalDatum)
+            root.vertical_datum = metadata.get("verticalDatum", VERTICAL_DATUM.MLLW)
+
         # these names are taken from the S100/S102 attribute names
         # but are hard coded here to allow the S102 spec to change but not affect any tools built on these utility functions
-        if "horizontalDatumReference" in metadata or overwrite:
-            root.horizontal_datum_reference = metadata.get("horizontalDatumReference", "EPSG")
+        # if "horizontalDatumReference" in metadata or overwrite:
+        #     root.horizontal_datum_reference = metadata.get("horizontalDatumReference", "EPSG")
         if "horizontalDatumValue" in metadata or overwrite:
             source_epsg = int(metadata.get("horizontalDatumValue", 0))
             if source_epsg in self.get_valid_epsg():
-                root.horizontal_datum_value = source_epsg
+                root.horizontal_crs = source_epsg
             else:
-                raise ValueError(f'The provided EPSG code {source_epsg} is not within the S102 specified values.')
+                raise S102Exception(f'The provided EPSG code {source_epsg} is not within the S102 specified values.')
         srs = osr.SpatialReference()
-        srs.ImportFromEPSG(root.horizontal_datum_value)
+        srs.ImportFromEPSG(int(root.horizontal_crs))
         if srs.IsProjected():
             axes = ["Easting", "Northing"]  # ["Northing", "Easting"]  # row major instead of
             wgs = osr.SpatialReference()
@@ -1380,29 +1970,42 @@ class S102File(S100File):
         root.south_bound_latitude = south_lat
         root.north_bound_latitude = north_lat
 
-        # S102 says this is in the CRS of the data (projected) against S100 which says units of Arc Degrees (lat/lon)
-        bathy_01.east_bound_longitude = maxx
-        bathy_01.west_bound_longitude = minx
-        bathy_01.south_bound_latitude = miny
-        bathy_01.north_bound_latitude = maxy
+        feature_instance_groups = [bathy_01]
+        if quality_grid is not None:
+            quality_01 = root.quality_of_survey.quality_of_survey[0]
+            feature_instance_groups.append(quality_01)
+            root.quality_of_survey.axis_names = numpy.array(axes)  # row major order means X/longitude first
+            root.quality_of_survey.sequencing_rule_scan_direction = ", ".join(axes)
 
-        # S102 says this is in the CRS of the data (projected) while S100 says units of Arc Degrees (lat/lon)
-        bathy_01.grid_origin_longitude = minx
-        bathy_01.grid_origin_latitude = miny
-        bathy_01.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
-        bathy_01.grid_spacing_latitudinal = abs(res_y)
+        # the bathymetry_coverage.01 and quality_of_survey.01 are defined to have the same attributes
+        for instance in feature_instance_groups:
+            # S102 says this is in the CRS of the data (projected) against S100 which says units of Arc Degrees (lat/lon)
+            instance.east_bound_longitude = maxx
+            instance.west_bound_longitude = minx
+            instance.south_bound_latitude = miny
+            instance.north_bound_latitude = maxy
+
+            # S102 says this is in the CRS of the data (projected) while S100 says units of Arc Degrees (lat/lon)
+            instance.grid_origin_longitude = minx
+            instance.grid_origin_latitude = miny
+            instance.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
+            instance.grid_spacing_latitudinal = abs(res_y)
 
         root.bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
         root.bathymetry_coverage.sequencing_rule_scan_direction = ", ".join(axes)
 
         if "epoch" in metadata or overwrite:
             root.epoch = metadata.get("epoch", "")  # e.g. "G1762"  this is the 2013-10-16 WGS84 used by CRS
+            if not root.epoch:  # remove optional field if empty
+                del root.epoch
         if "geographicIdentifier" in metadata or overwrite:
             root.geographic_identifier = metadata.get("geographicIdentifier", "")
+            if not root.geographic_identifier:  # remove optional field if empty
+                del root.geographic_identifier
         if "issueDate" in metadata or overwrite:
-            root.issue_date = metadata.get('issueDate', datetime.date.today().isoformat())
+            root.issue_date = metadata.get('issueDate', datetime.date.today().isoformat())  # datetime.date.today().isoformat()
         if "issueTime" in metadata or overwrite:
-            root.issue_time = metadata.get('issueTime', "")  # datetime.datetime.now().time().isoformat()
+            root.issue_time = metadata.get('issueTime', "")  # datetime.date.today().isoformat()
             if not root.issue_time:  # remove optional field if empty
                 del root.issue_time
         if "metadataFile" in metadata or overwrite:
@@ -1414,6 +2017,7 @@ class S102File(S100File):
     @classmethod
     def from_gdal(cls, input_raster, output_file, metadata: dict = None, flip_z=False) -> S102File:  # gdal instance or filename accepted
         """  Fills or creates an :any:`S102File` from the given arguments.
+        Assumes that depth is in band 1, uncertainty is in band 2, quality is in band 3.
 
         For most parameters, see :any:`S102File.load_arrays`
 
@@ -1460,8 +2064,7 @@ class S102File(S100File):
         # @todo @fixme -- transform the coordinate system to a WGS84.  Strictly this may not end up being square, so how do we handle
         #  transform = osr.CoordinateTransformation( src_srs, tgt_srs)
         # Until we have a working datum engine this module should not do datum transformations - GR 20200402
-        if "horizontalDatumReference" not in metadata or "horizontalDatumValue" not in metadata:
-            metadata["horizontalDatumReference"] = "EPSG"
+        if "horizontalDatumValue" not in metadata:
             sr = osr.SpatialReference(dataset.GetProjection())
             epsg = sr.GetAuthorityCode(None)
             if epsg is None and sr.IsProjected():
@@ -1488,6 +2091,7 @@ class S102File(S100File):
         depth_nodata_value = raster_band.GetNoDataValue()
         uncertainty_band = dataset.GetRasterBand(2)
 
+
         ulx, dxx, dxy, uly, dyx, dyy = dataset.GetGeoTransform()
         if dxy != 0.0 or dyx != 0.0:
             raise S102Exception("raster is not north up but is rotated, this is not handled at this time")
@@ -1497,8 +2101,37 @@ class S102File(S100File):
             metadata["origin"] = [ulx + dxx / 2, uly + dyy / 2]
         if "res" not in metadata:
             metadata["res"] = [dxx, dyy]
+        if dataset.RasterCount > 2:
+            quality_band = dataset.GetRasterBand(3)
+            qual_data = quality_band.ReadAsArray()
+        else:
+            qual_data = None
+        # Fill the QualityOfSurvey table
+        if qual_data is not None:
+            table = self.root.quality_of_survey.feature_attribute_table
+            rat = quality_band.GetDefaultRAT()
+            column_map = {rat.GetNameOfCol(ncol):ncol for ncol in range(rat.GetColumnCount())}
+
+            for nrow in range(rat.GetRowCount()):
+                rec = table.append_new_item()
+                rec.id = rat.GetValueAsInt(nrow, column_map['value'])
+                rec.data_assessment = rat.GetValueAsInt(nrow, column_map['data_assessment'])
+                rec.least_depth_of_detected_features_measured = rat.GetValueAsInt(nrow, column_map['feature_least_depth'])
+                rec.significant_features_detected = rat.GetValueAsInt(nrow, column_map['significant_features'])
+                rec.size_of_features_detected = rat.GetValueAsDouble(nrow, column_map['feature_size'])
+                rec.feature_size_var = 0  # set to "does not scale with depth" instead of rat.GetValueAsDouble(nrow, column_map[''])
+                rec.full_seafloor_coverage_achieved = rat.GetValueAsInt(nrow, column_map['coverage'])
+                rec.bathy_coverage = rat.GetValueAsInt(nrow, column_map['bathy_coverage'])
+                rec.uncertainty_fixed = rat.GetValueAsDouble(nrow, column_map['horizontal_uncert_fixed'])
+                rec.uncertainty_variable_factor = rat.GetValueAsDouble(nrow, column_map['horizontal_uncert_var'])
+                rec.date_start = rat.GetValueAsString(nrow, column_map['survey_date_start'])
+                rec.date_end = rat.GetValueAsString(nrow, column_map['survey_date_end'])
+                rec.source_survey_id = rat.GetValueAsString(nrow, column_map['source_survey_id'])
+                rec.survey_authority = rat.GetValueAsString(nrow, column_map['source_institution'])
+                rec.bathymetric_uncertainty_type = 0  # use "unknown" instead of rat.GetValueAsInt(nrow, column_map[''])
+
         self.load_arrays_with_metadata(raster_band.ReadAsArray(), uncertainty_band.ReadAsArray(), metadata,
-                                                   nodata_value=depth_nodata_value, flip_z=flip_z)
+                                                   nodata_value=depth_nodata_value, flip_z=flip_z, quality_grid=qual_data)
 
     @classmethod
     def from_bag(cls, bagfile, output_file, metadata: dict = None) -> S102File:
@@ -1564,81 +2197,51 @@ class S102File(S100File):
 
     @staticmethod
     def upgrade_in_place(s100_object):
-        if s100_object.root.product_specification != v2_0.PRODUCT_SPECIFICATION:
-            v2_0.api.S102File.upgrade_in_place(s100_object)
-        if s100_object.root.product_specification == v2_0.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification != v2_1.PRODUCT_SPECIFICATION:
+            v2_1.S102File.upgrade_in_place(s100_object)
+        if s100_object.root.product_specification == v2_1.PRODUCT_SPECIFICATION:
             # update product specification
             s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
-            # remove TrackingList
-            del s100_object['TrackingListCoverage']
-            del s100_object['Group_F']['TrackingListCoverage']
-            del s100_object['Group_F']['featureName']
-            fc20 = s100_object['Group_F']['featureCode']
-            if fc20[0] in (b'BathymetryCoverage', 'BathymetryCoverage'):
-                fc21 = fc20[:1]  # keep the bathymetery and delete the trackinglist
-            elif fc20[1] in (b'BathymetryCoverage', 'BathymetryCoverage'):
-                fc21 = fc20[1:]  # keep the bathymetery and delete the trackinglist
-            del s100_object['Group_F']['featureCode']
-            s100_object['Group_F'].create_dataset('featureCode', data=fc21)
+            # Update horizontal CRS
+            del s100_object.attrs['horizontalDatumReference']
+            s100_object.attrs.create('horizontalCRS', s100_object.attrs['horizontalDatumValue'], dtype=numpy.int32)
+            del s100_object.attrs['horizontalDatumValue']
 
-            # remove display scale and reverse the Z direction
-            for top in v2_0.S102File.top_level_keys:
-                try:
-                    bathy_top = s100_object[top]
-                    groupf_bathy = s100_object['Group_F'][top]
-                    # get the fill value to use when reversing the Z value
-                    fill_val = float(groupf_bathy[0]['fillValue'])
-                    # update the datatype definition
-                    # groupf_bathy[0]['datatype'] = 'H5T_FLOAT' fails to adjust the file as the groupf_bathy[0] creates a temporary copy
-                    # groupf_bathy[0, 'datatype'] = 'H5T_FLOAT' raises a typeError about changing the datatype
-                    # copying the data with temp=groupf_bathy[0] then changing values then setting groupf_bathy[0]=temp seems to work
-                    # similar to revising the depth values later in this function
-                    for nrow in range(len(groupf_bathy)):
-                        row = groupf_bathy[nrow]
-                        row['datatype'] = 'H5T_FLOAT'
-                        if row['name'].lower() in ("uncertainty", b"uncertainty"):
-                            row['lower'] = 0
-                            row['closure'] = 'gtLeInterval'
-                        groupf_bathy[nrow] = row
-                    # depth_string = groupf_bathy[0]['code']
-                except KeyError:
-                    pass
-                else:
-                    for second in v2_0.S102File.second_level_keys:
-                        try:
-                            bathy_cov = bathy_top[second]
-                        except KeyError:
-                            pass
-                        else:
-                            for group in v2_0.S102File.group_level_keys:
-                                try:
-                                    bathy_group = bathy_cov[group]
-                                except KeyError:
-                                    pass
-                                else:
-                                    try:
-                                        del bathy_group[v2_0.api.DisplayScaleMixin.__maximum_display_scale_hdf_name__]
-                                    except KeyError:
-                                        pass
-                                    try:
-                                        del bathy_group[v2_0.api.DisplayScaleMixin.__minimum_display_scale_hdf_name__]
-                                    except KeyError:
-                                        pass
-                                    try:
-                                        depth_uncert = bathy_group['values']
-                                        # h5py does not allow editing via fancy slicing se we need to convert to numpy, edit and then put it back
-                                        # i.e. depth[depth!=fill_val] *= -1 won't work but doesn't raise an error either
-                                        a = numpy.array(depth_uncert['depth'])
-                                        a[a != fill_val] *= -1
-                                        depth_uncert['depth'] = a
-                                    except KeyError:
-                                        pass
-                                    # standardize with the 2.1 required Group_001
-                                    if group != "Group_001":
-                                        bathy_cov.move(group, "Group_001")
-                            # standardize with the 2.1 required BathymetryCoverage.01
-                            if second != "BathymetryCoverage.01":
-                                bathy_top.move(second, "BathymetryCoverage.01")
+            def change_attr_type(obj, name, new_type):
+                """Convenience function to change the type of an attribute which happened a lot in v2.2"""
+                if name in obj.attrs:
+                    temp = obj.attrs[name]
+                    del obj.attrs[name]
+                    obj.attrs.create(name, temp, dtype=new_type)
+            for name in ['westBoundLongitude', 'eastBoundLongitude', 'southBoundLatitude', 'northBoundLatitude']:
+                change_attr_type(s100_object, name, numpy.float32)
+                change_attr_type(s100_object['BathymetryCoverage']['BathymetryCoverage.01'], name, numpy.float32)
+            change_attr_type(s100_object['BathymetryCoverage'], 'dimension', numpy.uint8)
+            change_attr_type(s100_object['BathymetryCoverage'], 'horizontalPositionUncertainty', numpy.float32)
+            change_attr_type(s100_object['BathymetryCoverage'], 'verticalUncertainty', numpy.float32)
+            change_attr_type(s100_object['BathymetryCoverage'], 'numInstances', numpy.uint8)
+            try:
+                # This was a mistake in s100py created data.
+                del s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['extentTypeCode']
+            except KeyError:
+                pass
+            change_attr_type(s100_object['BathymetryCoverage']['BathymetryCoverage.01'], 'numGRP', numpy.uint8)
+            # Update the vertical CRS
+            s100_object.attrs.create('verticalCS', 6498, dtype=numpy.int32)
+            s100_object.attrs.create('verticalCoordinateBase', 2, dtype=make_enum_dtype(VERTICAL_COORDINATE_BASE))
+            try:
+                # This was a mistake in s100py created data.
+                del s100_object['BathymetryCoverage']['BathymetryCoverage.01']['Group_001'].attrs['dimension']
+            except KeyError:
+                pass
+            # changes min/max values to single precision.
+            for name in ['maximumDepth', 'maximumUncertainty', 'minimumDepth', 'minimumUncertainty']:
+                change_attr_type(s100_object['BathymetryCoverage']['BathymetryCoverage.01']['Group_001'], name, numpy.float32)
+            try:
+                # This was a mistake in s100py created data.
+                del s100_object['BathymetryCoverage']['BathymetryCoverage.01']['Group_001']['extent']
+            except KeyError:
+                pass
 
 
 # # S102File = S102File_2_0

@@ -495,6 +495,7 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
 
     def type_of_water_level_data_create(self):
         """ Creates a value using the first item in the enumeration of type_of_water_level_data"""
+        # Make the enum into a list and take the first value
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.type_of_water_level_data = list(self.__type_of_water_level_data_type__)[0]
@@ -757,6 +758,7 @@ class S104Root(S100Root):
 
     def vertical_coordinate_base_create(self):
         """ Creates a value using the first item in the enumeration of vertical_coordinate_base"""
+        # Make the enum into a list and take the first value
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.vertical_coordinate_base = list(self.__vertical_coordinate_base_type__)[0]
@@ -776,6 +778,7 @@ class S104Root(S100Root):
 
     def vertical_datum_reference_create(self):
         """ Creates a value using the first item in the enumeration of vertical_datum_reference"""
+        # Make the enum into a list and take the first value
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.vertical_datum_reference = list(self.__vertical_datum_reference_type__)[0]

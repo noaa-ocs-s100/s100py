@@ -30,7 +30,7 @@ What it does:
 
 Code to put in your live template ::
 
-    __$attr$_hdf_name__ = return "$SELECTION$"  #: HDF5 naming
+    __$attr$_hdf_name__ = "$SELECTION$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
@@ -52,11 +52,11 @@ Code to put in your live template ::
 
 For enumeration data types use this template which is very similar
     - Again, click the Edit Variables and for $attr$ under expression put: snakeCase(SELECTION)
-      at the bottom is a line that says "applicable in" and has a hyperlinked word (define or change) -- click that and select Python
+    - At the bottom is a line that says "applicable in" and has a hyperlinked word (define or change) -- click that and select Python
 
 ::
 
-    __$attr$_hdf_name__ = return "$SELECTION$"  #: HDF5 naming
+    __$attr$_hdf_name__ = "$SELECTION$"  #: HDF5 naming
 
     @property
     def $attr$(self) -> $type$:
@@ -72,6 +72,7 @@ For enumeration data types use this template which is very similar
 
     def $attr$_create(self):
         """ Creates a value using the first item in the enumeration of $attr$"""
+        # Make the enum into a list and take the first value
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.$attr$ = list(self.__$attr$_type__)[0]
@@ -146,6 +147,7 @@ If you used the enumeration 'MONTY' from the sample api, this would look like   
         """ Creates a blank, empty or zero value for $attr$
         $SELECTION$
         """
+        # Make the enum into a list and take the first value
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.$attr$ = list(self.__$attr$_type__)[0]

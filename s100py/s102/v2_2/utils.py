@@ -38,7 +38,7 @@ except:
     if not getattr(sys, 'frozen', False):  # we expect the frozen exe to not have matplotlib
         print("matplotlib.pyplot failed to import, plotting will not work")
 
-from s100py.s102.v2_1.api import DEPTH, UNCERTAINTY, S102File, S102Exception
+from s100py.s102.v2_2.api import DEPTH, UNCERTAINTY, S102File, S102Exception
 
 __all__ = ['plot_depth_using_h5py', 'create_s102', 'from_arrays', 'from_arrays_with_metadata',
            'from_gdal', 'from_bag', 'get_valid_epsg']
@@ -136,6 +136,7 @@ from_gdal = S102File.from_gdal
 from_bag = S102File.from_bag
 get_valid_epsg = S102File.get_valid_epsg
 
+
 if __name__ == "__main__":
     parser = make_parser()
     args = parser.parse_args()
@@ -165,4 +166,3 @@ if __name__ == "__main__":
             from_bag(ds, output_name)
         else:
             from_gdal(ds, output_name)
-

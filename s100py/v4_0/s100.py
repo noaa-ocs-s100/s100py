@@ -16,6 +16,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
 from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxDatasetBase, S1XXFile, h5py_string_dtype, is_sub_class, h5py_string_comp
 
 EDITION = 4.0
+PRODUCT_SPECIFICATION = 'INT.IHO.S-100.4.0'
 
 
 class S100Exception(Exception):
@@ -59,6 +60,7 @@ _H5T_Types = {
 class VERTICAL_DATUM(Enum):
     """ Note: while a Vertical Datum can be created with the shorthand aliases, ex: MLWS, the string written and
     returned from the file/S100 object will be the official long name, e.g. "meanLowWaterSprings" etc.
+    S100 Part 4a Metadata
     """
     meanLowWaterSprings = 1
     MLWS = 1
@@ -137,7 +139,7 @@ Sphinx is not interpreting the enum names properly when there are spaces. The co
 
 # noinspection PyPep8Naming
 class INTERPOLATION_TYPE(Enum):
-    """
+    """ S100 v4.0 table 10c-21
     Enumeration S100_CV_InterpolationMethod Codes for interpolation methods between known feature attribute
     values associated with geometric objects in the domain of the discrete coverage
     Extension of ISO 19123
@@ -185,9 +187,9 @@ class INTERPOLATION_TYPE(Enum):
     10
     """
     nearestneighbor = 1
-    linear = 2
-    quadratic = 3
-    cubic = 4
+    # linear = 2  # these are struck through in the spec
+    # quadratic = 3  # these are struck through in the spec
+    # cubic = 4  # these are struck through in the spec
     bilinear = 5
     biquadratic = 6
     bicubic = 7
@@ -198,14 +200,20 @@ class INTERPOLATION_TYPE(Enum):
 
 # noinspection PyPep8Naming
 class COMMON_POINT_RULE(Enum):
+    """ S100 v4.0 Table 10c-19
+    """
     average = 1
     low = 2
     high = 3
     all = 4
+    # start = 5  # these are struck through in the spec
+    # end = 6  # these are struck through in the spec
 
 
 # noinspection PyPep8Naming
 class SEQUENCING_RULE_TYPE(Enum):
+    """ S100 v4.0 Table 10c-20
+    """
     linear = 1
     boustrophedonic = 2
     CantorDiagonal = 3
@@ -214,12 +222,12 @@ class SEQUENCING_RULE_TYPE(Enum):
     Hilbert = 6
 
 
-SEQUENCING_RULE_SCAN_DIRECTION = 'longitude,latitude'
+SEQUENCING_RULE_SCAN_DIRECTION = 'longitude,latitude'  # See S100 v4.0 Table 10c-10
 START_SEQUENCE = '0,0'
 
-
+# Note there is a DirectPosition in the S100 spec which is possibly different than the DirectPosition in the S102 spec
 class DirectPosition(S1xxObject):
-    """ 4.2.1.1.4 of v2.0.0
+    """ S102 4.2.1.1.4 of v2.0.0
     """
     __coordinate_hdf_name__ = "coordinate"  #: HDF5 naming
     __dimension_hdf_name__ = "dimension"  #: HDF5 naming
@@ -264,7 +272,7 @@ class DirectPosition(S1xxObject):
 
 
 class GridCoordinate(S1xxObject):
-    """ 4.2.1.1.6 of v2.0.0
+    """ 4.2.1.1.6 of S102 v2.0.0, references ISO 19123
     """
 
     __coord_values_hdf_name__ = "coordValues"  #: HDF5 naming
@@ -295,7 +303,7 @@ class GridCoordinate(S1xxObject):
 
 
 class GridEnvelope(S1xxObject):
-    """ 4.2.1.1.5 of v2.0.0
+    """ S102  4.2.1.1.5 of v2.0.0, , references ISO 19123
     While I would think that the envelope would describe the real world extents of the grid,
     in the docs it describes the envelope as specifying the row/column offsets for the lower left and upper right
     coordinates using the integer indices (S100 and ISO 19123 sec. 8.3).  The real world coordinates are in the origin and offsetVectors instead.
@@ -626,6 +634,11 @@ class VertexPoint(S1xxObject):
         self.value = self.__value_type__([2, ], numpy.float)
 
 
+# FIXME @TODO Add base class (maybe full implementation for many of the datasets) for FeatureInstanceBase
+#  Positioning, Group_IDX, Group_TL, cellGeometry, uncertainty, extent, domainExtent.verticalElement, domainExtent.polygon
+#  This would be added to the FeatureInstanceBase - See S100 v4.0 table 10c-11 and 10c-12
+
+
 class FeatureInstanceBase(GeographicBoundingBox):
     """ The feature instance group attributes from table 10c-12 in S100 spec
     """
@@ -633,7 +646,6 @@ class FeatureInstanceBase(GeographicBoundingBox):
     __vertical_extent_minimum_z_hdf_name__ = "verticalExtent.minimumZ"
     __vertical_extent_maximum_z_hdf_name__ = "verticalExtent.maximumZ"
     __num_grp_hdf_name__ = "numGRP"
-    __instance_chunking_hdf_name__ = "instanceChunking"
     __number_of_times_hdf_name__ = "numberOfTimes"
     __time_record_interval_hdf_name__ = "timeRecordInterval"
     # @TODO  @FIXME -- first and last records are supposed to be datetime but S100 doc says 'character'  Need to create a datetime handler
@@ -721,43 +733,6 @@ class FeatureInstanceBase(GeographicBoundingBox):
         self.num_grp = self.__num_grp_type__()
 
     @property
-    def instance_chunking(self) -> str:
-        """ instance chunking will return a string but accept a string or an iterable of ints which it will format to a string.
-
-        From S100:
-
-        Chunk size for values dataset. If present, this attribute overrides the setting in Group_F for this feature instance
-
-        The format is a comma-separated string of (string representations of) positive integers
-        (except that there is only one number for a 1-dimensional values dataset). The number
-        of integers in the string must correspond to the dimension of the values dataset. For
-        example, “50” for a 1-dimensional array; “150,200” for a 2-dimensional array
-
-        Note: (1) The quotes are not part of the representation. (2) The dimension of the
-        values dataset is its array rank, not the number of spatial dimensions for the coverage
-        feature"""
-
-        return self._attributes[self.__instance_chunking_hdf_name__]
-
-    @instance_chunking.setter
-    def instance_chunking(self, val: Union[str, list, tuple]):
-        if isinstance(val, str):
-            pass
-        else:
-            val = ",".join(str(a) for a in val)
-        self._attributes[self.__instance_chunking_hdf_name__] = val
-
-    @property
-    def __instance_chunking_type__(self) -> Type[str]:
-        return str
-
-    def instance_chunking_create(self):
-        """ Creates a blank, empty or zero value for instance_chunking"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.instance_chunking = self.__instance_chunking_type__()
-
-    @property
     def number_of_times(self) -> int:
         """The total number of time records.
         Time series data only"""
@@ -836,6 +811,51 @@ class FeatureInstanceBase(GeographicBoundingBox):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.date_time_of_last_record = self.__date_time_of_last_record_type__()
+
+
+class FeatureInstanceBase_WithChunk(FeatureInstanceBase):
+    """ In S100 v5.0 Instance Chunking is removed.
+    We are breaking backwards compatibility with S100 v4.0 and earlier by removing this feature.
+    Given that it was somewhat useless and only our code was using it at this point,
+    I'm not going to bother with a deprecation cycle.
+    """
+    __instance_chunking_hdf_name__ = "instanceChunking"
+    @property
+    def instance_chunking(self) -> str:
+        """ instance chunking will return a string but accept a string or an iterable of ints which it will format to a string.
+
+        From S100:
+
+        Chunk size for values dataset. If present, this attribute overrides the setting in Group_F for this feature instance
+
+        The format is a comma-separated string of (string representations of) positive integers
+        (except that there is only one number for a 1-dimensional values dataset). The number
+        of integers in the string must correspond to the dimension of the values dataset. For
+        example, “50” for a 1-dimensional array; “150,200” for a 2-dimensional array
+
+        Note: (1) The quotes are not part of the representation. (2) The dimension of the
+        values dataset is its array rank, not the number of spatial dimensions for the coverage
+        feature"""
+
+        return self._attributes[self.__instance_chunking_hdf_name__]
+
+    @instance_chunking.setter
+    def instance_chunking(self, val: Union[str, list, tuple]):
+        if isinstance(val, str):
+            pass
+        else:
+            val = ",".join(str(a) for a in val)
+        self._attributes[self.__instance_chunking_hdf_name__] = val
+
+    @property
+    def __instance_chunking_type__(self) -> Type[str]:
+        return str
+
+    def instance_chunking_create(self):
+        """ Creates a blank, empty or zero value for instance_chunking"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.instance_chunking = self.__instance_chunking_type__()
 
 
 # noinspection PyUnresolvedReferences
@@ -1002,6 +1022,52 @@ class StartSequence:
         self.start_sequence = self.__start_sequence_type__()
 
 
+class NumberOfStations:
+    """ Mixin class for numberOfStations.  Data Coding Formats 4,8 
+    """
+    __number_of_stations_hdf_name__ = "numberOfStations"  #: HDF5 naming
+
+    @property
+    def number_of_stations(self) -> int:
+        return self._attributes[self.__number_of_stations_hdf_name__]
+
+    @number_of_stations.setter
+    def number_of_stations(self, val: int):
+        self._attributes[self.__number_of_stations_hdf_name__] = val
+
+    @property
+    def __number_of_stations_type__(self) -> Type[int]:
+        return int
+
+    def number_of_stations_create(self):
+        """ Creates a blank, empty or zero value for number_of_stations"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.number_of_stations = self.__number_of_stations_type__()
+
+class NumberOfNodes:
+    """ Mixin class for numberOfNodes.  Data Coding Formats 3, 7 """
+    __number_of_nodes_hdf_name__ = "numberOfNodes"  #: HDF5 naming
+    
+    @property
+    def number_of_nodes(self) -> int:
+        return self._attributes[self.__number_of_nodes_hdf_name__]
+    
+    @number_of_nodes.setter
+    def number_of_nodes(self, val: int):
+        self._attributes[self.__number_of_nodes_hdf_name__] = val
+    
+    @property
+    def __number_of_nodes_type__(self) -> Type[int]:
+        return int
+    
+    def number_of_nodes_create(self):
+        """ Creates a blank, empty or zero value for number_of_nodes"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.number_of_nodes = self.__number_of_nodes_type__()
+    
+
 class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanceBase):
     """ Data Coding Format 2 is the grid format from table 10c-12 in S100 spec.  Used in S102 for example.
     """
@@ -1067,6 +1133,64 @@ class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanc
         # pylint: disable=attribute-defined-outside-init
         self.num_points_vertical = self.__num_points_vertical_type__()
 
+# @TODO add support for Positioning group (S100 v5.0 10c-9.10.1, 10c-9.10.2 and table 10c-16) for DataCodingFormats 1,3,4,7,8
+#   Basically makes a 1D dataset array of the positions and attributes (like Z).
+#   For TINs  DCF=7
+#   Optionally has triangles dataset NumTriangles x 3 -- array of the 3 node indices for positions
+#   Optionally has adjacency dataset NumTriangles x3 -- array of the indices or the triangles that share an edge with each triangle side
+#   adjacency[i][0] = triangle adjacent to the edge specified by triangles[i][0] & triangles[i][1]
+#   adjacency[i][1] = triangle adjacent to edge triangles[i][1] & triangles[i][2]
+#   adjacency[i][2] = triangle adjacent to edge triangles[i][2] & triangles[i][0]
+#   Elements for edges without adjacent triangles are filled with the value -1
+#   Applicable only for dataCodingFormat = 7 (TIN), but optional even for TIN.
+
+
+class FeatureInstanceDCF1(NumberOfStations, FeatureInstanceBase):
+    """ Data Coding Format 1 is the Fixed Stations from table 10c-12 in S100 spec.
+    """
+
+
+class FeatureInstanceDCF3(NumberOfNodes, FeatureInstanceBase):
+    """ Data Coding Format 3 is the Ungeorectified grid format from table 10c-12 in S100 spec.
+    """
+
+
+class FeatureInstanceDCF4(NumberOfStations, FeatureInstanceBase):
+    """ Data Coding Format 4 is the Moving Platform format from table 10c-12 in S100 spec.
+    """
+
+
+class FeatureInstanceDCF5(StartSequence, NumberOfNodes, GridSpacing, GridOrigin, FeatureInstanceBase):
+    """ Data Coding Format 5 is the Irregular grid format from table 10c-12 in S100 spec.
+    """
+
+""" Data Coding Format 6 is the Variable Cell Size grid format from table 10c-12 in S100 spec. """
+FeatureInstanceDCF6 = FeatureInstanceDCF5
+
+
+class FeatureInstanceDCF7(NumberOfNodes, FeatureInstanceBase):
+    """ Data Coding Format 7 is the Triangulated Irregular Network (TIN) format from table 10c-12 in S100 spec.
+    """
+    __number_of_triangles_hdf_name__ = "numberOfTriangles"  #: HDF5 naming
+    
+    @property
+    def number_of_triangles(self) -> int:
+        return self._attributes[self.__number_of_triangles_hdf_name__]
+    
+    @number_of_triangles.setter
+    def number_of_triangles(self, val: int):
+        self._attributes[self.__number_of_triangles_hdf_name__] = val
+    
+    @property
+    def __number_of_triangles_type__(self) -> Type[int]:
+        return int
+    
+    def number_of_triangles_create(self):
+        """ Creates a blank, empty or zero value for number_of_triangles"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.number_of_triangles = self.__number_of_triangles_type__()
+    
 
 class FeatureInformation(S1xxObject):
     """  In S100, table 10c-8.
@@ -1337,7 +1461,10 @@ class FeatureInformation(S1xxObject):
 
 
 class Chunking:
-    """ This is a mixin to supply chunking attributes to any other class """
+    """ This is a mixin to supply chunking attributes to any other class.
+     This was removed in s100 v5.0 and served no purpose and since there was no official verifications for v4.0,
+     we are dropping it here as well and potentially breaking backwards compatibility of code.
+     """
     __chunking_hdf_name__ = "chunking"  #: HDF5 naming
 
     @property
@@ -1362,7 +1489,7 @@ class Chunking:
         self.chunking = self.__chunking_type__()
 
 
-class FeatureInformationDataset(Chunking, S1xxDatasetBase, ABC):
+class FeatureInformationDataset(S1xxDatasetBase, ABC):  # Chunking
     """ This class comes from S100 -- 10c-9.5 Feature information group.
     This class serves to keep a list of FeatureInformation objects which will be turned into a compound array
     of strings in the HDF5 file.
@@ -1409,6 +1536,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
     Table 10c-10 – Attributes of feature container groups
     """
     __axis_names_hdf_name__ = "axisNames"
+    __coordinate_size_hdf_name__ = "coordinateSize"  #: HDF5 naming
     __data_coding_format_hdf_name__ = "dataCodingFormat"
     __dimension_hdf_name__ = "dimension"
     __horizontal_position_uncertainty_hdf_name__ = "horizontalPositionUncertainty"
@@ -1453,6 +1581,28 @@ class FeatureContainer(CommonPointRule, S1xxObject):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.axis_names = self.__axis_names_type__(["", ""], dtype=h5py_string_dtype)
+
+    @property
+    def coordinate_size(self) -> s1xx_sequence:
+        return self._attributes[self.__coordinate_size_hdf_name__]
+
+    @coordinate_size.setter
+    def coordinate_size(self, val: s1xx_sequence):
+        self._attributes[self.__coordinate_size_hdf_name__] = val
+
+    @property
+    def __coordinate_size_type__(self) -> Type[s1xx_sequence]:
+        return numpy.ndarray
+
+    @property
+    def coordinate_size_dtype(self) -> Type[int]:
+        return numpy.int
+
+    def coordinate_size_create(self):
+        """ Creates a blank, empty or zero value for coordinate_size"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.coordinate_size = self.__coordinate_size_type__([], self.coordinate_size_dtype)
 
     @property
     def data_coding_format(self) -> DATA_CODING_FORMAT:
@@ -1708,7 +1858,7 @@ class FeatureContainerDCF3(InterpolationType, FeatureContainer):
         self.data_coding_format = self.__data_coding_format_type__(3)
 
 
-class FeatureContainerDCF4(InterpolationType, FeatureContainer):
+class FeatureContainerDCF4(FeatureContainer):
     """ Container for Data Coding Format 4 """
 
     def data_coding_format_create(self):
@@ -2047,7 +2197,7 @@ class S100Root(GeographicBoundingBox):
 
 
 class S100File(S1XXFile):
-    PRODUCT_SPECIFICATION = 'INT.IHO.S-100.4.0'
+    PRODUCT_SPECIFICATION = PRODUCT_SPECIFICATION
 
     def __init__(self, *args, **kywrds):
         if 'root' not in kywrds:

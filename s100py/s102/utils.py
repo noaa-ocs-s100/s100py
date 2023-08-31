@@ -1,4 +1,4 @@
-from .v2_1.utils import *
+from .v2_2.utils import *
 """
 Filenaming supposed to be 102PPPPØØØØØØØØØØØØ.H5
 102 - the first 3 characters identify the dataset as an S-102 dataset (mandatory).

@@ -36,6 +36,7 @@ from ...v4_0.s100 import S100File, GridCoordinate, DirectPosition, GeographicExt
     CommonPointRule
 
 EDITION = 2.0
+PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.0'
 
 class S102Exception(S100Exception):
     pass
@@ -1107,7 +1108,7 @@ class FeatureCodes(FeatureCodesBase, FeatureCodesTrackingMixin):
     pass
 
 
-class S102RootBase(S100Root):
+class S102Root(S100Root):
     """The root group contains a feature information group and N feature containers.
     In S102 there are currently two feature containers which are the 'coverages'  bathymetry and tracking list.
     The coverage names are determined from the matching CoveragesAttributes
@@ -1115,6 +1116,7 @@ class S102RootBase(S100Root):
     """
     __feature_information_hdf_name__ = "Group_F"  #: HDF5 naming
     __bathymetry_coverage_hdf_name__ = BATHY_COVERAGE
+    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
 
     @property
     def __version__(self) -> int:
@@ -1157,12 +1159,6 @@ class S102RootBase(S100Root):
     def bathymetry_coverage(self, val: S1xxObject):
         self._attributes[self.__bathymetry_coverage_hdf_name__] = val
 
-
-# mixin uses _attributes from the main class - ignore its errors
-# noinspection PyUnresolvedReferences
-class S102RootTrackingMixin:
-    __tracking_list_coverage_hdf_name__ = TRACKING_COVERAGE
-
     @property
     def __tracking_list_coverage_type__(self):
         return TrackingListContainer
@@ -1181,14 +1177,8 @@ class S102RootTrackingMixin:
         self._attributes[self.__tracking_list_coverage_hdf_name__] = val
 
 
-class S102Root(S102RootBase, S102RootTrackingMixin):
-    @property
-    def __feature_information_type__(self):
-        return FeatureCodes
-
-
 class S102File(S100File):
-    PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.0'
+    PRODUCT_SPECIFICATION = PRODUCT_SPECIFICATION
     # these keys allow backward compatibility with NAVO data, the first key is current at time of writing
     top_level_keys = ('BathymetryCoverage', 'S102_Grid', 'S102_BathymetryCoverage')
     tracking_list_top_level = ("TrackingListCoverage",)
