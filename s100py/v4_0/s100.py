@@ -651,6 +651,7 @@ class FeatureInstanceBase(GeographicBoundingBox):
     # @TODO  @FIXME -- first and last records are supposed to be datetime but S100 doc says 'character'  Need to create a datetime handler
     __date_time_of_first_record_hdf_name__ = "dateTimeOfFirstRecord"
     __date_time_of_last_record_hdf_name__ = "dateTimeOfLastRecord"
+    __instance_chunking_hdf_name__ = "instanceChunking"
 
     def write(self, hdf5_object):
         super().write(hdf5_object)
@@ -812,14 +813,7 @@ class FeatureInstanceBase(GeographicBoundingBox):
         # pylint: disable=attribute-defined-outside-init
         self.date_time_of_last_record = self.__date_time_of_last_record_type__()
 
-
-class FeatureInstanceBase_WithChunk(FeatureInstanceBase):
-    """ In S100 v5.0 Instance Chunking is removed.
-    We are breaking backwards compatibility with S100 v4.0 and earlier by removing this feature.
-    Given that it was somewhat useless and only our code was using it at this point,
-    I'm not going to bother with a deprecation cycle.
-    """
-    __instance_chunking_hdf_name__ = "instanceChunking"
+    # In S100 v5.0 Instance Chunking is removed.
     @property
     def instance_chunking(self) -> str:
         """ instance chunking will return a string but accept a string or an iterable of ints which it will format to a string.
