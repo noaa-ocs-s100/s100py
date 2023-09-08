@@ -75,7 +75,7 @@ class VERTICAL_DATUM(Enum):
     S100 Part 4a Metadata
 
     S100 v5 Part 17 Vertical and Sounding Datum
-    Added balticSeaChartDatum2000 = 44
+    Added balticSeaChartDatum2000 = 44 to hydrographicZero = 49
     """
     meanLowWaterSprings = 1
     MLWS = 1
