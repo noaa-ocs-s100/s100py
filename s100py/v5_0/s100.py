@@ -118,6 +118,11 @@ class VERTICAL_DATUM(Enum):
     highestAstronomicalTide = 30
     HAT = 30
     balticSeaChartDatum2000 = 44
+    internationalGreatLakesDatum2020 = 46
+    seaFloor = 47
+    seaSurface = 48
+    hydrographicZero = 49
+
 
 HORIZONTAL_DATUM_REFERENCE = 'EPSG'
 REGULAR = 'Regularly-gridded arrays2'
