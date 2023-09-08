@@ -5,15 +5,30 @@ from enum import Enum
 import numpy
 
 try:
-    from ... import s1xx
+    from ... import s1xx, s100
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s111"
 
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
-from ...v4_0.s100 import S100File, S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
+from ...v5_0.s100 import S100File, S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, \
+    FeatureInformation, FeatureInformationDataset, GroupFBase, VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_DATUM
 
-EDITION = 1.0
-PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.0'
+EDITION = 1.2
+PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.2'
+
+CHANGELOG = """
+v1.2 
+S100 Edition 5.0
+Enum list changed from TYPE_OF_CURRENT_DATA to DATA_DYNAMICITY --  Table 12.10 - S104_DataDynamicity
+Enum list values changed for DEPTH_TYPE_INDEX --  Table 12.11 -  S111_DepthTypeIndex
+General metadata "horizontalDatumReference" and "horizontalDatumValue removed 
+General metadata attributes "horizontalCRS", "typeOfHorizontalCRS" were added -- Table 12.1
+General metadata "datasetDeliveryInterval" added
+The S-100 attribute verticalCoordinateBase is no longer used as of S-111 Edition 1.2 because
+its “sea surface” and “sea bottom” values have been added to the vertical datums enumeration (Table
+12-8).
+"""
+
 
 SURFACE_CURRENT = "SurfaceCurrent"
 
@@ -23,28 +38,10 @@ FILLVALUE = -9999.0
 # Default depth in meters
 DEFAULT_TARGET_DEPTH = 4.5
 
-TYPE_OF_CURRENT_DATA = Enum(value="TYPE_OF_CURRENT_DATA",
-                            names=[("Historical observation (O)", 1),
-                                   ("Real-time observation (R)", 2),
-                                   ("Astronomical prediction (A)", 3),
-                                   ("Analysis or hybrid method (Y)", 4),
-                                   ("Hydrodynamic model hindcast (M)", 5),
-                                   ("Hydrodynamic model forecast (F)", 6)
-                                   ]
-                            )
-
-DEPTH_TYPE_INDEX = Enum(value="DEPTH_TYPE_INDEX",
-                        names=[("Layer average", 1),
-                               ("Sea surface", 2),
-                               ("Vertical datum", 3),
-                               ("Sea bottom", 4)
-                               ]
-                        )
-
 """Contains s111 metadata to pass to S111File.
 
 PRODUCT_SPECIFICATION: The product specification used to create this dataset.
-HORIZONTAL_DATUM_REFERENCE: Reference to the register from which the horizontal datum value is taken.
+HORIZONTAL_CRS: EPSG code or -1 if user defined
 DATA_CODING_FORMAT: Reference to the type of S111 product.
 INTERPOLATION_TYPE: Interpolation method recommended for evaluation of the S100_GridCoverage.
 COMMON_POINT_RULE: The procedure used for evaluating geometric objects that overlap or lie fall on boundaries.
@@ -58,6 +55,35 @@ START_SEQUENCE: Starting location of the scan.
 
 class S111Exception(S100Exception):
     pass
+
+
+class DATA_DYNAMICITY(Enum):
+    """
+     S111 v1.2 Table 12.10 - Classification of data according to the
+     relationship between the time of its collection, generation, or
+     calculation of generation parameters, in relation to the time of
+     publication of the dataset.
+    """
+    observation = 1
+    astronomicalPrediction = 2
+    analysisOrHybrid = 3
+    hydrodynamicHindcast = 4
+    hydrodynamicForecast = 5
+
+
+class DEPTH_TYPE_INDEX(Enum):
+    """
+     S111 v1.2 H.6.1 - The vertical location of the current in the water
+     column is normally referenced to some vertical datum. In this Product
+     Specification, the datum is selectable: it can be the sea surface, the
+     sea bottom, or any of 30 standard tidal datums. The coordinate system
+     axis is directed upward, so if the level of the current is below the
+     datum, the depth will have a negative value. Levels referenced above
+     the sea bottom will have a positive value. For a layer average, the
+     thickness of the layer is specified as a positive value.
+    """
+    heightOrDepth = 1
+    layerAverage = 2
 
 
 class S111MetadataListBase(S1xxCollection):
@@ -365,6 +391,7 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
 
     __uncertainty_dataset_hdf_name__ = "uncertainty"
     __number_of_nodes_hdf_name__ = "numberOfNodes"
+    __data_dynamicity_hdf_name__ = "dataDynamicity"
 
     @property
     def __surface_current_group_type__(self):
@@ -438,6 +465,25 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.positioning_group = self.__positioning_group_type__()
+
+    @property
+    def data_dynamicity(self) -> DATA_DYNAMICITY:
+        return self._attributes[self.__data_dynamicity_hdf_name__]
+
+    @data_dynamicity.setter
+    def data_dynamicity(self, val: Union[int, str, DATA_DYNAMICITY]):
+        self.set_enum_attribute(val, self.__data_dynamicity_hdf_name__, self.__data_dynamicity_type__)
+
+    @property
+    def __data_dynamicity_type__(self) -> Type[DATA_DYNAMICITY]:
+        return DATA_DYNAMICITY
+
+    def data_dynamicity_create(self):
+        """ Creates a value using the first item in the enumeration of data_dynamicity"""
+        # Make the enum into a list and take the first value
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.data_dynamicity = list(self.__data_dynamicity_type__)[0]
 
 
 class SurfaceCurrentList(S111MetadataListBase):
@@ -554,16 +600,16 @@ class SurfaceCurrentContainer(FeatureContainerDCF2):
         self.method_currents_product = self.__method_currents_product_type__()
 
     @property
-    def type_of_current_data(self) -> TYPE_OF_CURRENT_DATA:
+    def type_of_current_data(self) -> DATA_DYNAMICITY:
         return self._attributes[self.__type_of_current_data_hdf_name__]
 
     @type_of_current_data.setter
-    def type_of_current_data(self, val: Union[int, str, TYPE_OF_CURRENT_DATA]):
+    def type_of_current_data(self, val: Union[int, str, DATA_DYNAMICITY]):
         self.set_enum_attribute(val, self.__type_of_current_data_hdf_name__, self.__type_of_current_data_type__)
 
     @property
-    def __type_of_current_data_type__(self) -> Type[TYPE_OF_CURRENT_DATA]:
-        return TYPE_OF_CURRENT_DATA
+    def __type_of_current_data_type__(self) -> Type[DATA_DYNAMICITY]:
+        return DATA_DYNAMICITY
 
     def type_of_current_data_create(self):
         """ Creates a value using the first item in the enumeration of type_of_current_data"""
@@ -629,6 +675,7 @@ class S111Root(S100Root):
     __surface_current_hdf_name__ = SURFACE_CURRENT
     __depth_type_index_hdf_name__ = "depthTypeIndex"
     __surface_current_depth_hdf_name__ = "surfaceCurrentDepth"
+    __dataset_delivery_interval_hdf_name__ = "datasetDeliveryInterval"
 
     @property
     def __version__(self) -> int:
@@ -692,9 +739,27 @@ class S111Root(S100Root):
         # pylint: disable=attribute-defined-outside-init
         self.surface_current_depth = self.__surface_current_depth_type__()
 
+    @property
+    def dataset_delivery_interval(self) -> S1xxObject:
+        return self._attributes[self.__dataset_delivery_interval_hdf_name__]
+
+    @dataset_delivery_interval.setter
+    def dataset_delivery_interval(self, val: S1xxObject):
+        self._attributes[self.__dataset_delivery_interval_hdf_name__] = val
+
+    @property
+    def __dataset_delivery_interval_type__(self):
+        return str
+
+    def dataset_delivery_interval_create(self):
+        """ Creates a blank, empty or zero value for dataset_delivery_interval"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.dataset_delivery_interval = self.__dataset_delivery_interval__()
+
 
 class DiscoveryMetadata(S1xxObject):
-    """ 12.2.6 of v1.0.1
+    """ 12.2.6 of v1.2.0
     """
 
     def __init__(self, *args, **kwargs):
@@ -703,7 +768,7 @@ class DiscoveryMetadata(S1xxObject):
 
 
 class S111File(S1XXFile):
-    PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.0'
+    PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.2'
 
     def __init__(self, *args, **kywrds):
         super().__init__(*args, root=S111Root, **kywrds)

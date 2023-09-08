@@ -5,7 +5,7 @@ Tools for converting hydrodynamic models to S-111.
 """
 from .api import SurfaceCurrentUncertaintyInformation, SurfaceCurrentUncertaintyDataset, GeometryValuesDataset, PositioningGroup, SurfaceCurrentValues, \
     SurfaceCurrentGroup, SurfaceCurrentGroupList, SurfaceCurrentFeatureInstance, SurfaceCurrentList, SurfaceCurrentContainer, \
-    SurfaceCurrentFeatureDataset, GroupF, S111Root, S111File, S111Exception, PRODUCT_SPECIFICATION
+    SurfaceCurrentFeatureDataset, GroupF, S111Root, S111File, S111Exception, PRODUCT_SPECIFICATION, EDITION
 
 from .utils import create_s111, add_metadata, add_data_from_arrays, update_metadata, write_data_file
 

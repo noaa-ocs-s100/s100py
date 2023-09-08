@@ -1,10 +1,13 @@
 from .v1_0 import api as v1_0
-from .v1_0.api import *
+from .v1_2 import api as v1_2
+from .v1_2.api import *
 
 
 def open(name, *args, version=EDITION, **kwargs):
     obj = None
-    if version == 1.0:
+    if version == 1.2:
+        obj = v1_2.S111File(name, *args, **kwargs)
+    elif version == 1.0:
         obj = v1_0.S111File(name, *args, **kwargs)
     elif version == 1.1:
         raise NotImplementedError("Version 1.1 of S111 is not supported")

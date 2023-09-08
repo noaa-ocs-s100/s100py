@@ -11,8 +11,9 @@ try:
 except ModuleNotFoundError:
     import gdal
 
-from s100py import s100
-import s100py.s111.v1_0.utils as s111
+from s100py import s100, s111
+# import s100py.s111.v1_0 as sfc
+import s100py.s111.v1_2 as sfc
 
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
@@ -35,7 +36,8 @@ InputData = namedtuple(
      'lat',
      'grid_2d_properties',
      'grid_1d_properties',
-     'metadata',
+     'metadata_1_0',
+     'metadata_1_2',
      'datetime_value',
      'update_2d_meta',
      'update_1d_meta',
@@ -3174,7 +3176,7 @@ def input_data():
         'nodes': 2916
     }
 
-    metadata = {
+    metadata_1_0 = {
         'horizontalDatumReference': 'EPSG',
         'horizontalDatumValue': 4326,
         'metadata': f'MD_test_s111.XML',
@@ -3193,6 +3195,27 @@ def input_data():
         'methodCurrentsProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
         'datetimeOfFirstRecord': '2021-01-07T13:00:00'
 
+    }
+
+    metadata_1_2 = {
+        'horizontalCRS': 4326,
+        'metadata': f'MD_test_s111.XML',
+        'geographicIdentifier': 'Chesapeake_Bay',
+        'speedUncertainty': -1.0,
+        'directionUncertainty': -1.0,
+        'verticalUncertainty': -1.0,
+        'horizontalPositionUncertainty': -1.0,
+        'surfaceCurrentDepth': -4.5,
+        'depthTypeIndex': 1,
+        'commonPointRule': 3,
+        'interpolationType': 10,
+        'dataDynamicity': 5,
+        'methodCurrentsProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
+        'datetimeOfFirstRecord': '2021-01-07T13:00:00',
+        'verticalCS': 6498,
+        'verticalDatumReference': 1,
+        'verticalDatum': 48,
+        'datasetDeliveryInterval': 'P6Y'
     }
 
     datetime_value = datetime.datetime(2021, 1, 7, 12, 0, 0)
@@ -3224,18 +3247,22 @@ def input_data():
 
     expected_georeferenced_coordinates = (-75.30278, 0.005554199, 0.0, 37.202778, 0.0, 0.005558014)
 
-    return InputData(speed_2d_001, direction_2d_001, speed_2d_002, direction_2d_002, speed_1d, direction_1d, lon, lat, grid_2d_properties, grid_1d_properties, metadata, datetime_value, update_2d_meta, update_1d_meta, expected_2d_chunks, expected_1d_chunks, expected_groupf, expected_georeferenced_coordinates)
+    return InputData(speed_2d_001, direction_2d_001, speed_2d_002, direction_2d_002, speed_1d, direction_1d, lon, lat, grid_2d_properties, grid_1d_properties, metadata_1_0, metadata_1_2, datetime_value, update_2d_meta, update_1d_meta, expected_2d_chunks, expected_1d_chunks, expected_groupf, expected_georeferenced_coordinates)
 
 
 def test_create_s111_dcf2(input_data):
-    data_file = s111.create_s111(f"{current_directory}/test_s111_dcf2.h5")
+    data_file = sfc.utils.create_s111(f"{current_directory}/test_s111_dcf2.h5")
 
-    s111.add_metadata(input_data.metadata, data_file)
-    s111.add_data_from_arrays(input_data.speed_2d_001, input_data.direction_2d_001, data_file, input_data.grid_2d_properties, input_data.datetime_value, 2)
-    s111.add_data_from_arrays(input_data.speed_2d_002, input_data.direction_2d_002, data_file, input_data.grid_2d_properties, input_data.datetime_value, 2)
-    s111.update_metadata(data_file, input_data.grid_2d_properties, input_data.update_2d_meta)
+    if sfc.EDITION == 1.0:
+        sfc.utils.add_metadata(input_data.metadata_1_0, data_file)
+    elif sfc.EDITION == 1.2:
+        sfc.utils.add_metadata(input_data.metadata_1_2, data_file)
 
-    s111.write_data_file(data_file)
+    sfc.utils.add_data_from_arrays(input_data.speed_2d_001, input_data.direction_2d_001, data_file, input_data.grid_2d_properties, input_data.datetime_value, 2)
+    sfc.utils.add_data_from_arrays(input_data.speed_2d_002, input_data.direction_2d_002, data_file, input_data.grid_2d_properties, input_data.datetime_value, 2)
+    sfc.utils.update_metadata(data_file, input_data.grid_2d_properties, input_data.update_2d_meta)
+
+    sfc.utils.write_data_file(data_file)
 
     assert os.path.isfile(f"{current_directory}/test_s111_dcf2.h5")
     h5_file = h5py.File(f"{current_directory}/test_s111_dcf2.h5", "r")
@@ -3244,7 +3271,8 @@ def test_create_s111_dcf2(input_data):
     assert 'Group_F/featureCode' in h5_file
     assert 'SurfaceCurrent/SurfaceCurrent.01/uncertainty' in h5_file
     assert 'SurfaceCurrent/axisNames' in h5_file
-    # assert h5_file['Group_F/SurfaceCurrent'].attrs['chunking'] == input_data.expected_2d_chunks
+    if sfc.EDITION == 1.0:
+        assert h5_file['Group_F/SurfaceCurrent'].attrs['chunking'] == input_data.expected_2d_chunks
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentSpeed'], input_data.speed_2d_001)
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentDirection'], input_data.direction_2d_001)
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_002/values']['surfaceCurrentSpeed'], input_data.speed_2d_002)
@@ -3258,13 +3286,17 @@ def test_create_s111_dcf2(input_data):
 
 
 def test_create_s111_dcf3(input_data):
-    data_file = s111.create_s111(f"{current_directory}/test_s111_dcf3.h5")
+    data_file = sfc.utils.create_s111(f"{current_directory}/test_s111_dcf3.h5")
 
-    s111.add_metadata(input_data.metadata, data_file)
-    s111.add_data_from_arrays(input_data.speed_1d, input_data.direction_1d, data_file, input_data.grid_1d_properties, input_data.datetime_value, 3)
-    s111.update_metadata(data_file, input_data.grid_1d_properties, input_data.update_1d_meta)
+    if sfc.EDITION == 1.0:
+        sfc.utils.add_metadata(input_data.metadata_1_0, data_file)
+    elif sfc.EDITION == 1.2:
+        sfc.utils.add_metadata(input_data.metadata_1_2, data_file)
 
-    s111.write_data_file(data_file)
+    sfc.utils.add_data_from_arrays(input_data.speed_1d, input_data.direction_1d, data_file, input_data.grid_1d_properties, input_data.datetime_value, 3)
+    sfc.utils.update_metadata(data_file, input_data.grid_1d_properties, input_data.update_1d_meta)
+
+    sfc.utils.write_data_file(data_file)
 
     assert os.path.isfile(f"{current_directory}/test_s111_dcf3.h5")
     h5_file = h5py.File(f"{current_directory}/test_s111_dcf3.h5", "r")
@@ -3273,7 +3305,8 @@ def test_create_s111_dcf3(input_data):
     assert 'Group_F/featureCode' in h5_file
     assert 'SurfaceCurrent/SurfaceCurrent.01/uncertainty' in h5_file
     assert 'SurfaceCurrent/axisNames' in h5_file
-    # assert h5_file['Group_F/SurfaceCurrent'].attrs['chunking'] == input_data.expected_1d_chunks
+    if sfc.EDITION == 1.0:
+        assert h5_file['Group_F/SurfaceCurrent'].attrs['chunking'] == input_data.expected_1d_chunks
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentSpeed'], input_data.speed_1d)
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentDirection'], input_data.direction_1d)
     assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numberOfNodes'] == input_data.speed_1d.size
@@ -3283,7 +3316,7 @@ def test_create_s111_dcf3(input_data):
 
 def test_to_geotiff(input_data):
 
-    s111.to_geotiff(f"{current_directory}/test_s111_dcf2.h5", current_directory)
+    sfc.utils.to_geotiff(f"{current_directory}/test_s111_dcf2.h5", current_directory)
 
     assert os.path.isfile(f"{current_directory}/test_s111_dcf2_20210107T120000Z.tif")
 
