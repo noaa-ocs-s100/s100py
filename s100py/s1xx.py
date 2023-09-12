@@ -110,6 +110,93 @@ def convert_numpy_strings_to_h5py(vals, names=None):
     return convert_numpy_types_to_h5py(vals, names=names)
 
 
+def parse_iso_datetime(val, date_or_time=datetime.datetime):
+    """
+    A DateTime is a combination of a date and a time type. Character encoding of a
+    DateTime must follow ISO 8601:2004  ( :2004 took away partial dates with two digit year or just month/day)
+    EXAMPLES
+    19850412T101530
+    2001-07-17T04:50:00
+    2012-11-01T00:44:00+10:30
+    2001-07-17
+    19850412T101530.44
+    19850412T101530.44Z
+    19850412T101530.44+10
+    19850412T101530.44+1030
+    19850412T10:15:30Z
+
+    Parameters
+    ----------
+    val
+        a string or datetime object
+    date_or_time
+        If either datetime.date or datetime.time the value will be reduced that type, default is datetime.datetime
+
+    Returns
+    -------
+
+    """
+    re_date = r"(?P<year>\d{4})[-]?(?P<month>\d{2})[-]?(?P<day>\d{2})"
+    re_time = r"(?P<hour>\d{2})[: -]?(?P<minute>\d{2})[:-]?(?P<second>\d{2})(?P<decimal_sec>\.\d+)?"
+    re_timezone = r"(?P<tz>(Z|(?P<tz_hr>[+-]\d{2})[:]?(?P<tz_min>\d{2})?))?"
+    re_time_with_zone = re_time + re_timezone
+    re_full_datetime = re_date + "T?" + re_time_with_zone
+    re_date_optional_time = re_date + "T?(" + re_time_with_zone + ")?"
+    # FixedTimeZones
+
+    def _tz(match_obj):
+        if match_obj['tz']:
+            if match_obj['tz'] == "Z":
+                z = FixedTimeZones(0)
+            else:
+                tz_min = int(match_obj['tz_min']) if match_obj['tz_min'] else 0
+                z = FixedTimeZones(int(match_obj['tz_hr']), tz_min)
+        else:
+            z = None
+        return z
+
+    if isinstance(val, str):
+        # turns out the python fromisofomrat only reads the same format it would write using datetime.isoformat()
+        # try:  # python 3.7+ has fromisoformat() builtin
+        #    val = datetime.datetime.fromisoformat(val)
+        # except AttributeError:
+        # read as a full datetime first.
+        match = re.match(re_full_datetime, val)
+        if match:
+            decimal_sec = int(float(match['decimal_sec']) * 1000000) if match['decimal_sec'] else 0
+            zone = _tz(match)
+            val = datetime.datetime(int(match['year']), int(match['month']), int(match['day']),
+                                    int(match['hour']), int(match['minute']), int(match['second']),
+                                    decimal_sec, tzinfo=zone)
+        else:
+            if is_sub_class(date_or_time, datetime.date):
+                match = re.match(re_date, val)
+                if match:
+                    val = datetime.date(int(match['year']), int(match['month']), int(match['day']))
+            elif is_sub_class(date_or_time, datetime.time):
+                match = re.match(re_time_with_zone, val)
+                if match:
+                    decimal_sec = int(float(match['decimal_sec']) * 1000000) if match['decimal_sec'] else 0
+                    zone = _tz(match)
+                    val = datetime.time(int(match['hour']), int(match['minute']), int(match['second']),
+                                        decimal_sec, tzinfo=zone)
+
+        if not match:
+            raise ValueError(f"failed to parse date and/or time from '{val}'")
+
+    if isinstance(val, (datetime.datetime, datetime.date, datetime.time)):
+        if isinstance(val, datetime.datetime):
+            if is_sub_class(date_or_time, datetime.date):
+                val = val.date()
+            elif is_sub_class(date_or_time, datetime.time):
+                tz = val.tzinfo
+                val = val.time()
+                # getting the time this way drops the timezone info, so we stored it and now replace it
+                if tz:
+                    val = val.replace(tzinfo=tz)
+    return val
+
+
 class S1xxObject(ABC):
     """ This class implements a general hdf5 group object that has attributes, dataset or sub-groups.
     Works with S1xxCollection if the subgroups have multiple occurences (like Group.01, Group.02)
@@ -572,90 +659,11 @@ class S1xxObject(ABC):
         self._attributes[hdf_name] = val
 
     def set_datetime_attribute(self, val, hdf_name, date_type):
-        """
-        A DateTime is a combination of a date and a time type. Character encoding of a
-        DateTime must follow ISO 8601:2004  ( :2004 took away partial dates with two digit year or just month/day)
-        EXAMPLES
-        19850412T101530
-        2001-07-17T04:50:00
-        2012-11-01T00:44:00+10:30
-        2001-07-17
-        19850412T101530.44
-        19850412T101530.44Z
-        19850412T101530.44+10
-        19850412T101530.44+1030
-        19850412T10:15:30Z
-
-        Parameters
-        ----------
-        val
-        hdf_name
-        date_type
-
-        Returns
-        -------
-
-        """
-        re_date = r"(?P<year>\d{4})[-]?(?P<month>\d{2})[-]?(?P<day>\d{2})"
-        re_time = r"(?P<hour>\d{2})[: -]?(?P<minute>\d{2})[:-]?(?P<second>\d{2})(?P<decimal_sec>\.\d+)?"
-        re_timezone = r"(?P<tz>(Z|(?P<tz_hr>[+-]\d{2})[:]?(?P<tz_min>\d{2})?))?"
-        re_time_with_zone = re_time + re_timezone
-        re_full_datetime = re_date + "T?" + re_time_with_zone
-        re_date_optional_time = re_date + "T?(" + re_time_with_zone + ")?"
-        FixedTimeZones
-
-        def _tz(match_obj):
-            if match_obj['tz']:
-                if match_obj['tz'] == "Z":
-                    z = FixedTimeZones(0)
-                else:
-                    tz_min = int(match_obj['tz_min']) if match_obj['tz_min'] else 0
-                    z = FixedTimeZones(int(match_obj['tz_hr']), tz_min)
-            else:
-                z = None
-            return z
-
-        if isinstance(val, str):
-            # turns out the python fromisofomrat only reads the same format it would write using datetime.isoformat()
-            # try:  # python 3.7+ has fromisoformat() builtin
-            #    val = datetime.datetime.fromisoformat(val)
-            # except AttributeError:
-            # read as a full datetime first.
-            match = re.match(re_full_datetime, val)
-            if match:
-                decimal_sec = int(float(match['decimal_sec']) * 1000000) if match['decimal_sec'] else 0
-                zone = _tz(match)
-                val = datetime.datetime(int(match['year']), int(match['month']), int(match['day']),
-                                        int(match['hour']), int(match['minute']), int(match['second']),
-                                        decimal_sec, tzinfo=zone)
-            else:
-                if is_sub_class(date_type, datetime.date):
-                    match = re.match(re_date, val)
-                    if match:
-                        val = datetime.date(int(match['year']), int(match['month']), int(match['day']))
-                elif is_sub_class(date_type, datetime.time):
-                    match = re.match(re_time_with_zone, val)
-                    if match:
-                        decimal_sec = int(float(match['decimal_sec']) * 1000000) if match['decimal_sec'] else 0
-                        zone = _tz(match)
-                        val = datetime.time(int(match['hour']), int(match['minute']), int(match['second']),
-                                            decimal_sec, tzinfo=zone)
-
-            if not match:
-                if val:  # don't print messages on blank values
-                    print("failed to parse date and/or time from '" + val + "' storing as string in ", hdf_name)
-
-        if isinstance(val, (datetime.datetime, datetime.date, datetime.time)):
-            if isinstance(val, datetime.datetime):
-                if is_sub_class(date_type, datetime.date):
-                    val = val.date()
-                elif is_sub_class(date_type, datetime.time):
-                    tz = val.tzinfo
-                    val = val.time()
-                    # getting the time this way drops the timezone info, so we stored it and now replace it
-                    if tz:
-                        val = val.replace(tzinfo=tz)
-
+        try:
+            val = parse_iso_datetime(val, date_type)
+        except ValueError as e:
+            if val:  # don't print messages on blank values
+                print(str(e))
         self._attributes[hdf_name] = val
 
     def get_hdf5_from_file(self, file_obj):
