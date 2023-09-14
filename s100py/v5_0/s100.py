@@ -1412,7 +1412,7 @@ class FeatureInformation(S1xxObject):
 
     def _convert_to_string_based_on_datatype(self, val):
         use_datatype = self._python_datatype()
-        if use_datatype in (int, float):
+        if use_datatype in (int, float) and not isinstance(val, str):
             if val is None or val == "":
                 str_val = ""
             elif use_datatype is int:
@@ -2176,6 +2176,11 @@ class S100Root(GeographicBoundingBox):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.issue_time = self.__issue_time_type__(0, 0)  # midnight
+
+    # example of how to write a custom format to the HDF5 file -- make sure it will pass the iso parser to be able to read it back from the file
+    # @property
+    # def __issue_date_repr__(self) -> str:
+    #     return self._attributes[self.__issue_date_hdf_name__].strftime("%Y%m%dBarry")
 
     @property
     def issue_date(self) -> datetime.date:

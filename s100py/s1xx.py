@@ -366,7 +366,12 @@ class S1xxObject(ABC):
                 continue  # skip these types for now
             elif isinstance(val, (datetime.date, datetime.datetime, datetime.time)):
                 logging.debug(key + " datetime: {}", val)
-                group_object.attrs[key] = val.isoformat()
+                try:
+                    expected_items = self.get_standard_properties_mapping()
+                    str_val = self.__getattribute__("__" + expected_items[key] + "_repr__")
+                except AttributeError:
+                    str_val = val.isoformat()
+                group_object.attrs[key] = str_val
             else:  # Enum or simple types
                 # The trick here is to make any plain integers into Enum() if appropriate (like typeOfHorizontalCRS)
                 # but also to make any supplied Enumerations into plain integers if appropriate (like projectionMethod)

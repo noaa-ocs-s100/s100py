@@ -1331,7 +1331,7 @@ class FeatureInformation(S1xxObject):
 
     def _convert_to_string_based_on_datatype(self, val):
         use_datatype = self._python_datatype()
-        if use_datatype in (int, float):
+        if use_datatype in (int, float) and not isinstance(val, str):
             if val is None or val == "":
                 str_val = ""
             elif use_datatype is int:

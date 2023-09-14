@@ -143,3 +143,5 @@ def test_numpy_string(s100_file):
     assert h5py_string_comp(read_file['/ndStrings'][1], "slong")
     assert h5py_string_comp(read_file['/narray'][1], "pLon")
     assert h5py_string_comp(read_file['/h5pyStrings'][0], "Lat")
+
+# @TODO add test for groupf fill_value allowing direct formatted strings to control precision, like "4", "4.1", "4.123"
