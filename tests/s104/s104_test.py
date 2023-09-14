@@ -7,7 +7,8 @@ import datetime
 import numpy
 import h5py
 
-from s100py import s104
+from s100py import s100, s104
+import s100py.s104.v1_0 as wtl
 
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
@@ -311,25 +312,25 @@ def input_data():
     expected_chunks = '2,353'
 
     expected_groupf = numpy.array([
-        ('waterLevelHeight', 'Water level height', 'meters', '-9999', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
-        ('waterLevelTrend', 'Water level trend', '', '0', 'H5T_ENUM', '1', '3', 'closedInterval'),
-        ('waterLevelTime', 'Water level time', 'DateTime', '', 'H5T_C_S1', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
+        ('waterLevelHeight', 'Water level height', 'metres', '-9999', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
+        ('waterLevelTrend', 'Water level trend', '', '0', 'H5T_ENUM', '', '', ''),
+        ('waterLevelTime', 'Water level time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
         dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
 
     return InputData(height_001, trend_001, height_002, trend_002, grid_properties, metadata, datetime_value, data_coding_format, update_meta, expected_chunks, expected_groupf)
 
 
 def test_create_s104_dcf2(input_data):
-    data_file = s104.utils.create_s104(path_to_s104file)
+    data_file = wtl.utils.create_s104(path_to_s104file)
 
-    s104.utils.add_metadata(input_data.metadata, data_file)
-    s104.utils.add_data_from_arrays(input_data.height_001, input_data.trend_001, data_file, input_data.grid_properties,
-                                    input_data.datetime_value, input_data.data_coding_format)
-    s104.utils.add_data_from_arrays(input_data.height_002, input_data.trend_002, data_file, input_data.grid_properties,
-                                    input_data.datetime_value, input_data.data_coding_format)
-    s104.utils.update_metadata(data_file, input_data.grid_properties, input_data.update_meta)
+    wtl.utils.add_metadata(input_data.metadata, data_file)
+    wtl.utils.add_data_from_arrays(input_data.height_001, input_data.trend_001, data_file, input_data.grid_properties,
+                                   input_data.datetime_value, input_data.data_coding_format)
+    wtl.utils.add_data_from_arrays(input_data.height_002, input_data.trend_002, data_file, input_data.grid_properties,
+                                   input_data.datetime_value, input_data.data_coding_format)
+    wtl.utils.update_metadata(data_file, input_data.grid_properties, input_data.update_meta)
 
-    s104.utils.write_data_file(data_file)
+    wtl.utils.write_data_file(data_file)
 
     assert os.path.isfile(path_to_s104file)
     h5_file = h5py.File(path_to_s104file, "r")
