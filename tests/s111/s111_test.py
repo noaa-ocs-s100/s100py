@@ -36,9 +36,10 @@ InputData = namedtuple(
      'lat',
      'grid_2d_properties',
      'grid_1d_properties',
+     'datetime_forecast_issuance',
+     'datetime_interval',
      'metadata_1_0',
      'metadata_1_2',
-     'datetime_value',
      'update_2d_meta',
      'update_1d_meta',
      'expected_2d_chunks',
@@ -3176,6 +3177,10 @@ def input_data():
         'nodes': 2916
     }
 
+    datetime_forecast_issuance = datetime.datetime(2021, 1, 7, 12, 0, 0)
+
+    datetime_interval = datetime.timedelta(seconds=3600)
+
     metadata_1_0 = {
         'horizontalDatumReference': 'EPSG',
         'horizontalDatumValue': 4326,
@@ -3193,7 +3198,7 @@ def input_data():
         'interpolationType': 10,
         'typeOfCurrentData': 6,
         'methodCurrentsProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
-        'datetimeOfFirstRecord': '2021-01-07T13:00:00'
+        'datetimeOfFirstRecord': '20210107T130000Z'
 
     }
 
@@ -3211,17 +3216,16 @@ def input_data():
         'interpolationType': 10,
         'dataDynamicity': 5,
         'methodCurrentsProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
-        'datetimeOfFirstRecord': '2021-01-07T13:00:00',
+        'datetimeOfFirstRecord': '20210107T130000Z',
         'verticalCS': 6498,
         'verticalDatumReference': 1,
         'verticalDatum': 48,
-        'datasetDeliveryInterval': 'P6Y'
+        'datasetDeliveryInterval': 'PT6H',
+        'issueDateTime': datetime_forecast_issuance,
     }
 
-    datetime_value = datetime.datetime(2021, 1, 7, 12, 0, 0)
-
     update_2d_meta = {
-        'dateTimeOfLastRecord': '2021-01-07T14:00:00',
+        'dateTimeOfLastRecord': '20210107T140000Z',
         'numberOfGroups': 2,
         'numberOfTimes': 2,
         'timeRecordInterval': 3600,
@@ -3229,7 +3233,7 @@ def input_data():
     }
 
     update_1d_meta = {
-        'dateTimeOfLastRecord': '2021-01-07T13:00:00',
+        'dateTimeOfLastRecord': '20210107T130000Z',
         'numberOfGroups': 1,
         'numberOfTimes': 1,
         'timeRecordInterval': 0,
@@ -3241,13 +3245,20 @@ def input_data():
     expected_1d_chunks = '1458'
 
     expected_groupf = numpy.array([
-        ('surfaceCurrentSpeed', 'Surface current speed', 'knots', '-9999', 'H5T_FLOAT', '0', '', 'geSemiInterval'),
+        ('surfaceCurrentSpeed', 'Surface current speed', 'knots', '-9999', 'H5T_FLOAT', '0.0', '', 'geSemiInterval'),
         ('surfaceCurrentDirection', 'Surface current direction', 'arc-degrees', '-9999', 'H5T_FLOAT', '0', '360', 'geLtInterval')],
       dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
 
+    if sfc.EDITION == 1.2:
+        expected_groupf = numpy.array([
+            ('surfaceCurrentSpeed', 'Surface Current Speed', 'knot', '-9999.00', 'H5T_FLOAT', '0.00', '', 'geSemiInterval'),
+            ('surfaceCurrentDirection', 'Surface Current Direction', 'degree', '-9999.0', 'H5T_FLOAT', '0.0', '359.9', 'closedInterval'),
+            ('surfaceCurrentTime', 'Surface Current Time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
+            dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
+
     expected_georeferenced_coordinates = (-75.30278, 0.005554199, 0.0, 37.202778, 0.0, 0.005558014)
 
-    return InputData(speed_2d_001, direction_2d_001, speed_2d_002, direction_2d_002, speed_1d, direction_1d, lon, lat, grid_2d_properties, grid_1d_properties, metadata_1_0, metadata_1_2, datetime_value, update_2d_meta, update_1d_meta, expected_2d_chunks, expected_1d_chunks, expected_groupf, expected_georeferenced_coordinates)
+    return InputData(speed_2d_001, direction_2d_001, speed_2d_002, direction_2d_002, speed_1d, direction_1d, lon, lat, grid_2d_properties, grid_1d_properties, datetime_forecast_issuance, datetime_interval, metadata_1_0, metadata_1_2, update_2d_meta, update_1d_meta, expected_2d_chunks, expected_1d_chunks, expected_groupf, expected_georeferenced_coordinates)
 
 
 def test_create_s111_dcf2(input_data):
@@ -3258,8 +3269,10 @@ def test_create_s111_dcf2(input_data):
     elif sfc.EDITION == 1.2:
         sfc.utils.add_metadata(input_data.metadata_1_2, data_file)
 
-    sfc.utils.add_data_from_arrays(input_data.speed_2d_001, input_data.direction_2d_001, data_file, input_data.grid_2d_properties, input_data.datetime_value, 2)
-    sfc.utils.add_data_from_arrays(input_data.speed_2d_002, input_data.direction_2d_002, data_file, input_data.grid_2d_properties, input_data.datetime_value, 2)
+    data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
+    sfc.utils.add_data_from_arrays(input_data.speed_2d_001, input_data.direction_2d_001, data_file, input_data.grid_2d_properties, data_series_time_001, 2)
+    data_series_time_002 = data_series_time_001 + input_data.datetime_interval
+    sfc.utils.add_data_from_arrays(input_data.speed_2d_002, input_data.direction_2d_002, data_file, input_data.grid_2d_properties, data_series_time_002, 2)
     sfc.utils.update_metadata(data_file, input_data.grid_2d_properties, input_data.update_2d_meta)
 
     sfc.utils.write_data_file(data_file)
@@ -3279,10 +3292,11 @@ def test_create_s111_dcf2(input_data):
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_002/values']['surfaceCurrentDirection'], input_data.direction_2d_002)
     assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLongitudinal'] == input_data.speed_2d_001.shape[0]
     assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLatitudinal'] == input_data.speed_2d_001.shape[1]
-    assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/SurfaceCurrent'][()][0],
-                                                                               input_data.expected_groupf[0])])
-    assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/SurfaceCurrent'][()][1],
-                                                                               input_data.expected_groupf[1])])
+
+    assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/SurfaceCurrent'][()][0], input_data.expected_groupf[0])])
+    assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/SurfaceCurrent'][()][1], input_data.expected_groupf[1])])
+    if sfc.EDITION == 1.2:
+        assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/SurfaceCurrent'][()][2], input_data.expected_groupf[2])])
 
 
 def test_create_s111_dcf3(input_data):
@@ -3293,7 +3307,8 @@ def test_create_s111_dcf3(input_data):
     elif sfc.EDITION == 1.2:
         sfc.utils.add_metadata(input_data.metadata_1_2, data_file)
 
-    sfc.utils.add_data_from_arrays(input_data.speed_1d, input_data.direction_1d, data_file, input_data.grid_1d_properties, input_data.datetime_value, 3)
+    data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
+    sfc.utils.add_data_from_arrays(input_data.speed_1d, input_data.direction_1d, data_file, input_data.grid_1d_properties, data_series_time_001, 3)
     sfc.utils.update_metadata(data_file, input_data.grid_1d_properties, input_data.update_1d_meta)
 
     sfc.utils.write_data_file(data_file)
@@ -3318,20 +3333,30 @@ def test_to_geotiff(input_data):
 
     sfc.utils.to_geotiff(f"{current_directory}/test_s111_dcf2.h5", current_directory)
 
-    assert os.path.isfile(f"{current_directory}/test_s111_dcf2_20210107T120000Z.tif")
+    assert os.path.isfile(f"{current_directory}/test_s111_dcf2_20210107T130000Z.tif")
+    assert os.path.isfile(f"{current_directory}/test_s111_dcf2_20210107T140000Z.tif")
 
-    tif_file = gdal.Open(f"{current_directory}/test_s111_dcf2_20210107T120000Z.tif")
+    tif_file1 = gdal.Open(f"{current_directory}/test_s111_dcf2_20210107T130000Z.tif")
+    tif_file2 = gdal.Open(f"{current_directory}/test_s111_dcf2_20210107T140000Z.tif")
+
     h5_file = h5py.File(f"{current_directory}/test_s111_dcf2.h5", "r")
     feature_instance = h5_file['/SurfaceCurrent/SurfaceCurrent.01/']
 
-    assert tif_file.GetGeoTransform() == input_data.expected_georeferenced_coordinates
-    assert tif_file.RasterXSize == feature_instance.attrs['numPointsLongitudinal']
-    assert tif_file.RasterYSize == feature_instance.attrs['numPointsLatitudinal']
-    assert tif_file.GetGeoTransform() == (feature_instance.attrs['gridOriginLongitude'], feature_instance.attrs['gridSpacingLongitudinal'], 0, feature_instance.attrs['gridOriginLatitude'], 0, feature_instance.attrs['gridSpacingLatitudinal'])
-    assert tif_file.GetRasterBand(1).ComputeRasterMinMax()[0] >= 0
-    assert tif_file.GetRasterBand(1).ComputeRasterMinMax()[1] <= 100
-    assert tif_file.GetRasterBand(2).ComputeRasterMinMax()[0] >= 0
-    assert tif_file.GetRasterBand(2).ComputeRasterMinMax()[1] <= 360
+    assert tif_file1.GetGeoTransform() == input_data.expected_georeferenced_coordinates
+    assert tif_file1.RasterXSize == feature_instance.attrs['numPointsLongitudinal']
+    assert tif_file1.RasterYSize == feature_instance.attrs['numPointsLatitudinal']
+    assert tif_file1.GetGeoTransform() == (feature_instance.attrs['gridOriginLongitude'], feature_instance.attrs['gridSpacingLongitudinal'], 0, feature_instance.attrs['gridOriginLatitude'], 0, feature_instance.attrs['gridSpacingLatitudinal'])
+    assert tif_file1.GetRasterBand(1).ComputeRasterMinMax()[0] >= 0
+    assert tif_file1.GetRasterBand(1).ComputeRasterMinMax()[1] <= 100
+    assert tif_file1.GetRasterBand(2).ComputeRasterMinMax()[0] >= 0
+    assert tif_file1.GetRasterBand(2).ComputeRasterMinMax()[1] <= 360
 
-
+    assert tif_file2.GetGeoTransform() == input_data.expected_georeferenced_coordinates
+    assert tif_file2.RasterXSize == feature_instance.attrs['numPointsLongitudinal']
+    assert tif_file2.RasterYSize == feature_instance.attrs['numPointsLatitudinal']
+    assert tif_file2.GetGeoTransform() == (feature_instance.attrs['gridOriginLongitude'], feature_instance.attrs['gridSpacingLongitudinal'], 0, feature_instance.attrs['gridOriginLatitude'], 0, feature_instance.attrs['gridSpacingLatitudinal'])
+    assert tif_file2.GetRasterBand(1).ComputeRasterMinMax()[0] >= 0
+    assert tif_file2.GetRasterBand(1).ComputeRasterMinMax()[1] <= 100
+    assert tif_file2.GetRasterBand(2).ComputeRasterMinMax()[0] >= 0
+    assert tif_file2.GetRasterBand(2).ComputeRasterMinMax()[1] <= 360
 

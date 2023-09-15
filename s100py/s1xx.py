@@ -186,7 +186,9 @@ def parse_iso_datetime(val, date_or_time=datetime.datetime):
 
     if isinstance(val, (datetime.datetime, datetime.date, datetime.time)):
         if isinstance(val, datetime.datetime):
-            if is_sub_class(date_or_time, datetime.date):
+            if is_sub_class(date_or_time, datetime.datetime):
+                pass
+            elif is_sub_class(date_or_time, datetime.date):
                 val = val.date()
             elif is_sub_class(date_or_time, datetime.time):
                 tz = val.tzinfo
@@ -194,6 +196,12 @@ def parse_iso_datetime(val, date_or_time=datetime.datetime):
                 # getting the time this way drops the timezone info, so we stored it and now replace it
                 if tz:
                     val = val.replace(tzinfo=tz)
+        else:
+            if isinstance(val, datetime.date) and is_sub_class(date_or_time, datetime.time):
+                raise ValueError(f"Failed to parse a date, found a time {val} instead")
+            elif isinstance(val, datetime.time) and is_sub_class(date_or_time, datetime.date):
+                raise ValueError(f"Failed to parse a time, found a date {val} instead")
+
     return val
 
 

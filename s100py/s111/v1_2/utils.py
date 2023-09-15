@@ -59,27 +59,33 @@ def create_s111(output_file) -> S111File:
 
     surface_current_speed_info = surface_current_feature_dataset.append_new_item()
     surface_current_speed_info.code = "surfaceCurrentSpeed"
-    surface_current_speed_info.name = "Surface current speed"
-    surface_current_speed_info.unit_of_measure = "knots"
+    surface_current_speed_info.name = "Surface Current Speed"
+    surface_current_speed_info.unit_of_measure = "knot"
     surface_current_speed_info.datatype = "H5T_FLOAT"
-    surface_current_speed_info.fill_value = FILLVALUE
-    surface_current_speed_info.lower = "0.0"
+    surface_current_speed_info.fill_value = f"{FILLVALUE:0.02f}"
+    surface_current_speed_info.lower = "0.00"
     surface_current_speed_info.upper = ""
     surface_current_speed_info.closure = "geSemiInterval"
 
     surface_current_direction_info = surface_current_feature_dataset.append_new_item()
     surface_current_direction_info.code = "surfaceCurrentDirection"
-    surface_current_direction_info.name = "Surface current direction"
-    surface_current_direction_info.unit_of_measure = "arc-degrees"
+    surface_current_direction_info.name = "Surface Current Direction"
+    surface_current_direction_info.unit_of_measure = "degree"
     surface_current_direction_info.datatype = "H5T_FLOAT"
-    surface_current_direction_info.fill_value = FILLVALUE
-    surface_current_direction_info.lower = "0"
-    surface_current_direction_info.upper = "360"
-    surface_current_direction_info.closure = "geLtInterval"
+    surface_current_direction_info.fill_value = f"{FILLVALUE:0.01f}"
+    surface_current_direction_info.lower = "0.0"
+    surface_current_direction_info.upper = "359.9"
+    surface_current_direction_info.closure = "closedInterval"
 
-    utc_now = datetime.datetime.utcnow()
-    root.issue_date = utc_now.strftime('%Y%m%d')
-    root.issue_time = utc_now.strftime('%H%M%SZ')
+    surface_current_direction_info = surface_current_feature_dataset.append_new_item()
+    surface_current_direction_info.code = "surfaceCurrentTime"
+    surface_current_direction_info.name = "Surface Current Time"
+    surface_current_direction_info.unit_of_measure = "DateTime"
+    surface_current_direction_info.datatype = "H5T_STRING"
+    surface_current_direction_info.fill_value = ''
+    surface_current_direction_info.lower = "19000101T000000Z"
+    surface_current_direction_info.upper = "21500101T000000Z"
+    surface_current_direction_info.closure = "closedInterval"
 
     return data_file
 
@@ -111,7 +117,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
                 The default, denoting a missing value, is -1.0.
             - "timeUncertainty": Sensor accuracy, ata time tagging accuracy
                 The default, denoting a missing value, is -1.0.
-            - "surfaceCurrentDepth": Layer thickness (depthTypeIndex=1) or height (depthTypeIndex=2, 3, 4) (m)
+            - "surfaceCurrentDepth": Depth or height (depthTypeIndex=1) or layer thickness (depthTypeIndex=2) (m)
             - "depthTypeIndex":
                 - 'heightOrDepth': 1
                 - 'layerAverage': 2
@@ -140,6 +146,8 @@ def add_metadata(metadata: dict, data_file) -> S111File:
                 - 'hydrodynamicForecast': 5
             - "methodCurrentsProduct": Brief description of current meter type, forecast method or model, etc.
             - "datetimeOfFirstRecord": Valid time of the earliest value, 'YYYYMMDDTHHMMSSZ'
+            - "datasetDeliveryInterval": The expected time interval between availability of successive datasets
+                for time-varying data. Must be formatted as 'PnYnMnDTnHnMnS' (ISO 8601 duration)
 
     Returns
     -------
@@ -167,10 +175,21 @@ def add_metadata(metadata: dict, data_file) -> S111File:
     surface_current_feature.max_dataset_current_speed = 0
     surface_current_feature_instance_01.time_record_interval = 0
 
+    utc_now = datetime.datetime.utcnow()
+
+    if metadata["issueDateTime"]:
+        root.issue_date = metadata["issueDateTime"]
+    else:
+        root.issue_date = utc_now
+    if metadata["issueDateTime"]:
+        root.issue_time = metadata["issueDateTime"]
+    else:
+        root.issue_time = utc_now
+
     root.product_specification = S111File.PRODUCT_SPECIFICATION
     root.metadata = metadata["metadata"]
     root.horizontal_crs = metadata["horizontalCRS"]
-    root.dataset_delivery_interval = metadata["datasetDeliveryInterval"]  #"P6Y"  # PnYnMnDTnHnMnS
+    root.dataset_delivery_interval = metadata["datasetDeliveryInterval"]
     root.geographic_identifier = metadata["geographicIdentifier"]
     root.surface_current_depth = metadata["surfaceCurrentDepth"]
     root.depth_type_index = metadata["depthTypeIndex"]
@@ -183,9 +202,6 @@ def add_metadata(metadata: dict, data_file) -> S111File:
 
     # Optional
     # surface_current_feature.time_uncertainty = metadata["timeUncertainty"]
-
-    if surface_current_feature.data_coding_format == 2 or surface_current_feature.data_coding_format == 3:
-        surface_current_feature.interpolation_type = 10
 
     if "depthTypeIndex" in metadata:
         if metadata["depthTypeIndex"] == 1:
@@ -249,7 +265,7 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
     if data_coding_format == 2:
         surface_current_feature.data_coding_format = data_coding_format
         surface_current_feature_instance_01.start_sequence = "0,0"
-        surface_current_feature.sequencing_rule_scan_direction = "longitude, latitude"
+        surface_current_feature.sequencing_rule_scan_direction = "longitude,latitude"
         surface_current_feature.sequencing_rule_type = 1
         surface_current_feature_instance_01.grid_origin_longitude = grid_properties['maxx']
         surface_current_feature_instance_01.grid_origin_latitude = grid_properties['miny']
@@ -269,6 +285,9 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
         geometry_values = positioning.geometry_values
         geometry_values.longitude = grid_properties['longitude']
         geometry_values.latitude = grid_properties['latitude']
+
+    if data_coding_format == 2 or data_coding_format == 3:
+        surface_current_feature.interpolation_type = 10
 
     surface_current_feature_instance_01.east_bound_longitude = grid_properties['minx']
     surface_current_feature_instance_01.west_bound_longitude = grid_properties['maxx']

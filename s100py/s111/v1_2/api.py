@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Callable, Iterator, Union, Optional, List, Type
 from enum import Enum
 import numpy
+import datetime
 
 try:
     from ... import s1xx, s100
@@ -18,22 +19,23 @@ PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.2'
 
 CHANGELOG = """
 v1.2 
-S100 Edition 5.0
-Enum list changed from TYPE_OF_CURRENT_DATA to DATA_DYNAMICITY --  Table 12.10 - S104_DataDynamicity
-Enum list values changed for DEPTH_TYPE_INDEX --  Table 12.11 -  S111_DepthTypeIndex
-General metadata "horizontalDatumReference" and "horizontalDatumValue removed 
-General metadata attributes "horizontalCRS", "typeOfHorizontalCRS" were added -- Table 12.1
-General metadata "datasetDeliveryInterval" added
-The S-100 attribute verticalCoordinateBase is no longer used as of S-111 Edition 1.2 because
-its “sea surface” and “sea bottom” values have been added to the vertical datums enumeration (Table
-12-8).
+* S100 Edition 5.0
+* Enum list changed from TYPE_OF_CURRENT_DATA to DATA_DYNAMICITY --  Table 12.10 - S104_DataDynamicity
+* Enum list values changed for DEPTH_TYPE_INDEX --  Table 12.11 -  S111_DepthTypeIndex
+* General metadata "horizontalDatumReference" and "horizontalDatumValue removed
+* General metadata attributes "horizontalCRS", "typeOfHorizontalCRS" were added -- Table 12.1
+* General metadata "datasetDeliveryInterval" added
+* The S-100 attribute verticalCoordinateBase is no longer used as of S-111 Edition 1.2 because
+its “sea surface” and “sea bottom” values have been added to the vertical datums enumeration (Table 12-8)
+* Additional Group F Feature Attribute - surface current time(surfaceCurrentTime) -- A-2 Feature Attributes
+* Datatypes sizes have been specified for all attributes
 """
 
 
 SURFACE_CURRENT = "SurfaceCurrent"
 
 # Default fill value for NetCDF variables
-FILLVALUE = -9999.0
+FILLVALUE = -9999.00
 
 # Default depth in meters
 DEFAULT_TARGET_DEPTH = 4.5
@@ -343,22 +345,26 @@ class SurfaceCurrentGroup(S1xxObject):
         self.values = self.__values_type__()
 
     @property
-    def time_point(self) -> S1xxObject:
+    def time_point(self) -> datetime.datetime:
         return self._attributes[self.__time_point_hdf_name__]
 
     @time_point.setter
-    def time_point(self, val: S1xxObject):
-        self._attributes[self.__time_point_hdf_name__] = val
+    def time_point(self, val: Union[datetime.date, datetime.datetime, str]):
+        self.set_datetime_attribute(val, self.__time_point_hdf_name__, self.__time_point_type__)
 
     @property
-    def __time_point_type__(self) -> Type[str]:
-        return str
+    def __time_point_type__(self) -> Type[datetime.datetime]:
+        return datetime.datetime
+
+    @property
+    def __time_point_repr__(self) -> str:
+        return self._attributes[self.__time_point_hdf_name__].strftime("%Y%m%dT%H%M%SZ")
 
     def time_point_create(self):
         """ Creates a blank, empty or zero value for time_point"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.time_point = self.__time_point_type__()
+        self.time_point = self.__time_point_type__(1970, 1, 1)
 
     @property
     def __version__(self) -> int:
@@ -419,8 +425,8 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
         self._attributes[self.__number_of_nodes_hdf_name__] = val
 
     @property
-    def __number_of_nodes_type__(self) -> Type[numpy.int32]:
-        return numpy.int32
+    def __number_of_nodes_type__(self) -> Type[int]:
+        return numpy.uint32
 
     def number_of_nodes_create(self):
         # noinspection PyAttributeOutsideInit
@@ -484,6 +490,14 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.data_dynamicity = list(self.__data_dynamicity_type__)[0]
+
+    @property
+    def __number_of_times_type__(self) -> Type[int]:
+        return numpy.uint32
+
+    @property
+    def __time_record_interval_type__(self) -> Type[int]:
+        return numpy.uint16
 
 
 class SurfaceCurrentList(S111MetadataListBase):
@@ -554,8 +568,8 @@ class SurfaceCurrentContainer(FeatureContainerDCF2):
         self._attributes[self.__min_dataset_current_speed_hdf_name__] = val
 
     @property
-    def __min_dataset_current_speed_type__(self) -> Type[float]:
-        return float
+    def __min_dataset_current_speed_type__(self) -> Type[numpy.float64]:
+        return numpy.float64
 
     def min_dataset_current_speed_create(self):
         """ Creates a blank, empty or zero value for min_dataset_current_speed"""
@@ -572,8 +586,8 @@ class SurfaceCurrentContainer(FeatureContainerDCF2):
         self._attributes[self.__max_dataset_current_speed_hdf_name__] = val
 
     @property
-    def __max_dataset_current_speed_type__(self) -> Type[numpy.float32]:
-        return numpy.float32
+    def __max_dataset_current_speed_type__(self) -> Type[numpy.float64]:
+        return numpy.float64
 
     def max_dataset_current_speed_create(self):
         """ Creates a blank, empty or zero value for max_dataset_current_speed"""
@@ -676,6 +690,8 @@ class S111Root(S100Root):
     __depth_type_index_hdf_name__ = "depthTypeIndex"
     __surface_current_depth_hdf_name__ = "surfaceCurrentDepth"
     __dataset_delivery_interval_hdf_name__ = "datasetDeliveryInterval"
+    __issue_time_hdf_name__ = "issueTime"
+    __issue_date_hdf_name__ = "issueDate"
 
     @property
     def __version__(self) -> int:
@@ -755,7 +771,15 @@ class S111Root(S100Root):
         """ Creates a blank, empty or zero value for dataset_delivery_interval"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.dataset_delivery_interval = self.__dataset_delivery_interval__()
+        self.dataset_delivery_interval = self.__dataset_delivery_interval_type__()
+
+    @property
+    def __issue_date_repr__(self) -> str:
+        return self._attributes[self.__issue_date_hdf_name__].strftime("%Y%m%d")
+
+    @property
+    def __issue_time_repr__(self) -> str:
+        return self._attributes[self.__issue_time_hdf_name__].strftime('%H%M%SZ')
 
 
 class DiscoveryMetadata(S1xxObject):
@@ -767,7 +791,7 @@ class DiscoveryMetadata(S1xxObject):
         raise NotImplementedError()
 
 
-class S111File(S1XXFile):
+class S111File(S100File):
     PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.2'
 
     def __init__(self, *args, **kywrds):
