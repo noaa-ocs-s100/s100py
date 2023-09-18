@@ -229,7 +229,7 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     root.horizontal_crs = metadata["horizontalCRS"]
     root.geographic_identifier = metadata["geographicIdentifier"]
     root.water_level_trend_threshold = metadata["waterLevelTrendThreshold"]
-    root.vertical_coordinate_system = metadata["verticalCS"]
+    root.vertical_cs = metadata["verticalCS"]
     root.vertical_coordinate_base = metadata["verticalCoordinateBase"]
     root.vertical_datum_reference = metadata["verticalDatumReference"]
     root.vertical_datum = metadata["verticalDatum"]

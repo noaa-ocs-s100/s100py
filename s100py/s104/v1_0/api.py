@@ -10,7 +10,7 @@ import h5py
 
 from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype, is_sub_class
 from ...v4_0.s100 import S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase, GeographicBoundingBox
-from ...v5_0.s100 import VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE, VERTICAL_CS, VERTICAL_COORDINATE_BASE, HORIZONTAL_DATUM_REFERENCE, HORIZONTAL_CS, TYPE_OF_HORIZONTAL_CRS, PROJECTION_METHOD
+from ...v5_0.s100 import S100File, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE, VERTICAL_CS, VERTICAL_COORDINATE_BASE, HORIZONTAL_DATUM_REFERENCE, HORIZONTAL_CS, TYPE_OF_HORIZONTAL_CRS, PROJECTION_METHOD
 
 WATER_LEVEL = "WaterLevel"
 
@@ -1356,9 +1356,9 @@ class DiscoveryMetadata(S1xxObject):
         raise NotImplementedError()
 
 
-class S104File(S1XXFile):
+class S104File(S100File):
     """ HDF5 file object"""
-    PRODUCT_SPECIFICATION = 'INT.IHO.S-104.0.0'
+    PRODUCT_SPECIFICATION = 'INT.IHO.S-104.1.0'
 
     def __init__(self, *args, **kywrds):
         super().__init__(*args, root=S104Root, **kywrds)
