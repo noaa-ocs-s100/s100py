@@ -127,16 +127,26 @@ class VERTICAL_DATUM(Enum):
 HORIZONTAL_DATUM_REFERENCE = 'EPSG'
 REGULAR = 'Regularly-gridded arrays2'
 # Table 10c-4 and Table 10c-23, added values 8 and 9 for Fixed stations - stationwise and Feature oriented regular grid
+# v5.0 added camel case names
 DATA_CODING_FORMAT = Enum(value="DATA_CODING_FORMAT",
                           names=[
+                              ('fixedStations', 1),
                               ('Time series at fixed stations', 1),
+                              ('regularGrid', 2),
                               ('Regularly-gridded arrays', 2),
+                              ('ungeorectifiedGrid', 3),
                               ('Ungeorectified gridded arrays', 3),
+                              ('movingPlatform', 4),
                               ('Moving platform', 4),
+                              ('irregularGrid', 5),
                               ('Irregular grid', 5),
+                              ('variableCellSize', 6),
                               ('Variable cell size', 6),
                               ('TIN', 7),
+                              ('Triangulated irregular network', 7),
+                              ('stationwiseFixed', 8),
                               ('Fixed stations stationwise', 8),
+                              ('featureOrientedRegularGrid', 9),
                               ('Feature oriented regular grid', 9),
                               # alternate shortcut names that also show up in sphinx, these will be stored with full names including spaces
                               ('TIME', 1),
@@ -149,6 +159,8 @@ DATA_CODING_FORMAT = Enum(value="DATA_CODING_FORMAT",
                               ('FEATURE_REGULAR', 9)
                           ]
                           )
+
+
 """
 Sphinx is not interpreting the enum names properly when there are spaces. The correct enum names with spaces are::
 
