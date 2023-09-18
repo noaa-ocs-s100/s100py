@@ -8,7 +8,8 @@ import numpy
 import h5py
 
 from s100py import s100, s104
-import s100py.s104.v1_0 as wtl
+# import s100py.s104.v1_0 as wtl
+import s100py.s104.v1_1 as wtl
 
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
@@ -27,8 +28,10 @@ InputData = namedtuple(
      'height_002',
      'trend_002',
      'grid_properties',
-     'metadata',
-     'datetime_value',
+     'datetime_forecast_issuance',
+     'datetime_interval',
+     'metadata_1_0',
+     'metadata_1_1',
      'data_coding_format',
      'update_meta',
      'expected_chunks',
@@ -276,7 +279,11 @@ def input_data():
         'ny': 353
     }
 
-    metadata = {
+    datetime_forecast_issuance = datetime.datetime(2020, 9, 26, 15, 0, 0)
+
+    datetime_interval = datetime.timedelta(seconds=3600)
+
+    metadata_1_0 = {
      'horizontalCRS': 3855,
      'metadata': 'MD_s104_test.XML',
      'geographicIdentifier': 'Palau',
@@ -294,15 +301,33 @@ def input_data():
      'typeOfWaterLevelData': 5,
      'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
      'datetimeOfFirstRecord': '2020-09-26T16:00:00'
-
     }
 
-    datetime_value = datetime.datetime(2020, 9, 26, 15, 0, 0)
+    metadata_1_1 = {
+     'horizontalCRS': 3855,
+     'metadata': 'MD_s104_test.XML',
+     'geographicIdentifier': 'Palau',
+     'waterLevelHeightUncertainty': -1.0,
+     'verticalUncertainty': -1.0,
+     'horizontalPositionUncertainty': -1.0,
+     'waterLevelTrendThreshold': 0.02,
+     'verticalCS': 6499,
+     'verticalDatumReference': 2,
+     'verticalDatum': 1027,
+     'commonPointRule': 4,
+     'interpolationType': 10,
+     'dataDynamicity': 5,
+     'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
+     'datetimeOfFirstRecord': '20200926T160000Z',
+     'datasetDeliveryInterval': 'PT6H',
+     'trendInterval': 60,
+     'issueDateTime': datetime_forecast_issuance,
+    }
 
     data_coding_format = 2
 
     update_meta = {
-        'dateTimeOfLastRecord': '2020-09-26T17:00:00',
+        'dateTimeOfLastRecord': '20200926T170000Z',
         'numberOfGroups': 2,
         'numberOfTimes': 2,
         'timeRecordInterval': 3600,
@@ -316,18 +341,30 @@ def input_data():
         ('waterLevelTrend', 'Water level trend', '', '0', 'H5T_ENUM', '', '', ''),
         ('waterLevelTime', 'Water level time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
         dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
+    if wtl.EDITION == 1.1:
+        expected_groupf = numpy.array([
+            ('waterLevelHeight', 'Water Level Height', 'metres', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
+            ('waterLevelTrend', 'Water Level Trend', '', '0', 'H5T_ENUM', '', '', ''),
+            ('waterLevelTime', 'Water Level Time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
+            dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
 
-    return InputData(height_001, trend_001, height_002, trend_002, grid_properties, metadata, datetime_value, data_coding_format, update_meta, expected_chunks, expected_groupf)
+    return InputData(height_001, trend_001, height_002, trend_002, grid_properties,  datetime_forecast_issuance, datetime_interval, metadata_1_0, metadata_1_1, data_coding_format, update_meta, expected_chunks, expected_groupf)
 
 
 def test_create_s104_dcf2(input_data):
     data_file = wtl.utils.create_s104(path_to_s104file)
 
-    wtl.utils.add_metadata(input_data.metadata, data_file)
+    if wtl.EDITION == 1.0:
+        wtl.utils.add_metadata(input_data.metadata_1_0, data_file)
+    elif wtl.EDITION == 1.1:
+        wtl.utils.add_metadata(input_data.metadata_1_1, data_file)
+
+    data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
     wtl.utils.add_data_from_arrays(input_data.height_001, input_data.trend_001, data_file, input_data.grid_properties,
-                                   input_data.datetime_value, input_data.data_coding_format)
+                                   data_series_time_001, input_data.data_coding_format)
+    data_series_time_002 = data_series_time_001 + input_data.datetime_interval
     wtl.utils.add_data_from_arrays(input_data.height_002, input_data.trend_002, data_file, input_data.grid_properties,
-                                   input_data.datetime_value, input_data.data_coding_format)
+                                   data_series_time_002, input_data.data_coding_format)
     wtl.utils.update_metadata(data_file, input_data.grid_properties, input_data.update_meta)
 
     wtl.utils.write_data_file(data_file)
@@ -339,7 +376,8 @@ def test_create_s104_dcf2(input_data):
     assert 'Group_F/featureCode' in h5_file
     assert 'WaterLevel/WaterLevel.01/uncertainty' in h5_file
     assert 'WaterLevel/axisNames' in h5_file
-    assert h5_file['Group_F/WaterLevel'].attrs['chunking'] == input_data.expected_chunks
+    if wtl.EDITION == 1.0:
+        assert h5_file['Group_F/WaterLevel'].attrs['chunking'] == input_data.expected_chunks
     assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'],
                           input_data.height_001)
     assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'],
