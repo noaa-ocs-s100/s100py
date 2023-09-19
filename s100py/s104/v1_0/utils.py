@@ -225,7 +225,7 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     water_level_feature_instance_01.time_record_interval = 0
 
     root.product_specification = S104File.PRODUCT_SPECIFICATION
-    root.metadata = metadata["metadata"]
+    root.metadata = ""
     root.horizontal_crs = metadata["horizontalCRS"]
     root.geographic_identifier = metadata["geographicIdentifier"]
     root.water_level_trend_threshold = metadata["waterLevelTrendThreshold"]
@@ -266,8 +266,8 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         grid_properties
             a dictionary of metadata describing the grids passed in,
             metadata can have the following key/value pairs:
-                - "maxx": West bound longitude
-                - "minx": East bound longitude
+                - "minx": West bound longitude
+                - "maxx": East bound longitude
                 - "miny": South bound latitude
                 - "maxy": North bound latitude
                 - "cellsize_x": Only for DCF2, grid spacing longitude
@@ -299,7 +299,7 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         water_level_feature_instance_01.start_sequence = "0,0"
         water_level_feature.sequencing_rule_scan_direction = "longitude,latitude"
         water_level_feature.sequencing_rule_type = 1
-        water_level_feature_instance_01.grid_origin_longitude = grid_properties['maxx']
+        water_level_feature_instance_01.grid_origin_longitude = grid_properties['minx']
         water_level_feature_instance_01.grid_origin_latitude = grid_properties['miny']
         water_level_feature_instance_01.grid_spacing_longitudinal = grid_properties['cellsize_x']
         water_level_feature_instance_01.grid_spacing_latitudinal = grid_properties['cellsize_y']
@@ -318,8 +318,8 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         geometry_values.longitude = grid_properties['longitude']
         geometry_values.latitude = grid_properties['latitude']
 
-    water_level_feature_instance_01.east_bound_longitude = grid_properties['minx']
-    water_level_feature_instance_01.west_bound_longitude = grid_properties['maxx']
+    water_level_feature_instance_01.east_bound_longitude = grid_properties['maxx']
+    water_level_feature_instance_01.west_bound_longitude = grid_properties['minx']
     water_level_feature_instance_01.south_bound_latitude = grid_properties['miny']
     water_level_feature_instance_01.north_bound_latitude = grid_properties['maxy']
 
@@ -329,10 +329,10 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
     min_height = numpy.round(numpy.nanmin(height), decimals=2)
     max_height = numpy.round(numpy.nanmax(height), decimals=2)
 
-    if min_height < water_level_feature.min_dataset_height:
+    if min_height < water_level_feature.min_dataset_height and min_height != FILLVALUE_HEIGHT:
         water_level_feature.min_dataset_height = min_height
 
-    if max_height > water_level_feature.max_dataset_height:
+    if max_height > water_level_feature.max_dataset_height and max_height != FILLVALUE_HEIGHT:
         water_level_feature.max_dataset_height = max_height
 
     if numpy.ma.is_masked(height):
@@ -365,8 +365,8 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S104
           grid_properties
               a dictionary of metadata describing the dynamic data passed in,
               metadata can have the following key/value pairs:
-                  - "maxx": West bound longitude
-                  - "minx": East bound longitude
+                  - "minx": West bound longitude
+                  - "maxx": East bound longitude
                   - "miny": South bound latitude
                   - "maxy": North bound latitude
                   - "cellsize_x": Only for DCF2, grid spacing longitude
@@ -401,8 +401,8 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S104
     water_level_feature_instance_01.number_of_times = update_meta['numberOfTimes']
     water_level_feature_instance_01.time_record_interval = update_meta['timeRecordInterval']
 
-    root.east_bound_longitude = grid_properties["minx"]
-    root.west_bound_longitude = grid_properties["maxx"]
+    root.east_bound_longitude = grid_properties["maxx"]
+    root.west_bound_longitude = grid_properties["minx"]
     root.south_bound_latitude = grid_properties["miny"]
     root.north_bound_latitude = grid_properties["maxy"]
 
@@ -444,8 +444,8 @@ def to_geotiff(input_path, output_path):
 
             for idx in range(1, num_grp + 1):
                 values = feature_instance['Group_{:03d}/values'.format(idx)]
-                height = values['waterLevelHeight']
-                trend = values['waterLevelTrend']
+                height = numpy.flipud(values['waterLevelHeight'])
+                trend = numpy.flipud(values['waterLevelTrend'])
                 timepoint = feature_instance['Group_{:03d}'.format(idx)].attrs['timePoint']
 
                 try:

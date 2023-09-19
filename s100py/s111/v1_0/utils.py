@@ -174,7 +174,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
     surface_current_feature_instance_01.time_record_interval = 0
 
     root.product_specification = S111File.PRODUCT_SPECIFICATION
-    root.metadata = metadata["metadata"]
+    root.metadata = ""
     root.horizontal_datum_reference = metadata["horizontalDatumReference"]
     root.horizontal_datum_value = metadata["horizontalDatumValue"]
     root.epoch = metadata["epoch"]
@@ -212,8 +212,8 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
         grid_properties
             a dictionary of metadata describing the grids passed in,
             metadata can have the following key/value pairs:
-                - "maxx": West bound longitude
-                - "minx": East bound longitude
+                - "minx": West bound longitude
+                - "maxx": East bound longitude
                 - "miny": South bound latitude
                 - "maxy": North bound latitude
                 - "cellsize_x": Only for DCF2, grid spacing longitude
@@ -247,7 +247,7 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
         surface_current_feature_instance_01.start_sequence = "0,0"
         surface_current_feature.sequencing_rule_scan_direction = "longitude, latitude"
         surface_current_feature.sequencing_rule_type = 1
-        surface_current_feature_instance_01.grid_origin_longitude = grid_properties['maxx']
+        surface_current_feature_instance_01.grid_origin_longitude = grid_properties['minx']
         surface_current_feature_instance_01.grid_origin_latitude = grid_properties['miny']
         surface_current_feature_instance_01.grid_spacing_longitudinal = grid_properties['cellsize_x']
         surface_current_feature_instance_01.grid_spacing_latitudinal = grid_properties['cellsize_y']
@@ -266,8 +266,8 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
         geometry_values.longitude = grid_properties['longitude']
         geometry_values.latitude = grid_properties['latitude']
 
-    surface_current_feature_instance_01.east_bound_longitude = grid_properties['minx']
-    surface_current_feature_instance_01.west_bound_longitude = grid_properties['maxx']
+    surface_current_feature_instance_01.east_bound_longitude = grid_properties['maxx']
+    surface_current_feature_instance_01.west_bound_longitude = grid_properties['minx']
     surface_current_feature_instance_01.south_bound_latitude = grid_properties['miny']
     surface_current_feature_instance_01.north_bound_latitude = grid_properties['maxy']
 
@@ -311,8 +311,8 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S111
           grid_properties
               a dictionary of metadata describing the grids passed in,
               metadata can have the following key/value pairs:
-                 - "maxx": West bound longitude
-                 - "minx": East bound longitude
+                 - "minx": West bound longitude
+                 - "maxx": East bound longitude
                  - "miny": South bound latitude
                  - "maxy": North bound latitude
                  - "cellsize_x": Only for DCF2, grid spacing longitude
@@ -347,8 +347,8 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S111
     surface_current_feature_instance_01.number_of_times = update_meta['numberOfTimes']
     surface_current_feature_instance_01.time_record_interval = update_meta['timeRecordInterval']
 
-    root.east_bound_longitude = grid_properties["minx"]
-    root.west_bound_longitude = grid_properties["maxx"]
+    root.east_bound_longitude = grid_properties["maxx"]
+    root.west_bound_longitude = grid_properties["minx"]
     root.south_bound_latitude = grid_properties["miny"]
     root.north_bound_latitude = grid_properties["maxy"]
 
