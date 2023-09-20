@@ -25,70 +25,155 @@ Example Usage
 ```python
 import numpy
 import datetime
-from s100py import s104
-water_level_height = numpy.array([[ 0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,
-                                    0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34, 0.34,  0.34],
-                                  [ 0.34,  0.34,  0.34,  0.34,  0.34,  0.34,  0.34, 0.34,  0.34,  0.34,
-                                    0.34,  0.34,  0.34,  0.34,  0.34,  0.34, 0.34,  0.34,  0.34,  0.34],
-                                  [ 0.34,  0.34,  0.34, 0.34,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35,
-                                    0.35,  0.35, 0.35,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35,  0.35]])
+import s100py.s104.v1_1 as s104
+water_level_height_001 = numpy.array([
+                                    [    0.2 ,     0.2 ,     0.2 ,     0.19,     0.19,     0.19,
+                                         0.19,     0.19,     0.19,     0.19,     0.19,     0.18,  0.18],
+                                    [    0.2 ,     0.2 ,     0.2 ,     0.2 ,     0.19,     0.19,
+                                         0.19,     0.19,     0.19,     0.19,     0.19,     0.18,  0.18],
+                                    [    0.22,     0.2 ,     0.2 ,     0.2 ,     0.19,     0.19,
+                                         0.19,     0.19,     0.19,     0.19,     0.18,     0.18,  0.18],
+                                    [    0.23,     0.21,     0.2 ,     0.2 ,     0.2 ,     0.19,
+                                         0.19,     0.19,     0.19,     0.19,     0.18,     0.18,  0.18],
+                                    [    0.24,     0.21,     0.21,     0.2 ,     0.2 ,     0.19,
+                                         0.19,     0.19,     0.19,     0.19,     0.18,     0.18,  0.18],
+                                    [-9999.  ,     0.21,     0.21,     0.2 ,     0.2 ,     0.19,
+                                         0.19,     0.19,     0.19,     0.19,     0.18,     0.18,  0.18],
+                                    [-9999.  ,     0.23,     0.21,     0.21,     0.2 ,     0.2 ,
+                                         0.19,     0.19,     0.19,     0.19,     0.18,     0.18,  0.18],
+                                    [-9999.  ,     0.25,     0.21,     0.21,     0.2 ,     0.2 ,
+                                         0.19,     0.19,     0.19,     0.19,     0.18,     0.18,  0.18],
+                                    [-9999.  , -9999.  ,     0.22,     0.21,     0.2 ,     0.2 ,
+                                         0.19,     0.19,     0.19,     0.19,     0.18,     0.18,  0.18],
+                                    [-9999.  , -9999.  ,     0.23,     0.21,     0.2 ,     0.19,
+                                         0.19,     0.19,     0.19,     0.19,     0.18,     0.18,  0.18],
+                                    [-9999.  ,     0.27,     0.22,     0.2 ,     0.2 ,     0.19,
+                                         0.19,     0.18,     0.18,     0.18,     0.18,     0.18,  0.18],
+                                    [    0.26,     0.23,     0.2 ,     0.2 ,     0.19,     0.19,
+                                         0.19,     0.18,     0.18,     0.18,     0.18,     0.18,  0.18],
+                                    [    0.23,     0.2 ,     0.2 ,     0.2 ,     0.19,     0.19,
+                                         0.19,     0.18,     0.18,     0.18,     0.18,     0.18,  0.18],
+                                    [    0.21,     0.2 ,     0.2 ,     0.19,     0.19,     0.19,
+                                         0.18,     0.18,     0.18,     0.18,     0.18,     0.18,  0.18],
+                                    [    0.2 ,     0.2 ,     0.19,     0.19,     0.19,     0.19,
+                                         0.18,     0.18,     0.18,     0.18,     0.18,     0.18,  0.18],
+                                    [    0.19,     0.19,     0.19,     0.19,     0.19,     0.18,
+                                         0.18,     0.18,     0.18,     0.18,     0.18,     0.18, 0.18]])
 
-water_level_trend = numpy.array([[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+water_level_trend_001 = numpy.array([
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                                   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]])
+
+water_level_height_002 = numpy.array([
+                                    [    0.18,     0.17,     0.17,     0.17,     0.17,     0.17,
+                                         0.16,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [    0.18,     0.18,     0.17,     0.17,     0.17,     0.17,
+                                         0.16,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [    0.2 ,     0.18,     0.18,     0.17,     0.17,     0.17,
+                                         0.16,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [    0.21,     0.18,     0.18,     0.18,     0.17,     0.17,
+                                         0.17,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [    0.21,     0.19,     0.18,     0.18,     0.17,     0.17,
+                                         0.17,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [-9999.  ,     0.19,     0.18,     0.18,     0.18,     0.17,
+                                         0.17,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [-9999.  ,     0.21,     0.19,     0.18,     0.18,     0.17,
+                                         0.17,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [-9999.  ,     0.22,     0.19,     0.18,     0.18,     0.17,
+                                         0.17,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [-9999.  , -9999.  ,     0.2 ,     0.18,     0.18,     0.17,
+                                         0.17,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [-9999.  , -9999.  ,     0.2 ,     0.18,     0.18,     0.17,
+                                         0.17,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [-9999.  ,     0.25,     0.2 ,     0.18,     0.17,     0.17,
+                                         0.16,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [    0.24,     0.21,     0.18,     0.18,     0.17,     0.17,
+                                         0.16,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [    0.21,     0.18,     0.18,     0.17,     0.17,     0.17,
+                                         0.16,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [    0.19,     0.18,     0.17,     0.17,     0.17,     0.16,
+                                         0.16,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [    0.18,     0.17,     0.17,     0.17,     0.17,     0.16,
+                                         0.16,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16],
+                                    [    0.17,     0.17,     0.17,     0.17,     0.16,     0.16,
+                                         0.16,     0.16,     0.16,     0.16,     0.16,     0.16, 0.16]])
 
 grid_properties = {
-        'maxx': 134.175,
-        'minx': 134.216,
-        'miny': 6.982,
-        'maxy': 7.254,
-        'cellsize_x': 0.013595581,
-        'cellsize_y': 0.013597488,
-        'nx': 3,
-        'ny': 20
+        'maxx': -169.642699,
+        'minx': -169.812302,
+        'miny': -19.165940,
+        'maxy': -18.944464,
+        'cellsize_x': 0.01384226425,
+        'cellsize_y': 0.0130463781538463,
+        'nx': 16,
+        'ny': 13
 }
+
+datetime_forecast_issuance = datetime.datetime(2021, 9, 1, 0, 0, 0)
+
+datetime_interval = datetime.timedelta(seconds=3600)
 
 # Example metadata
 metadata = {
     'horizontalCRS': 4362, #EPSG code
-    'metadata': f'MD_test_s104.XML',
     'geographicIdentifier': 'RegionName',
     'waterLevelHeightUncertainty': -1.0, # Default or Unknown values
     'verticalUncertainty': -1.0, # Default or Unknown values
     'horizontalPositionUncertainty': -1.0, # Default or Unknown values
-    'timeUncertainty': -1.0, # Default or Unknown values
     'waterLevelTrendThreshold': 0.2,
     'verticalCS': 6499, # EPSG code
-    'verticalCoordinateBase': 2, # 2:Vertical Datum
-    'verticalDatumReference': 2, # 2:EPSG
-    'verticalDatum': 1027, # EPSG code
+    'verticalDatumReference': 1, # 2:EPSG
+    'verticalDatum': 12, # EPSG code
     'commonPointRule': 4, # 4:all
     'interpolationType': 10, # 10:discrete
-    'typeOfWaterLevelData': 5, # 5:Hydrodynamic model forecast (F)
+    'dataDynamicity': 5, # 5:Hydrodynamic model forecast (F)
     'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
-    'datetimeOfFirstRecord': '2020-09-26T16:00:00'
-
+    'datetimeOfFirstRecord': '20210901T010000Z',
+    'trendInterval': 60, # minutes
+    'datasetDeliveryInterval': 'PT6H',
+    'issueDateTime': datetime_forecast_issuance
 }
-
-datetime_value = datetime.datetime(2020, 9, 26, 15, 0, 0)
 
 data_coding_format = 2
 
 update_meta = {
-        'dateTimeOfLastRecord': '2020-09-26T16:00:00',
-        'numberOfGroups': 1,
-        'numberOfTimes': 1,
-        'timeRecordInterval': 0,
+        'dateTimeOfLastRecord': '20210901T020000Z',
+        'numberOfGroups': 2,
+        'numberOfTimes': 2,
+        'timeRecordInterval': 3600,
         'num_instances': 1
     }
 
 data_file = s104.utils.create_s104("test_s104.h5")
 
 s104.utils.add_metadata(metadata, data_file)
-s104.utils.add_data_from_arrays(water_level_height, water_level_trend, data_file, grid_properties, datetime_value, data_coding_format)
+data_series_time_001 = datetime_forecast_issuance + datetime_interval
+s104.utils.add_data_from_arrays(water_level_height_001, water_level_trend_001, data_file, grid_properties, data_series_time_001, data_coding_format)
+data_series_time_002 = data_series_time_001 + datetime_interval
+
+trend = numpy.round((water_level_height_002 - water_level_height_001), decimals=2)
+
+water_level_trend_002 = numpy.where(( -1 * metadata['waterLevelTrendThreshold'] < trend) &
+                                (trend < metadata['waterLevelTrendThreshold']),3,
+                                numpy.where(trend >= metadata['waterLevelTrendThreshold'], 2,
+                                    numpy.where( trend <= -1 * metadata['waterLevelTrendThreshold'], 1,numpy.any(trend))))
+
+s104.utils.add_data_from_arrays(water_level_height_002, water_level_trend_002, data_file, grid_properties, data_series_time_002, data_coding_format)
+
 s104.utils.update_metadata(data_file, grid_properties, update_meta)
 
 s104.utils.write_data_file(data_file)
@@ -102,7 +187,7 @@ For S-104 Developers
 Authors
 -------
 
--   Erin Nagel (UCAR), <erin.nagel@noaa.gov>
+-   Erin Nagel (ERT), <erin.nagel@noaa.gov>
 -   Barry Gallagher (NOAA), <barry.gallagher@noaa.gov>
 -   Jason Greenlaw
 
