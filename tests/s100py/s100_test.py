@@ -8,7 +8,14 @@ import tempfile
 import numpy
 import h5py
 
-from s100py import s100
+# from s100py import s100
+from s100py.v4_0 import s100 as v4_0
+from s100py.v5_0 import s100 as v5_0
+
+
+@pytest.fixture(scope="module", params=[v4_0, v5_0])
+def s100(request):
+    yield request.param
 
 
 def h5py_string_comp(h5py_val, cmp_str):
@@ -16,7 +23,7 @@ def h5py_string_comp(h5py_val, cmp_str):
     return h5py_val in (cmp_str, bytes(cmp_str, "utf-8"))
 
 
-def test_feature_information_conversions():
+def test_feature_information_conversions(s100):
     i = s100.FeatureInformation()
     assert i._python_datatype() == str
     i.fill_value = 10.0
@@ -41,7 +48,7 @@ def test_feature_information_conversions():
 
 
 @pytest.fixture(scope="module")
-def s100_file():
+def s100_file(s100):
     h, fstr = tempfile.mkstemp(".h5", dir=os.path.split(__file__)[0])
     os.close(h)
     # create a S100 file to do basic tests, each test of a specific spec (102, 111) will need to create it's own.
@@ -65,10 +72,10 @@ def test_create_attrs(s100_file):
     assert s100_file.root.west_bound_longitude == -100.5
 
 
-def test_enumeration(s100_file):
+def test_enumeration(s100, s100_file):
     s100_file.root.vertical_datum = "MLLW"
-    assert s100_file.root.vertical_datum == s100_file.root.__vertical_datum_type__["MLLW"]
-    assert s100_file.root.vertical_datum == s100_file.root.__vertical_datum_type__(12)
+    assert s100_file.root.vertical_datum == s100.VERTICAL_DATUM["MLLW"]
+    assert s100_file.root.vertical_datum == s100.VERTICAL_DATUM(12)
     assert s100_file.root.vertical_datum == s100.VERTICAL_DATUM["meanLowerLowWater"]
 
 
@@ -77,7 +84,7 @@ def test_write(s100_file):
     s100_file.write()
 
 
-def test_read(s100_file):
+def test_read(s100, s100_file):
     read_file = s100.S100File(s100_file.filename, "r")
     read_file.read()
     assert read_file.root.east_bound_longitude == s100_file.root.east_bound_longitude
@@ -87,19 +94,21 @@ def test_read(s100_file):
     assert read_file.root.issue_date == datetime.date(2001, 7, 17)
 
 
-def test_initialize_props(s100_file):
+def test_initialize_props(s100, s100_file):
     s100_file.root.initialize_properties()
     s100_file.root.initialize_properties(True)
-    assert isinstance(s100_file.root.north_bound_latitude, float)
+    if s100.EDITION == 4.0:
+        assert isinstance(s100_file.root.north_bound_latitude, float)
+    else:
+        assert isinstance(s100_file.root.north_bound_latitude, numpy.float32)
 
 
-class FakeDataset(s100.FeatureInformationDataset):
-    @property
-    def metadata_name(self) -> str:
-        return "FeatInfoTest"
+def test_dataset(s100, s100_file):
+    class FakeDataset(s100.FeatureInformationDataset):
+        @property
+        def metadata_name(self) -> str:
+            return "FeatInfoTest"
 
-
-def test_dataset(s100_file):
     td = FakeDataset()
     rec1 = td.metadata_type()
     rec1.initialize_properties()
@@ -125,7 +134,7 @@ def test_dataset(s100_file):
     assert h5py_string_comp(data[1]['code'], "test")
 
 
-def test_numpy_string(s100_file):
+def test_numpy_string(s100, s100_file):
     numpy_strings = numpy.array(["sLat", "slong"], dtype='S')
     s100_file.root.add_data("ndStrings", numpy_strings)
 

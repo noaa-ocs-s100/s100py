@@ -2091,7 +2091,6 @@ class S100Root(GeographicBoundingBox):
     __feature_information_hdf_name__ = "Group_F"
     __epoch_hdf_name__ = "epoch"
     __geographic_identifier_hdf_name__ = "geographicIdentifier"
-    __vertical_datum_hdf_name__ = "verticalDatum"
     __meta_features_hdf_name__ = "metaFeatures"
     __metadata_hdf_name__ = "metadata"
     __product_specification_hdf_name__ = "productSpecification"
@@ -2265,29 +2264,6 @@ class S100Root(GeographicBoundingBox):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.metadata = self.__metadata_type__()
-
-    @property
-    def vertical_datum(self) -> Enum:
-        return self._attributes[self.__vertical_datum_hdf_name__]
-
-    @vertical_datum.setter
-    def vertical_datum(self, val: Union[int, str, VERTICAL_DATUM]):
-        self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, self.__vertical_datum_type__)
-        # if isinstance(val, str):
-        #     val = self.__vertical_datum_type__[val]
-        # if isinstance(val , int):
-        #     val = self.__vertical_datum_type__(val)
-        # self._attributes[self.__vertical_datum_hdf_name__] = val
-
-    @property
-    def __vertical_datum_type__(self) -> Type[int]:
-        return numpy.int32
-
-    def vertical_datum_create(self):
-        """ Creates a blank, empty or zero value for vertical_datum"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum = VERTICAL_DATUM["MLLW"]
 
     @property
     def meta_features(self) -> str:
@@ -2664,12 +2640,17 @@ the EPSG documentation."""
         self.vertical_datum_reference = list(VERTICAL_DATUM_REFERENCE)[0]
 
     @property
-    def vertical_datum(self) -> int:
-        return self._attributes[self.__vertical_datum_hdf_name__]
+    def vertical_datum(self) -> Enum:
+        val = self._attributes[self.__vertical_datum_hdf_name__]
+        # try:
+        #     val = val.value  # convert to integer if it's an enum
+        # except AttributeError:
+        #     pass
+        return val
 
     @vertical_datum.setter
-    def vertical_datum(self, val: int):
-        self._attributes[self.__vertical_datum_hdf_name__] = val
+    def vertical_datum(self, val: (int, str, VERTICAL_DATUM)):
+        self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, VERTICAL_DATUM)
 
     @property
     def __vertical_datum_type__(self) -> Type[int]:
@@ -2679,7 +2660,7 @@ the EPSG documentation."""
         """ Creates a blank, empty or zero value for vertical_datum"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum = self.__vertical_datum_type__()
+        self.vertical_datum = "MLLW"
 
 
 class S100File(S1XXFile):

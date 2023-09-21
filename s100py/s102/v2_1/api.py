@@ -883,7 +883,7 @@ class S102File(S100File):
         grid = bathy_group_object.values
         depth_grid = grid.depth
         uncert_grid = grid.uncertainty
-        origin = bathy_group_object.origin.coordinate
+        origin = numpy.array([bathy_01.grid_origin_longitude, bathy_01.grid_origin_latitude])
         res_x = bathy_01.grid_spacing_longitudinal
         res_y = bathy_01.grid_spacing_latitudinal
         res = numpy.array([res_x, res_y])
@@ -1359,7 +1359,7 @@ class S102File(S100File):
             if source_epsg in self.get_valid_epsg():
                 root.horizontal_datum_value = source_epsg
             else:
-                raise ValueError(f'The provided EPSG code {source_epsg} is not within the S102 specified values.')
+                raise S102Exception(f'The provided EPSG code {source_epsg} is not within the S102 specified values.')
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(root.horizontal_datum_value)
         if srs.IsProjected():

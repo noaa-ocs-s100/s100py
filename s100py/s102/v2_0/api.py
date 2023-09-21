@@ -1737,7 +1737,7 @@ class S102File(S100File):
             if source_epsg in self.get_valid_epsg():
                 root.horizontal_datum_value = source_epsg
             else:
-                raise ValueError(f'The provided EPSG code {source_epsg} is not within the S102 specified values.')
+                raise S102Exception(f'The provided EPSG code {source_epsg} is not within the S102 specified values.')
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(root.horizontal_datum_value)
         if srs.IsProjected():
