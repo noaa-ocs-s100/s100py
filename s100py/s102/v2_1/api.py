@@ -111,7 +111,7 @@ class S102MetadataListBase(S1xxCollection):
 #         return numpy.ndarray
 #
 #     def depth_create(self):
-#         self.depth = self.__depth_type__([], numpy.float)
+#         self.depth = self.__depth_type__([], numpy.float_)
 #
 #     @property
 #     def depth(self) -> float:
@@ -127,7 +127,7 @@ class S102MetadataListBase(S1xxCollection):
 #         return numpy.ndarray
 #
 #     def uncertainty_create(self):
-#         self.uncertainty = self.__uncertainty_type__([], numpy.float)
+#         self.uncertainty = self.__uncertainty_type__([], numpy.float_)
 #
 #     @property
 #     def uncertainty(self) -> float:
@@ -1597,7 +1597,7 @@ class S102File(S100File):
                         row = groupf_bathy[nrow]
                         row['datatype'] = 'H5T_FLOAT'
                         if row['name'].lower() in ("uncertainty", b"uncertainty"):
-                            row['lower'] = 0
+                            row['lower'] = '0'
                             row['closure'] = 'gtLeInterval'
                         groupf_bathy[nrow] = row
                     # depth_string = groupf_bathy[0]['code']

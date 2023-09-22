@@ -136,7 +136,7 @@ class S102MetadataListBase(S1xxCollection):
 #         return numpy.ndarray
 #
 #     def depth_create(self):
-#         self.depth = self.__depth_type__([], numpy.float)
+#         self.depth = self.__depth_type__([], numpy.float_)
 #
 #     @property
 #     def depth(self) -> float:
@@ -152,7 +152,7 @@ class S102MetadataListBase(S1xxCollection):
 #         return numpy.ndarray
 #
 #     def uncertainty_create(self):
-#         self.uncertainty = self.__uncertainty_type__([], numpy.float)
+#         self.uncertainty = self.__uncertainty_type__([], numpy.float_)
 #
 #     @property
 #     def uncertainty(self) -> float:
@@ -649,7 +649,7 @@ class QualityOfSurvey_GroupNNN(S1xxObject):
 
     @property
     def quality_dtype(self) -> Type[int]:
-        return numpy.int
+        return numpy.int_
 
     def values_create(self):
         """ Creates a blank, empty or zero value for values"""

@@ -332,7 +332,6 @@ DATA_OFFSET_CODE = Enum(value="DATA_OFFSET_CODE",
                         ])
 
 
-
 # Note there is a DirectPosition in the S100 spec which is possibly different than the DirectPosition in the S102 spec
 class DirectPosition(S1xxObject):
     """ S102 4.2.1.1.4 of v2.0.0
@@ -407,7 +406,7 @@ class GridCoordinate(S1xxObject):
     def coord_values_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.coord_values = self.__coord_values_type__([2], numpy.int)
+        self.coord_values = self.__coord_values_type__([2], numpy.int_)
 
 
 class GridEnvelope(S1xxObject):
@@ -586,7 +585,7 @@ class Point(S1xxObject):
 #         # noinspection PyAttributeOutsideInit
 #         # pylint: disable=attribute-defined-outside-init
 #         self.extent_type_code = self.__extent_type_code_type__()
-#
+
 
 class GeographicBoundingBox(S1xxObject):  # GeographicExtent
     """ S100 Tables 10C-6 and 10c-12
@@ -739,7 +738,7 @@ class VertexPoint(S1xxObject):
     def value_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.value = self.__value_type__([2, ], numpy.float)
+        self.value = self.__value_type__([2, ], numpy.float_)
 
 
 # FIXME @TODO Add base class (maybe full implementation for many of the datasets) for FeatureInstanceBase
@@ -926,7 +925,7 @@ class FeatureInstanceBase(GeographicBoundingBox):
 
     @property
     def extent_dtype(self) -> Type[int]:
-        return numpy.int
+        return numpy.int_
 
     def extent_create(self):
         # noinspection PyAttributeOutsideInit
@@ -1675,7 +1674,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
 
     @property
     def coordinate_size_dtype(self) -> Type[int]:
-        return numpy.int
+        return numpy.int_
 
     def coordinate_size_create(self):
         """ Creates a blank, empty or zero value for coordinate_size"""

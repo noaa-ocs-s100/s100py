@@ -299,7 +299,7 @@ class GridCoordinate(S1xxObject):
     def coord_values_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.coord_values = self.__coord_values_type__([2], numpy.int)
+        self.coord_values = self.__coord_values_type__([2], numpy.int_)
 
 
 class GridEnvelope(S1xxObject):
@@ -631,7 +631,7 @@ class VertexPoint(S1xxObject):
     def value_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.value = self.__value_type__([2, ], numpy.float)
+        self.value = self.__value_type__([2, ], numpy.float_)
 
 
 # FIXME @TODO Add base class (maybe full implementation for many of the datasets) for FeatureInstanceBase
@@ -1588,7 +1588,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
 
     @property
     def coordinate_size_dtype(self) -> Type[int]:
-        return numpy.int
+        return numpy.int_
 
     def coordinate_size_create(self):
         """ Creates a blank, empty or zero value for coordinate_size"""

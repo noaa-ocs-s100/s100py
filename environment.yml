@@ -2,15 +2,15 @@ name: ENVs100py
 channels:
   - conda-forge
 dependencies:
-  - python=3.8   # or 2.7
-  - sphinx
-  - sphinx-automodapi
-  - sphinx-autodoc-typehints
-  - python-graphviz
-  - sphinxcontrib-fulltoc
-  - sphinx_rtd_theme
-  - m2r2
-  - numpydoc
+  - python>=3.8   # or 2.7
+#  - sphinx
+#  - sphinx-automodapi
+#  - sphinx-autodoc-typehints
+#  - python-graphviz
+#  - sphinxcontrib-fulltoc
+#  - sphinx_rtd_theme
+#  - m2r2
+#  - numpydoc
   - h5py
   - numpy
-  - gdal >= 3.2
+  - gdal>=3.2

@@ -1,45 +1,49 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-# name: Python application
-
 on:
   workflow_dispatch:
-    branches: ["master", "dev"]
+    branches: ["master", "dev", "gh_actions"]
   push:
-    branches: ["dev"]
+    branches: ["dev", "gh_actions"]
   pull_request:
     branches: ["dev"]
 
 permissions:
   contents: read
 
-jobs:
-  build:
 
-    runs-on: [ubuntu-latest, windows-latest]
+jobs:
+  miniconda:
+    name: Miniconda ${{ matrix.os }} python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        python-version: [ '3.8', '3.10' ]  # '2.7', '3.6', '3.7', '3.9'
+        matrix:
+            os: ["ubuntu-latest", "windows-latest"]
+            python-version: [ '3.8', '3.10' ]
     steps:
-    - name: Check out the current branch
-      uses: actions/checkout@dev
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-#      with:
-#        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest h5py numpy gdal
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Run unit tests
-      # --import-mode=append
-      # use extra verbose mode: -vv
-      run: python -m pytest -vv tests/
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: ENVs100py
+          environment-file: environment.yml
+          python-version: ${{ matrix.python-version }}
+          auto-activate-base: false
+      - shell: bash -l {0}
+        run: |
+          conda install --freeze-installed pytest
+          conda env export --no-builds
+          pip install -U pip
+          python setup.py install
+
+#      - name: Lint
+#        shell: bash -l {0}
+#        run: |
+#            conda install flake8
+#            python -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+#            python -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Run pytest
+        shell: bash -l {0}
+        run: |
+          pytest
+
