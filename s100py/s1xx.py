@@ -206,8 +206,8 @@ def parse_iso_datetime(val, date_or_time=datetime.datetime):
 
 
 class S1xxObject(ABC):
-    """ This class implements a general hdf5 group object that has attributes, dataset or sub-groups.
-    Works with S1xxCollection if the subgroups have multiple occurences (like Group.01, Group.02)
+    """ This class implements a general hdf5 group object that has attributes, datasets or sub-groups.
+    Works with S1xxCollection if the subgroups have multiple occurrences (like Group.01, Group.02)
     Works with S1xxDatasetBase for things that are stored like a numpy array (dataset) in hdf5
 
     __version__ must be overridden.
@@ -832,6 +832,11 @@ class S1xxDatasetBase(list, S1xxWritesGroupObjects):
                 if has_extra_dimension:  # the data was in an array of length one while we want the value.
                     val = val[0]
                 # setattr(self, expected_items[data_name], val)
+                # h5py in v3.0 changed variable length utf strings to return bytes instead of strings
+                #   https://docs.h5py.org/en/stable/whatsnew/3.0.html
+                # We'll try and turn bytes objects into strings for now, until the spec adds things that should be bytes
+                if isinstance(val, bytes):
+                    val = val.decode("utf-8")
                 try:
                     current_obj.set_s1xx_attr(data_name, val)
                 except KeyError:  # data not expected per S102 spec in the dataset
