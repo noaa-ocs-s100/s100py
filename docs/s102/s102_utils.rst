@@ -10,4 +10,4 @@ but can be brought in separately if desired.::
     from s100py import s102.utils
     s102.utils.from_gdal(...)
 
-..  automodapi:: s100py.s102.utils
+..  automodapi:: s100py.s102.v2_2.utils

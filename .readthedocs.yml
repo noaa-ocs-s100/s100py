@@ -24,6 +24,10 @@ sphinx:
 #      - requirements: requirements.txt
 #      - method: pip
 #        path: .
-        
+build:
+  os: "ubuntu-20.04"
+  tools:
+    python: "mambaforge-22.9"
+
 conda:
-  environment: environment.yml        
+  environment: rtd_environment.yml

@@ -10,4 +10,4 @@ but can be brought in separately if desired.::
     from s100py import s102.api
     s102.api.S102File(...)
 
-..  automodapi:: s100py.s102.api
+..  automodapi:: s100py.s102.v2_2.api
