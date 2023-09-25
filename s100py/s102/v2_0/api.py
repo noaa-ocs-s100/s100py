@@ -1909,6 +1909,33 @@ class S102File(S100File):
 
         self.load_gdal(bag, metadata=metadata, flip_z=self.z_down)
 
+    @property
+    def depth(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.depth
+
+    @property
+    def uncertainty(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.uncertainty
+
+    @property
+    def grid_origin_latitude(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_origin_latitude
+
+    @property
+    def grid_origin_longitude(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_origin_longitude
+
+    @property
+    def grid_spacing_latitudinal(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_spacing_latitudinal
+
+    @property
+    def grid_spacing_longitudinal(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_spacing_longitudinal
+
+    @property
+    def epsg(self):
+        return self.root.horizontal_datum_value
 
 
 # # S102File = S102File_2_0

@@ -2243,6 +2243,47 @@ class S102File(S100File):
             except KeyError:
                 pass
 
+    @property
+    def depth(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.depth
+
+    @property
+    def uncertainty(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.uncertainty
+
+    @property
+    def grid_origin_latitude(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_origin_latitude
+
+    @property
+    def grid_origin_longitude(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_origin_longitude
+
+    @property
+    def grid_spacing_latitudinal(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_spacing_latitudinal
+
+    @property
+    def epsg(self):
+        return self.root.horizontal_crs
+
+    @property
+    def grid_spacing_longitudinal(self):
+        return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_spacing_longitudinal
+
+    @property
+    def quality(self):
+        return self.root.quality_of_survey.quality_of_survey[0].quality_group[0].values
+
+    @property
+    def feature_attribute_table(self):
+        return self.root.quality_of_survey.feature_attribute_table
+
+    def get_feature_attribute_dict(self):
+        d = {}
+        for rec in self.feature_attribute_table:
+            d[rec.id] = rec
+        return d
 
 # # S102File = S102File_2_0
 # def S102File(name, *args, version=2.1, **kwargs):

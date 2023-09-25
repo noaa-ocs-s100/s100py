@@ -93,6 +93,8 @@ def check_s102_data(s102, s102obj):
         assert s102obj.root.horizontal_datum_value == 32610
     else:  # v2.2 and later
         assert s102obj.root.horizontal_crs == 32610
+    assert s102obj.epsg == 32610
+
     if s102.api.EDITION == 2.0:
         assert s102obj.root.west_bound_longitude == pytest.approx(523816, 1)
         assert s102obj.root.east_bound_longitude == pytest.approx(525240, 1)
@@ -110,13 +112,17 @@ def check_s102_data(s102, s102obj):
     assert b.east_bound_longitude == pytest.approx(525240, 1)
     assert b.north_bound_latitude == pytest.approx(5332689, 1)
     assert b.south_bound_latitude == pytest.approx(5334113, 1)
-
+    assert s102obj.grid_origin_latitude == pytest.approx(5332689, 1)
+    assert s102obj.grid_origin_longitude == pytest.approx(523816, 1)
+    assert s102obj.grid_spacing_latitudinal == 8.0
+    assert s102obj.grid_spacing_longitudinal == 8.0
 
     assert b.num_points_latitudinal == 179
     group = b.bathymetry_group[0]
     assert group.values.depth.shape == (179, 179)
     # depending on if the z is positive up or down the min depth can be 68.4 or 36.1, using min avoids the 1000000 nodata value
     assert numpy.min(group.values.depth) == pytest.approx(-68.44306, 0.0001) or numpy.min(group.values.depth) == pytest.approx(36.18454, 0.0001)
+    assert numpy.min(s102obj.depth) == pytest.approx(-68.44306, 0.0001) or numpy.min(s102obj.depth) == pytest.approx(36.18454, 0.0001)
 
 
 def check_s102_rat_data(s102, s102obj):
