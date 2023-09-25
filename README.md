@@ -1,6 +1,6 @@
 s100py
 ======
-[![Build Status](https://app.travis-ci.com/noaa-ocs-s100/s100py.svg?branch=master)](https://app.travis-ci.com/noaa-ocs-s100/s100py)
+[![Tests](https://github.com/noaa-ocs-s100/s100py/actions/workflows/s100py-tests.yml/badge.svg?branch=dev)](https://github.com/noaa-ocs-s100/s100py/actions/workflows/s100py-tests.yml)
 
 API and Utilities for Working with IHO S-100 HDF5 Data Formats
 
