@@ -3875,7 +3875,11 @@ def test_create_s111_dcf3(input_data):
 
 
 def test_to_geotiff(input_data):
-    sfc.utils.to_geotiff(f"{current_directory}/test_s111_dcf2.h5", current_directory)
+    g = sfc.api.S111File(f"{current_directory}/test_s111_dcf3.h5")
+    g.to_geopackage(f"{current_directory}/test_s111_dcf3.gpkg")
+    f = sfc.api.S111File(f"{current_directory}/test_s111_dcf2.h5")
+    f.to_geotiffs(f"{current_directory}")
+    # sfc.utils.to_geotiff(f"{current_directory}/test_s111_dcf2.h5", current_directory)
 
     assert os.path.isfile(f"{current_directory}/test_s111_dcf2_20210107T130000Z.tif")
     assert os.path.isfile(f"{current_directory}/test_s111_dcf2_20210107T140000Z.tif")

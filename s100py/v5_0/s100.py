@@ -2789,7 +2789,7 @@ class S100File(S1XXFile):
             values = group_instance['values']
             positions = feature_instance['Positioning']['geometryValues']
             layer_name = "_".join([os.path.split(feature_instance.name)[-1], os.path.split(group_instance.name)[-1]])
-            layer = ds.CreateLayer(layer_name, srs, ogr.wkbMultiPolygon)
+            layer = ds.CreateLayer(layer_name, srs, ogr.wkbPoint)
             fields = []
             col_info = []
             for col_name, col_type in values.dtype.descr:
