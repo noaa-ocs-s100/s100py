@@ -233,6 +233,7 @@ def test_tif_conversion(s102, tifname, temp_bagname):
     assert new_s102.root.feature_information.bathymetry_coverage_dataset[0].fill_value == empty_corner
     assert orig[-1][0] == depth_raster.GetNoDataValue()
     assert min_data == new_s102.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.depth[min_row, min_col]
+    new_s102.to_geotiffs(local_path)
 
 
 def test_subdivide(s102, output_path):

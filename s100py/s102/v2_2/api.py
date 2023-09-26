@@ -109,81 +109,14 @@ class S102MetadataListBase(S1xxCollection):
     write_format_str = ".%03d"
 
 
-# # @TODO -- determine if this is old.  The spec seems to describe a one dimensional array or list of points but the values in the grid is a 2 x N x M dataset
-# class BathymetryValueRecord(S1xxObject):
-#     """ 4.2.1.1.2.2 and Figure 4.4 of v2.0.0
-#     The attribute values has the value type S102_BathymetryValueRecord which is a sequence of value items that
-#     shall assign values to the grid points.
-#     There are two attributes in the bathymetry value record, depth and uncertainty in the S102_BathymetryValues class.
-#     The definition for the depth is defined by the depthCorrectionType attribute in the S102_DataIdentification class.
-#     The definition of the type of data in the values record is defined by the verticalUncertaintyType attribute in the
-#     S102_DataIdentification class.
-#     """
-#     __depth_hdf_name__ = "depth"  #: HDF5 naming
-#     __uncertainty_hdf_name__ = "uncertainty"  #: HDF5 naming
-#
-#     @property
-#     def __version__(self) -> int:
-#         return 1
-#
-#     @property
-#     def __version__(self) -> int:
-#         return 1
-#
-#
-#     @property
-#     def __depth_type__(self):
-#         return numpy.ndarray
-#
-#     def depth_create(self):
-#         self.depth = self.__depth_type__([], numpy.float_)
-#
-#     @property
-#     def depth(self) -> float:
-#         return self._attributes[self.__depth_hdf_name__]
-#
-#     @depth.setter
-#     def depth(self, val: float):
-#         self._attributes[self.__depth_hdf_name__] = val
-#
-#
-#     @property
-#     def __uncertainty_type__(self):
-#         return numpy.ndarray
-#
-#     def uncertainty_create(self):
-#         self.uncertainty = self.__uncertainty_type__([], numpy.float_)
-#
-#     @property
-#     def uncertainty(self) -> float:
-#         return self._attributes[self.__uncertainty_hdf_name__]
-#
-#     @uncertainty.setter
-#     def uncertainty(self, val: float):
-#         self._attributes[self.__uncertainty_hdf_name__] = val
-#
-#
-# class BathymetryValuesList(S102MetadataListBase):
-#     """ 4.2.1.1.2 and Figure 4.4 of v2.0.0
-#     The class S102_BathymetryValues is related to BathymetryCoverage by a composition relationship in which
-#     an ordered sequence of depth values provide data values for each grid cell.
-#     The class S102_BathymetryValues inherits from S100_Grid.
-#     """
-#
-#     @property
-#     def __version__(self) -> int:
-#         return 1
-#
-#     @property
-#     def metadata_name(self) -> str:
-#         return "values"
-#
-#     @property
-#     def metadata_type(self) -> type:
-#         return BathymetryValueRecord
-
-
 class BathymetryValues(S1xxGridsBase):
+    """ S100 v5.0
+        8-6.2.8 Grid cell structure S-100 utilizes the same view of grid cell structure as Section 8.2.2 of ISO 19123.
+        The grid data in S-100 grid coverages are nominally situated exactly at the grid points defined by the grid coordinates.
+        The grid points are therefore the “sample points.” Data values at a sample point represent measurements over a neighbourhood of the sample point.
+        This neighbourhood is assumed to extend a half-cell in each dimension.
+        The effect is that the sample space corresponding to each grid point is a cell centred at the grid point.
+    """
     __depth_hdf_name__ = "depth"  #: HDF5 naming
     __uncertainty_hdf_name__ = "uncertainty"  #: HDF5 naming
 
@@ -288,6 +221,13 @@ class BathymetryCoverage(S1xxObject):
         The definition for the depth is defined by the depthCorrectionType attribute in the S102_DataIdentification class.
         The definition of the type of data in the values record is defined by the verticalUncertaintyType attribute
         in the S102_DataIdentification class
+
+        S100 v5.0
+        8-6.2.8 Grid cell structure S-100 utilizes the same view of grid cell structure as Section 8.2.2 of ISO 19123.
+        The grid data in S-100 grid coverages are nominally situated exactly at the grid points defined by the grid coordinates.
+        The grid points are therefore the “sample points.” Data values at a sample point represent measurements over a neighbourhood of the sample point.
+        This neighbourhood is assumed to extend a half-cell in each dimension.
+        The effect is that the sample space corresponding to each grid point is a cell centred at the grid point.
         """
         return self._attributes[self.__values_hdf_name__]
 
@@ -2264,10 +2204,6 @@ class S102File(S100File):
         return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_spacing_latitudinal
 
     @property
-    def epsg(self):
-        return self.root.horizontal_crs
-
-    @property
     def grid_spacing_longitudinal(self):
         return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_spacing_longitudinal
 
@@ -2284,6 +2220,10 @@ class S102File(S100File):
         for rec in self.feature_attribute_table:
             d[rec.id] = rec
         return d
+
+    def to_geotiff(self, output_path):
+        # there is only one coverage in an S102 file
+        return self.to_geotiffs(output_path)
 
 # # S102File = S102File_2_0
 # def S102File(name, *args, version=2.1, **kwargs):

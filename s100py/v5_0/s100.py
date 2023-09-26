@@ -1,3 +1,5 @@
+import re
+import os
 from abc import ABC, abstractmethod
 from typing import Callable, Iterator, Union, Optional, List, Type
 import logging
@@ -5,6 +7,7 @@ import datetime
 from enum import Enum
 
 import h5py
+from osgeo import gdal, osr
 # @todo - consider removing the numpy dependence
 import numpy
 
@@ -937,6 +940,14 @@ class FeatureInstanceBase(GeographicBoundingBox):
 class GridOrigin:
     """ Mixin class for gridOriginLatitude/Longitude/Vertical.
     Used in Data Conding Formats 2,5,6
+
+    S100 v5.0
+    8-6.2.8 Grid cell structure S-100 utilizes the same view of grid cell structure as Section 8.2.2 of ISO 19123.
+    The grid data in S-100 grid coverages are nominally situated exactly at the grid points defined by the grid coordinates.
+    The grid points are therefore the “sample points.” Data values at a sample point represent measurements over a neighbourhood of the sample point.
+    This neighbourhood is assumed to extend a half-cell in each dimension.
+    The effect is that the sample space corresponding to each grid point is a cell centred at the grid point.
+
     """
     __grid_origin_longitude_hdf_name__ = "gridOriginLongitude"
     __grid_origin_latitude_hdf_name__ = "gridOriginLatitude"
@@ -2670,3 +2681,92 @@ class S100File(S1XXFile):
             kywrds['root'] = S100Root  # inherited classes will specify their own root type
         super().__init__(*args, **kywrds)
 
+    @property
+    def epsg(self):
+        return self.root.horizontal_crs
+
+    def to_datasets(self):
+        """Create a 2-Band GeoTIFF for every speed and direction compound dataset
+           within each HDF5 file(s).
+
+        Args:
+            input_path: Path to a single S-111 HDF5 file or a directory containing
+                one or more.
+            output_path: Path to a directory where GeoTIFF file(s) will be
+                generated.
+        """
+        # @TODO this could be a generic method of S100 files but we need to formalize how to find the datasets
+        #   It is close and with some hardcoded assumptions it would work,
+        #   but we need to know what the feature name(s) are (from GroupF which is doable)
+        #   then know the feature infomation instance (like BathymetryCoverage.01 but the formating changes depending on version)
+        #   then get the feature group instances (Group_001)
+        #   then the value names (depth, uncertainty)
+        #   The biggest issue is
+        if self.epsg < 0:
+            raise ValueError("Unable to convert to GeoTIFF.  EPSG code is not valid.")
+        dataname = self.root.feature_information.feature_code[0]
+        data = self.root.get_s1xx_attr(dataname)
+
+        for instance_idx in range(1, data.num_instances + 1):
+            for instance_key in self[data._hdf5_path].keys():
+                if re.match(dataname+"[._]\d{2,3}", instance_key):
+                    feature_instance = self["/".join([data._hdf5_path, instance_key])]
+                    num_grp = feature_instance.attrs['numGRP']
+                    fillvalues = list(map(float, self['Group_F'][dataname]['fillValue']))
+                    band_names = self['Group_F'][dataname]['name']
+
+                    for idx in range(1, num_grp + 1):
+                        for group_key in feature_instance.keys():
+                            if re.match(f"Group[._]0*{idx}", group_key):  # Find anything from Group_1 to Group.001
+                                group_instance = feature_instance[group_key]
+                                values = group_instance['values']
+
+                                y_dim, x_dim = values[band_names[0]].shape
+                                dxx = feature_instance.attrs['gridSpacingLongitudinal']
+                                dyy = feature_instance.attrs['gridSpacingLatitudinal']
+                                geoTransform = [feature_instance.attrs['gridOriginLongitude'] - dxx / 2.0,  # x_min
+                                                dxx,  # dxx
+                                                0,  # dxy
+                                                feature_instance.attrs['gridOriginLatitude'] - dyy / 2.0,  # ymin
+                                                0,  # dyx
+                                                dyy
+                                                ]
+
+                                srs = osr.SpatialReference()
+                                srs.ImportFromEPSG(self.epsg)
+
+                                num_bands = len(band_names)
+                                dataset = gdal.GetDriverByName('MEM').Create('', x_dim, y_dim, num_bands, gdal.GDT_Float32)
+                                dataset.SetGeoTransform(geoTransform)
+                                dataset.SetProjection(srs.ExportToWkt())
+                                for band_num, band_name in enumerate(band_names):
+                                    dataset.GetRasterBand(band_num+1).WriteArray(values[band_names[band_num]])
+                                    dataset.GetRasterBand(band_num+1).SetDescription(band_names[band_num])
+                                    dataset.GetRasterBand(band_num+1).SetNoDataValue(fillvalues[band_num])
+                                dataset.SetMetadataItem("AREA_OR_POINT", "POINT")
+                                yield dataset, group_instance
+
+    def to_geotiffs(self, output_path, creation_options=None):
+        filenames = []
+        for gdal_dataset, group_instance in self.to_datasets():
+            split_path = os.path.split(self.filename)
+            filename = os.path.splitext(split_path[1])
+            try:
+                timepoint = group_instance.attrs['timePoint']
+            except KeyError:
+                datetime_str = ""
+            else:
+                try:
+                    timepoint_str = datetime.datetime.strptime(timepoint, "%Y-%m-%dT%H:%M:%S")
+                except ValueError:
+                    timepoint_str = datetime.datetime.strptime(timepoint, "%Y%m%dT%H%M%SZ")
+
+                datetime_str = timepoint_str.strftime("_%Y%m%dT%H%M%SZ")
+
+            name = '{}/{}{}.tif'.format(output_path, filename[0], datetime_str)
+            # gdal.SetConfigOption('GTIFF_POINT_GEO_IGNORE', 'True')
+            if creation_options is None:
+                creation_options = []
+            gdal.GetDriverByName('GTiff').CreateCopy(name, gdal_dataset, options=creation_options)
+            filenames.append(name)
+        return filenames

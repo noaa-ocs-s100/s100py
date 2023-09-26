@@ -922,6 +922,12 @@ class S1xxDatasetBase(list, S1xxWritesGroupObjects):
 
 
 class S1xxGridsBase(S1xxWritesGroupObjects):
+    """
+    This base class is intended for use with "values" groups.
+    These values groups have array data with names defined by the spec and listed in the GroupF dataset.
+    It is expected that they would have grid_origin and grid_spacing attributes per S100 in order for the to_gdal() to work.
+    For example, BathymetryCoverage.01/Group_001/values/depth or SurfaceCurrent.001/Group_001/values/surfaceCurrentSpeed
+    """
     @property
     @abstractmethod
     def metadata_name(self) -> str:

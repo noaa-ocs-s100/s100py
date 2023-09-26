@@ -2195,3 +2195,8 @@ class S100File(S1XXFile):
         if 'root' not in kywrds:
             kywrds['root'] = S100Root  # inherited classes will specify their own root type
         super().__init__(*args, **kywrds)
+
+    @property
+    def epsg(self):
+        return self.root.horizontal_datum_value
+

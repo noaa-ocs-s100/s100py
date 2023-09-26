@@ -1664,10 +1664,6 @@ class S102File(S100File):
     def grid_spacing_longitudinal(self):
         return self.root.bathymetry_coverage.bathymetry_coverage[0].grid_spacing_longitudinal
 
-    @property
-    def epsg(self):
-        return self.root.horizontal_datum_value
-
 
 # # S102File = S102File_2_0
 # def S102File(name, *args, version=2.1, **kwargs):
