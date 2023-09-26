@@ -7,7 +7,7 @@ import datetime
 from enum import Enum
 
 import h5py
-from osgeo import gdal, osr
+from osgeo import gdal, osr, ogr
 # @todo - consider removing the numpy dependence
 import numpy
 
@@ -2685,7 +2685,7 @@ class S100File(S1XXFile):
     def epsg(self):
         return self.root.horizontal_crs
 
-    def to_datasets(self):
+    def iter_groups(self):
         """Create a 2-Band GeoTIFF for every speed and direction compound dataset
            within each HDF5 file(s).
 
@@ -2702,49 +2702,55 @@ class S100File(S1XXFile):
         #   then get the feature group instances (Group_001)
         #   then the value names (depth, uncertainty)
         #   The biggest issue is
-        if self.epsg < 0:
-            raise ValueError("Unable to convert to GeoTIFF.  EPSG code is not valid.")
         dataname = self.root.feature_information.feature_code[0]
         data = self.root.get_s1xx_attr(dataname)
+        for instance_key in self[data._hdf5_path].keys():
+            if re.match(dataname+"[._]\d{2,3}", instance_key):
+                feature_instance = self["/".join([data._hdf5_path, instance_key])]
+                num_grp = feature_instance.attrs['numGRP']
 
-        for instance_idx in range(1, data.num_instances + 1):
-            for instance_key in self[data._hdf5_path].keys():
-                if re.match(dataname+"[._]\d{2,3}", instance_key):
-                    feature_instance = self["/".join([data._hdf5_path, instance_key])]
-                    num_grp = feature_instance.attrs['numGRP']
-                    fillvalues = list(map(float, self['Group_F'][dataname]['fillValue']))
-                    band_names = self['Group_F'][dataname]['name']
+                for idx in range(1, num_grp + 1):
+                    for group_key in feature_instance.keys():
+                        if re.match(f"Group[._]0*{idx}", group_key):  # Find anything from Group_1 to Group.001
+                            group_instance = feature_instance[group_key]
+                            yield data, dataname, feature_instance, group_instance
 
-                    for idx in range(1, num_grp + 1):
-                        for group_key in feature_instance.keys():
-                            if re.match(f"Group[._]0*{idx}", group_key):  # Find anything from Group_1 to Group.001
-                                group_instance = feature_instance[group_key]
-                                values = group_instance['values']
+    def to_datasets(self):
+        if self.epsg < 0:
+            raise ValueError("Unable to convert to GeoTIFF.  EPSG code is not valid.")
+        for data, dataname, feature_instance, group_instance in self.iter_groups():
+            if data.data_coding_format.value not in (2, 9):
+                raise S100Exception(f"Unable to convert to GeoTIFF.  Data coding format ({data.data_coding_format.value}) must be regular grid (2 or 9).")
+            values = group_instance['values']
+            bands = []
+            for i, name in enumerate(self['Group_F'][dataname]['code']):
+                if name in values.dtype.names:
+                    bands.append([name, float(self['Group_F'][dataname]['fillValue'][i])])
 
-                                y_dim, x_dim = values[band_names[0]].shape
-                                dxx = feature_instance.attrs['gridSpacingLongitudinal']
-                                dyy = feature_instance.attrs['gridSpacingLatitudinal']
-                                geoTransform = [feature_instance.attrs['gridOriginLongitude'] - dxx / 2.0,  # x_min
-                                                dxx,  # dxx
-                                                0,  # dxy
-                                                feature_instance.attrs['gridOriginLatitude'] - dyy / 2.0,  # ymin
-                                                0,  # dyx
-                                                dyy
-                                                ]
+            y_dim, x_dim = values[bands[0][0]].shape
+            dxx = feature_instance.attrs['gridSpacingLongitudinal']
+            dyy = feature_instance.attrs['gridSpacingLatitudinal']
+            geoTransform = [feature_instance.attrs['gridOriginLongitude'] - dxx / 2.0,  # x_min
+                            dxx,  # dxx
+                            0,  # dxy
+                            feature_instance.attrs['gridOriginLatitude'] - dyy / 2.0,  # ymin
+                            0,  # dyx
+                            dyy
+                            ]
 
-                                srs = osr.SpatialReference()
-                                srs.ImportFromEPSG(self.epsg)
+            srs = osr.SpatialReference()
+            srs.ImportFromEPSG(int(self.epsg))
 
-                                num_bands = len(band_names)
-                                dataset = gdal.GetDriverByName('MEM').Create('', x_dim, y_dim, num_bands, gdal.GDT_Float32)
-                                dataset.SetGeoTransform(geoTransform)
-                                dataset.SetProjection(srs.ExportToWkt())
-                                for band_num, band_name in enumerate(band_names):
-                                    dataset.GetRasterBand(band_num+1).WriteArray(values[band_names[band_num]])
-                                    dataset.GetRasterBand(band_num+1).SetDescription(band_names[band_num])
-                                    dataset.GetRasterBand(band_num+1).SetNoDataValue(fillvalues[band_num])
-                                dataset.SetMetadataItem("AREA_OR_POINT", "POINT")
-                                yield dataset, group_instance
+            num_bands = len(bands)
+            dataset = gdal.GetDriverByName('MEM').Create('', x_dim, y_dim, num_bands, gdal.GDT_Float32)
+            dataset.SetGeoTransform(geoTransform)
+            dataset.SetProjection(srs.ExportToWkt())
+            for band_num, (band_name, fill_value) in enumerate(bands):
+                dataset.GetRasterBand(band_num+1).WriteArray(values[band_name])
+                dataset.GetRasterBand(band_num+1).SetDescription(band_name)
+                dataset.GetRasterBand(band_num+1).SetNoDataValue(fill_value)
+            dataset.SetMetadataItem("AREA_OR_POINT", "POINT")
+            yield dataset, group_instance
 
     def to_geotiffs(self, output_path, creation_options=None):
         filenames = []
@@ -2770,3 +2776,45 @@ class S100File(S1XXFile):
             gdal.GetDriverByName('GTiff').CreateCopy(name, gdal_dataset, options=creation_options)
             filenames.append(name)
         return filenames
+
+    def to_geopackage(self, output_path):
+        if self.epsg < 0:
+            raise ValueError(f"Unable to convert to vector layers.  EPSG code {self.epsg} is not valid.")
+        ds = ogr.GetDriverByName("MEMORY").CreateDataSource('memData')
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(int(self.epsg))
+        for data, dataname, feature_instance, group_instance in self.iter_groups():
+            if data.data_coding_format.value not in (3, ):
+                raise S100Exception("Unable to convert to GeoTIFF.  Data coding format must be regular grid (2 or 9).")
+            values = group_instance['values']
+            positions = feature_instance['Positioning']['geometryValues']
+            layer_name = "_".join([os.path.split(feature_instance.name)[-1], os.path.split(group_instance.name)[-1]])
+            layer = ds.CreateLayer(layer_name, srs, ogr.wkbMultiPolygon)
+            fields = []
+            col_info = []
+            for col_name, col_type in values.dtype.descr:
+                if numpy.dtype(col_type) in (numpy.float32, numpy.float64, numpy.float_):
+                    col_type = ogr.OFTReal
+                    converter = float
+                elif numpy.dtype(col_type) in (numpy.int32, numpy.int64, numpy.int8, numpy.int16, numpy.int_):
+                    col_type = ogr.OFTInteger
+                    converter = int
+                else:
+                    raise S100Exception(f"Unable to convert to GeoPackage.  Data type {col_type} is not supported.")
+                col_info.append([col_name, col_type, converter])
+                fields.append(ogr.FieldDefn(col_name, col_type))
+            layer.CreateFields(fields)
+            layer_defn = layer.GetLayerDefn()
+            layer.StartTransaction()
+            for pt_data, (longitude, latitude) in zip(values, positions):
+                feat = ogr.Feature(layer_defn)
+                pt = ogr.Geometry(ogr.wkbPoint)  # or wkbMultiPoint
+                pt.AddPoint_2D(float(longitude), float(latitude))  # lat/lon or x/y
+                for (col_name, col_type, converter), col_val in zip(col_info, pt_data):
+                    feat.SetField(col_name, converter(col_val))
+                feat.SetGeometry(pt)
+                layer.CreateFeature(feat)
+            layer.CommitTransaction()
+            # ds = ogr.GetDriverByName("GPKG").CreateDataSource(output_path)
+        fix = ogr.GetDriverByName("GPKG").CopyDataSource(ds, str(output_path))
+
