@@ -1,5 +1,6 @@
 import re
 import os
+import pathlib
 from abc import ABC, abstractmethod
 from typing import Callable, Iterator, Union, Optional, List, Type
 import logging
@@ -2715,7 +2716,16 @@ class S100File(S1XXFile):
                             group_instance = feature_instance[group_key]
                             yield data, dataname, feature_instance, group_instance
 
-    def to_datasets(self):
+    def to_raster_datasets(self):
+        """ Return a GDAL raster dataset with a band for each gridded dataset in the HDF5 file.
+
+        Returns
+        -------
+        tuple
+            (dataset, group_instance) -- a GDAL raster and a h5py group instance
+            which could be queried for additional attributes the raster was created from
+
+        """
         if self.epsg < 0:
             raise ValueError("Unable to convert to GeoTIFF.  EPSG code is not valid.")
         for data, dataname, feature_instance, group_instance in self.iter_groups():
@@ -2752,9 +2762,26 @@ class S100File(S1XXFile):
             dataset.SetMetadataItem("AREA_OR_POINT", "POINT")
             yield dataset, group_instance
 
-    def to_geotiffs(self, output_path, creation_options=None):
+    def to_geotiffs(self, output_directory: (str, pathlib.Path), creation_options: list=None):
+        """ Creates a GeoTIFF file for each regularly gridded dataset in the HDF5 file.
+        If only one dataset is found, a single GeoTIFF file will be created named the same as the .h5 but with a .tif extension.
+        If multiple datasets are found, multiple GeoTIFF files will be created named the same as the .h5 but with a _{timepoint}.tif extension.
+        Supports DCF 2 and 9.
+
+        Parameters
+        ----------
+        output_path
+            Directory of the location to save the GeoTIFF file(s)
+        creation_options
+            List of GDAL creation options
+
+        Returns
+        -------
+        list
+            List of filenames created
+        """
         filenames = []
-        for gdal_dataset, group_instance in self.to_datasets():
+        for gdal_dataset, group_instance in self.to_raster_datasets():
             split_path = os.path.split(self.filename)
             filename = os.path.splitext(split_path[1])
             try:
@@ -2777,7 +2804,15 @@ class S100File(S1XXFile):
             filenames.append(name)
         return filenames
 
-    def to_geopackage(self, output_path):
+    def to_vector_dataset(self):
+        """ Create an osgeo.ogr vector datasource with a layer for each dataset in the HDF5 file.
+        Currently only supports 'Ungeorectified gridded arrays' (DCF=3).
+
+        Returns
+        -------
+        osgeo.ogr.DataSource
+
+        """
         if self.epsg < 0:
             raise ValueError(f"Unable to convert to vector layers.  EPSG code {self.epsg} is not valid.")
         ds = ogr.GetDriverByName("MEMORY").CreateDataSource('memData')
@@ -2815,6 +2850,24 @@ class S100File(S1XXFile):
                 feat.SetGeometry(pt)
                 layer.CreateFeature(feat)
             layer.CommitTransaction()
-            # ds = ogr.GetDriverByName("GPKG").CreateDataSource(output_path)
+        return ds
+
+    def to_geopackage(self, output_path: (str, pathlib.Path)=None):
+        """ Create a geopackage file with a layer for each dataset in the HDF5 file.
+        Based on the to_vector_dataset method, so only supports ungeorectified gridded data (DCF=3).
+
+        Parameters
+        ----------
+        output_path
+            Full path of the geopackage file, if None then the same name as the HDF5 file will be used with a .gpkg extension
+
+        Returns
+        -------
+        None
+
+        """
+        if output_path is None:
+            output_path = os.path.splitext(self.filename)[0] + '.gpkg'
+        ds = self.to_vector_dataset()
         fix = ogr.GetDriverByName("GPKG").CopyDataSource(ds, str(output_path))
 
