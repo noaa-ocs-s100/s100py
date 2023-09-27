@@ -2720,6 +2720,7 @@ class S100File(S1XXFile):
 
     def to_raster_datasets(self):
         """ Return a GDAL raster dataset with a band for each gridded dataset in the HDF5 file.
+        The returned dataset will use the upper left corner and have a negative dyy value in the geotransform like the TIF convention.
 
         Returns
         -------
@@ -2736,7 +2737,7 @@ class S100File(S1XXFile):
             values = group_instance['values']
             bands = []
             for i, name in enumerate(self['Group_F'][dataname]['code']):
-                if isinstance(name, bytes):
+                if isinstance(name, bytes):  # in h5py 3.0+ the string datasets are bytes
                     name = name.decode()
                 if name in values.dtype.names:
                     bands.append([name, float(self['Group_F'][dataname]['fillValue'][i])])
@@ -2744,11 +2745,31 @@ class S100File(S1XXFile):
             y_dim, x_dim = values[bands[0][0]].shape
             dxx = feature_instance.attrs['gridSpacingLongitudinal']
             dyy = feature_instance.attrs['gridSpacingLatitudinal']
-            geoTransform = [feature_instance.attrs['gridOriginLongitude'] - dxx / 2.0,  # x_min
-                            dxx,  # dxx
-                            0,  # dxy
-                            feature_instance.attrs['gridOriginLatitude'] - dyy / 2.0,  # ymin
-                            0,  # dyx
+            x_min = feature_instance.attrs['gridOriginLongitude']
+            y_min = feature_instance.attrs['gridOriginLatitude']
+            # TIFF convention is to list the upper left corner of the upper left pixel
+            # S100 convention is to list the center of the bottom left pixel
+            # But rather than assuming, check the gridspacing and flip if necessary
+            flipx, flipy = False, False
+            # Again, TIF convention is to use upper left which yields a negative delta Y.
+            # That doesn't seem significant but some software (like QGIS) will not display properly if dyy is positive.
+            # QGIS is internally reversing the value but also modifying it in the fourth decimal place making a slight visual distortion.
+            if dyy > 0:  # the origin is the bottom corner - so flip the dyy and move the origin to the other side
+                # remove one from dimension to stay to inside the grid.  Imagine a 1 cell rester -- the move has to be zero.
+                y_min = y_min + dyy * (y_dim - 1)
+                dyy *= -1
+                flipy = True
+            if dxx < 0:  # the origin is the right corner - so flip the dxx and move the origin to the other side
+                # remove one from dimension to stay to inside the grid.  Imagine a 1 cell rester -- the move has to be zero.
+                x_min = x_min + dxx * (x_dim - 1)
+                dxx *= -1
+                flipx = True
+            # now we know the origin is upper left, so we can adjust from center to upper left of the cell
+            geoTransform = [x_min - dxx / 2.0,  # dxx is positive so this moves the origin left by half a cell
+                            dxx,
+                            0,  # dxy - zero because we are not rotating the raster
+                            y_min - dyy / 2.0,  # dyy is negative so this is adding half a cell height
+                            0,  # dyx - zero because we are not rotating the raster
                             dyy
                             ]
 
@@ -2760,10 +2781,15 @@ class S100File(S1XXFile):
             dataset.SetGeoTransform(geoTransform)
             dataset.SetProjection(srs.ExportToWkt())
             for band_num, (band_name, fill_value) in enumerate(bands):
-                dataset.GetRasterBand(band_num+1).WriteArray(values[band_name])
+                band_values = values[band_name]
+                if flipx:
+                    band_values = numpy.fliplr(band_values)
+                if flipy:
+                    band_values = numpy.flipud(band_values)
+                dataset.GetRasterBand(band_num+1).WriteArray(band_values)
                 dataset.GetRasterBand(band_num+1).SetDescription(band_name)
                 dataset.GetRasterBand(band_num+1).SetNoDataValue(fill_value)
-            yield dataset, group_instance
+            yield dataset, group_instance, flipx, flipy
 
     def to_geotiffs(self, output_directory: (str, pathlib.Path), creation_options: list=None):
         """ Creates a GeoTIFF file for each regularly gridded dataset in the HDF5 file.
@@ -2773,7 +2799,7 @@ class S100File(S1XXFile):
 
         Parameters
         ----------
-        output_path
+        output_directory
             Directory of the location to save the GeoTIFF file(s)
         creation_options
             List of GDAL creation options
@@ -2784,7 +2810,7 @@ class S100File(S1XXFile):
             List of filenames created
         """
         filenames = []
-        for gdal_dataset, group_instance in self.to_raster_datasets():
+        for gdal_dataset, group_instance, flipx, flipy in self.to_raster_datasets():
             split_path = os.path.split(self.filename)
             filename = os.path.splitext(split_path[1])
             try:

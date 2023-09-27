@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import pathlib
+import pathlib
 import shutil
 import sys
 import subprocess
@@ -1908,6 +1909,40 @@ class S102File(S100File):
                 metadata['issueDate'] = elem.text
 
         self.load_gdal(bag, metadata=metadata, flip_z=self.z_down)
+
+    def to_geotiff(self, output_path: (str, pathlib.Path), creation_options: list=None):
+        """ Creates a GeoTIFF file from the S102File object.
+
+        Parameters
+        ----------
+        output_path
+            Full path of the desired geotiff file with extension
+        creation_options
+            List of GDAL creation options
+
+        Returns
+        -------
+        None
+        """
+        # this is a backport from 2.2 (RAT - feature attribute table) so doesn't do much than allow specifying the output path
+        #  since there is no feature attribute table in 2.0
+        instances = list(self.to_raster_datasets())
+        if len(instances) > 1:
+            raise NotImplementedError('Only one coverage per S102 file is expected')
+        dataset, group_instance, flipx, flipy = instances[0]
+
+        # Output the geotiff with creation options if provided
+        if creation_options is None:
+            creation_options = []
+        tiff_ds = gdal.GetDriverByName('GTiff').CreateCopy(str(output_path), dataset, options=creation_options)
+
+    def to_geotiffs(self, output_path: (str, pathlib.Path), creation_options: list=None):
+        # there is only one coverage in an S102 file
+        split_path = os.path.split(self.filename)
+        filename = os.path.splitext(split_path[1])
+        name = os.path.join(str(output_path), f'{filename[0]}.tif')
+        self.to_geotiff(name, creation_options=None)
+        return [name]
 
     @property
     def depth(self):

@@ -2183,6 +2183,83 @@ class S102File(S100File):
             except KeyError:
                 pass
 
+    def to_geotiff(self, output_path: (str, pathlib.Path), creation_options: list=None):
+        """ Creates a GeoTIFF file from the S102File object.
+
+        Parameters
+        ----------
+        output_path
+            Full path of the desired geotiff file with extension
+        creation_options
+            List of GDAL creation options
+
+        Returns
+        -------
+        None
+        """
+        instances = list(self.to_raster_datasets())
+        if len(instances) > 1:
+            raise NotImplementedError('Only one coverage per S102 file is expected')
+        dataset, group_instance, flipx, flipy = instances[0]
+        # Add the feature attribute table if it exists, an IndexError will be thrown if it doesn't
+        try:
+            band_values = self.quality
+        except IndexError:
+            pass  # no quality band, just produce the two band tif of depth and uncertainty
+        else:
+            dataset.AddBand(gdal.GDT_Float32)  # add a band for the feature attribute table
+            if flipx:  # switch the order of the feature attribute band so it matches the depth and uncertainty bands
+                band_values = numpy.fliplr(band_values)
+            if flipy:
+                band_values = numpy.flipud(band_values)
+            # add the feature attribute table band to the memory dataset
+            dataset.GetRasterBand(3).WriteArray(band_values)
+            dataset.GetRasterBand(3).SetDescription("id")  # @TODO  grab from the GroupF
+            dataset.GetRasterBand(3).SetNoDataValue(0)  # @TODO grab from the GroupF
+            # Add the metadata descriptions equating to the feature attribute table
+            rat = gdal.RasterAttributeTable()
+            # read the columns of the feature attribute table and translate to GDAL RAT types
+            # each column has a defined type in HDF5 so we can use the first record to determine the type
+            for key, val in self.feature_attribute_table[0]._attributes.items():
+                if isinstance(val, (str, Enum)):
+                    col_type = gdal.GFT_String
+                elif isinstance(val, int):
+                    col_type = gdal.GFT_Integer
+                elif isinstance(val, float):
+                    col_type = gdal.GFT_Real
+                else:
+                    raise TypeError("Unknown data type submitted for "
+                                    "gdal raster attribute table.")
+                usage = gdal.GFU_Generic if key != "id" else gdal.GFU_MinMax
+                rat.CreateColumn(key, col_type, usage)
+            # allocate space for all the existing rows
+            rat.SetRowCount(len(self.feature_attribute_table))
+            # iterate through the rows and add the values to the RAT
+            # check the type to determine which SetValue method to use
+            for row_idx, row in enumerate(self.feature_attribute_table):
+                for col_idx, (key, val) in enumerate(row._attributes.items()):
+                    if isinstance(val, str):
+                        rat.SetValueAsString(row_idx, col_idx, val)
+                    elif isinstance(val, Enum):
+                        rat.SetValueAsString(row_idx, col_idx, val.name)
+                    elif isinstance(val, int):
+                        rat.SetValueAsInt(row_idx, col_idx, val)
+                    elif isinstance(val, float):
+                        rat.SetValueAsDouble(row_idx, col_idx, val)
+            dataset.GetRasterBand(3).SetDefaultRAT(rat)
+        # Output the geotiff with creation options if provided
+        if creation_options is None:
+            creation_options = []
+        tiff_ds = gdal.GetDriverByName('GTiff').CreateCopy(str(output_path), dataset, options=creation_options)
+
+    def to_geotiffs(self, output_path: (str, pathlib.Path), creation_options: list=None):
+        # there is only one coverage in an S102 file
+        split_path = os.path.split(self.filename)
+        filename = os.path.splitext(split_path[1])
+        name = os.path.join(str(output_path), f'{filename[0]}.tif')
+        self.to_geotiff(name, creation_options=None)
+        return [name]
+
     @property
     def depth(self):
         return self.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.depth
@@ -2220,10 +2297,6 @@ class S102File(S100File):
         for rec in self.feature_attribute_table:
             d[rec.id] = rec
         return d
-
-    def to_geotiff(self, output_path):
-        # there is only one coverage in an S102 file
-        return self.to_geotiffs(output_path)
 
 # # S102File = S102File_2_0
 # def S102File(name, *args, version=2.1, **kwargs):

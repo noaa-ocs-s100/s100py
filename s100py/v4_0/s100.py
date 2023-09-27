@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Iterator, Union, Optional, List, Type
+import pathlib
 import logging
 import datetime
 from enum import Enum
+import re
 
 import h5py
+from osgeo import gdal, osr, ogr
 # @todo - consider removing the numpy dependence
 import numpy
 
@@ -2199,4 +2202,219 @@ class S100File(S1XXFile):
     @property
     def epsg(self):
         return self.root.horizontal_datum_value
+
+    def iter_groups(self):
+        """Create a 2-Band GeoTIFF for every speed and direction compound dataset
+           within each HDF5 file(s).
+
+        Args:
+            input_path: Path to a single S-111 HDF5 file or a directory containing
+                one or more.
+            output_path: Path to a directory where GeoTIFF file(s) will be
+                generated.
+        """
+        # @TODO this could be a generic method of S100 files but we need to formalize how to find the datasets
+        #   It is close and with some hardcoded assumptions it would work,
+        #   but we need to know what the feature name(s) are (from GroupF which is doable)
+        #   then know the feature infomation instance (like BathymetryCoverage.01 but the formating changes depending on version)
+        #   then get the feature group instances (Group_001)
+        #   then the value names (depth, uncertainty)
+        #   The biggest issue is
+        dataname = self.root.feature_information.feature_code[0]
+        if isinstance(dataname, bytes):
+            dataname = dataname.decode()
+        data = self.root.get_s1xx_attr(dataname)
+        for instance_key in self[data._hdf5_path].keys():
+            if re.match(dataname+"[._]\d{2,3}", instance_key):
+                feature_instance = self["/".join([data._hdf5_path, instance_key])]
+                num_grp = feature_instance.attrs['numGRP']
+
+                for idx in range(1, num_grp + 1):
+                    for group_key in feature_instance.keys():
+                        if re.match(f"Group[._]0*{idx}", group_key):  # Find anything from Group_1 to Group.001
+                            group_instance = feature_instance[group_key]
+                            yield data, dataname, feature_instance, group_instance
+
+    def to_raster_datasets(self):
+        """ Return a GDAL raster dataset with a band for each gridded dataset in the HDF5 file.
+        The returned dataset will use the upper left corner and have a negative dyy value in the geotransform like the TIF convention.
+
+        Returns
+        -------
+        tuple
+            (dataset, group_instance) -- a GDAL raster and a h5py group instance
+            which could be queried for additional attributes the raster was created from
+
+        """
+        if self.epsg < 0:
+            raise ValueError("Unable to convert to GeoTIFF.  EPSG code is not valid.")
+        for data, dataname, feature_instance, group_instance in self.iter_groups():
+            if data.data_coding_format.value not in (2, 9):
+                raise S100Exception(f"Unable to convert to GeoTIFF.  Data coding format ({data.data_coding_format.value}) must be regular grid (2 or 9).")
+            values = group_instance['values']
+            bands = []
+            for i, name in enumerate(self['Group_F'][dataname]['code']):
+                if isinstance(name, bytes):  # in h5py 3.0+ the string datasets are bytes
+                    name = name.decode()
+                if name in values.dtype.names:
+                    bands.append([name, float(self['Group_F'][dataname]['fillValue'][i])])
+
+            y_dim, x_dim = values[bands[0][0]].shape
+            dxx = feature_instance.attrs['gridSpacingLongitudinal']
+            dyy = feature_instance.attrs['gridSpacingLatitudinal']
+            x_min = feature_instance.attrs['gridOriginLongitude']
+            y_min = feature_instance.attrs['gridOriginLatitude']
+            # TIFF convention is to list the upper left corner of the upper left pixel
+            # S100 convention is to list the center of the bottom left pixel
+            # But rather than assuming, check the gridspacing and flip if necessary
+            flipx, flipy = False, False
+            # Again, TIF convention is to use upper left which yields a negative delta Y.
+            # That doesn't seem significant but some software (like QGIS) will not display properly if dyy is positive.
+            # QGIS is internally reversing the value but also modifying it in the fourth decimal place making a slight visual distortion.
+            if dyy > 0:  # the origin is the bottom corner - so flip the dyy and move the origin to the other side
+                # remove one from dimension to stay to inside the grid.  Imagine a 1 cell rester -- the move has to be zero.
+                y_min = y_min + dyy * (y_dim - 1)
+                dyy *= -1
+                flipy = True
+            if dxx < 0:  # the origin is the right corner - so flip the dxx and move the origin to the other side
+                # remove one from dimension to stay to inside the grid.  Imagine a 1 cell rester -- the move has to be zero.
+                x_min = x_min + dxx * (x_dim - 1)
+                dxx *= -1
+                flipx = True
+            # now we know the origin is upper left, so we can adjust from center to upper left of the cell
+            geoTransform = [x_min - dxx / 2.0,  # dxx is positive so this moves the origin left by half a cell
+                            dxx,
+                            0,  # dxy - zero because we are not rotating the raster
+                            y_min - dyy / 2.0,  # dyy is negative so this is adding half a cell height
+                            0,  # dyx - zero because we are not rotating the raster
+                            dyy
+                            ]
+
+            srs = osr.SpatialReference()
+            srs.ImportFromEPSG(int(self.epsg))
+
+            num_bands = len(bands)
+            dataset = gdal.GetDriverByName('MEM').Create('', x_dim, y_dim, num_bands, gdal.GDT_Float32)
+            dataset.SetGeoTransform(geoTransform)
+            dataset.SetProjection(srs.ExportToWkt())
+            for band_num, (band_name, fill_value) in enumerate(bands):
+                band_values = values[band_name]
+                if flipx:
+                    band_values = numpy.fliplr(band_values)
+                if flipy:
+                    band_values = numpy.flipud(band_values)
+                dataset.GetRasterBand(band_num+1).WriteArray(band_values)
+                dataset.GetRasterBand(band_num+1).SetDescription(band_name)
+                dataset.GetRasterBand(band_num+1).SetNoDataValue(fill_value)
+            yield dataset, group_instance, flipx, flipy
+
+    def to_geotiffs(self, output_directory: (str, pathlib.Path), creation_options: list=None):
+        """ Creates a GeoTIFF file for each regularly gridded dataset in the HDF5 file.
+        If only one dataset is found, a single GeoTIFF file will be created named the same as the .h5 but with a .tif extension.
+        If multiple datasets are found, multiple GeoTIFF files will be created named the same as the .h5 but with a _{timepoint}.tif extension.
+        Supports DCF 2 and 9.
+
+        Parameters
+        ----------
+        output_directory
+            Directory of the location to save the GeoTIFF file(s)
+        creation_options
+            List of GDAL creation options
+
+        Returns
+        -------
+        list
+            List of filenames created
+        """
+        filenames = []
+        for gdal_dataset, group_instance, flipx, flipy in self.to_raster_datasets():
+            split_path = os.path.split(self.filename)
+            filename = os.path.splitext(split_path[1])
+            try:
+                timepoint = group_instance.attrs['timePoint']
+            except KeyError:
+                datetime_str = ""
+            else:
+                try:
+                    timepoint_str = datetime.datetime.strptime(timepoint, "%Y-%m-%dT%H:%M:%S")
+                except ValueError:
+                    timepoint_str = datetime.datetime.strptime(timepoint, "%Y%m%dT%H%M%SZ")
+
+                datetime_str = timepoint_str.strftime("_%Y%m%dT%H%M%SZ")
+
+            name = os.path.join(str(output_directory), '{}{}.tif'.format(filename[0], datetime_str))
+
+            if creation_options is None:
+                creation_options = []
+            gdal.GetDriverByName('GTiff').CreateCopy(name, gdal_dataset, options=creation_options)
+            filenames.append(name)
+        return filenames
+
+    def to_vector_dataset(self):
+        """ Create an osgeo.ogr vector datasource with a layer for each dataset in the HDF5 file.
+        Currently only supports 'Ungeorectified gridded arrays' (DCF=3).
+
+        Returns
+        -------
+        osgeo.ogr.DataSource
+
+        """
+        if self.epsg < 0:
+            raise ValueError(f"Unable to convert to vector layers.  EPSG code {self.epsg} is not valid.")
+        ds = ogr.GetDriverByName("MEMORY").CreateDataSource('memData')
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(int(self.epsg))
+        for data, dataname, feature_instance, group_instance in self.iter_groups():
+            if data.data_coding_format.value not in (3, ):
+                raise S100Exception("Unable to convert to GeoTIFF.  Data coding format must be regular grid (2 or 9).")
+            values = group_instance['values']
+            positions = feature_instance['Positioning']['geometryValues']
+            layer_name = "_".join([os.path.split(feature_instance.name)[-1], os.path.split(group_instance.name)[-1]])
+            layer = ds.CreateLayer(layer_name, srs, ogr.wkbPoint)
+            fields = []
+            col_info = []
+            for col_name, col_type in values.dtype.descr:
+                if numpy.dtype(col_type) in (numpy.float32, numpy.float64, numpy.float_):
+                    col_type = ogr.OFTReal
+                    converter = float
+                elif numpy.dtype(col_type) in (numpy.int32, numpy.int64, numpy.int8, numpy.int16, numpy.int_):
+                    col_type = ogr.OFTInteger
+                    converter = int
+                else:
+                    raise S100Exception(f"Unable to convert to GeoPackage.  Data type {col_type} is not supported.")
+                col_info.append([col_name, col_type, converter])
+                fields.append(ogr.FieldDefn(col_name, col_type))
+            layer.CreateFields(fields)
+            layer_defn = layer.GetLayerDefn()
+            layer.StartTransaction()
+            for pt_data, (longitude, latitude) in zip(values, positions):
+                feat = ogr.Feature(layer_defn)
+                pt = ogr.Geometry(ogr.wkbPoint)  # or wkbMultiPoint
+                pt.AddPoint_2D(float(longitude), float(latitude))  # lat/lon or x/y
+                for (col_name, col_type, converter), col_val in zip(col_info, pt_data):
+                    feat.SetField(col_name, converter(col_val))
+                feat.SetGeometry(pt)
+                layer.CreateFeature(feat)
+            layer.CommitTransaction()
+        return ds
+
+    def to_geopackage(self, output_path: (str, pathlib.Path)=None):
+        """ Create a geopackage file with a layer for each dataset in the HDF5 file.
+        Based on the to_vector_dataset method, so only supports ungeorectified gridded data (DCF=3).
+
+        Parameters
+        ----------
+        output_path
+            Full path of the geopackage file, if None then the same name as the HDF5 file will be used with a .gpkg extension
+
+        Returns
+        -------
+        None
+
+        """
+        if output_path is None:
+            output_path = os.path.splitext(self.filename)[0] + '.gpkg'
+        ds = self.to_vector_dataset()
+        fix = ogr.GetDriverByName("GPKG").CopyDataSource(ds, str(output_path))
+
 

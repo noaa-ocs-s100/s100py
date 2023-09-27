@@ -281,8 +281,9 @@ def test_rat(s102, tif_with_rat_name, output_with_rat_path):
     # override the metadata for the datum to WGS84 zone 10N and go from there
     metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32615}
     # The tiff is in elevation so flip the z
-    new_s102_20 = s102.from_gdal(tif_with_rat_name, output_with_rat_path, metadata=metadata, flip_z=True)
-    check_s102_rat_data(s102, new_s102_20)
+    new_s102 = s102.from_gdal(tif_with_rat_name, output_with_rat_path, metadata=metadata, flip_z=True)
+    check_s102_rat_data(s102, new_s102)
+    new_s102.to_geotiff(local_path.joinpath("test_rat.tif"))
 
 # test_rat(str(local_path.joinpath("F00788_SR_8m.tif")), output_path)
 # test_rat(tiffname, output_path)
