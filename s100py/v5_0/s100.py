@@ -2704,6 +2704,8 @@ class S100File(S1XXFile):
         #   then the value names (depth, uncertainty)
         #   The biggest issue is
         dataname = self.root.feature_information.feature_code[0]
+        if isinstance(dataname, bytes):
+            dataname = dataname.decode()
         data = self.root.get_s1xx_attr(dataname)
         for instance_key in self[data._hdf5_path].keys():
             if re.match(dataname+"[._]\d{2,3}", instance_key):
@@ -2734,6 +2736,8 @@ class S100File(S1XXFile):
             values = group_instance['values']
             bands = []
             for i, name in enumerate(self['Group_F'][dataname]['code']):
+                if isinstance(name, bytes):
+                    name = name.decode()
                 if name in values.dtype.names:
                     bands.append([name, float(self['Group_F'][dataname]['fillValue'][i])])
 
@@ -2759,7 +2763,6 @@ class S100File(S1XXFile):
                 dataset.GetRasterBand(band_num+1).WriteArray(values[band_name])
                 dataset.GetRasterBand(band_num+1).SetDescription(band_name)
                 dataset.GetRasterBand(band_num+1).SetNoDataValue(fill_value)
-            dataset.SetMetadataItem("AREA_OR_POINT", "POINT")
             yield dataset, group_instance
 
     def to_geotiffs(self, output_directory: (str, pathlib.Path), creation_options: list=None):
@@ -2796,8 +2799,8 @@ class S100File(S1XXFile):
 
                 datetime_str = timepoint_str.strftime("_%Y%m%dT%H%M%SZ")
 
-            name = '{}/{}{}.tif'.format(output_path, filename[0], datetime_str)
-            # gdal.SetConfigOption('GTIFF_POINT_GEO_IGNORE', 'True')
+            name = os.path.join(str(output_directory), '{}{}.tif'.format(filename[0], datetime_str))
+
             if creation_options is None:
                 creation_options = []
             gdal.GetDriverByName('GTiff').CreateCopy(name, gdal_dataset, options=creation_options)
