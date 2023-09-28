@@ -5,11 +5,11 @@ name: Tests
 
 on:
   workflow_dispatch:
-    branches: ["master", "dev", "gh_actions"]
+    branches: ["main", "dev"]
   push:
-    branches: ["dev", "gh_actions"]
+    branches: ["main", "dev"]
   pull_request:
-    branches: ["dev"]
+    branches: ["main"]
 
 permissions:
   contents: read
