@@ -41,7 +41,7 @@ except:
 from s100py.s102.v2_0.api import DEPTH, UNCERTAINTY, S102File, S102Exception
 
 __all__ = ['plot_depth_using_h5py', 'create_s102', 'from_arrays', 'from_arrays_with_metadata',
-           'from_gdal', 'from_bag', 'get_valid_epsg']
+           'from_gdal', 'from_bag', 'get_valid_epsg', 'to_geotiff']
 
 gco = "{http://www.isotc211.org/2005/gco}"
 
@@ -113,6 +113,7 @@ def browse_files(question):
     file_path = filedialog.askopenfilename(title=question)
     return file_path
 
+
 def bool_question(question, title="", icon="warning"):
     root = tk.Tk()
     root.withdraw()
@@ -127,6 +128,12 @@ def make_parser():
     parser.add_argument("-o", "--output_filename", help="output filename, default is same name as input with .h5 appended")
     parser.add_argument("-r", "--res", help="Resolution.  If the input file is a BAG then use attempt to use the given resolution" )
     return parser
+
+
+def to_geotiff(input_path, output_path):
+    s102_data = S102File(input_path)
+    s102_data.to_geotiff(output_path)
+
 
 create_s102 = S102File.create_s102
 from_arrays = S102File.from_arrays

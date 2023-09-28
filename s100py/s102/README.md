@@ -21,16 +21,19 @@ does the rest.
 
 ```python
     from s100py import s102
-    s102.from_gdal(input_path, output_path)
+    s102.from_gdal(input_tif, output_h5)
+    s102.to_geotiff(input_h5, output_tif)
     # or
     from s100py.s102 import utils
-    utils.from_gdal(input_path, output_path)
+    utils.from_gdal(input_tif, output_h5)
+    utils.to_geotiff(input_h5, output_tif)
 ```
 
 Example Usage
 -------------
 If you need more involved interaction with the data then import s102 from s100py.
 Methods and classes from both the api.py and utils.py will be available.
+Older versions of the S100 specs are also available, for example "from s100py.s102 import v2_1".
 
 Most times if someone is accessing the data they will want the depths, uncertainties, and metadata.
 Rather than diving into the entire spec to find the data, a few convenience properties are available.

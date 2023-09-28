@@ -2221,6 +2221,10 @@ class S102File(S100File):
             # read the columns of the feature attribute table and translate to GDAL RAT types
             # each column has a defined type in HDF5 so we can use the first record to determine the type
             for key, val in self.feature_attribute_table[0]._attributes.items():
+                try:
+                    val = val.item()  # convert numpy types to python types
+                except AttributeError:
+                    pass
                 if isinstance(val, (str, Enum)):
                     col_type = gdal.GFT_String
                 elif isinstance(val, int):
@@ -2228,7 +2232,7 @@ class S102File(S100File):
                 elif isinstance(val, float):
                     col_type = gdal.GFT_Real
                 else:
-                    raise TypeError("Unknown data type submitted for "
+                    raise TypeError(f"Unknown data type ({type(val)} submitted for "
                                     "gdal raster attribute table.")
                 usage = gdal.GFU_Generic if key != "id" else gdal.GFU_MinMax
                 rat.CreateColumn(key, col_type, usage)
