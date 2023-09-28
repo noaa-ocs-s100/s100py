@@ -25,7 +25,8 @@ Example Usage
 ```python
 import numpy
 import datetime
-import s100py.s111.v1_2 as s111
+from s100py import s111
+
 speed = numpy.array([[0.34, 0.35, 0.35, 0.36, 0.37],
                      [0.4 , 0.41, 0.41, 0.42, 0.43],
                      [0.48, 0.49, 0.49, 0.49, 0.5],

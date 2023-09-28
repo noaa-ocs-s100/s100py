@@ -25,7 +25,8 @@ Example Usage
 ```python
 import numpy
 import datetime
-import s100py.s104.v1_1 as s104
+from s100py import s104
+
 water_level_height_001 = numpy.array([
                                     [    0.2 ,     0.2 ,     0.2 ,     0.19,     0.19,     0.19,
                                          0.19,     0.19,     0.19,     0.19,     0.19,     0.18,  0.18],
