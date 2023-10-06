@@ -422,7 +422,6 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
     """
     __water_level_group_hdf_name__ = "Group" + r"[\._]\d+"
     __uncertainty_dataset_hdf_name__ = "uncertainty"
-    __number_of_nodes_hdf_name__ = "numberOfNodes"
     __data_dynamicity_hdf_name__ = "dataDynamicity"
 
     @property
@@ -442,23 +441,6 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
     @water_level_group.setter
     def water_level_group(self, val: S1xxCollection):
         self._attributes[self.__water_level_group_hdf_name__] = val
-
-    @property
-    def number_of_nodes(self) -> S1xxObject:
-        return self._attributes[self.__number_of_nodes_hdf_name__]
-
-    @number_of_nodes.setter
-    def number_of_nodes(self, val: S1xxObject):
-        self._attributes[self.__number_of_nodes_hdf_name__] = val
-
-    @property
-    def __number_of_nodes_type__(self) -> Type[numpy.int32]:
-        return numpy.int32
-
-    def number_of_nodes_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.number_of_nodes = self.__number_of_nodes_type__()
 
     @property
     def uncertainty_dataset(self) -> S1xxDatasetBase:

@@ -9,7 +9,7 @@ import numpy
 import h5py
 
 from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype, is_sub_class
-from ...v4_0.s100 import S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase, GeographicBoundingBox
+from ...v4_0.s100 import S100Exception, GeometryValuesDataset, PositioningGroup, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase, GeographicBoundingBox
 from ...v5_0.s100 import S100File, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE, VERTICAL_CS, VERTICAL_COORDINATE_BASE, HORIZONTAL_DATUM_REFERENCE, HORIZONTAL_CS, TYPE_OF_HORIZONTAL_CRS, PROJECTION_METHOD
 
 WATER_LEVEL = "WaterLevel"
@@ -127,121 +127,6 @@ class WaterLevelUncertaintyDataset(S1xxDatasetBase):
     def metadata_type(self) -> Type[WaterLevelUncertaintyInformation]:
         """S104 datatype"""
         return WaterLevelUncertaintyInformation
-
-
-class GeometryValuesDataset(S1xxGridsBase):
-    __longitude_hdf_name__ = "longitude"
-    __latitude_hdf_name__ = "latitude"
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_name(self) -> str:
-        """ The plain text name of the dataset"""
-        return "geometryValues"
-
-    @property
-    def longitude(self) -> s1xx_sequence:
-        """Get the data"""
-        return self._attributes[self.__longitude_hdf_name__]
-
-    @longitude.setter
-    def longitude(self, val: s1xx_sequence):
-        """Potential validation or other checks/changes to incoming data"""
-        self._attributes[self.__longitude_hdf_name__] = val
-
-    @property
-    def __longitude_type__(self) -> s1xx_sequence:
-        """S100 Datatype"""
-        return numpy.ndarray
-
-    @property
-    def longitude_dtype(self) -> Type[float]:
-        """S100 Datatype"""
-        return numpy.float32
-
-    def longitude_create(self):
-        """ Creates a blank, empty or zero value for longitude"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.longitude = self.__longitude_type__([], self.longitude_dtype)
-
-    @property
-    def latitude(self) -> s1xx_sequence:
-        """Get the data"""
-        return self._attributes[self.__latitude_hdf_name__]
-
-    @latitude.setter
-    def latitude(self, val: s1xx_sequence):
-        """Potential validation or other checks/changes to incoming data"""
-        self._attributes[self.__latitude_hdf_name__] = val
-
-    @property
-    def __latitude_type__(self) -> s1xx_sequence:
-        """S100 Datatype"""
-        return numpy.ndarray
-
-    @property
-    def latitude_dtype(self) -> Type[float]:
-        """S100 Datatype"""
-        return numpy.float32
-
-    def latitude_create(self):
-        """ Creates a blank, empty or zero value for latitude"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.latitude = self.__latitude_type__([], self.latitude_dtype)
-
-    def get_write_order(self):
-        """Specify order of attributes for ordered dict"""
-        return [self.__longitude_hdf_name__, self.__latitude_hdf_name__]
-
-    def get_compound_dtype(self):
-        return [self.longitude_dtype, self.latitude_dtype]
-
-
-class PositioningGroup(S1xxObject):
-
-    __geometry_values_hdf_name__ = "geometry_values"
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_name(self) -> str:
-        """ The plain text name of the group
-
-        Returns:
-            str: Name of the group
-        """
-        return "Positioning"
-
-    @property
-    def metadata_type(self) -> type:
-        return GeometryValuesDataset
-
-    @property
-    def geometry_values(self) -> GeometryValuesDataset:
-        """Get the data"""
-        return self._attributes[self.__geometry_values_hdf_name__]
-
-    @geometry_values.setter
-    def geometry_values(self, val: GeometryValuesDataset):
-        self._attributes[self.__geometry_values_hdf_name__] = val
-
-    @property
-    def __geometry_values_type__(self) -> Type[GeometryValuesDataset]:
-        """S100 Datatype"""
-        return GeometryValuesDataset
-
-    def geometry_values_create(self):
-        """ Creates a blank, empty or zero value for geometry_values"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.geometry_values = self.__geometry_values_type__()
 
 
 class WaterLevelValues(S1xxGridsBase):
@@ -392,7 +277,6 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
     """
     __water_level_group_hdf_name__ = "Group" + r"[\._]\d+"
     __uncertainty_dataset_hdf_name__ = "uncertainty"
-    __number_of_nodes_hdf_name__ = "numberOfNodes"
     __type_of_water_level_data_hdf_name__ = "typeOfWaterLevelData"
 
     @property
@@ -412,23 +296,6 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
     @water_level_group.setter
     def water_level_group(self, val: S1xxCollection):
         self._attributes[self.__water_level_group_hdf_name__] = val
-
-    @property
-    def number_of_nodes(self) -> S1xxObject:
-        return self._attributes[self.__number_of_nodes_hdf_name__]
-
-    @number_of_nodes.setter
-    def number_of_nodes(self, val: S1xxObject):
-        self._attributes[self.__number_of_nodes_hdf_name__] = val
-
-    @property
-    def __number_of_nodes_type__(self) -> Type[numpy.int32]:
-        return numpy.int32
-
-    def number_of_nodes_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.number_of_nodes = self.__number_of_nodes_type__()
 
     @property
     def uncertainty_dataset(self) -> S1xxDatasetBase:
