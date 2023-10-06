@@ -9,11 +9,11 @@ import numpy
 import h5py
 
 # from s100py import s100
-from s100py.v4_0 import s100 as v4_0
-from s100py.v5_0 import s100 as v5_0
+from s100py.s100.v4_0 import api as v4_api
+from s100py.s100.v5_0 import api as v5_api
 
 
-@pytest.fixture(scope="module", params=[v4_0, v5_0])
+@pytest.fixture(scope="module", params=[v4_api, v5_api])
 def s100(request):
     yield request.param
 

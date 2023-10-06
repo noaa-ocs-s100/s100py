@@ -5,7 +5,7 @@ import numpy
 import h5py
 
 from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
-from ...v5_0.s100 import S100File, S100Root, S100Exception, GeometryValuesDataset, PositioningGroup, FeatureContainerDCF2, FeatureInstanceDCF2, \
+from ...s100.v5_0.api import S100File, S100Root, S100Exception, GeometryValuesDataset, PositioningGroup, FeatureContainerDCF2, FeatureInstanceDCF2, \
     FeatureInformation, FeatureInformationDataset, GroupFBase, VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_DATUM
 
 WATER_LEVEL = "WaterLevel"

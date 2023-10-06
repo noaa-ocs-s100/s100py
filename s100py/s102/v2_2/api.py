@@ -33,7 +33,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py.s102"
 
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype, make_enum_dtype
-from ...v5_0.s100 import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, VertexPoint, \
+from ...s100.v5_0.api import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, InterpolationType, \
     VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_COORDINATE_BASE, VERTICAL_DATUM

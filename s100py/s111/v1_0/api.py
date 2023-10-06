@@ -10,7 +10,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py.s111"
 
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
-from ...v4_0.s100 import S100File, S100Root, S100Exception, GeometryValuesDataset, PositioningGroup, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
+from ...s100.v4_0.api import S100File, S100Root, S100Exception, GeometryValuesDataset, PositioningGroup, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
 
 EDITION = 1.0
 PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.0'

@@ -1,15 +1,15 @@
 import pytest
-from s100py.v5_0 import s100
+from s100py.s100.v5_0 import api
 
 def test_vertical_datum():
-    assert s100.VERTICAL_DATUM["meanLowerLowWater"].value == 12  # old values still work?
-    assert s100.VERTICAL_DATUM["balticSeaChartDatum2000"].value == 44  # new value exists
+    assert api.VERTICAL_DATUM["meanLowerLowWater"].value == 12  # old values still work?
+    assert api.VERTICAL_DATUM["balticSeaChartDatum2000"].value == 44  # new value exists
     # use the dot notation too
-    assert s100.VERTICAL_DATUM.balticSeaChartDatum2000.value == 44
+    assert api.VERTICAL_DATUM.balticSeaChartDatum2000.value == 44
 
 def test_interpolation_type():
-    assert s100.INTERPOLATION_TYPE.nearestneighbor.value == 1
-    assert s100.INTERPOLATION_TYPE.bilinear.value == 5
+    assert api.INTERPOLATION_TYPE.nearestneighbor.value == 1
+    assert api.INTERPOLATION_TYPE.bilinear.value == 5
     with pytest.raises(KeyError):
-        s100.INTERPOLATION_TYPE['linear']
+        api.INTERPOLATION_TYPE['linear']
 

@@ -9,8 +9,8 @@ import numpy
 import h5py
 
 from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype, is_sub_class
-from ...v4_0.s100 import S100Exception, GeometryValuesDataset, PositioningGroup, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase, GeographicBoundingBox
-from ...v5_0.s100 import S100File, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE, VERTICAL_CS, VERTICAL_COORDINATE_BASE, HORIZONTAL_DATUM_REFERENCE, HORIZONTAL_CS, TYPE_OF_HORIZONTAL_CRS, PROJECTION_METHOD
+from ...s100.v4_0.api import S100Exception, GeometryValuesDataset, PositioningGroup, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase, GeographicBoundingBox
+from ...s100.v5_0.api import S100File, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE, VERTICAL_CS, VERTICAL_COORDINATE_BASE, HORIZONTAL_DATUM_REFERENCE, HORIZONTAL_CS, TYPE_OF_HORIZONTAL_CRS, PROJECTION_METHOD
 
 WATER_LEVEL = "WaterLevel"
 

@@ -1,8 +1,12 @@
+"""
+S-100 Python Utilities
+
+Tools for converting various datasets to S-100 compliant formats.
+"""
+
 import pathlib
 
-from .v4_0 import s100 as v4_0
-from .v5_0 import s100 as v5_0
-from .v5_0.s100 import *
+from .v5_0.api import *
 import s100py.s102
 
 def open(filename: (str, pathlib.Path), mode: str = "r") -> S1XXFile:
@@ -19,3 +23,4 @@ def open(filename: (str, pathlib.Path), mode: str = "r") -> S1XXFile:
     else:
         print("Warning: unrecognized s100 product specification, using generic S100File object")
     return file_object
+
