@@ -1297,7 +1297,7 @@ class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanc
 #   Applicable only for dataCodingFormat = 7 (TIN), but optional even for TIN.
 
 
-class FeatureInstanceDCF1(NumberOfStations, FeatureInstanceBase):
+class FeatureInstanceDCF1(PositioningGroup, NumberOfStations, FeatureInstanceBase):
     """ Data Coding Format 1 is the Fixed Stations from table 10c-12 in S100 spec.
     """
 
@@ -1307,7 +1307,7 @@ class FeatureInstanceDCF3(PositioningGroup, NumberOfNodes, FeatureInstanceBase):
     """
 
 
-class FeatureInstanceDCF4(NumberOfStations, FeatureInstanceBase):
+class FeatureInstanceDCF4(PositioningGroup, NumberOfStations, FeatureInstanceBase):
     """ Data Coding Format 4 is the Moving Platform format from table 10c-12 in S100 spec.
     """
 

@@ -11,7 +11,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py.s111"
 
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
-from ...v5_0.s100 import S100File, S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, \
+from ...v5_0.s100 import S100File, S100Root, S100Exception, GeometryValuesDataset, PositioningGroup, FeatureContainerDCF2, FeatureInstanceDCF2, \
     FeatureInformation, FeatureInformationDataset, GroupFBase, VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_DATUM
 
 EDITION = 1.2
@@ -157,102 +157,6 @@ class SurfaceCurrentUncertaintyDataset(S1xxDatasetBase):
         return SurfaceCurrentUncertaintyInformation
 
 
-class GeometryValuesDataset(S1xxGridsBase):
-    __longitude_hdf_name__ = "longitude"
-    __latitude_hdf_name__ = "latitude"
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_name(self) -> str:
-        return "geometryValues"
-
-    @property
-    def longitude(self) -> s1xx_sequence:
-        return self._attributes[self.__longitude_hdf_name__]
-
-    @longitude.setter
-    def longitude(self, val: s1xx_sequence):
-        self._attributes[self.__longitude_hdf_name__] = val
-
-    @property
-    def __longitude_type__(self) -> s1xx_sequence:
-        return numpy.ndarray
-
-    @property
-    def longitude_dtype(self) -> Type[float]:
-        return numpy.float32
-
-    def longitude_create(self):
-        """ Creates a blank, empty or zero value for longitude"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.longitude = self.__longitude_type__([], self.longitude_dtype)
-
-    @property
-    def latitude(self) -> s1xx_sequence:
-        return self._attributes[self.__latitude_hdf_name__]
-
-    @latitude.setter
-    def latitude(self, val: s1xx_sequence):
-        self._attributes[self.__latitude_hdf_name__] = val
-
-    @property
-    def __latitude_type__(self) -> s1xx_sequence:
-        return numpy.ndarray
-
-    @property
-    def latitude_dtype(self) -> Type[float]:
-        return numpy.float32
-
-    def latitude_create(self):
-        """ Creates a blank, empty or zero value for latitude"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.latitude = self.__latitude_type__([], self.latitude_dtype)
-
-    def get_write_order(self):
-        return [self.__longitude_hdf_name__, self.__latitude_hdf_name__]
-
-    def get_compound_dtype(self):
-        return [self.longitude_dtype, self.latitude_dtype]
-
-
-class PositioningGroup(S1xxObject):
-
-    __geometry_values_hdf_name__ = "geometry_values"
-
-    @property
-    def __version__(self) -> int:
-        return 1
-
-    @property
-    def metadata_name(self) -> str:
-        return "Positioning"
-
-    @property
-    def metadata_type(self) -> type:
-        return GeometryValuesDataset
-
-    @property
-    def geometry_values(self) -> GeometryValuesDataset:
-        return self._attributes[self.__geometry_values_hdf_name__]
-
-    @geometry_values.setter
-    def geometry_values(self, val: GeometryValuesDataset):
-        self._attributes[self.__geometry_values_hdf_name__] = val
-
-    @property
-    def __geometry_values_type__(self) -> Type[GeometryValuesDataset]:
-        return GeometryValuesDataset
-
-    def geometry_values_create(self):
-        """ Creates a blank, empty or zero value for geometry_values"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.geometry_values = self.__geometry_values_type__()
 
 
 class SurfaceCurrentValues(S1xxGridsBase):

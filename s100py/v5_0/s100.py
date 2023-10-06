@@ -17,7 +17,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s100"
 
-from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxDatasetBase, S1XXFile, h5py_string_dtype, is_sub_class, h5py_string_comp
+from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxDatasetBase, S1XXFile, S1xxGridsBase, h5py_string_dtype, is_sub_class, h5py_string_comp
 
 EDITION = 5.0
 PRODUCT_SPECIFICATION = 'INT.IHO.S-100.5.0'
@@ -1156,6 +1156,158 @@ class NumberOfNodes:
         self.number_of_nodes = self.__number_of_nodes_type__()
 
 
+class GeometryValuesDataset(S1xxGridsBase):
+    __longitude_hdf_name__ = "longitude"
+    __latitude_hdf_name__ = "latitude"
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def metadata_name(self) -> str:
+        """ The plain text name of the dataset"""
+        return "geometryValues"
+
+    @property
+    def longitude(self) -> s1xx_sequence:
+        """Get the data"""
+        return self._attributes[self.__longitude_hdf_name__]
+
+    @longitude.setter
+    def longitude(self, val: s1xx_sequence):
+        """Potential validation or other checks/changes to incoming data"""
+        self._attributes[self.__longitude_hdf_name__] = val
+
+    @property
+    def __longitude_type__(self) -> s1xx_sequence:
+        """S100 Datatype"""
+        return numpy.ndarray
+
+    @property
+    def longitude_dtype(self) -> Type[float]:
+        """S100 Datatype"""
+        return numpy.float64
+
+    def longitude_create(self):
+        """ Creates a blank, empty or zero value for longitude"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.longitude = self.__longitude_type__([], self.longitude_dtype)
+
+    @property
+    def latitude(self) -> s1xx_sequence:
+        """Get the data"""
+        return self._attributes[self.__latitude_hdf_name__]
+
+    @latitude.setter
+    def latitude(self, val: s1xx_sequence):
+        """Potential validation or other checks/changes to incoming data"""
+        self._attributes[self.__latitude_hdf_name__] = val
+
+    @property
+    def __latitude_type__(self) -> s1xx_sequence:
+        """S100 Datatype"""
+        return numpy.ndarray
+
+    @property
+    def latitude_dtype(self) -> Type[float]:
+        """S100 Datatype"""
+        return numpy.float64
+
+    def latitude_create(self):
+        """ Creates a blank, empty or zero value for latitude"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.latitude = self.__latitude_type__([], self.latitude_dtype)
+
+    def get_write_order(self):
+        """Specify order of attributes for ordered dict"""
+        return [self.__longitude_hdf_name__, self.__latitude_hdf_name__]
+
+    def get_compound_dtype(self):
+        return [self.longitude_dtype, self.latitude_dtype]
+
+
+class PositioningGroup(S1xxObject):
+    __geometry_values_hdf_name__ = "geometry_values"
+    __triangles_hdf_name__ = "triangles"
+    __adjacency_hdf_name__ = "adjacency"
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+    @property
+    def metadata_name(self) -> str:
+        """ The plain text name of the group
+
+        Returns:
+            str: Name of the group
+        """
+        return "Positioning"
+
+    @property
+    def metadata_type(self) -> type:
+        return GeometryValuesDataset
+
+    @property
+    def geometry_values(self) -> GeometryValuesDataset:
+        """Get the data"""
+        return self._attributes[self.__geometry_values_hdf_name__]
+
+    @geometry_values.setter
+    def geometry_values(self, val: GeometryValuesDataset):
+        self._attributes[self.__geometry_values_hdf_name__] = val
+
+    @property
+    def __geometry_values_type__(self) -> Type[GeometryValuesDataset]:
+        """S100 Datatype"""
+        return GeometryValuesDataset
+
+    def geometry_values_create(self):
+        """ Creates a blank, empty or zero value for geometry_values"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.geometry_values = self.__geometry_values_type__()
+
+    @property
+    def triangles_vector(self) -> s1xx_sequence:
+        return self._attributes[self.__triangles_vector_hdf_name__]
+
+    @triangles_vector.setter
+    def triangles_vector(self, val: s1xx_sequence):
+        self._attributes[self.__triangles_vector_hdf_name__] = val
+
+    @property
+    def __triangles_vector_type__(self) -> Type[numpy.array]:
+        return numpy.ndarray
+
+    def triangles_vector_create(self):
+        """ Creates a blank, empty or zero value for triangles_vector"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.triangles_vector = numpy.array([0, 0, 0], dtype=numpy.int32)
+
+    @property
+    def adjacency_vector(self) -> s1xx_sequence:
+        return self._attributes[self.__adjacency_vector_hdf_name__]
+
+    @adjacency_vector.setter
+    def adjacency_vector(self, val: s1xx_sequence):
+        self._attributes[self.__adjacency_vector_hdf_name__] = val
+
+    @property
+    def __adjacency_vector_type__(self) -> Type[numpy.array]:
+        return numpy.ndarray
+
+    def adjacency_vector_create(self):
+        """ Creates a blank, empty or zero value for adjacency_vector"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.adjacency_vector = numpy.array([0, 0, 0], dtype=numpy.int32)
+
+
 class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanceBase):
     """ Data Coding Format 2 is the grid format from table 10c-12 in S100 spec.  Used in S102 for example.
     """
@@ -1234,17 +1386,17 @@ class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanc
 #   Applicable only for dataCodingFormat = 7 (TIN), but optional even for TIN.
 
 
-class FeatureInstanceDCF1(NumberOfStations, FeatureInstanceBase):
+class FeatureInstanceDCF1(PositioningGroup, NumberOfStations, FeatureInstanceBase):
     """ Data Coding Format 1 is the Fixed Stations from table 10c-12 in S100 spec.
     """
 
 
-class FeatureInstanceDCF3(NumberOfNodes, FeatureInstanceBase):
+class FeatureInstanceDCF3(PositioningGroup, NumberOfNodes, FeatureInstanceBase):
     """ Data Coding Format 3 is the Ungeorectified grid format from table 10c-12 in S100 spec.
     """
 
 
-class FeatureInstanceDCF4(NumberOfStations, FeatureInstanceBase):
+class FeatureInstanceDCF4(PositioningGroup, NumberOfStations, FeatureInstanceBase):
     """ Data Coding Format 4 is the Moving Platform format from table 10c-12 in S100 spec.
     """
 
@@ -1258,7 +1410,7 @@ class FeatureInstanceDCF5(StartSequence, NumberOfNodes, GridSpacing, GridOrigin,
 FeatureInstanceDCF6 = FeatureInstanceDCF5
 
 
-class FeatureInstanceDCF7(NumberOfNodes, FeatureInstanceBase):
+class FeatureInstanceDCF7(PositioningGroup, NumberOfNodes, FeatureInstanceBase):
     """ Data Coding Format 7 is the Triangulated Irregular Network (TIN) format from table 10c-12 in S100 spec.
     """
     __number_of_triangles_hdf_name__ = "numberOfTriangles"  #: HDF5 naming
@@ -1282,7 +1434,7 @@ class FeatureInstanceDCF7(NumberOfNodes, FeatureInstanceBase):
         self.number_of_triangles = self.__number_of_triangles_type__()
 
 
-class FeatureInstanceDCF8(NumberOfStations, FeatureInstanceBase):
+class FeatureInstanceDCF8(PositioningGroup, NumberOfStations, FeatureInstanceBase):
     """ Fixed stations - stationwise from S100 v5.0 Table 10c-12"""
 
 
