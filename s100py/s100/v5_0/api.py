@@ -1272,40 +1272,40 @@ class PositioningGroup(S1xxObject):
         self.geometry_values = self.__geometry_values_type__()
 
     @property
-    def triangles_vector(self) -> s1xx_sequence:
-        return self._attributes[self.__triangles_vector_hdf_name__]
+    def triangles(self) -> s1xx_sequence:
+        return self._attributes[self.__triangles_hdf_name__]
 
-    @triangles_vector.setter
-    def triangles_vector(self, val: s1xx_sequence):
-        self._attributes[self.__triangles_vector_hdf_name__] = val
+    @triangles.setter
+    def triangles(self, val: s1xx_sequence):
+        self._attributes[self.__triangles_hdf_name__] = val
 
     @property
-    def __triangles_vector_type__(self) -> Type[numpy.array]:
+    def __triangles_type__(self) -> Type[numpy.array]:
         return numpy.ndarray
 
-    def triangles_vector_create(self):
-        """ Creates a blank, empty or zero value for triangles_vector"""
+    def triangles_create(self):
+        """ Creates a blank, empty or zero value for triangles"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.triangles_vector = numpy.array([0, 0, 0], dtype=numpy.int32)
+        self.triangles = numpy.array([0, 0, 0], dtype=numpy.int32)
 
     @property
-    def adjacency_vector(self) -> s1xx_sequence:
-        return self._attributes[self.__adjacency_vector_hdf_name__]
+    def adjacency(self) -> s1xx_sequence:
+        return self._attributes[self.__adjacency_hdf_name__]
 
-    @adjacency_vector.setter
-    def adjacency_vector(self, val: s1xx_sequence):
-        self._attributes[self.__adjacency_vector_hdf_name__] = val
+    @adjacency.setter
+    def adjacency(self, val: s1xx_sequence):
+        self._attributes[self.__adjacency_hdf_name__] = val
 
     @property
-    def __adjacency_vector_type__(self) -> Type[numpy.array]:
+    def __adjacency_type__(self) -> Type[numpy.array]:
         return numpy.ndarray
 
-    def adjacency_vector_create(self):
-        """ Creates a blank, empty or zero value for adjacency_vector"""
+    def adjacency_create(self):
+        """ Creates a blank, empty or zero value for adjacency"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.adjacency_vector = numpy.array([0, 0, 0], dtype=numpy.int32)
+        self.adjacency = numpy.array([0, 0, 0], dtype=numpy.int32)
 
 
 class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanceBase):
