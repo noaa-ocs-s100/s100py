@@ -3,13 +3,9 @@
 """
 import logging
 import sys
-import os
 import datetime
-from glob import glob
 
 import numpy
-from osgeo import gdal, osr
-import h5py
 
 from ...s1xx import s1xx_sequence
 from .api import S104File, FILLVALUE_HEIGHT, FILLVALUE_TREND, S104Exception
@@ -415,75 +411,3 @@ def write_data_file(data_file):
     data_file.write()
     data_file.flush()
     data_file.close()
-
-
-def to_geotiff(input_path, output_path):
-    """Create a 2-Band GeoTIFF for every water level height and trend
-    compound dataset within each HDF5 file(s).
-
-    Args:
-        input_path: Path to a single S-104 HDF5 file or a directory
-            containing one or more.
-        output_path: Path to a directory where GeoTIFF file(s) will be
-            generated.
-    """
-
-    if input_path.endswith('.h5'):
-        hdf5_files = [input_path]
-    else:
-        hdf5_files = glob('{}/*.h5'.format(input_path))
-
-    for file in hdf5_files:
-        print(file)
-        with h5py.File(file, 'r') as h5_file:
-            feature_instance = h5_file['/WaterLevel/WaterLevel.01/']
-            num_grp = feature_instance.attrs['numGRP']
-            split_path = os.path.split(file)
-            filename = os.path.splitext(split_path[1])
-            fillvalue = float(h5_file['Group_F']['WaterLevel']['fillValue'][0])
-
-            for idx in range(1, num_grp + 1):
-                values = feature_instance['Group_{:03d}/values'.format(idx)]
-                height = numpy.flipud(values['waterLevelHeight'])
-                trend = numpy.flipud(values['waterLevelTrend'])
-                timepoint = feature_instance['Group_{:03d}'.format(idx)].attrs['timePoint']
-
-                try:
-                    timepoint_str = datetime.datetime.strptime(timepoint, "%Y-%m-%dT%H:%M:%S")
-                except ValueError:
-                    timepoint_str = datetime.datetime.strptime(timepoint, "%Y%m%dT%H%M%SZ")
-
-                datetime_str = timepoint_str.strftime("%Y%m%dT%H%M%SZ")
-
-                x_dim = height.shape[1]
-                y_dim = height.shape[0]
-
-                geoTransform = []
-                for i in range(6):
-                    geoTransform.append(0.0)
-                geoTransform[0] = feature_instance.attrs['gridOriginLongitude']
-                geoTransform[1] = feature_instance.attrs['gridSpacingLongitudinal']
-                geoTransform[2] = 0
-                geoTransform[3] = feature_instance.attrs['gridOriginLatitude']
-                geoTransform[4] = 0
-                geoTransform[5] = feature_instance.attrs['gridSpacingLatitudinal']
-
-                srs = osr.SpatialReference()
-                srs.SetWellKnownGeogCS('WGS84')
-
-                num_bands = 2
-                name = '{}/{}_{}.tif'.format(output_path, filename[0], datetime_str)
-                gdal.SetConfigOption('GTIFF_POINT_GEO_IGNORE', 'True')
-                dataset = gdal.GetDriverByName('GTiff').Create(name, x_dim, y_dim, num_bands, gdal.GDT_Float32)
-                dataset.SetGeoTransform(geoTransform)
-                dataset.SetProjection(srs.ExportToWkt())
-
-                dataset.GetRasterBand(1).WriteArray(height)
-                dataset.GetRasterBand(1).SetDescription('height')
-                dataset.GetRasterBand(1).SetNoDataValue(fillvalue)
-                dataset.GetRasterBand(2).WriteArray(trend)
-                dataset.GetRasterBand(2).SetDescription('trend')
-                dataset.GetRasterBand(2).SetNoDataValue(fillvalue)
-                dataset.SetMetadataItem("AREA_OR_POINT", "POINT")
-
-    print('Conversion Complete')

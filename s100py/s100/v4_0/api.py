@@ -5,6 +5,7 @@ import logging
 import datetime
 from enum import Enum
 import re
+import os
 
 import h5py
 from osgeo import gdal, osr, ogr
@@ -2461,6 +2462,9 @@ class S100File(S1XXFile):
                 dataset.GetRasterBand(band_num+1).WriteArray(band_values)
                 dataset.GetRasterBand(band_num+1).SetDescription(band_name)
                 dataset.GetRasterBand(band_num+1).SetNoDataValue(fill_value)
+            # Forces geotiffs to use nodata value from first band rather than the last band
+            # that contains a different fillvalue
+            dataset.GetRasterBand(2).SetNoDataValue(bands[0][1])
             yield dataset, group_instance, flipx, flipy
 
     def to_geotiffs(self, output_directory: (str, pathlib.Path), creation_options: list=None):
