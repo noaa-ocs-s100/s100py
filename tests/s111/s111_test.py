@@ -18,8 +18,8 @@ from s100py.s111 import v1_2
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
 
-
-@pytest.fixture(scope="module", params=[v1_0, v1_2])
+# test versions from most recent to oldest
+@pytest.fixture(scope="module", params=[v1_2, v1_0])
 def s111(request):
     yield request.param
 
@@ -3809,7 +3809,7 @@ def input_data(s111):
 
 
 def test_create_s111_dcf2(s111, input_data):
-    data_file = s111.utils.create_s111(f"{current_directory}/test_s111_dcf2_{s111.EDITION}.h5")
+    data_file = s111.utils.create_s111(f"{current_directory}/test_s111_dcf2_{s111.EDITION}.h5", 2)
 
     if s111.EDITION == 1.0:
         s111.utils.add_metadata(input_data.metadata_1_0, data_file)
@@ -3856,7 +3856,7 @@ def test_create_s111_dcf2(s111, input_data):
 
 
 def test_create_s111_dcf3(input_data, s111):
-    data_file = s111.utils.create_s111(f"{current_directory}/test_s111_dcf3_{s111.EDITION}.h5")
+    data_file = s111.utils.create_s111(f"{current_directory}/test_s111_dcf3_{s111.EDITION}.h5", 3)
 
     if s111.EDITION == 1.0:
         s111.utils.add_metadata(input_data.metadata_1_0, data_file)

@@ -60,6 +60,10 @@ class S111Exception(S100Exception):
     pass
 
 
+class S111UnspecifiedClassException(S100Exception):
+    pass
+
+
 class S111MetadataListBase(S1xxCollection):
     write_format_str = ".%02d"
 
