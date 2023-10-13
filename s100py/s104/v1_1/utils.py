@@ -316,8 +316,8 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         water_level_feature.data_coding_format = data_coding_format
         water_level_feature_instance_01.number_of_nodes = grid_properties['nodes']
 
-        water_level_feature_instance_01.positioning_group_create()
-        positioning = water_level_feature_instance_01.positioning_group
+        water_level_feature_instance_01.positioning_create()
+        positioning = water_level_feature_instance_01.positioning
         positioning.geometry_values_create()
         geometry_values = positioning.geometry_values
         geometry_values.longitude = grid_properties['longitude']

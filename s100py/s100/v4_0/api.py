@@ -1221,6 +1221,30 @@ class PositioningGroup(S1xxObject):
         self.adjacency =numpy.array([0, 0, 0], dtype=numpy.int32)
 
 
+class Positions:
+    __positioning_hdf_name__ = "Positioning"
+
+    @property
+    def positioning(self) -> S1xxObject:
+        """Defines the conversion from python naming to HDF5 (S104) naming"""
+        return self._attributes[self.__positioning_hdf_name__]
+
+    @positioning.setter
+    def positioning(self, val: S1xxObject):
+        self._attributes[self.__positioning_hdf_name__] = val
+
+    @property
+    def __positioning_type__(self):
+        """Defines datatype"""
+        return PositioningGroup
+
+    def positioning_create(self):
+        """ Creates a blank, empty or zero value for positioning"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.positioning = self.__positioning_type__()
+
+
 class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanceBase):
     """ Data Coding Format 2 is the grid format from table 10c-12 in S100 spec.  Used in S102 for example.
     """
@@ -1298,17 +1322,17 @@ class FeatureInstanceDCF2(StartSequence, GridSpacing, GridOrigin, FeatureInstanc
 #   Applicable only for dataCodingFormat = 7 (TIN), but optional even for TIN.
 
 
-class FeatureInstanceDCF1(PositioningGroup, NumberOfStations, FeatureInstanceBase):
+class FeatureInstanceDCF1(Positions, NumberOfStations, FeatureInstanceBase):
     """ Data Coding Format 1 is the Fixed Stations from table 10c-12 in S100 spec.
     """
 
 
-class FeatureInstanceDCF3(PositioningGroup, NumberOfNodes, FeatureInstanceBase):
+class FeatureInstanceDCF3(Positions, NumberOfNodes, FeatureInstanceBase):
     """ Data Coding Format 3 is the Ungeorectified grid format from table 10c-12 in S100 spec.
     """
 
 
-class FeatureInstanceDCF4(PositioningGroup, NumberOfStations, FeatureInstanceBase):
+class FeatureInstanceDCF4(Positions, NumberOfStations, FeatureInstanceBase):
     """ Data Coding Format 4 is the Moving Platform format from table 10c-12 in S100 spec.
     """
 
@@ -1321,7 +1345,7 @@ class FeatureInstanceDCF5(StartSequence, NumberOfNodes, GridSpacing, GridOrigin,
 FeatureInstanceDCF6 = FeatureInstanceDCF5
 
 
-class FeatureInstanceDCF7(PositioningGroup, NumberOfNodes, FeatureInstanceBase):
+class FeatureInstanceDCF7(Positions, NumberOfNodes, FeatureInstanceBase):
     """ Data Coding Format 7 is the Triangulated Irregular Network (TIN) format from table 10c-12 in S100 spec.
     """
     __number_of_triangles_hdf_name__ = "numberOfTriangles"  #: HDF5 naming

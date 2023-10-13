@@ -10,7 +10,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py.s111"
 
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
-from ...s100.v4_0.api import S100File, S100Root, S100Exception, GeometryValuesDataset, PositioningGroup, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
+from ...s100.v4_0.api import S100File, S100Root, S100Exception, GeometryValuesDataset, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
 
 EDITION = 1.0
 PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.0'
@@ -318,28 +318,6 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.uncertainty_dataset = self.__uncertainty_dataset_type__()
-
-    @property
-    def __positioning_group_hdf_name__(self) -> str:
-        return "Positioning"
-
-    @property
-    def positioning_group(self) -> S1xxObject:
-        return self._attributes[self.__positioning_group_hdf_name__]
-
-    @positioning_group.setter
-    def positioning_group(self, val: S1xxObject):
-        self._attributes[self.__positioning_group_hdf_name__] = val
-
-    @property
-    def __positioning_group_type__(self):
-        return PositioningGroup
-
-    def positioning_group_create(self):
-        """ Creates a blank, empty or zero value for positioning_group"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.positioning_group = self.__positioning_group_type__()
 
 
 class SurfaceCurrentList(S111MetadataListBase):

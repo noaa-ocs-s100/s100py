@@ -3,7 +3,7 @@ S-111 Python Utilities
 
 Tools for converting hydrodynamic models to S-111.
 """
-from .api import SurfaceCurrentUncertaintyInformation, SurfaceCurrentUncertaintyDataset, GeometryValuesDataset, PositioningGroup, SurfaceCurrentValues, \
+from .api import SurfaceCurrentUncertaintyInformation, SurfaceCurrentUncertaintyDataset, GeometryValuesDataset, SurfaceCurrentValues, \
     SurfaceCurrentGroup, SurfaceCurrentGroupList, SurfaceCurrentFeatureInstance, SurfaceCurrentList, SurfaceCurrentContainer, \
     SurfaceCurrentFeatureDataset, GroupF, S111Root, S111File, S111Exception, PRODUCT_SPECIFICATION, EDITION
 

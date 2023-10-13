@@ -280,8 +280,8 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
         surface_current_feature.data_coding_format = data_coding_format
         surface_current_feature_instance_01.number_of_nodes = grid_properties['nodes']
 
-        surface_current_feature_instance_01.positioning_group_create()
-        positioning = surface_current_feature_instance_01.positioning_group
+        surface_current_feature_instance_01.positioning_create()
+        positioning = surface_current_feature_instance_01.positioning
         positioning.geometry_values_create()
         geometry_values = positioning.geometry_values
         geometry_values.longitude = grid_properties['longitude']

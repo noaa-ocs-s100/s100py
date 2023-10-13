@@ -9,7 +9,7 @@ import numpy
 import h5py
 
 from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype, is_sub_class
-from ...s100.v4_0.api import S100Exception, GeometryValuesDataset, PositioningGroup, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase, GeographicBoundingBox
+from ...s100.v4_0.api import S100Exception, GeometryValuesDataset, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase, GeographicBoundingBox
 from ...s100.v5_0.api import S100File, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE, VERTICAL_CS, VERTICAL_COORDINATE_BASE, HORIZONTAL_DATUM_REFERENCE, HORIZONTAL_CS, TYPE_OF_HORIZONTAL_CRS, PROJECTION_METHOD
 
 WATER_LEVEL = "WaterLevel"
@@ -314,31 +314,6 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.uncertainty_dataset = self.__uncertainty_dataset_type__()
-
-    @property
-    def __positioning_group_hdf_name__(self) -> str:
-        return "Positioning"
-
-    @property
-    def positioning_group(self) -> S1xxObject:
-        """Defines the conversion from python naming to HDF5 (S104) naming"""
-        return self._attributes[self.__positioning_group_hdf_name__]
-
-    @positioning_group.setter
-    def positioning_group(self, val: S1xxObject):
-        self._attributes[self.__positioning_group_hdf_name__] = val
-
-    @property
-    def __positioning_group_type__(self):
-        """Defines datatype"""
-        return PositioningGroup
-
-    def positioning_group_create(self):
-        """ Creates a blank, empty or zero value for positioning_group"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.positioning_group = self.__positioning_group_type__()
-
 
     @property
     def type_of_water_level_data(self) -> TYPE_OF_WATER_LEVEL_DATA:
