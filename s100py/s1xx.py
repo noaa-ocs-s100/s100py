@@ -36,7 +36,7 @@ def dataset_compression_params(array):
 
     returns a dictionary of options to be passed to the h5py create_dataset method using **opts syntax.
     """
-    if array.size > 100:
+    if array.nbytes > 4*1024:  # array.size doesn't account for large recarrays but nbytes does, so say 4KB
         opts = dict(chunks=True, compression='gzip', compression_opts=9)
     else:
         opts = dict()
