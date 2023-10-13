@@ -30,6 +30,17 @@ def h5py_string_comp(h5py_val, cmp_str):
     # h5py <3.0 returns a string, >3.0 returns bytes
     return h5py_val in (cmp_str, bytes(cmp_str, "utf-8"))
 
+def dataset_compression_params(array):
+    """ return compression options for a dataset based on the size of the numpy array.
+    If the array is large (greater than 100 items) then use gzip compression, otherwise no compression.
+
+    returns a dictionary of options to be passed to the h5py create_dataset method using **opts syntax.
+    """
+    if array.size > 100:
+        opts = dict(chunks=True, compression='gzip', compression_opts=9)
+    else:
+        opts = dict()
+    return opts
 
 def is_sub_class(cls, clsinfo):
     """ Python 3.7+ changed the behavior of issubclass to raise an exception if the cls object is not a class.
@@ -454,7 +465,8 @@ class S1xxObject(ABC):
                 # to be accessed with two dimensions otherwise -- like val[0][0] instead of val[0]
                 revised_2 = numpy.array(converted_vals, dtype=revised_vals.dtype[0])
                 try:
-                    new_dataset = group_object.create_dataset(key, data=revised_2)
+                    opts = dataset_compression_params(revised_2)
+                    new_dataset = group_object.create_dataset(key, data=revised_2, **opts)
                 except Exception as e:
                     raise e
             elif isinstance(val, S1xxWritesGroupObjects):
@@ -916,7 +928,8 @@ class S1xxDatasetBase(list, S1xxWritesGroupObjects):
                 del group_object[self.metadata_name]
             except KeyError:
                 pass  # didn't exist, no error
-            dataset = group_object.create_dataset(self.metadata_name, data=rec_array_revised)
+            opts = dataset_compression_params(rec_array_revised)
+            dataset = group_object.create_dataset(self.metadata_name, data=rec_array_revised, **opts)
             self.write_simple_attributes(dataset)
         return dataset
 
@@ -983,7 +996,8 @@ class S1xxGridsBase(S1xxWritesGroupObjects):
         # numpy.array is coming out with wrong (at least different) shape and fromarrays is working -- not sure why right now.
         # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
         rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, dtype) for name, dtype in zip(write_keys, write_compound_dtype)])
-        dataset = group_object.create_dataset(self.metadata_name, data=rec_array, chunks=True, compression='gzip', compression_opts=9)
+        opts = dataset_compression_params(rec_array)  # chunks=True, compression='gzip', compression_opts=9
+        dataset = group_object.create_dataset(self.metadata_name, data=rec_array, **opts)
         #         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.write_simple_attributes(dataset)
