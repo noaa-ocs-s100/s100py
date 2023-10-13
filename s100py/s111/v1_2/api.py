@@ -370,23 +370,9 @@ class SurfaceCurrentFeatureInstanceDCF2(FeatureInstanceDCF2, SurfaceCurrentFeatu
 
 
 class SurfaceCurrentFeatureInstanceDCF3(FeatureInstanceDCF3, SurfaceCurrentFeatureInstanceBase):
-    __number_of_nodes_hdf_name__ = "numberOfNodes"
-    @property
-    def number_of_nodes(self) -> S1xxObject:
-        return self._attributes[self.__number_of_nodes_hdf_name__]
-
-    @number_of_nodes.setter
-    def number_of_nodes(self, val: S1xxObject):
-        self._attributes[self.__number_of_nodes_hdf_name__] = val
-
     @property
     def __number_of_nodes_type__(self) -> Type[int]:
         return numpy.uint32
-
-    def number_of_nodes_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.number_of_nodes = self.__number_of_nodes_type__()
 
 
 class SurfaceCurrentListBase(S111MetadataListBase):
@@ -703,13 +689,13 @@ class DiscoveryMetadata(S1xxObject):
 class S111File(S100File):
     PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.2'
     @staticmethod
-    def make_container_for_dcf(data_ccoding_format):
-        if data_ccoding_format == 2:
+    def make_container_for_dcf(data_coding_format):
+        if data_coding_format == 2:
             container = SurfaceCurrentContainerDCF2()
-        elif data_ccoding_format == 3:
+        elif data_coding_format == 3:
             container =  SurfaceCurrentContainerDCF3()
         else:
-            raise S111Exception("DCF {} not supported".format(dcf))
+            raise S111Exception("DCF {} not supported".format(data_coding_format))
         return container
 
     def __init__(self, *args, **kywrds):
