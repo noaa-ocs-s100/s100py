@@ -10,10 +10,10 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s111"
 
-from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
-from ...s100.v5_0.api import S100File, S100Root, S100Exception, GeometryValuesDataset, FeatureContainerDCF2, FeatureInstanceDCF2,\
-    FeatureContainerDCF3, FeatureInstanceDCF3,\
-    FeatureInformation, FeatureInformationDataset, GroupFBase, VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_DATUM
+from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, h5py_string_dtype
+from ...s100.v5_0.api import S100File, S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2,\
+    FeatureContainerDCF3, FeatureInstanceDCF3, FeatureInformation, FeatureInformationDataset, GroupFBase, VERTICAL_CS, \
+    VERTICAL_DATUM_REFERENCE, VERTICAL_DATUM
 
 EDITION = 1.2
 PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.2'
@@ -57,6 +57,10 @@ START_SEQUENCE: Starting location of the scan.
 
 
 class S111Exception(S100Exception):
+    pass
+
+
+class S111UnspecifiedClassException(S100Exception):
     pass
 
 
@@ -156,8 +160,6 @@ class SurfaceCurrentUncertaintyDataset(S1xxDatasetBase):
     @property
     def metadata_type(self) -> Type[SurfaceCurrentUncertaintyInformation]:
         return SurfaceCurrentUncertaintyInformation
-
-
 
 
 class SurfaceCurrentValues(S1xxGridsBase):
@@ -295,8 +297,9 @@ class SurfaceCurrentGroupList(S1xxCollection):
 
 
 class SurfaceCurrentFeatureInstanceBase:
-    """ Basic template for the name of the attribute
-    Attribute name will be automatically determined based on the array position of the S111_MetadataList
+    """ Basic template for the name of the attribute will be
+     automatically determined based on the array position of
+     the S111_MetadataList
     """
 
     __surface_current_group_hdf_name__ = "Group" + r"[\._]\d+"
@@ -392,13 +395,13 @@ class SurfaceCurrentListBase(S111MetadataListBase):
 
 class SurfaceCurrentListDCF2(SurfaceCurrentListBase):
     @property
-    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstance]:
+    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstanceBase]:
         return SurfaceCurrentFeatureInstanceDCF2
 
 
 class SurfaceCurrentListDCF3(SurfaceCurrentListBase):
     @property
-    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstance]:
+    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstanceBase]:
         return SurfaceCurrentFeatureInstanceDCF3
 
 
@@ -457,14 +460,6 @@ class SurfaceCurrentContainerBase:
         self.min_dataset_current_speed = self.__min_dataset_current_speed_type__()
 
     @property
-    def max_dataset_current_speed(self) -> S1xxObject:
-        return self._attributes[self.__max_dataset_current_speed_hdf_name__]
-
-    @max_dataset_current_speed.setter
-    def max_dataset_current_speed(self, val: S1xxObject):
-        self._attributes[self.__max_dataset_current_speed_hdf_name__] = val
-
-    @property
     def __max_dataset_current_speed_type__(self) -> Type[numpy.float64]:
         return numpy.float64
 
@@ -473,14 +468,6 @@ class SurfaceCurrentContainerBase:
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.max_dataset_current_speed = self.__max_dataset_current_speed_type__()
-
-    @property
-    def method_currents_product(self) -> S1xxObject:
-        return self._attributes[self.__method_currents_product_hdf_name__]
-
-    @method_currents_product.setter
-    def method_currents_product(self, val: S1xxObject):
-        self._attributes[self.__method_currents_product_hdf_name__] = val
 
     @property
     def __method_currents_product_type__(self) -> Type[str]:
@@ -522,7 +509,6 @@ class SurfaceCurrentContainerDCF3(FeatureContainerDCF3, SurfaceCurrentContainerB
     @property
     def __surface_current_type__(self):
         return SurfaceCurrentListDCF3
-
 
 
 class SurfaceCurrentFeatureDataset(FeatureInformationDataset):
@@ -604,9 +590,9 @@ class S111Root(S100Root):
     def surface_current_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        print("You should not create a generic surface_current object but manually create" \
+        print("You should not create a generic surface_current object but manually create"
               "a SurfaceCurrentContainerDCF2 or SurfaceCurrentContainerDCF3")
-        raise S111UnspecifiedClassException("You should create SurfaceCurrentContainerDCFx (x=2,3,7 etc)")
+        raise S111UnspecifiedClassException("You should create SurfaceCurrentContainerDCFx (x=2,3,8 etc)")
         self.surface_current = self.__surface_current_type__()
 
     @surface_current.setter

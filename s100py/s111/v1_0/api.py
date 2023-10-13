@@ -10,7 +10,8 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py.s111"
 
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
-from ...s100.v4_0.api import S100File, S100Root, S100Exception, GeometryValuesDataset, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase
+from ...s100.v4_0.api import S100File, S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, \
+    FeatureContainerDCF3, FeatureInstanceDCF3, FeatureInformation, FeatureInformationDataset, GroupFBase
 
 EDITION = 1.0
 PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.0'
@@ -263,14 +264,13 @@ class SurfaceCurrentGroupList(S1xxCollection):
         return SurfaceCurrentGroup
 
 
-class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
-    __surface_current_group_hdf_name__ = "Group" + r"[\._]\d+"
-    """ Basic template for the name of the attribute
-    Attribute name will be automatically determined based on the array position of the S111_MetadataList
+class SurfaceCurrentFeatureInstanceBase:
+    """ Basic template for the name of the attribute will be automatically
+    determined based on the array position of the S111_MetadataList
     """
 
+    __surface_current_group_hdf_name__ = "Group" + r"[\._]\d+"
     __uncertainty_dataset_hdf_name__ = "uncertainty"
-    __number_of_nodes_hdf_name__ = "numberOfNodes"
 
     @property
     def __surface_current_group_type__(self):
@@ -290,23 +290,6 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
         self._attributes[self.__surface_current_group_hdf_name__] = val
 
     @property
-    def number_of_nodes(self) -> S1xxObject:
-        return self._attributes[self.__number_of_nodes_hdf_name__]
-
-    @number_of_nodes.setter
-    def number_of_nodes(self, val: S1xxObject):
-        self._attributes[self.__number_of_nodes_hdf_name__] = val
-
-    @property
-    def __number_of_nodes_type__(self) -> Type[numpy.int32]:
-        return numpy.int32
-
-    def number_of_nodes_create(self):
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.number_of_nodes = self.__number_of_nodes_type__()
-
-    @property
     def uncertainty_dataset(self) -> S1xxDatasetBase:
         return self._attributes[self.__uncertainty_dataset_hdf_name__]
 
@@ -324,7 +307,15 @@ class SurfaceCurrentFeatureInstance(FeatureInstanceDCF2):
         self.uncertainty_dataset = self.__uncertainty_dataset_type__()
 
 
-class SurfaceCurrentList(S111MetadataListBase):
+class SurfaceCurrentFeatureInstanceDCF2(FeatureInstanceDCF2, SurfaceCurrentFeatureInstanceBase):
+    pass
+
+
+class SurfaceCurrentFeatureInstanceDCF3(FeatureInstanceDCF3, SurfaceCurrentFeatureInstanceBase):
+    pass
+
+
+class SurfaceCurrentListBase(S111MetadataListBase):
     """ Sect 10.2.4 and Table 12.3 of v1.0.1
     This is the set of SurfaceCurrent.NN that act like a list here.
     They will contain a list of Groups.NNN as well as other attributes etc.
@@ -338,12 +329,20 @@ class SurfaceCurrentList(S111MetadataListBase):
     def metadata_name(self) -> str:
         return SURFACE_CURRENT
 
+
+class SurfaceCurrentListDCF2(SurfaceCurrentListBase):
     @property
-    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstance]:
-        return SurfaceCurrentFeatureInstance
+    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstanceBase]:
+        return SurfaceCurrentFeatureInstanceDCF2
 
 
-class SurfaceCurrentContainer(FeatureContainerDCF2):
+class SurfaceCurrentListDCF3(SurfaceCurrentListBase):
+    @property
+    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstanceBase]:
+        return SurfaceCurrentFeatureInstanceDCF3
+
+
+class SurfaceCurrentContainerBase:
     """ This is the SurfaceCurrent right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named SurfaceCurrent.NN
     """
@@ -359,10 +358,6 @@ class SurfaceCurrentContainer(FeatureContainerDCF2):
     @property
     def __version__(self) -> int:
         return 1
-
-    @property
-    def __surface_current_type__(self):
-        return SurfaceCurrentList
 
     def surface_current_create(self):
         # noinspection PyAttributeOutsideInit
@@ -457,6 +452,30 @@ class SurfaceCurrentContainer(FeatureContainerDCF2):
         self.type_of_current_data = list(self.__type_of_current_data_type__)[0]
 
 
+class SurfaceCurrentListDCF2(SurfaceCurrentListBase):
+    @property
+    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstanceBase]:
+        return SurfaceCurrentFeatureInstanceDCF2
+
+
+class SurfaceCurrentListDCF3(SurfaceCurrentListBase):
+    @property
+    def metadata_type(self) -> Type[SurfaceCurrentFeatureInstanceBase]:
+        return SurfaceCurrentFeatureInstanceDCF3
+
+
+class SurfaceCurrentContainerDCF2(FeatureContainerDCF2, SurfaceCurrentContainerBase):
+    @property
+    def __surface_current_type__(self):
+        return SurfaceCurrentListDCF2
+
+
+class SurfaceCurrentContainerDCF3(FeatureContainerDCF3, SurfaceCurrentContainerBase):
+    @property
+    def __surface_current_type__(self):
+        return SurfaceCurrentListDCF3
+
+
 class SurfaceCurrentFeatureDataset(FeatureInformationDataset):
 
     @property
@@ -528,11 +547,14 @@ class S111Root(S100Root):
 
     @property
     def __surface_current_type__(self):
-        return SurfaceCurrentContainer
+        return SurfaceCurrentContainerBase
 
     def surface_current_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
+        print("You should not create a generic surface_current object but manually create"
+              "a SurfaceCurrentContainerDCF2 or SurfaceCurrentContainerDCF3")
+        raise S111UnspecifiedClassException("You should create SurfaceCurrentContainerDCFx (x=2,3,8 etc)")
         self.surface_current = self.__surface_current_type__()
 
     @surface_current.setter
@@ -586,8 +608,28 @@ class DiscoveryMetadata(S1xxObject):
         raise NotImplementedError()
 
 
-class S111File(S1XXFile):
+class S111File(S100File):
+
     PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.0'
+
+    @staticmethod
+    def make_container_for_dcf(data_coding_format):
+        if data_coding_format == 2:
+            container = SurfaceCurrentContainerDCF2()
+        elif data_coding_format == 3:
+            container = SurfaceCurrentContainerDCF3()
+        else:
+            raise S111Exception("DCF {} not supported".format(data_coding_format))
+        return container
 
     def __init__(self, *args, **kywrds):
         super().__init__(*args, root=S111Root, **kywrds)
+        # when reading from a file we need to look inside the DataCodingFormat to know what type of object to create
+        try:
+            container_key = f'/{SURFACE_CURRENT}'
+            dcf = self[container_key].attrs['dataCodingFormat']
+        except KeyError:  # must not be reading an existing file or doesn't have data for some reason
+            pass
+        else:
+            self.root.surface_current = self.make_container_for_dcf(dcf)
+            self.root.surface_current.read(self[container_key])

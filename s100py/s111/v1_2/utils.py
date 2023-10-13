@@ -38,6 +38,8 @@ def create_s111(output_file, dcf) -> S111File:
     ----------
     output_file
         S111File object
+    dcf
+       S100 Data Coding Format (Int)
 
     Returns
     -------

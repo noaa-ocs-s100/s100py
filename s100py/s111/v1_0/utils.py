@@ -30,7 +30,7 @@ def _get_S111File(output_file):
     return data_file
 
 
-def create_s111(output_file) -> S111File:
+def create_s111(output_file, dcf) -> S111File:
     """ Creates or updates an S111File object.
     Default values are set for any data that doesn't have options or are mandatory to be filled in the S111 spec.
 
@@ -38,6 +38,8 @@ def create_s111(output_file) -> S111File:
     ----------
     output_file
         S111File object
+    dcf
+       S100 Data Coding Format (Int)
 
     Returns
     -------
@@ -48,7 +50,8 @@ def create_s111(output_file) -> S111File:
     """
     data_file = _get_S111File(output_file)
     root = data_file.root
-    root.surface_current_create()
+    root.surface_current = data_file.make_container_for_dcf(dcf)
+    root.surface_current.surface_current_create()
 
     root.feature_information_create()
     group_f = root.feature_information
@@ -154,9 +157,8 @@ def add_metadata(metadata: dict, data_file) -> S111File:
 
     """
     root = data_file.root
-
     surface_current_feature = root.surface_current
-    surface_current_feature.surface_current_create()
+
     surface_current_feature_instance_01 = surface_current_feature.surface_current.append_new_item()
 
     surface_current_feature_instance_01.surface_current_group_create()
