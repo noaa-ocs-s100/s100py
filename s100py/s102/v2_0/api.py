@@ -1763,7 +1763,7 @@ class S102File(S100File):
         self.flush()
 
     @classmethod
-    def from_gdal(cls, input_raster, output_file, metadata: dict = None, flip_z=False) -> S102File:  # gdal instance or filename accepted
+    def from_raster(cls, input_raster, output_file, metadata: dict = None, flip_z=False) -> S102File:  # gdal instance or filename accepted
         """  Fills or creates an :any:`S102File` from the given arguments.
 
         For most parameters, see :any:`S102File.load_arrays`
@@ -1776,6 +1776,8 @@ class S102File(S100File):
         data_file = cls.create_s102(output_file)
         data_file.load_gdal(input_raster, metadata=metadata, flip_z=flip_z)
         return data_file
+
+    from_gdal = from_raster  # alias
 
     def load_gdal(self, input_raster, metadata: dict = None, flip_z=False):  # gdal instance or filename accepted
         """ Fills or creates an :any:`S102File` from the given arguments.

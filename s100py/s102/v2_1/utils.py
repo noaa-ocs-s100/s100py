@@ -138,7 +138,8 @@ def to_geotiff(input_path, output_path):
 create_s102 = S102File.create_s102
 from_arrays = S102File.from_arrays
 from_arrays_with_metadata = S102File.from_arrays_with_metadata
-from_gdal = S102File.from_gdal
+from_gdal = S102File.from_raster
+from_raster = S102File.from_raster
 from_bag = S102File.from_bag
 get_valid_epsg = S102File.get_valid_epsg
 
