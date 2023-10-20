@@ -159,7 +159,7 @@ update_meta = {
         'num_instances': 1
     }
 
-data_file = s104.utils.create_s104("test_s104.h5")
+data_file = s104.utils.create_s104("test_s104.h5", 2)
 
 s104.utils.add_metadata(metadata, data_file)
 data_series_time_001 = datetime_forecast_issuance + datetime_interval

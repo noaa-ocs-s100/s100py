@@ -35,12 +35,23 @@ InputData = namedtuple(
      'trend_001',
      'height_002',
      'grid_properties',
+     'height_dcf3_dcf7_001',
+     'height_dcf3_dcf7_002',
+     'height_dcf3_dcf7_003',
+     'trend_dcf3_dcf7_001',
+     'lon',
+     'lat',
+     'adjacency',
+     'triangles',
+     'grid_properties_dcf3_dcf7',
      'datetime_forecast_issuance',
      'datetime_interval',
-     'metadata_1_0',
-     'metadata_1_1',
-     'data_coding_format',
-     'update_meta',
+     'metadata_1_0_dcf2',
+     'metadata_1_1_dcf2',
+     'metadata_1_1_dcf3',
+     'metadata_1_1_dcf7',
+     'update_meta_dcf2',
+     'update_meta_dcf3_dcf7',
      'expected_chunks',
      'expected_groupf'])
 
@@ -1342,11 +1353,66 @@ def input_data(s104):
         'ny': 43
     }
 
+    height_dcf3_dcf7_001 = numpy.array([1.15, 0.735, 1.02, 0.32, 0.51, 0.7, 0.89, 0.095, 0.285, 0.475])
+
+    trend_dcf3_dcf7_001 = numpy.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    height_dcf3_dcf7_002 = numpy.array([1.6346, 1.2196, 1.5046, 0.8046, 0.9946, 1.1846, 1.3746, 0.5796, 0.7696, 0.9596])
+
+    height_dcf3_dcf7_003 = numpy.array([1.9978, 1.5828, 1.8678, 1.1678, 1.3578, 1.5478, 1.7378, 0.9428, 1.1328, 1.3228])
+
+    lon = numpy.array([-74.89039612, -75.00689697,
+                      -74.65739441, -75.12339783,
+                      -74.89039612, -74.65739441,
+                      -74.42440033, -75.00689697,
+                      -74.77389526, -74.54090118])
+
+    lat = numpy.array([34.15879822, 33.96179962,
+                      33.96179962, 33.76479721,
+                      33.76479721, 33.76479721,
+                      33.76479721, 33.56779861,
+                      33.56779861, 33.56779861])
+
+    adjacency = numpy.array([
+     [-1,  3, -1],
+     [-1,  5,  3],
+     [2,  4,  1],
+     [3,  7, -1],
+     [-1,  6,  2],
+     [5, -1,  7],
+     [6,  8,  4],
+     [7, -1,  9],
+     [8, -1, -1]])
+
+    triangles = numpy.array([
+     [1,  2,  3],
+     [2,  4,  5],
+     [2,  5,  3],
+     [3,  5,  6],
+     [4,  8,  5],
+     [5,  8,  9],
+     [5,  9,  6],
+     [6,  9, 10],
+     [6, 10,  7]])
+
+    grid_properties_dcf3_dcf7 = {
+     'maxx': -75.1234,
+     'minx': -74.4244,
+     'miny': 33.5678,
+     'maxy': 34.1588,
+     'nodes': 10,
+     'num_triangles': 9,
+     'latitude': lat,
+     'longitude': lon,
+     'adjacency': adjacency,
+     'triangles': triangles
+    }
+
     datetime_forecast_issuance = datetime.datetime(2021, 9, 1, 0, 0, 0)
 
     datetime_interval = datetime.timedelta(seconds=3600)
 
-    metadata_1_0 = {
+    metadata_1_0_dcf2 = {
         'horizontalCRS': 4326,
         'geographicIdentifier': 'Samoa Islands',
         'waterLevelHeightUncertainty': -1.0,
@@ -1365,7 +1431,7 @@ def input_data(s104):
         'datetimeOfFirstRecord': '2021-09-01T01:00:00'
     }
 
-    metadata_1_1 = {
+    metadata_1_1_dcf2 = {
         'horizontalCRS': 4326,
         'geographicIdentifier': 'Samoa Islands',
         'waterLevelHeightUncertainty': -1.0,
@@ -1385,12 +1451,58 @@ def input_data(s104):
         'issueDateTime': datetime_forecast_issuance,
     }
 
-    data_coding_format = 2
+    metadata_1_1_dcf3 = {
+        'horizontalCRS': 4326,
+        'geographicIdentifier': 'Chesapeake Bay',
+        'waterLevelHeightUncertainty': -1.0,
+        'verticalUncertainty': -1.0,
+        'horizontalPositionUncertainty': -1.0,
+        'waterLevelTrendThreshold': 0.02,
+        'verticalCS': 6499,
+        'verticalDatumReference': 1,
+        'verticalDatum': 12,
+        'commonPointRule': 4,
+        'interpolationType': 10,
+        'dataDynamicity': 5,
+        'methodWaterLevelProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
+        'datetimeOfFirstRecord': '20210901T010000Z',
+        'datasetDeliveryInterval': 'PT6H',
+        'trendInterval': 60,
+        'issueDateTime': datetime_forecast_issuance,
+    }
 
-    update_meta = {
+    metadata_1_1_dcf7 = {
+        'horizontalCRS': 4326,
+        'geographicIdentifier': 'Chesapeake Bay',
+        'waterLevelHeightUncertainty': -1.0,
+        'verticalUncertainty': -1.0,
+        'horizontalPositionUncertainty': -1.0,
+        'waterLevelTrendThreshold': 0.02,
+        'verticalCS': 6499,
+        'verticalDatumReference': 1,
+        'verticalDatum': 12,
+        'commonPointRule': 4,
+        'interpolationType': 9,
+        'dataDynamicity': 5,
+        'methodWaterLevelProduct': 'TIN model',
+        'datetimeOfFirstRecord': '20210901T010000Z',
+        'datasetDeliveryInterval': 'PT6H',
+        'trendInterval': 60,
+        'issueDateTime': datetime_forecast_issuance,
+    }
+
+    update_meta_dcf2 = {
         'dateTimeOfLastRecord': '20210901T020000Z',
         'numberOfGroups': 2,
         'numberOfTimes': 2,
+        'timeRecordInterval': 3600,
+        'num_instances': 1
+    }
+
+    update_meta_dcf3_dcf7 = {
+        'dateTimeOfLastRecord': '20210901T030000Z',
+        'numberOfGroups': 3,
+        'numberOfTimes': 3,
         'timeRecordInterval': 3600,
         'num_instances': 1
     }
@@ -1409,24 +1521,27 @@ def input_data(s104):
             ('waterLevelTime', 'Water Level Time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
             dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
 
-    return InputData(height_001, trend_001, height_002, grid_properties, datetime_forecast_issuance, datetime_interval,
-                     metadata_1_0, metadata_1_1, data_coding_format, update_meta, expected_chunks, expected_groupf)
+    return InputData(height_001, trend_001, height_002, grid_properties, height_dcf3_dcf7_001,
+                     height_dcf3_dcf7_002, height_dcf3_dcf7_003, trend_dcf3_dcf7_001, lon, lat, adjacency, triangles,
+                     grid_properties_dcf3_dcf7, datetime_forecast_issuance, datetime_interval, metadata_1_0_dcf2,
+                     metadata_1_1_dcf2, metadata_1_1_dcf3, metadata_1_1_dcf7, update_meta_dcf2, update_meta_dcf3_dcf7,
+                     expected_chunks, expected_groupf)
 
 
 def test_create_s104_dcf2(s104, input_data):
-    data_file = s104.utils.create_s104(f"{current_directory}/test_s104_{s104.EDITION}.h5")
+    data_file = s104.utils.create_s104(f"{current_directory}/test_s104_dcf2_{s104.EDITION}.h5", 2)
     water_level_trend_threshold = 0.2
 
     if s104.EDITION == 1.0:
-        s104.utils.add_metadata(input_data.metadata_1_0, data_file)
-        water_level_trend_threshold = input_data.metadata_1_1['waterLevelTrendThreshold']
+        s104.utils.add_metadata(input_data.metadata_1_0_dcf2, data_file)
+        water_level_trend_threshold = input_data.metadata_1_0_dcf2['waterLevelTrendThreshold']
     elif s104.EDITION == 1.1:
-        s104.utils.add_metadata(input_data.metadata_1_1, data_file)
-        water_level_trend_threshold = input_data.metadata_1_1['waterLevelTrendThreshold']
+        s104.utils.add_metadata(input_data.metadata_1_1_dcf2, data_file)
+        water_level_trend_threshold = input_data.metadata_1_1_dcf2['waterLevelTrendThreshold']
 
     data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
     s104.utils.add_data_from_arrays(input_data.height_001, input_data.trend_001, data_file, input_data.grid_properties,
-                                    data_series_time_001, input_data.data_coding_format)
+                                    data_series_time_001, 2)
 
     trend = numpy.round((input_data.height_002 - input_data.height_001), decimals=2)
 
@@ -1437,13 +1552,13 @@ def test_create_s104_dcf2(s104, input_data):
 
     data_series_time_002 = data_series_time_001 + input_data.datetime_interval
     s104.utils.add_data_from_arrays(input_data.height_002, trend_002, data_file, input_data.grid_properties,
-                                    data_series_time_002, input_data.data_coding_format)
-    s104.utils.update_metadata(data_file, input_data.grid_properties, input_data.update_meta)
+                                    data_series_time_002, 2)
+    s104.utils.update_metadata(data_file, input_data.grid_properties, input_data.update_meta_dcf2)
 
     s104.utils.write_data_file(data_file)
 
-    assert os.path.isfile(f"{current_directory}/test_s104_{s104.EDITION}.h5")
-    h5_file = h5py.File(f"{current_directory}/test_s104_{s104.EDITION}.h5", "r")
+    assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}.h5")
+    h5_file = h5py.File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}.h5", "r")
 
     assert 'Group_F/WaterLevel' in h5_file
     assert 'Group_F/featureCode' in h5_file
@@ -1466,23 +1581,135 @@ def test_create_s104_dcf2(s104, input_data):
                                                                                input_data.expected_groupf[2])])
 
 
-def test_to_geotiff(s104, input_data):
+def test_create_s104_dcf3(s104, input_data):
+    if s104.EDITION == 1.1:
+        data_file = s104.utils.create_s104(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.h5", 3)
 
-    s104_file = s104.api.S104File(f"{current_directory}/test_s104_{s104.EDITION}.h5")
+        s104.utils.add_metadata(input_data.metadata_1_1_dcf3, data_file)
+        water_level_trend_threshold = input_data.metadata_1_1_dcf3['waterLevelTrendThreshold']
+
+        data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf3_dcf7_001, input_data.trend_dcf3_dcf7_001, data_file,
+                                        input_data.grid_properties_dcf3_dcf7, data_series_time_001, 3)
+
+        trend = numpy.round((input_data.height_dcf3_dcf7_002 - input_data.height_dcf3_dcf7_001), decimals=2)
+
+        trend_002 = numpy.where((-1 * water_level_trend_threshold < trend) &
+                                (trend < water_level_trend_threshold), 3,
+                                numpy.where(trend >= water_level_trend_threshold, 2,
+                                            numpy.where(trend <= -1 * water_level_trend_threshold, 1, numpy.any(trend))))
+
+        data_series_time_002 = data_series_time_001 + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf3_dcf7_002, trend_002, data_file,
+                                        input_data.grid_properties_dcf3_dcf7, data_series_time_002, 3)
+
+        trend = numpy.round((input_data.height_dcf3_dcf7_003 - input_data.height_dcf3_dcf7_002), decimals=2)
+
+        trend_003 = numpy.where((-1 * water_level_trend_threshold < trend) &
+                                (trend < water_level_trend_threshold), 3,
+                                numpy.where(trend >= water_level_trend_threshold, 2,
+                                            numpy.where(trend <= -1 * water_level_trend_threshold, 1,
+                                                        numpy.any(trend))))
+
+        data_series_time_003 = data_series_time_002 + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf3_dcf7_003, trend_003, data_file,
+                                        input_data.grid_properties_dcf3_dcf7, data_series_time_003, 3)
+
+        s104.utils.update_metadata(data_file, input_data.grid_properties_dcf3_dcf7, input_data.update_meta_dcf3_dcf7)
+
+        s104.utils.write_data_file(data_file)
+
+        assert os.path.isfile(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.h5")
+        h5_file = h5py.File(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.h5", "r")
+
+        assert 'Group_F/WaterLevel' in h5_file
+        assert 'Group_F/featureCode' in h5_file
+        assert 'WaterLevel/WaterLevel.01/uncertainty' in h5_file
+        assert 'WaterLevel/axisNames' in h5_file
+        # assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_001)
+        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'], input_data.trend_dcf3_dcf7_001)
+        # assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_002)
+        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'], trend_002)
+        #  assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_003)
+        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'], trend_003)
+        assert h5_file['WaterLevel/WaterLevel.01'].attrs['numberOfNodes'] == input_data.height_dcf3_dcf7_001.size
+        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['longitude'], input_data.lon)
+        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['latitude'], input_data.lat)
+
+
+def test_create_s104_dcf7(s104, input_data):
+    if s104.EDITION == 1.1:
+        data_file = s104.utils.create_s104(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.h5", 7)
+
+        s104.utils.add_metadata(input_data.metadata_1_1_dcf3, data_file)
+        water_level_trend_threshold = input_data.metadata_1_1_dcf3['waterLevelTrendThreshold']
+
+        data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf3_dcf7_001, input_data.trend_dcf3_dcf7_001, data_file,
+                                        input_data.grid_properties_dcf3_dcf7, data_series_time_001, 7)
+
+        trend = numpy.round((input_data.height_dcf3_dcf7_002 - input_data.height_dcf3_dcf7_001), decimals=2)
+
+        trend_002 = numpy.where((-1 * water_level_trend_threshold < trend) &
+                                (trend < water_level_trend_threshold), 3,
+                                numpy.where(trend >= water_level_trend_threshold, 2,
+                                            numpy.where(trend <= -1 * water_level_trend_threshold, 1, numpy.any(trend))))
+
+        data_series_time_002 = data_series_time_001 + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf3_dcf7_002, trend_002, data_file,
+                                        input_data.grid_properties_dcf3_dcf7, data_series_time_002, 7)
+
+        trend = numpy.round((input_data.height_dcf3_dcf7_003 - input_data.height_dcf3_dcf7_002), decimals=2)
+
+        trend_003 = numpy.where((-1 * water_level_trend_threshold < trend) &
+                                (trend < water_level_trend_threshold), 3,
+                                numpy.where(trend >= water_level_trend_threshold, 2,
+                                            numpy.where(trend <= -1 * water_level_trend_threshold, 1,
+                                                        numpy.any(trend))))
+
+        data_series_time_003 = data_series_time_002 + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf3_dcf7_003, trend_003, data_file,
+                                        input_data.grid_properties_dcf3_dcf7, data_series_time_003, 7)
+
+        s104.utils.update_metadata(data_file, input_data.grid_properties_dcf3_dcf7, input_data.update_meta_dcf3_dcf7)
+
+        s104.utils.write_data_file(data_file)
+
+        assert os.path.isfile(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.h5")
+        h5_file = h5py.File(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.h5", "r")
+
+        assert 'Group_F/WaterLevel' in h5_file
+        assert 'Group_F/featureCode' in h5_file
+        assert 'WaterLevel/WaterLevel.01/uncertainty' in h5_file
+        assert 'WaterLevel/axisNames' in h5_file
+        # assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_001)
+        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'], input_data.trend_dcf3_dcf7_001)
+        # assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_002)
+        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'], trend_002)
+        # assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_003)
+        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'], trend_003)
+        assert h5_file['WaterLevel/WaterLevel.01'].attrs['numberOfNodes'] == input_data.height_dcf3_dcf7_001.size
+        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['longitude'], input_data.lon)
+        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['latitude'], input_data.lat)
+
+
+def test_to_geotiff(input_data, s104):
+
+    s104_file = s104.api.S104File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}.h5")
     s104_file.to_geotiffs(f"{current_directory}")
 
-    assert os.path.isfile(f"{current_directory}/test_s104_{s104.EDITION}_20210901T010000Z.tif")
-    assert os.path.isfile(f"{current_directory}/test_s104_{s104.EDITION}_20210901T020000Z.tif")
+    assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_20210901T010000Z.tif")
+    assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_20210901T020000Z.tif")
 
-    tif_file1 = gdal.Open(f"{current_directory}/test_s104_{s104.EDITION}_20210901T010000Z.tif")
-    tif_file2 = gdal.Open(f"{current_directory}/test_s104_{s104.EDITION}_20210901T020000Z.tif")
+    tif_file1 = gdal.Open(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_20210901T010000Z.tif")
+    tif_file2 = gdal.Open(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_20210901T020000Z.tif")
 
     height_raster = tif_file1.GetRasterBand(1)
     trend_raster = tif_file1.GetRasterBand(2)
     height_array = height_raster.ReadAsArray()
     rows, cols = height_array.shape
 
-    h5_file = h5py.File(f"{current_directory}/test_s104_{s104.EDITION}.h5", "r")
+    h5_file = h5py.File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}.h5", "r")
     feature_instance = h5_file['/WaterLevel/WaterLevel.01/']
 
     fillvalue = float(h5_file['Group_F']['WaterLevel']['fillValue'][0])

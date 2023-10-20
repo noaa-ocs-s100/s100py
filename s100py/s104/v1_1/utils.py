@@ -29,7 +29,7 @@ def _get_S104File(output_file):
     return data_file
 
 
-def create_s104(output_file) -> S104File:
+def create_s104(output_file, dcf) -> S104File:
     """ Creates or updates an S104File object.
     Default values are set for any data that doesn't have options or are mandatory to be filled in the S104 spec.
 
@@ -37,6 +37,8 @@ def create_s104(output_file) -> S104File:
     ----------
     output_file
         S104File object
+    dcf
+       S100 Data Coding Format (Int)
 
     Returns
     -------
@@ -47,7 +49,8 @@ def create_s104(output_file) -> S104File:
     """
     data_file = _get_S104File(output_file)
     root = data_file.root
-    root.water_level_create()
+    root.water_level = data_file.make_container_for_dcf(dcf)
+    root.water_level.water_level_create()
 
     root.feature_information_create()
     group_f = root.feature_information
@@ -202,9 +205,8 @@ def add_metadata(metadata: dict, data_file) -> S104File:
 
     """
     root = data_file.root
-
     water_level_feature = root.water_level
-    water_level_feature.water_level_create()
+
     water_level_feature_instance_01 = water_level_feature.water_level.append_new_item()
 
     water_level_feature_instance_01.water_level_group_create()
@@ -319,9 +321,21 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         water_level_feature_instance_01.positioning_create()
         positioning = water_level_feature_instance_01.positioning
         positioning.geometry_values_create()
-        geometry_values = positioning.geometry_values
-        geometry_values.longitude = grid_properties['longitude']
-        geometry_values.latitude = grid_properties['latitude']
+        positioning.geometry_values.longitude = grid_properties['longitude']
+        positioning.geometry_values.latitude = grid_properties['latitude']
+
+    elif data_coding_format == 7:
+        water_level_feature.data_coding_format = data_coding_format
+        water_level_feature_instance_01.number_of_nodes = grid_properties['nodes']
+        water_level_feature_instance_01.number_of_triangles = grid_properties['num_triangles']
+
+        water_level_feature_instance_01.positioning_create()
+        positioning = water_level_feature_instance_01.positioning
+        positioning.geometry_values_create()
+        positioning.geometry_values.longitude = grid_properties['longitude']
+        positioning.geometry_values.latitude = grid_properties['latitude']
+        positioning.adjacency = grid_properties['adjacency']
+        positioning.triangles = grid_properties['triangles']
 
     water_level_feature_instance_01.east_bound_longitude = grid_properties['maxx']
     water_level_feature_instance_01.west_bound_longitude = grid_properties['minx']

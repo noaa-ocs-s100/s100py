@@ -8,9 +8,12 @@ from enum import Enum, IntEnum
 import numpy
 import h5py
 
-from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype, is_sub_class
-from ...s100.v4_0.api import S100Exception, GeometryValuesDataset, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureInformation, FeatureInformationDataset, GroupFBase, GeographicBoundingBox
-from ...s100.v5_0.api import S100File, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE, VERTICAL_CS, VERTICAL_COORDINATE_BASE, HORIZONTAL_DATUM_REFERENCE, HORIZONTAL_CS, TYPE_OF_HORIZONTAL_CRS, PROJECTION_METHOD
+from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, \
+    h5py_string_dtype, is_sub_class
+from ...s100.v4_0.api import S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, FeatureContainerDCF3, \
+    FeatureInstanceDCF3, FeatureInformation, FeatureInformationDataset, GroupFBase, GeographicBoundingBox
+from ...s100.v5_0.api import S100File, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE, VERTICAL_CS, VERTICAL_COORDINATE_BASE,\
+    HORIZONTAL_DATUM_REFERENCE, HORIZONTAL_CS, TYPE_OF_HORIZONTAL_CRS, PROJECTION_METHOD
 
 WATER_LEVEL = "WaterLevel"
 
@@ -270,10 +273,9 @@ class WaterLevelGroupList(S1xxCollection):
         return WaterLevelGroup
 
 
-class WaterLevelFeatureInstance(FeatureInstanceDCF2):
-    """ Basic template for the name of the attribute
-    Attribute name will be automatically determined based on the array position
-    of the S104_MetadataList
+class WaterLevelFeatureInstanceBase:
+    """ Basic template for the name of the attribute will be automatically determined
+    based on the array position of the S104_MetadataList
     """
     __water_level_group_hdf_name__ = "Group" + r"[\._]\d+"
     __uncertainty_dataset_hdf_name__ = "uncertainty"
@@ -335,7 +337,16 @@ class WaterLevelFeatureInstance(FeatureInstanceDCF2):
         self.type_of_water_level_data = list(self.__type_of_water_level_data_type__)[0]
 
 
-class WaterLevelList(S104MetadataListBase):
+class WaterLevelFeatureInstanceDCF2(FeatureInstanceDCF2, WaterLevelFeatureInstanceBase):
+    pass
+
+
+class WaterLevelFeatureInstanceDCF3(FeatureInstanceDCF3, WaterLevelFeatureInstanceBase):
+    @property
+    def __number_of_nodes_type__(self) -> Type[int]:
+        return numpy.uint32
+
+class WaterLevelListBase(S104MetadataListBase):
     """
     This is the set of WaterLevel.NN that act like a list here.
     They will contain a list of Groups.NNN as well as other attributes etc.
@@ -349,12 +360,20 @@ class WaterLevelList(S104MetadataListBase):
     def metadata_name(self) -> str:
         return WATER_LEVEL
 
+
+class WaterLevelListDCF2(WaterLevelListBase):
     @property
-    def metadata_type(self) -> Type[WaterLevelFeatureInstance]:
-        return WaterLevelFeatureInstance
+    def metadata_type(self) -> Type[WaterLevelFeatureInstanceBase]:
+        return WaterLevelFeatureInstanceDCF2
 
 
-class WaterLevelContainer(FeatureContainerDCF2):
+class WaterLevelListDCF3(WaterLevelListBase):
+    @property
+    def metadata_type(self) -> Type[WaterLevelFeatureInstanceBase]:
+        return WaterLevelFeatureInstanceDCF3
+
+
+class WaterLevelContainerBase:
     """ This is the WaterLevel right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named WaterLevel.NN
     """
@@ -369,10 +388,6 @@ class WaterLevelContainer(FeatureContainerDCF2):
     @property
     def __version__(self) -> int:
         return 1
-
-    @property
-    def __water_level_type__(self):
-        return WaterLevelList
 
     def water_level_create(self):
         # noinspection PyAttributeOutsideInit
@@ -450,6 +465,19 @@ class WaterLevelContainer(FeatureContainerDCF2):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.method_water_level_product = self.__method_water_level_product_type__()
+
+
+class WaterLevelContainerDCF2(FeatureContainerDCF2, WaterLevelContainerBase):
+    @property
+    def __water_level_type__(self):
+        return WaterLevelListDCF2
+
+
+class WaterLevelContainerDCF3(FeatureContainerDCF3, WaterLevelContainerBase):
+    @property
+    def __water_level_type__(self):
+        return WaterLevelListDCF3
+
 
 class WaterLevelFeatureDataset(FeatureInformationDataset):
     """Create group_f feature dataset"""
@@ -1160,7 +1188,7 @@ class S104Root(S100Root):
 
     @property
     def __water_level_type__(self):
-        return WaterLevelContainer
+        return WaterLevelContainerBase
 
     def water_level_create(self):
         # noinspection PyAttributeOutsideInit
@@ -1202,5 +1230,25 @@ class S104File(S100File):
     """ HDF5 file object"""
     PRODUCT_SPECIFICATION = 'INT.IHO.S-104.1.0'
 
+    @staticmethod
+    def make_container_for_dcf(data_coding_format):
+        if data_coding_format == 2:
+            container = WaterLevelContainerDCF2()
+        elif data_coding_format == 3:
+            container = WaterLevelContainerDCF3()
+        else:
+            raise S104Exception(f"DCF {data_coding_format} not supported")
+        return container
+
     def __init__(self, *args, **kywrds):
         super().__init__(*args, root=S104Root, **kywrds)
+        # when reading from a file we need to look inside the DataCodingFormat to know what type of object to create
+        try:
+            container_key = f'/{WATER_LEVEL}'
+            dcf = self[container_key].attrs['dataCodingFormat']
+        except KeyError:  # must not be reading an existing file or doesn't have data for some reason
+            pass
+        else:
+            self.root.water_level = self.make_container_for_dcf(dcf)
+            self.root.water_level.read(self[container_key])
+
