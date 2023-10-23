@@ -18,6 +18,7 @@ from s100py.s111 import v1_2
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
 
+
 # test versions from most recent to oldest
 @pytest.fixture(scope="module", params=[v1_2, v1_0])
 def s111(request):
@@ -31,30 +32,30 @@ def h5py_string_comp(h5py_val, cmp_str):
 
 InputData = namedtuple(
     'InputData',
-    ['speed_2d_001',
-     'direction_2d_001',
-     'speed_2d_002',
-     'direction_2d_002',
-     'speed_1d',
-     'direction_1d',
+    ['speed_dcf2_001',
+     'direction_dcf2_001',
+     'speed_dcf2_002',
+     'direction_dcf2_002',
+     'speed_dcf3',
+     'direction_dcf3',
      'lon',
      'lat',
-     'grid_2d_properties',
-     'grid_1d_properties',
+     'grid_dcf2_properties',
+     'grid_dcf3_properties',
      'datetime_forecast_issuance',
      'datetime_interval',
      'metadata_1_0',
      'metadata_1_2',
-     'update_2d_meta',
-     'update_1d_meta',
-     'expected_2d_chunks',
-     'expected_1d_chunks',
+     'update_dcf2_meta',
+     'update_dcf3_meta',
+     'expected_dcf2_chunks',
+     'expected_dcf3_chunks',
      'expected_groupf'])
 
 
 @pytest.fixture(scope="module")
 def input_data(s111):
-    speed_2d_001 = numpy.array([
+    speed_dcf2_001 = numpy.array([
         [-9999., -9999., -9999., -9999., -9999., -9999.,
          -9999., -9999., -9999., -9999., -9999., -9999.,
          -9999., -9999., -9999., -9999., -9999., -9999.,
@@ -542,7 +543,7 @@ def input_data(s111):
          -9999., -9999., -9999., -9999., -9999., -9999.,
          -9999., -9999., -9999., -9999., -9999., -9999.]])
 
-    direction_2d_001 = numpy.array([
+    direction_dcf2_001 = numpy.array([
         [-9999., -9999., -9999., -9999., -9999., -9999., -9999.,
          -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
          -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
@@ -976,7 +977,7 @@ def input_data(s111):
          -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
          -9999., -9999., -9999., -9999., -9999.]])
 
-    speed_2d_002 = numpy.array([
+    speed_dcf2_002 = numpy.array([
         [-9999., -9999., -9999., -9999., -9999., -9999.,
          -9999., -9999., -9999., -9999., -9999., -9999.,
          -9999., -9999., -9999., -9999., -9999., -9999.,
@@ -1464,7 +1465,7 @@ def input_data(s111):
          -9999., -9999., -9999., -9999., -9999., -9999.,
          -9999., -9999., -9999., -9999., -9999., -9999.]])
 
-    direction_2d_002 = numpy.array([
+    direction_dcf2_002 = numpy.array([
         [197.7, 197.4, 197.1, 197.7, 198.4, 199.2, 199.9, 200.5, 200.9,
          201.4, 201.8, 201.8, 201.9, 202.1, 202.4, 202.5, 202.5, 202.8,
          202.8, 203.1, 203.1, 202.9, 202.6, 202.3, 202., 201.8, 201.6,
@@ -1790,7 +1791,7 @@ def input_data(s111):
          208.2, 208.8, 209.4, 210., 210.5, 211.1, 211.8, 212., 211.6,
          211.1, 210.7, 210.4, 210.2, 210., 209.8, 209.6, 209.9, 210.1]])
 
-    grid_2d_properties = {
+    grid_dcf2_properties = {
         'maxx': -75.90278,
         'minx': -76.19722,
         'miny': 36.90278,
@@ -1801,7 +1802,7 @@ def input_data(s111):
         'ny': 54
     }
 
-    speed_1d = numpy.array([0.39, 0.39, 0.39, 0.4, 0.41, 0.42, 0.44, 0.44, 0.43, 0.43, 0.42,
+    speed_dcf3 = numpy.array([0.39, 0.39, 0.39, 0.4, 0.41, 0.42, 0.44, 0.44, 0.43, 0.43, 0.42,
                             0.43, 0.43, 0.44, 0.45, 0.45, 0.46, 0.46, 0.46, 0.47, 0.48, 0.49,
                             0.5, 0.51, 0.51, 0.51, 0.51, 0.52, 0.52, 0.53, 0.53, 0.54, 0.54,
                             0.54, 0.55, 0.55, 0.56, 0.57, 0.58, 0.59, 0.59, 0.59, 0.6, 0.6,
@@ -2068,7 +2069,7 @@ def input_data(s111):
                             0.48, 0.48, 0.49, 0.5, 0.51, 0.52, 0.52, 0.53, 0.54, 0.55, 0.55,
                             0.55])
 
-    direction_1d = numpy.array([197.7, 197.4, 197.1, 197.7, 198.4, 199.2, 199.9, 200.5, 200.9,
+    direction_dcf3 = numpy.array([197.7, 197.4, 197.1, 197.7, 198.4, 199.2, 199.9, 200.5, 200.9,
                                 201.4, 201.8, 201.8, 201.9, 202.1, 202.4, 202.5, 202.5, 202.8,
                                 202.8, 203.1, 203.1, 202.9, 202.6, 202.3, 202., 201.8, 201.6,
                                 201.3, 201.2, 201.3, 201.6, 201.8, 202., 202.2, 202.6, 203.,
@@ -3709,7 +3710,7 @@ def input_data(s111):
                        37.49735274, 37.49735274, 37.49735274, 37.49735274, 37.49735274,
                        37.49735274])
 
-    grid_1d_properties = {
+    grid_dcf3_properties = {
         'maxx': -75.30278,
         'minx': -75.59722,
         'miny': 37.202778,
@@ -3764,7 +3765,7 @@ def input_data(s111):
         'issueDateTime': datetime_forecast_issuance,
     }
 
-    update_2d_meta = {
+    update_dcf2_meta = {
         'dateTimeOfLastRecord': '20210107T140000Z',
         'numberOfGroups': 2,
         'numberOfTimes': 2,
@@ -3772,7 +3773,7 @@ def input_data(s111):
         'num_instances': 1
     }
 
-    update_1d_meta = {
+    update_dcf3_meta = {
         'dateTimeOfLastRecord': '20210107T130000Z',
         'numberOfGroups': 1,
         'numberOfTimes': 1,
@@ -3780,9 +3781,9 @@ def input_data(s111):
         'num_instances': 1
     }
 
-    expected_2d_chunks = '27,54'
+    expected_dcf2_chunks = '27,54'
 
-    expected_1d_chunks = '1458'
+    expected_dcf3_chunks = '1458'
 
     expected_groupf = numpy.array([
         ('surfaceCurrentSpeed', 'Surface current speed', 'knots', '-9999', 'H5T_FLOAT', '0.0', '', 'geSemiInterval'),
@@ -3802,9 +3803,9 @@ def input_data(s111):
             dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'),
                    ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
 
-    return InputData(speed_2d_001, direction_2d_001, speed_2d_002, direction_2d_002, speed_1d, direction_1d, lon, lat,
-                     grid_2d_properties, grid_1d_properties, datetime_forecast_issuance, datetime_interval,
-                     metadata_1_0, metadata_1_2, update_2d_meta, update_1d_meta, expected_2d_chunks, expected_1d_chunks,
+    return InputData(speed_dcf2_001, direction_dcf2_001, speed_dcf2_002, direction_dcf2_002, speed_dcf3, direction_dcf3, lon, lat,
+                     grid_dcf2_properties, grid_dcf3_properties, datetime_forecast_issuance, datetime_interval,
+                     metadata_1_0, metadata_1_2, update_dcf2_meta, update_dcf3_meta, expected_dcf2_chunks, expected_dcf3_chunks,
                      expected_groupf)
 
 
@@ -3817,12 +3818,12 @@ def test_create_s111_dcf2(s111, input_data):
         s111.utils.add_metadata(input_data.metadata_1_2, data_file)
 
     data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
-    s111.utils.add_data_from_arrays(input_data.speed_2d_001, input_data.direction_2d_001, data_file,
-                                    input_data.grid_2d_properties, data_series_time_001, 2)
+    s111.utils.add_data_from_arrays(input_data.speed_dcf2_001, input_data.direction_dcf2_001, data_file,
+                                    input_data.grid_dcf2_properties, data_series_time_001, 2)
     data_series_time_002 = data_series_time_001 + input_data.datetime_interval
-    s111.utils.add_data_from_arrays(input_data.speed_2d_002, input_data.direction_2d_002, data_file,
-                                    input_data.grid_2d_properties, data_series_time_002, 2)
-    s111.utils.update_metadata(data_file, input_data.grid_2d_properties, input_data.update_2d_meta)
+    s111.utils.add_data_from_arrays(input_data.speed_dcf2_002, input_data.direction_dcf2_002, data_file,
+                                    input_data.grid_dcf2_properties, data_series_time_002, 2)
+    s111.utils.update_metadata(data_file, input_data.grid_dcf2_properties, input_data.update_dcf2_meta)
 
     s111.utils.write_data_file(data_file)
 
@@ -3834,17 +3835,17 @@ def test_create_s111_dcf2(s111, input_data):
     assert 'SurfaceCurrent/SurfaceCurrent.01/uncertainty' in h5_file
     assert 'SurfaceCurrent/axisNames' in h5_file
     if s111.EDITION == 1.0:
-        assert h5_file['Group_F/SurfaceCurrent'].attrs['chunking'] == input_data.expected_2d_chunks
+        assert h5_file['Group_F/SurfaceCurrent'].attrs['chunking'] == input_data.expected_dcf2_chunks
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentSpeed'],
-                          input_data.speed_2d_001)
+                          input_data.speed_dcf2_001)
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentDirection'],
-                          input_data.direction_2d_001)
+                          input_data.direction_dcf2_001)
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_002/values']['surfaceCurrentSpeed'],
-                          input_data.speed_2d_002)
+                          input_data.speed_dcf2_002)
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_002/values']['surfaceCurrentDirection'],
-                          input_data.direction_2d_002)
-    assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLongitudinal'] == input_data.speed_2d_001.shape[0]
-    assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLatitudinal'] == input_data.speed_2d_001.shape[1]
+                          input_data.direction_dcf2_002)
+    assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLongitudinal'] == input_data.speed_dcf2_001.shape[0]
+    assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLatitudinal'] == input_data.speed_dcf2_001.shape[1]
 
     assert all([h5py_string_comp(actual, expected) for actual, expected in
                 zip(h5_file['Group_F/SurfaceCurrent'][()][0], input_data.expected_groupf[0])])
@@ -3855,7 +3856,7 @@ def test_create_s111_dcf2(s111, input_data):
                     zip(h5_file['Group_F/SurfaceCurrent'][()][2], input_data.expected_groupf[2])])
 
 
-def test_create_s111_dcf3(input_data, s111):
+def test_create_s111_dcf3(s111, input_data):
     data_file = s111.utils.create_s111(f"{current_directory}/test_s111_dcf3_{s111.EDITION}.h5", 3)
 
     if s111.EDITION == 1.0:
@@ -3864,9 +3865,9 @@ def test_create_s111_dcf3(input_data, s111):
         s111.utils.add_metadata(input_data.metadata_1_2, data_file)
 
     data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
-    s111.utils.add_data_from_arrays(input_data.speed_1d, input_data.direction_1d, data_file,
-                                    input_data.grid_1d_properties, data_series_time_001, 3)
-    s111.utils.update_metadata(data_file, input_data.grid_1d_properties, input_data.update_1d_meta)
+    s111.utils.add_data_from_arrays(input_data.speed_dcf3, input_data.direction_dcf3, data_file,
+                                    input_data.grid_dcf3_properties, data_series_time_001, 3)
+    s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.update_dcf3_meta)
 
     s111.utils.write_data_file(data_file)
 
@@ -3878,10 +3879,10 @@ def test_create_s111_dcf3(input_data, s111):
     assert 'SurfaceCurrent/SurfaceCurrent.01/uncertainty' in h5_file
     assert 'SurfaceCurrent/axisNames' in h5_file
     if s111.EDITION == 1.0:
-        assert h5_file['Group_F/SurfaceCurrent'].attrs['chunking'] == input_data.expected_1d_chunks
-    assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentSpeed'], input_data.speed_1d)
-    assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentDirection'], input_data.direction_1d)
-    assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numberOfNodes'] == input_data.speed_1d.size
+        assert h5_file['Group_F/SurfaceCurrent'].attrs['chunking'] == input_data.expected_dcf3_chunks
+    assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentSpeed'], input_data.speed_dcf3)
+    assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentDirection'], input_data.direction_dcf3)
+    assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numberOfNodes'] == input_data.speed_dcf3.size
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Positioning/geometryValues']['longitude'], input_data.lon)
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Positioning/geometryValues']['latitude'], input_data.lat)
 

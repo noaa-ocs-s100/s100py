@@ -8,9 +8,9 @@ import numpy
 import h5py
 
 try:
-    from osgeo import gdal
+    from osgeo import gdal, ogr
 except ModuleNotFoundError:
-    import gdal
+    import gdal, ogr
 
 from s100py.s104 import v1_0
 from s100py.s104 import v1_1
@@ -31,10 +31,10 @@ def h5py_string_comp(h5py_val, cmp_str):
 
 InputData = namedtuple(
     'InputData',
-    ['height_001',
-     'trend_001',
-     'height_002',
-     'grid_properties',
+    ['height_dcf2_001',
+     'trend_dcf2_001',
+     'height_dcf2_002',
+     'grid_properties_dcf2',
      'height_dcf3_dcf7_001',
      'height_dcf3_dcf7_002',
      'height_dcf3_dcf7_003',
@@ -58,7 +58,7 @@ InputData = namedtuple(
 
 @pytest.fixture(scope="module")
 def input_data(s104):
-    height_001 = numpy.array([
+    height_dcf2_001 = numpy.array([
         [0.17, 0.17, 0.17, 0.17, 0.17, 0.17,
          0.17, 0.17, 0.17, 0.17, 0.17, 0.17,
          0.18, 0.18, 0.18, 0.18, 0.18, 0.18,
@@ -628,7 +628,7 @@ def input_data(s104):
          0.19, 0.19, 0.19, 0.19, 0.19, 0.19,
          0.19]])
 
-    trend_001 = numpy.array([
+    trend_dcf2_001 = numpy.array([
                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -772,7 +772,7 @@ def input_data(s104):
                              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
 
-    height_002 = numpy.array([
+    height_dcf2_002 = numpy.array([
         [0.15, 0.15, 0.15, 0.15, 0.15, 0.15,
          0.15, 0.15, 0.15, 0.15, 0.15, 0.16,
          0.16, 0.16, 0.16, 0.16, 0.16, 0.16,
@@ -1342,7 +1342,7 @@ def input_data(s104):
          0.17, 0.17, 0.17, 0.17, 0.17, 0.17,
          0.17]])
 
-    grid_properties = {
+    grid_properties_dcf2 = {
         'maxx': -169.555489,
         'minx': -170.150285,
         'miny': -19.199546,
@@ -1353,13 +1353,13 @@ def input_data(s104):
         'ny': 43
     }
 
-    height_dcf3_dcf7_001 = numpy.array([1.15, 0.735, 1.02, 0.32, 0.51, 0.7, 0.89, 0.095, 0.285, 0.475])
+    height_dcf3_dcf7_001 = numpy.array([1.15, 0.74, 1.02, 0.32, 0.51, 0.7, 0.89, 0.1, 0.28, 0.48])
 
     trend_dcf3_dcf7_001 = numpy.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
-    height_dcf3_dcf7_002 = numpy.array([1.6346, 1.2196, 1.5046, 0.8046, 0.9946, 1.1846, 1.3746, 0.5796, 0.7696, 0.9596])
+    height_dcf3_dcf7_002 = numpy.array([1.63, 1.22, 1.50, 0.80, 0.99, 1.18, 1.37, 0.58, 0.77, 0.96])
 
-    height_dcf3_dcf7_003 = numpy.array([1.9978, 1.5828, 1.8678, 1.1678, 1.3578, 1.5478, 1.7378, 0.9428, 1.1328, 1.3228])
+    height_dcf3_dcf7_003 = numpy.array([2.00, 1.58, 1.87, 1.17, 1.36, 1.55, 1.74, 0.94, 1.13, 1.32])
 
     lon = numpy.array([-74.89039612, -75.00689697,
                       -74.65739441, -75.12339783,
@@ -1477,7 +1477,7 @@ def input_data(s104):
         'waterLevelHeightUncertainty': -1.0,
         'verticalUncertainty': -1.0,
         'horizontalPositionUncertainty': -1.0,
-        'waterLevelTrendThreshold': 0.02,
+        'waterLevelTrendThreshold': 0.2,
         'verticalCS': 6499,
         'verticalDatumReference': 1,
         'verticalDatum': 12,
@@ -1521,7 +1521,7 @@ def input_data(s104):
             ('waterLevelTime', 'Water Level Time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
             dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
 
-    return InputData(height_001, trend_001, height_002, grid_properties, height_dcf3_dcf7_001,
+    return InputData(height_dcf2_001, trend_dcf2_001, height_dcf2_002, grid_properties_dcf2, height_dcf3_dcf7_001,
                      height_dcf3_dcf7_002, height_dcf3_dcf7_003, trend_dcf3_dcf7_001, lon, lat, adjacency, triangles,
                      grid_properties_dcf3_dcf7, datetime_forecast_issuance, datetime_interval, metadata_1_0_dcf2,
                      metadata_1_1_dcf2, metadata_1_1_dcf3, metadata_1_1_dcf7, update_meta_dcf2, update_meta_dcf3_dcf7,
@@ -1540,10 +1540,10 @@ def test_create_s104_dcf2(s104, input_data):
         water_level_trend_threshold = input_data.metadata_1_1_dcf2['waterLevelTrendThreshold']
 
     data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
-    s104.utils.add_data_from_arrays(input_data.height_001, input_data.trend_001, data_file, input_data.grid_properties,
-                                    data_series_time_001, 2)
+    s104.utils.add_data_from_arrays(input_data.height_dcf2_001, input_data.trend_dcf2_001, data_file,
+                                    input_data.grid_properties_dcf2, data_series_time_001, 2)
 
-    trend = numpy.round((input_data.height_002 - input_data.height_001), decimals=2)
+    trend = numpy.round((input_data.height_dcf2_002 - input_data.height_dcf2_001), decimals=2)
 
     trend_002 = numpy.where((-1 * water_level_trend_threshold < trend) &
                             (trend < water_level_trend_threshold), 3,
@@ -1551,9 +1551,9 @@ def test_create_s104_dcf2(s104, input_data):
                                         numpy.where(trend <= -1 * water_level_trend_threshold, 1, numpy.any(trend))))
 
     data_series_time_002 = data_series_time_001 + input_data.datetime_interval
-    s104.utils.add_data_from_arrays(input_data.height_002, trend_002, data_file, input_data.grid_properties,
+    s104.utils.add_data_from_arrays(input_data.height_dcf2_002, trend_002, data_file, input_data.grid_properties_dcf2,
                                     data_series_time_002, 2)
-    s104.utils.update_metadata(data_file, input_data.grid_properties, input_data.update_meta_dcf2)
+    s104.utils.update_metadata(data_file, input_data.grid_properties_dcf2, input_data.update_meta_dcf2)
 
     s104.utils.write_data_file(data_file)
 
@@ -1566,12 +1566,16 @@ def test_create_s104_dcf2(s104, input_data):
     assert 'WaterLevel/axisNames' in h5_file
     if s104.EDITION == 1.0:
         assert h5_file['Group_F/WaterLevel'].attrs['chunking'] == input_data.expected_chunks
-    assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'], input_data.height_001)
-    assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'], input_data.trend_001)
-    assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'], input_data.height_002)
-    assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'], trend_002)
-    assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal'] == input_data.height_001.shape[0]
-    assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal'] == input_data.height_001.shape[1]
+    assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf2_001)
+    assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf2_002)
+    assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'] == pytest.approx(input_data.trend_dcf2_001)
+    assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'] == pytest.approx(trend_002)
+    assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal'] == input_data.height_dcf2_001.shape[0]
+    assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal'] == input_data.height_dcf2_001.shape[1]
+    assert h5_file.attrs['eastBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf2['maxx'])
+    assert h5_file.attrs['westBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf2['minx'])
+    assert h5_file.attrs['northBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf2['maxy'])
+    assert h5_file.attrs['southBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf2['miny'])
 
     assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][0],
                                                                                input_data.expected_groupf[0])])
@@ -1626,23 +1630,27 @@ def test_create_s104_dcf3(s104, input_data):
         assert 'Group_F/featureCode' in h5_file
         assert 'WaterLevel/WaterLevel.01/uncertainty' in h5_file
         assert 'WaterLevel/axisNames' in h5_file
-        # assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_001)
-        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'], input_data.trend_dcf3_dcf7_001)
-        # assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_002)
-        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'], trend_002)
-        #  assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_003)
-        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'], trend_003)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf3_dcf7_001)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf3_dcf7_002)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_003/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf3_dcf7_003)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'] == pytest.approx(input_data.trend_dcf3_dcf7_001)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'] == pytest.approx(trend_002)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_003/values']['waterLevelTrend'] == pytest.approx(trend_003)
         assert h5_file['WaterLevel/WaterLevel.01'].attrs['numberOfNodes'] == input_data.height_dcf3_dcf7_001.size
-        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['longitude'], input_data.lon)
-        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['latitude'], input_data.lat)
+        assert h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['longitude'] == pytest.approx(input_data.lon)
+        assert h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['latitude'] == pytest.approx(input_data.lat)
+        assert h5_file.attrs['eastBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['maxx'])
+        assert h5_file.attrs['westBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['minx'])
+        assert h5_file.attrs['northBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['maxy'])
+        assert h5_file.attrs['southBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['miny'])
 
 
 def test_create_s104_dcf7(s104, input_data):
     if s104.EDITION == 1.1:
         data_file = s104.utils.create_s104(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.h5", 7)
 
-        s104.utils.add_metadata(input_data.metadata_1_1_dcf3, data_file)
-        water_level_trend_threshold = input_data.metadata_1_1_dcf3['waterLevelTrendThreshold']
+        s104.utils.add_metadata(input_data.metadata_1_1_dcf7, data_file)
+        water_level_trend_threshold = input_data.metadata_1_1_dcf7['waterLevelTrendThreshold']
 
         data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
         s104.utils.add_data_from_arrays(input_data.height_dcf3_dcf7_001, input_data.trend_dcf3_dcf7_001, data_file,
@@ -1682,15 +1690,20 @@ def test_create_s104_dcf7(s104, input_data):
         assert 'Group_F/featureCode' in h5_file
         assert 'WaterLevel/WaterLevel.01/uncertainty' in h5_file
         assert 'WaterLevel/axisNames' in h5_file
-        # assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_001)
-        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'], input_data.trend_dcf3_dcf7_001)
-        # assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_002)
-        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'], trend_002)
-        # assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'], input_data.height_dcf3_dcf7_003)
-        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'], trend_003)
+        assert 'WaterLevel/WaterLevel.01/Positioning/triangles' in h5_file
+        assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf3_dcf7_001)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf3_dcf7_002)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_003/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf3_dcf7_003)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'] == pytest.approx(input_data.trend_dcf3_dcf7_001)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'] == pytest.approx(trend_002)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_003/values']['waterLevelTrend'] == pytest.approx(trend_003)
         assert h5_file['WaterLevel/WaterLevel.01'].attrs['numberOfNodes'] == input_data.height_dcf3_dcf7_001.size
-        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['longitude'], input_data.lon)
-        assert numpy.allclose(h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['latitude'], input_data.lat)
+        assert h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['longitude'] == pytest.approx(input_data.lon)
+        assert h5_file['WaterLevel/WaterLevel.01/Positioning/geometryValues']['latitude'] == pytest.approx(input_data.lat)
+        assert h5_file.attrs['eastBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['maxx'])
+        assert h5_file.attrs['westBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['minx'])
+        assert h5_file.attrs['northBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['maxy'])
+        assert h5_file.attrs['southBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['miny'])
 
 
 def test_to_geotiff(input_data, s104):
@@ -1724,3 +1737,23 @@ def test_to_geotiff(input_data, s104):
     assert numpy.max(trend) == numpy.max(trend_raster.ReadAsArray())
     assert cols == tif_file1.RasterXSize
     assert rows == tif_file1.RasterYSize
+
+
+# def test_to_gpkg(s104, input_data):
+#     if s104.EDITION == 1.1:
+#         s104_dcf3 = s104.api.S104File(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.h5")
+#         s104_dcf3.to_geopackage(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.gpkg")
+#         s104_dcf3.to_geopackage()
+#
+#         assert os.path.isfile(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.gpkg")
+#
+#         gpkg_file = ogr.Open(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.gpkg")
+#
+#         s104_dcf7 = s104.api.S104File(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.h5")
+#         s104_dcf7.to_geopackage(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.gpkg")
+#         s104_dcf7.to_geopackage()
+#
+#         assert os.path.isfile(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.gpkg")
+#
+#         gpkg_file = ogr.Open(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.gpkg")
+#

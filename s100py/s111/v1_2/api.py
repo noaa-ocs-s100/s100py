@@ -359,6 +359,8 @@ class SurfaceCurrentFeatureInstanceBase:
         # pylint: disable=attribute-defined-outside-init
         self.data_dynamicity = list(self.__data_dynamicity_type__)[0]
 
+
+class SurfaceCurrentFeatureInstanceDCF2(FeatureInstanceDCF2, SurfaceCurrentFeatureInstanceBase):
     @property
     def __number_of_times_type__(self) -> Type[int]:
         return numpy.uint32
@@ -368,14 +370,18 @@ class SurfaceCurrentFeatureInstanceBase:
         return numpy.uint16
 
 
-class SurfaceCurrentFeatureInstanceDCF2(FeatureInstanceDCF2, SurfaceCurrentFeatureInstanceBase):
-    pass
-
-
 class SurfaceCurrentFeatureInstanceDCF3(FeatureInstanceDCF3, SurfaceCurrentFeatureInstanceBase):
     @property
     def __number_of_nodes_type__(self) -> Type[int]:
         return numpy.uint32
+
+    @property
+    def __number_of_times_type__(self) -> Type[int]:
+        return numpy.uint32
+
+    @property
+    def __time_record_interval_type__(self) -> Type[int]:
+        return numpy.uint16
 
 
 class SurfaceCurrentListBase(S111MetadataListBase):
@@ -460,6 +466,14 @@ class SurfaceCurrentContainerBase:
         self.min_dataset_current_speed = self.__min_dataset_current_speed_type__()
 
     @property
+    def max_dataset_current_speed(self) -> S1xxObject:
+        return self._attributes[self.__max_dataset_current_speed_hdf_name__]
+
+    @max_dataset_current_speed.setter
+    def max_dataset_current_speed(self, val: S1xxObject):
+        self._attributes[self.__max_dataset_current_speed_hdf_name__] = val
+
+    @property
     def __max_dataset_current_speed_type__(self) -> Type[numpy.float64]:
         return numpy.float64
 
@@ -468,6 +482,14 @@ class SurfaceCurrentContainerBase:
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.max_dataset_current_speed = self.__max_dataset_current_speed_type__()
+
+    @property
+    def method_currents_product(self) -> S1xxObject:
+        return self._attributes[self.__method_currents_product_hdf_name__]
+
+    @method_currents_product.setter
+    def method_currents_product(self, val: S1xxObject):
+        self._attributes[self.__method_currents_product_hdf_name__] = val
 
     @property
     def __method_currents_product_type__(self) -> Type[str]:
@@ -674,14 +696,15 @@ class DiscoveryMetadata(S1xxObject):
 
 class S111File(S100File):
     PRODUCT_SPECIFICATION = 'INT.IHO.S-111.1.2'
+
     @staticmethod
     def make_container_for_dcf(data_coding_format):
         if data_coding_format == 2:
             container = SurfaceCurrentContainerDCF2()
         elif data_coding_format == 3:
-            container =  SurfaceCurrentContainerDCF3()
+            container = SurfaceCurrentContainerDCF3()
         else:
-            raise S111Exception("DCF {} not supported".format(data_coding_format))
+            raise S111Exception(f"DCF {data_coding_format} not supported")
         return container
 
     def __init__(self, *args, **kywrds):

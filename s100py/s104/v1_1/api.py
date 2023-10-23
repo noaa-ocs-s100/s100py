@@ -369,6 +369,8 @@ class WaterLevelFeatureInstanceBase:
         # pylint: disable=attribute-defined-outside-init
         self.data_dynamicity = list(self.__data_dynamicity_type__)[0]
 
+
+class WaterLevelFeatureInstanceDCF2(FeatureInstanceDCF2, WaterLevelFeatureInstanceBase):
     @property
     def __number_of_times_type__(self) -> Type[int]:
         return numpy.uint32
@@ -378,20 +380,36 @@ class WaterLevelFeatureInstanceBase:
         return numpy.uint16
 
 
-class WaterLevelFeatureInstanceDCF2(FeatureInstanceDCF2, WaterLevelFeatureInstanceBase):
-    pass
-
-
 class WaterLevelFeatureInstanceDCF3(FeatureInstanceDCF3, WaterLevelFeatureInstanceBase):
     @property
     def __number_of_nodes_type__(self) -> Type[int]:
         return numpy.uint32
+
+    @property
+    def __number_of_times_type__(self) -> Type[int]:
+        return numpy.uint32
+
+    @property
+    def __time_record_interval_type__(self) -> Type[int]:
+        return numpy.uint16
 
 
 class WaterLevelFeatureInstanceDCF7(FeatureInstanceDCF7, WaterLevelFeatureInstanceBase):
     @property
     def __number_of_nodes_type__(self) -> Type[int]:
         return numpy.uint32
+
+    @property
+    def __number_of_triangles_type__(self) -> Type[int]:
+        return numpy.uint32
+
+    @property
+    def __number_of_times_type__(self) -> Type[int]:
+        return numpy.uint32
+
+    @property
+    def __time_record_interval_type__(self) -> Type[int]:
+        return numpy.uint16
 
 
 class WaterLevelListBase(S104MetadataListBase):
@@ -472,9 +490,9 @@ class WaterLevelContainerBase:
         self._attributes[self.__min_dataset_height_hdf_name__] = val
 
     @property
-    def __min_dataset_height_type__(self) -> Type[float]:
+    def __min_dataset_height_type__(self) -> Type[numpy.float32]:
         """Defines datatype"""
-        return float
+        return numpy.float32
 
     def min_dataset_height_create(self):
         """ Creates a blank, empty or zero value for min_dataset_height"""
@@ -675,8 +693,8 @@ class S104Root(S100Root):
         self._attributes[self.__trend_interval_hdf_name__] = val
 
     @property
-    def __trend_interval_type__(self) -> Type[numpy.int32]:
-        return numpy.int32
+    def __trend_interval_type__(self) -> Type[int]:
+        return numpy.uint32
 
     def trend_interval_create(self):
         """ Creates a blank, empty or zero value for trend interval"""

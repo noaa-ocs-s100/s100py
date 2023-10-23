@@ -2,14 +2,11 @@
 
 """
 import logging
-import os
 import sys
 import datetime
-from glob import glob
 
-import h5py
 import numpy
-from osgeo import gdal, osr
+
 
 from ...s1xx import s1xx_sequence
 from .api import S111File, FILLVALUE, S111Exception, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE
