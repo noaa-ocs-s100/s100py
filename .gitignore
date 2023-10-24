@@ -7,5 +7,6 @@
 *.tif
 *.tiff
 *.h5
+*.gpkg
 docs/_build
 docs/api
