@@ -3027,8 +3027,9 @@ class S100File(S1XXFile):
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(int(self.epsg))
         for data, dataname, feature_instance, group_instance in self.iter_groups():
-            if data.data_coding_format.value not in (3, ):
-                raise S100Exception("Unable to convert to GeoTIFF.  Data coding format must be regular grid (2 or 9).")
+            dcf = data.data_coding_format.value
+            if dcf not in (3, 7):
+                raise S100Exception("Unable to convert to Geopackage.  Data coding format must be 3 or 7.")
             values = group_instance['values']
             positions = feature_instance['Positioning']['geometryValues']
             layer_name = "_".join([os.path.split(feature_instance.name)[-1], os.path.split(group_instance.name)[-1]])
@@ -3036,7 +3037,14 @@ class S100File(S1XXFile):
             fields = []
             col_info = []
             for col_name, col_type in values.dtype.descr:
-                if numpy.dtype(col_type) in (numpy.float32, numpy.float64, numpy.float_):
+                if isinstance(col_type, (list, tuple)):  # enumerations have something like ('|u1', {'enum': {'Decreasing': 1, ...}})
+                    if numpy.dtype(col_type[0]) in (numpy.int32, numpy.int64, numpy.int8, numpy.int16, numpy.int_,
+                                                    numpy.uint32, numpy.uint64, numpy.uint8, numpy.uint16, numpy.uint):
+                        col_type = ogr.OFTInteger
+                        converter = int
+                    else:
+                        raise S100Exception(f"Unable to convert to GeoPackage.  Data type {col_type} is not supported.")
+                elif numpy.dtype(col_type) in (numpy.float32, numpy.float64, numpy.float_):
                     col_type = ogr.OFTReal
                     converter = float
                 elif numpy.dtype(col_type) in (numpy.int32, numpy.int64, numpy.int8, numpy.int16, numpy.int_):
@@ -3046,6 +3054,7 @@ class S100File(S1XXFile):
                     raise S100Exception(f"Unable to convert to GeoPackage.  Data type {col_type} is not supported.")
                 col_info.append([col_name, col_type, converter])
                 fields.append(ogr.FieldDefn(col_name, col_type))
+
             layer.CreateFields(fields)
             layer_defn = layer.GetLayerDefn()
             layer.StartTransaction()
@@ -3058,6 +3067,68 @@ class S100File(S1XXFile):
                 feat.SetGeometry(pt)
                 layer.CreateFeature(feat)
             layer.CommitTransaction()
+            if dcf == 7:  # create a triangles layer with TriangleZM to hold the two expected additional values
+                if False:
+                    # Create test polygon
+                    ring = ogr.Geometry(ogr.wkbLinearRing)
+                    ring.AddPoint(1179091.1646903288, 712782.8838459781)
+                    ring.AddPoint(1161053.0218226474, 667456.2684348812)
+                    ring.AddPoint(1214704.933941905, 641092.8288590391)
+                    ring.AddPoint(1228580.428455506, 682719.3123998424)
+                    ring.AddPoint(1218405.0658121984, 721108.1805541387)
+                    ring.AddPoint(1179091.1646903288, 712782.8838459781)
+                    poly = ogr.Geometry(ogr.wkbPolygon)
+                    poly.AddGeometry(ring)
+
+                    # Create the output Driver
+                    outDriver = ogr.GetDriverByName('GeoJSON')
+
+                    # # Create the output GeoJSON
+                    # outDataSource = outDriver.CreateDataSource('test.geojson')
+                    # outLayer = outDataSource.CreateLayer('test.geojson', geom_type=ogr.wkbPolygon)
+
+                    # Get the output Layer's Feature Definition
+                    featureDefn = layer.GetLayerDefn()
+
+                    # create a new feature
+                    outFeature = ogr.Feature(featureDefn)
+
+                    # Set new geometry
+                    outFeature.SetGeometry(poly)
+
+                    # Add new feature to output Layer
+                    layer.CreateFeature(outFeature)
+
+                    # dereference the feature
+                    outFeature = None
+
+                    # Save and close DataSources
+                    outDataSource = None
+                else:
+                    layer = ds.CreateLayer(layer_name+"_tin", srs, ogr.wkbPolygonZM)
+                    # layer.CreateFields(fields)
+                    layer_defn = layer.GetLayerDefn()
+                    layer.StartTransaction()
+                    triangles = feature_instance['Positioning']['triangles']
+                    for nodes in triangles:
+                        feat = ogr.Feature(layer_defn)
+                        ring = ogr.Geometry(ogr.wkbLinearRing)  # ogr.wkbTriangle)  # or wkbMultiPoint
+                        # tri = ogr.Geometry(ogr.wkbTriangle)  # Triangle was coming up with non-standard extension message, so use Polygon
+                        for node in list(nodes)+[nodes[0]]:
+                            longitude, latitude = positions[node-1]
+                            pt_data = values[node-1]
+                            vals = []
+                            for (col_name, col_type, converter), col_val in zip(col_info, pt_data):
+                                vals.append(converter(col_val))
+                            z, m = vals[:2]  # add the two attributes the vertices have as Z and M values
+                            ring.AddPointZM(float(longitude), float(latitude), z, m)  # lat/lon or x/y
+                        poly = ogr.Geometry(ogr.wkbPolygonZM)
+                        poly.AddGeometry(ring)
+                        feat.SetGeometry(poly)
+                        # feat.SetGeometry(tri)
+                        layer.CreateFeature(feat)
+                    layer.CommitTransaction()
+
         return ds
 
     def to_geopackage(self, output_path: (str, pathlib.Path)=None):

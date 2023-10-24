@@ -1739,21 +1739,18 @@ def test_to_geotiff(input_data, s104):
     assert rows == tif_file1.RasterYSize
 
 
-# def test_to_gpkg(s104, input_data):
-#     if s104.EDITION == 1.1:
-#         s104_dcf3 = s104.api.S104File(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.h5")
-#         s104_dcf3.to_geopackage(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.gpkg")
-#         s104_dcf3.to_geopackage()
-#
-#         assert os.path.isfile(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.gpkg")
-#
-#         gpkg_file = ogr.Open(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.gpkg")
-#
-#         s104_dcf7 = s104.api.S104File(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.h5")
-#         s104_dcf7.to_geopackage(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.gpkg")
-#         s104_dcf7.to_geopackage()
-#
-#         assert os.path.isfile(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.gpkg")
-#
-#         gpkg_file = ogr.Open(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.gpkg")
-#
+def test_to_gpkg(s104, input_data):
+    if s104.EDITION == 1.1:
+        s104_dcf7 = s104.api.S104File(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.h5")
+        s104_dcf7.to_geopackage(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.gpkg")
+        s104_dcf7.to_geopackage()
+        assert os.path.isfile(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.gpkg")
+        gpkg_file = ogr.Open(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.gpkg")
+
+        s104_dcf3 = s104.api.S104File(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.h5")
+        s104_dcf3.to_geopackage(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.gpkg")
+        s104_dcf3.to_geopackage()
+        assert os.path.isfile(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.gpkg")
+        gpkg_file = ogr.Open(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.gpkg")
+
+
