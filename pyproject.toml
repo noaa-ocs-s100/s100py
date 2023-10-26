@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "s100py"
+version = "1.0.0"
+authors = [
+  { name="Barry Gallagher", email="barry.gallagher@noaa.gov" },
+  { name="Erin Nagel", email="erin.nagel@noaa.gov" }
+
+]
+description = "This python package provides api and utilities for encoding hydrographic datasets in the International Hydrographic Organization (IHO) S-100 format"
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["S-100", "S-102", "S-111", "S-104", "hydrographic"]
+dependencies = [
+  "h5py",
+  "numpy",
+
+]
+classifiers = [
+    'Programming Language :: Python :: 3',
+    'Intended Audience :: Science/Research',
+    'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
+    'Operating System :: OS Independent',
+]
+
+[project.urls]
+"Homepage" = "https://github.com/noaa-ocs-s100/s100py"
+"Bug Tracker" = "https://github.com/noaa-ocs-s100/s100py/issues"
+"Documentation" = "https://s100py.readthedocs.io/en/latest/index.html"
