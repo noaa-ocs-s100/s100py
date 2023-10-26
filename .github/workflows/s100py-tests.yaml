@@ -26,8 +26,8 @@ jobs:
         # all tests fail if one fails, this may allow other tests to continue
         # fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v3
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           activate-environment: ENVs100py
           environment-file: environment.yml
