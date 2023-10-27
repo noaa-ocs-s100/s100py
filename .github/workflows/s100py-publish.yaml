@@ -4,7 +4,6 @@ name: Publish PyPI Package
 
 on:
   push:
-    branches: main
      # Pattern matched against refs/tags
      # Push events to every tag not containing /
     tags:
