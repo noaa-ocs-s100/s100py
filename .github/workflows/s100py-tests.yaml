@@ -37,8 +37,8 @@ jobs:
         run: |
           conda install --freeze-installed pytest
           conda env export --no-builds
-          pip install -U pip
-          python setup.py install
+          python3 -m pip install --upgrade pip
+          pip install build
 
 #      - name: Lint
 #        shell: bash -l {0}
