@@ -40,9 +40,6 @@ v1.1
 * General metadata "trendInterval" added
 * Beginning S-100 5.0.0, seaSurface and seaFloor have been added to the S100_VerticalAndSoundingDatum enumeration, 
 which makes attribute verticalCoordinateBase redundant. Since it is optional in S-100, S-104 no longer uses it. 
-If verticalCoordinateBase is encoded, applications may ignore it.
-* The S-100 attribute verticalCoordinateBase is no longer used as of S-111 Edition 1.2 because
-its “sea surface” and “sea bottom” values have been added to the vertical datums enumeration (Table 12-8)
 * Datatypes sizes have been specified for all attributes
 """
 

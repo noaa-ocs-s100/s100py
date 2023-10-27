@@ -113,7 +113,7 @@ Create a blank file and see the root object is empty
 ```python
 
 >>> from s100py import s102
->>> f = s102.S102File("c:\\temp\\test.s102.h5")
+>>> f = s102.S102File("c:\\temp\\test.s102.h5", "w")
 >>> print(f.root)
 <class 's100py.s102.S102Root'>
 OrderedDict()

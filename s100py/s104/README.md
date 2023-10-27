@@ -16,7 +16,7 @@ water level data and metadata for surface navigation.
         7.  TIN
         8.  Time Series at fixed stations (stationwise)
 
-*NOTE: Only DCF 2 is currently supported*
+*NOTE: Only DCF 2, 3, & 7 are currently supported*
 
 Example Usage
 -------------

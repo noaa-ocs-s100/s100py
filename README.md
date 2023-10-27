@@ -11,7 +11,7 @@ This python package includes an API and utilities for encoding hydrographic
 datasets in the International Hydrographic Organization (IHO) S-100
 HDF5 format.
 
-See [s100py Read the Docs](https://s100py.readthedocs.io/en/v1.0.0-rc.1/) for more information.
+See [s100py Read the Docs](https://s100py.readthedocs.io/en/v1.0.0/) for more information.
 
 Background
 ----------
@@ -69,11 +69,69 @@ is probably the easiest method.
 Once `gdal` has been installed, s100py can be installed using `pip`:
 
 ```bash
-pip install s100py==1.0.0rc1
+pip install s100py==1.0.0
 ```
 
 Release Notes
 -------------
+**Version 1.0.0 (2023-10-27)**
+- This is a major release, which includes several new APIs that encapsulate the latest S-100 standard (S-100 Edition 5.0.0)
+and S-100 Product Specifications (S-102 Edition 2.2.0, S-111 Edition 1.2.0, S-104 Edition 1.1.0) and adds support for
+multiple S-100 Editions and Product Specification versions
+- Additional convenience utilities have been added to generate:
+  * S-102 Edition 2.1.0 & 2.2.0 datasets
+  * S-111 Edition 1.0.0 & 1.2.0 datasets
+  * S-104 Edition 1.0.0 & 1.1.0 datasets
+  * S-102 Data Coding Format 9 (Feature Oriented Regular Grid) datasets
+  * S-104 Data Coding Format 3 (Irregular Grid) datasets
+  * S-104 Data Coding Format 7 (TIN) datasets
+- S-102 Edition 2.1.0 (S-100 Edition 4.0) significant changes include:
+    * The depth orientation has changed from positive up to positive down
+- S-102 Edition 2.2.0 (S-100 Edition 5.0) significant changes include:
+    * General metadata _horizontalDatumReference_ and _horizontalDatumValue_ have been removed
+    * General metadata attributes _horizontalCRS_ and _typeOfHorizontalCRS_ were added
+    * Stricter datatypes have been set for all attributes
+    * Added the feature attribute table _QualityOfSurvey_ which provides the following additional survey metadata:
+      * The categorization of the assessment level of bathymetric data for an area
+      * If the least depth of detected features in an area was measured
+      * If significant features have or have not been detected in the course of a survey
+      * The size of detected bathymetric features in an area
+      * Percentage of depth that a feature of such size could be detected
+      * If full seafloor coverage has been achieved in the area by hydrographic surveys
+      * Flag for bathy coverage nodes populated by interpolation
+      * The best estimate of the fixed horizontal or vertical accuracy component for positions, depths, heights, vertical
+      distances, and vertical clearances
+      * The factor to be applied to the variable component of uncertainty equation to provide the best estimate of the
+      variable horizontal or vertically accuracy component for positions, depths, heights, vertical distances, and
+      vertical clearances
+      * The start date of the period of the hydrographic survey
+      * The end date of the period of the hydrographic survey
+      * The survey filename or ID
+      * The authority which as responsible for the hydrographic survey
+      * An estimate of the magnitude of the difference between true and estimated bathymetric depth, after all appropriate
+      corrections are made
+- S-111 Edition 1.2.0 (S-100 Edition 5.0.0) significant changes include:
+  * General metadata _horizontalDatumReference_ and _horizontalDatumValue_ have been removed
+  * General metadata attributes _horizontalCRS_ and _typeOfHorizontalCRS_ were added
+  * Stricter datatypes have been set for all attributes
+  * General metadata attribute _depthTypeIndex_ has been modified to only allow _heightOrDepth_ or _layerAverage_
+  * General metadata _datasetDeliveryInterval_ was added, describing the expected time interval between availability of
+  successive datasets for time-varying data, formatted as an ISO 8601 duration (e.g. 'PnYnMnDTnHnMnS')
+  * The enumeration attribute for the classification of data according the relationship between the time of its collection,
+  generation or calculation of generation parameters, in relation the time of publication has been changed from
+  _typeOfCurrentData_ to _dataDynamicity_
+- S-104 Edition 1.1.0 (S-100 Edition 5.0.0) significant changes include:
+  * General metadata _horizontalDatumReference_ and _horizontalDatumValue_ have been removed
+  * General metadata attributes _horizontalCRS_ and _typeOfHorizontalCRS_ were added
+  * Stricter datatypes have been set for all attributes
+  * General metadata _datasetDeliveryInterval_ was added, describing the expected time interval between availability of
+  successive datasets for time-varying data, formatted as an ISO 8601 duration (e.g. 'PnYnMnDTnHnMnS')
+  * The enumeration attribute for the classification of data according the relationship between the time of its collection,
+  generation or calculation of generation parameters, in relation the time of publication has been changed from
+  _typeOfWaterLevelData_ to _dataDynamicity_
+  * General metadata _trendInterval_ was added, describing the interval in minutes over which trend at a particular time
+  is calculated
+
 **Version 1.0.0-rc.1 (2021-02-11)**
 - This is a major release, which includes a new API that encapsulates the data specifications to allow
   introspection with Python to determine what data is available or should be and what data types would

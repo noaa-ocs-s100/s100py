@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -30,3 +30,5 @@ classifiers = [
 "Homepage" = "https://github.com/noaa-ocs-s100/s100py"
 "Bug Tracker" = "https://github.com/noaa-ocs-s100/s100py/issues"
 "Documentation" = "https://s100py.readthedocs.io/en/latest/index.html"
+"Source" = "https://github.com/noaa-ocs-s100/s100py/"
+
