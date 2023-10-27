@@ -3115,8 +3115,8 @@ class S100File(S1XXFile):
                         ring = ogr.Geometry(ogr.wkbLinearRing)  # ogr.wkbTriangle)  # or wkbMultiPoint
                         # tri = ogr.Geometry(ogr.wkbTriangle)  # Triangle was coming up with non-standard extension message, so use Polygon
                         for node in list(nodes)+[nodes[0]]:
-                            longitude, latitude = positions[node-1]
-                            pt_data = values[node-1]
+                            longitude, latitude = positions[node]
+                            pt_data = values[node]
                             vals = []
                             for (col_name, col_type, converter), col_val in zip(col_info, pt_data):
                                 vals.append(converter(col_val))
