@@ -34,7 +34,7 @@ import types
 
 import re
 import sphinx
-import mock
+from unittest import mock
 
 import sphinx_rtd_theme
 
