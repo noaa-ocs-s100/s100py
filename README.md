@@ -11,7 +11,7 @@ This python package includes an API and utilities for encoding hydrographic
 datasets in the International Hydrographic Organization (IHO) S-100
 HDF5 format.
 
-See [s100py Read the Docs](https://s100py.readthedocs.io/en/v1.0.0/) for more information.
+See [s100py Read the Docs](https://s100py.readthedocs.io/en/latest/) for more information.
 
 Background
 ----------
