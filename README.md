@@ -49,7 +49,7 @@ For S100 API Developers
 Requirements
 ------------
 
-This codebase is written for Python 3 and relies on the following python
+This codebase is written for Python >=3.8 and relies on the following python
 packages:
 
 -   h5py
@@ -60,16 +60,57 @@ packages:
 Installation
 ------------
 
-This package requires the GDAL Python bindings be present, so it usually can\'t 
-just be installed using `pip install gdal`. We recommend installing GDAL 
-either through a package manager (e.g. `conda`, `apt`, `yum`, `pacman`) 
-or by compiling from scratch. [Miniconda](https://docs.conda.io/en/latest/miniconda.html) 
-is probably the easiest method.
+Conda
+-----
+Installing s100py from the conda-forge channel can be achieved by adding conda-forge to your channels with:
+```bash
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+```
+Once the conda-forge channel has been enabled, s100py can be installed with conda:
+```bash
+conda install s100py
+```
+or with mamba:
+```bash
+mamba install s100py
+```
+It is possible to list all the versions of s100py available on your platform with conda:
+```bash
+conda search s100py --channel conda-forge
+```
+or with mamba:
+```bash
+mamba search s100py --channel conda-forge
+```
+Alternatively, mamba repoquery may provide more information:
+
+**Search all versions available on your platform:**
+
+```bash
+mamba repoquery search s100py --channel conda-forge
+```
+**List packages depending on `s100py`:**
+```bash
+mamba repoquery whoneeds s100py --channel conda-forge
+```
+**List dependencies of `s100py`:**
+
+```bash
+mamba repoquery depends s100py --channel conda-forge
+```
+
+PIP
+---
+
+If installing with PIP, this package requires GDAL Python bindings be present,
+so it usually can't be installed just using `pip install gdal`, but for more information
+visit https://pypi.org/project/GDAL/.
 
 Once `gdal` has been installed, s100py can be installed using `pip`:
 
 ```bash
-pip install s100py==1.0.0
+pip install s100py
 ```
 
 Release Notes
