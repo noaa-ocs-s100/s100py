@@ -120,8 +120,8 @@ grid_properties = {
         'maxy': -18.944464,
         'cellsize_x': 0.01384226425,
         'cellsize_y': 0.0130463781538463,
-        'nx': 16,
-        'ny': 13
+        'nx': 13,
+        'ny': 16
 }
 
 datetime_forecast_issuance = datetime.datetime(2021, 9, 1, 0, 0, 0)

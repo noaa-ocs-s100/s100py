@@ -1349,8 +1349,8 @@ def input_data(s104):
         'maxy': -18.208768,
         'cellsize_x': 0.0138324559534882,
         'cellsize_y': 0.0139546193943669,
-        'nx': 71,
-        'ny': 43
+        'ny': 71,
+        'nx': 43
     }
 
     height_dcf3_dcf7_001 = numpy.array([1.15, 0.74, 1.02, 0.32, 0.51, 0.7, 0.89, 0.1, 0.28, 0.48])
@@ -1570,8 +1570,8 @@ def test_create_s104_dcf2(s104, input_data):
     assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf2_002)
     assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'] == pytest.approx(input_data.trend_dcf2_001)
     assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'] == pytest.approx(trend_002)
-    assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal'] == input_data.height_dcf2_001.shape[0]
-    assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal'] == input_data.height_dcf2_001.shape[1]
+    assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal'] == input_data.height_dcf2_001.shape[1]
+    assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal'] == input_data.height_dcf2_001.shape[0]
     assert h5_file.attrs['eastBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf2['maxx'])
     assert h5_file.attrs['westBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf2['minx'])
     assert h5_file.attrs['northBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf2['maxy'])
@@ -1583,6 +1583,11 @@ def test_create_s104_dcf2(s104, input_data):
                                                                                input_data.expected_groupf[1])])
     assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][2],
                                                                                input_data.expected_groupf[2])])
+
+    assert pytest.approx((h5_file.attrs['westBoundLongitude'] + h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal']
+           * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLongitudinal']), rel=0.005) == h5_file.attrs['eastBoundLongitude']
+    assert pytest.approx((h5_file.attrs['southBoundLatitude'] + h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal']
+           * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLatitudinal']), rel=0.005) == h5_file.attrs['northBoundLatitude']
 
 
 def test_create_s104_dcf3(s104, input_data):

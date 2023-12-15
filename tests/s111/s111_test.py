@@ -3844,8 +3844,12 @@ def test_create_s111_dcf2(s111, input_data):
                           input_data.speed_dcf2_002)
     assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_002/values']['surfaceCurrentDirection'],
                           input_data.direction_dcf2_002)
-    assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLongitudinal'] == input_data.speed_dcf2_001.shape[0]
-    assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLatitudinal'] == input_data.speed_dcf2_001.shape[1]
+    assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLongitudinal'] == input_data.speed_dcf2_001.shape[1]
+    assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLatitudinal'] == input_data.speed_dcf2_001.shape[0]
+    assert pytest.approx((h5_file.attrs['westBoundLongitude'] + h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLongitudinal']
+           * h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['gridSpacingLongitudinal']), rel=0.005) == h5_file.attrs['eastBoundLongitude']
+    assert pytest.approx((h5_file.attrs['southBoundLatitude'] + h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numPointsLatitudinal']
+           * h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['gridSpacingLatitudinal']), rel=0.005) == h5_file.attrs['northBoundLatitude']
 
     assert all([h5py_string_comp(actual, expected) for actual, expected in
                 zip(h5_file['Group_F/SurfaceCurrent'][()][0], input_data.expected_groupf[0])])
