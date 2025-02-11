@@ -589,7 +589,7 @@ class QualityOfSurvey_GroupNNN(S1xxObject):
 
     @property
     def quality_dtype(self) -> Type[int]:
-        return numpy.int_
+        return numpy.int64
 
     def values_create(self):
         """ Creates a blank, empty or zero value for values"""

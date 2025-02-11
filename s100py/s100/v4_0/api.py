@@ -303,7 +303,7 @@ class GridCoordinate(S1xxObject):
     def coord_values_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.coord_values = self.__coord_values_type__([2], numpy.int_)
+        self.coord_values = self.__coord_values_type__([2], numpy.int64)
 
 
 class GridEnvelope(S1xxObject):
@@ -635,7 +635,7 @@ class VertexPoint(S1xxObject):
     def value_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.value = self.__value_type__([2, ], numpy.float_)
+        self.value = self.__value_type__([2, ], numpy.float64)
 
 
 # FIXME @TODO Add base class (maybe full implementation for many of the datasets) for FeatureInstanceBase
@@ -1771,7 +1771,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
 
     @property
     def coordinate_size_dtype(self) -> Type[int]:
-        return numpy.int_
+        return numpy.int64
 
     def coordinate_size_create(self):
         """ Creates a blank, empty or zero value for coordinate_size"""
@@ -2405,7 +2405,7 @@ class S100File(S1XXFile):
             dataname = dataname.decode()
         data = self.root.get_s1xx_attr(dataname)
         for instance_key in self[data._hdf5_path].keys():
-            if re.match(dataname+"[._]\d{2,3}", instance_key):
+            if re.match(dataname+r"[._]\d{2,3}", instance_key):
                 feature_instance = self["/".join([data._hdf5_path, instance_key])]
                 num_grp = feature_instance.attrs['numGRP']
 
@@ -2557,10 +2557,10 @@ class S100File(S1XXFile):
             fields = []
             col_info = []
             for col_name, col_type in values.dtype.descr:
-                if numpy.dtype(col_type) in (numpy.float32, numpy.float64, numpy.float_):
+                if numpy.dtype(col_type) in (numpy.float32, numpy.float64):
                     col_type = ogr.OFTReal
                     converter = float
-                elif numpy.dtype(col_type) in (numpy.int32, numpy.int64, numpy.int8, numpy.int16, numpy.int_):
+                elif numpy.dtype(col_type) in (numpy.int32, numpy.int64, numpy.int8, numpy.int16):
                     col_type = ogr.OFTInteger
                     converter = int
                 else:

@@ -103,7 +103,7 @@ class S102MetadataListBase(S1xxCollection):
 #         return numpy.ndarray
 #
 #     def depth_create(self):
-#         self.depth = self.__depth_type__([], numpy.float_)
+#         self.depth = self.__depth_type__([], numpy.float64)
 #
 #     @property
 #     def depth(self) -> float:
@@ -119,7 +119,7 @@ class S102MetadataListBase(S1xxCollection):
 #         return numpy.ndarray
 #
 #     def uncertainty_create(self):
-#         self.uncertainty = self.__uncertainty_type__([], numpy.float_)
+#         self.uncertainty = self.__uncertainty_type__([], numpy.float64)
 #
 #     @property
 #     def uncertainty(self) -> float:
