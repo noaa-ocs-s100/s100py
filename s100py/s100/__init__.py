@@ -6,7 +6,7 @@ Tools for converting various datasets to S-100 compliant formats.
 
 import pathlib
 
-from .v5_0.api import *
+from .v5_2.api import *
 import s100py.s102
 
 def open(filename: (str, pathlib.Path), mode: str = "r") -> S1XXFile:
