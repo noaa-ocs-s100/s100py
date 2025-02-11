@@ -18,6 +18,13 @@ import h5py
 # @todo - consider removing the numpy dependence
 import numpy
 
+try:
+    NUMPY_STR_TYPE = numpy.unicode_
+    import numpy.core as np_core
+except:
+    NUMPY_STR_TYPE = numpy.str_
+    import numpy._core as np_core
+
 Record = s1xx_sequence = Union[numpy.ndarray, h5py.Dataset]
 s1xx_sequence_types = s1xx_sequence.__args__
 
@@ -99,11 +106,12 @@ def convert_numpy_types_to_h5py(vals, dtypes=None, names=None):
     A new numpy array which will have h5py special types embedded for the strings
 
     """
-    rec_array = numpy.core.records.fromarrays(vals, dtype=dtypes, names=names)
+    rec_array = np_core.records.fromarrays(vals, dtype=dtypes, names=names)
     new_dtype = []
     for i in range(len(rec_array.dtype)):
         nm = rec_array.dtype.names[i]
-        if rec_array.dtype[i].type is numpy.unicode_:
+
+        if rec_array.dtype[i].type is NUMPY_STR_TYPE:
             try:  # h5py <=2.9
                 dt = h5py.special_dtype(vlen=str)
             except:  # h5py >=2.10
@@ -113,7 +121,7 @@ def convert_numpy_types_to_h5py(vals, dtypes=None, names=None):
         else:
             dt = rec_array.dtype[i].descr[0][1]
         new_dtype.append((nm, dt))
-    rec_array_revised = numpy.core.records.fromarrays(vals, dtype=new_dtype)
+    rec_array_revised = np_core.records.fromarrays(vals, dtype=new_dtype)
     return rec_array_revised
 
 
@@ -995,7 +1003,7 @@ class S1xxGridsBase(S1xxWritesGroupObjects):
 
         # numpy.array is coming out with wrong (at least different) shape and fromarrays is working -- not sure why right now.
         # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
-        rec_array = numpy.core.records.fromarrays(write_array, dtype=[(name, dtype) for name, dtype in zip(write_keys, write_compound_dtype)])
+        rec_array = np_core.records.fromarrays(write_array, dtype=[(name, dtype) for name, dtype in zip(write_keys, write_compound_dtype)])
         opts = dataset_compression_params(rec_array)  # chunks=True, compression='gzip', compression_opts=9
         dataset = group_object.create_dataset(self.metadata_name, data=rec_array, **opts)
         #         # noinspection PyAttributeOutsideInit
