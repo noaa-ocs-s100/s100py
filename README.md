@@ -1,6 +1,6 @@
 s100py
 ======
-[![Tests](https://github.com/noaa-ocs-s100/s100py/actions/workflows/s100py-tests.yml/badge.svg?event=push)](https://github.com/noaa-ocs-s100/s100py/actions/workflows/s100py-tests.yml)
+[![Tests](https://github.com/noaa-ocs-s100/s100py/actions/workflows/s100py-tests.yaml/badge.svg?event=push)](https://github.com/noaa-ocs-s100/s100py/actions/workflows/s100py-tests.yaml)
 
 API and Utilities for Working with IHO S-100 HDF5 Data Formats
 
