@@ -220,16 +220,16 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     water_level_feature.max_dataset_height = 0
     water_level_feature_instance_01.time_record_interval = 0
 
-    utc_now = datetime.datetime.utcnow()
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
 
-    if metadata["issueDateTime"]:
-        root.issue_date = metadata["issueDateTime"]
+    if "issueDate" in metadata:
+        root.issue_date = metadata["issueDate"]
     else:
-        root.issue_date = utc_now
-    if metadata["issueDateTime"]:
-        root.issue_time = metadata["issueDateTime"]
+        root.issue_date = utc_now.date()
+    if "issueTime" in metadata:
+        root.issue_time = metadata["issueTime"]
     else:
-        root.issue_time = utc_now
+        root.issue_time = utc_now.time()
 
     root.product_specification = S104File.PRODUCT_SPECIFICATION
     root.metadata = ""

@@ -52,13 +52,34 @@ class S104Exception(S100Exception):
 class S104UnspecifiedClassException(S100Exception):
     pass
 
+class TYPE_OF_TIDE(Enum):
+    """
+    S104 v1.1 Table 12.11 - A classification of tide or tidal
+    stream based on characteristic forms of a tide curve, as
+    determined from the relative magnitude of its components,
+    usually the diurnal and semidiurnal components.
+    """
+    diurnalTide = 1
+    semiDiurnalTide = 2
+    mixedTide = 3
+    meteorologicalTide = 4
+
+class STATION_TYPE(Enum):
+    """
+    S104 v1.1 Table 12.12- Classification of tide gauge or station
+    by observation history and use as a basis for determining the
+    characteristic tide features for a locality.
+    """
+    referenceStation = 1
+    secondaryStation = 2
+    tertiaryStation = 3
 
 class DATA_DYNAMICITY(Enum):
     """
-     S104 v1.1 Table 12.10 - Classification of data according to the
-     relationship between the time of its collection, generation, or
-     calculation of generation parameters, in relation to the time of
-     publication of the dataset.
+    S104 v1.1 Table 12.10 - Classification of data according to the
+    relationship between the time of its collection, generation, or
+    calculation of generation parameters, in relation to the time of
+    publication of the dataset.
     """
     observation = 1
     astronomicalPrediction = 2
