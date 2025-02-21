@@ -1,10 +1,13 @@
 from .v1_0 import api as v1_0
 from .v1_1 import api as v1_1
-from .v1_1.api import *
+from .v2_0 import api as v2_0
+from .v2_0.api import *
 
 
 def open(name, *args, version=EDITION, **kwargs):
     obj = None
+    if version == 2.0:
+        obj = v2_0.S104File(name, *args, **kwargs)
     if version == 1.1:
         obj = v1_1.S104File(name, *args, **kwargs)
     if version == 1.0:
