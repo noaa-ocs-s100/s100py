@@ -223,23 +223,25 @@ def add_metadata(metadata: dict, data_file) -> S104File:
 
     # General metadata
     root.product_specification = S104File.PRODUCT_SPECIFICATION
-    root.issue_date = ( metadata["issueDate"] if "issueDate" in metadata else utc_now.date())
+    root.issue_date = (metadata["issueDate"] if "issueDate" in metadata else utc_now.date())
     root.horizontal_crs = int(metadata["horizontalCRS"])
     # Optional general metadata
-    root.geographic_identifier = metadata["geographicIdentifier"]
-    root.epoch = metadata["epoch"]
-    if metadata["horizontalCRS"] == -1:
+    if "geographicIdentifier" in metadata:
+        root.geographic_identifier = metadata["geographicIdentifier"]
+    if "epoch" in metadata:
+        root.epoch = metadata["epoch"]
+    if "horizontalCRS" in metadata and metadata["horizontalCRS"] == -1:
         water_level_feature.name_of_horizontal_crs = metadata["nameOfHorizontalCRS"]
         water_level_feature.type_of_horizontal_crs = metadata["typeOfHorizontalCRS"]
         water_level_feature.horizontal_cs = metadata["horizontalCS"]
         water_level_feature.horizontal_datum = metadata["horizontalDatum"]
-        if metadata["horizontalDatum"] == -1:
+        if "horizontalDatum" in metadata and metadata["horizontalDatum"] == -1:
             water_level_feature.name_of_horizontal_datum = metadata["nameOfHorizontalDatum"]
             water_level_feature.prime_meridian = metadata["primeMedian"]
             water_level_feature.spheroid = metadata["spheroid"]
-            if metadata["typeOfHorizontalCRS"] == 2:
+            if "typeOfHorizontalCRS" in metadata and metadata["typeOfHorizontalCRS"] == 2:
                 water_level_feature.projection_method = metadata["projectionMethod"]
-                if metadata["projectionMethod"]:
+                if "projectionMethod" in metadata:
                     water_level_feature.projection_parameter_1 = metadata["projectionParameter1"]
                     water_level_feature.projection_parameter_2 = metadata["projectionParameter2"]
                     water_level_feature.projection_parameter_3 = metadata["projectionParameter3"]
@@ -251,11 +253,14 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     # Additional general metadata
     root.water_level_trend_threshold = metadata["waterLevelTrendThreshold"]
     # Optional additional general metadata
-    root.dataset_delivery_interval = metadata["datasetDeliveryInterval"]
-    root.trend_interval = metadata["trendInterval"]
-    root.vertical_datum_epoch = metadata["verticalDatumEpoch"]
+    if "datasetDeliveryInterval" in metadata:
+        root.dataset_delivery_interval = metadata["datasetDeliveryInterval"]
+    if "trendInterval" in metadata:
+        root.trend_interval = metadata["trendInterval"]
+    if "verticalDatumEpoch" in metadata:
+        root.vertical_datum_epoch = metadata["verticalDatumEpoch"]
     # Additional restrictions on core general metadata for S-104
-    root.issue_time = ( metadata["issueTime"] if "issueTime" in metadata else utc_now.time())
+    root.issue_time = (metadata["issueTime"] if "issueTime" in metadata else utc_now.time())
     root.vertical_cs = metadata["verticalCS"]
     root.vertical_coordinate_base = metadata["verticalCoordinateBase"]
     root.vertical_datum_reference = metadata["verticalDatumReference"]
@@ -265,27 +270,28 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     water_level_feature.common_point_rule = metadata["commonPointRule"]
     water_level_feature.vertical_uncertainty = metadata["verticalUncertainty"]
     water_level_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
-    # water_level_feature.time_uncertainty = metadata["timeUncertainty"] # optional
-    # water_level_feature.time_uncertainty = (metadata["timeUncertainty"] if metadata["timeUncertainty"] else pass)
+    # Optional feature type metadata
+    if "timeUncertainty" in metadata:
+        water_level_feature.time_uncertainty = metadata["timeUncertainty"]
     # Additional feature type metadata
     water_level_feature.method_water_level_product = metadata["methodWaterLevelProduct"]
     # Feature type metadata dataCodingFormat = 2 (regGrid) feature type metadata
     water_level_feature.interpolation_type = metadata["interpolationType"]
     # Optional, Allowed values 1: XMin, YMin (“Lower left”) or 5:Barycenter (centroid) of cell
-    # water_level_feature.data_offset_code = metadata["dataOffsetCode"]
+    if "dataOffsetCode" in metadata:
+        water_level_feature.data_offset_code = metadata["dataOffsetCode"]
 
     # Feature Instance Metadata
     water_level_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
     # Additional feature instance metadata
     water_level_feature_instance_01.data_dynamicity = metadata["dataDynamicity"]
-    # Optional Feature Instance Metadata
-    # water_level_feature_instance_01.vertical_datum_epoch = metadata["verticalDatumEpoch"]
+
 
     return data_file
 
 
 def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_properties: dict, datetime_value,
-                         data_coding_format, uncertainty=None, domain_extent_polygon=None) -> S104File:
+                         data_coding_format, uncertainty=None) -> S104File:
     """  Updates an S104File object based on numpy array/h5py datasets.
         Calls :any:`create_s104` then fills in the HDF5 datasets with the
         supplied water level height and trend numpy.arrays.
@@ -352,14 +358,6 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         water_level_height_uncertainty.name = "waterLevelHeight"
         water_level_height_uncertainty.value = f"{FILLVALUE_UNCERTAINTY:0.02f}"
 
-    if domain_extent_polygon:
-        # Example domain_extent_polygon: [(-74.10,40.50),(-74.10,40.80),(-73.80,40.80),(-73.80,40.50),(-74.10,40.50)]
-        for x,y in domain_extent_polygon:
-            water_level_feature_instance_01.domain_extent_polygon_dataset_create()
-            water_level_domain_extent_polygon = water_level_feature_instance_01.domain_extent_polygon_dataset.append_new_item()
-            water_level_domain_extent_polygon.longitude = x
-            water_level_domain_extent_polygon.latitude = y
-
     if data_coding_format == 2:
         water_level_feature.data_coding_format = data_coding_format
         water_level_feature_instance_01.start_sequence = "0,0"
@@ -404,7 +402,7 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
 
     water_level_group_object = water_level_feature_instance_01.water_level_group.append_new_item()
     water_level_group_object.time_point = datetime_value
-    # Optional
+    # Optional values group metadata
     # water_level_group_object.water_level_trend_threshold = root.water_level_trend_threshold
     # water_level_group_object.trend_interval = root.trend_interval
 
@@ -417,7 +415,6 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         grid.water_level_uncertainty = uncertainty
 
     return data_file
-
 
 def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S104File:
     """  Updates an S104File object based on dynamic metadata.
@@ -476,4 +473,3 @@ def write_data_file(data_file):
     data_file.write()
     data_file.flush()
     data_file.close()
-

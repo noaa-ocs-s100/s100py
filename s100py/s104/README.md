@@ -10,13 +10,7 @@ water level data and metadata for surface navigation.
 
 -   S-104 Data Coding Formats (DCF):
 
-        1.  Time-series at fixed station
         2.  Regularly-gridded arrays
-        3.  Ungeorectified Grid
-        7.  TIN
-        8.  Time Series at fixed stations (stationwise)
-
-*NOTE: Only DCF 2, 3, & 7 are currently supported*
 
 Example Usage
 -------------
@@ -129,33 +123,39 @@ datetime_forecast_issuance = datetime.datetime(2021, 9, 1, 0, 0, 0)
 datetime_interval = datetime.timedelta(seconds=3600)
 
 # Example metadata
+# Optional attributes are denoted below and can be removed
 metadata = {
-    'horizontalCRS': 4362, #EPSG code
-    'geographicIdentifier': 'RegionName',
-    'waterLevelHeightUncertainty': -1.0, # Default or Unknown values
-    'verticalUncertainty': -1.0, # Default or Unknown values
-    'horizontalPositionUncertainty': -1.0, # Default or Unknown values
+    'horizontalCRS': 4362, # EPSG code
+    'waterLevelHeightUncertainty': -1.0, # -1.0 (unknown) or positive value (m)
+    'horizontalPositionUncertainty': -1.0, # -1.0 (unknown) or positive value (m)
+    'verticalUncertainty': -1.0, # -1.0 (unknown) or positive value (m)
     'waterLevelTrendThreshold': 0.2,
-    'verticalCS': 6499, # EPSG code
-    'verticalDatumReference': 1, # 2:EPSG
-    'verticalDatum': 12, # EPSG code
+    'verticalCS': 6499, # Height-Meters–Orientation Up
+    'verticalDatumReference': 1, # 1:S100_VerticalAndSoundingDatum
+    'verticalCoordinateBase': 2, # 2:verticalDatum (Only value allowed)
+    'verticalDatum': 12, # 12:MLLW
     'commonPointRule': 4, # 4:all
-    'interpolationType': 10, # 10:discrete
+    'interpolationType': 1, # 1:nearestneighbor (Only value allowed)
     'dataDynamicity': 5, # 5:Hydrodynamic model forecast (F)
-    'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
-    'datetimeOfFirstRecord': '20210901T010000Z',
-    'trendInterval': 60, # minutes
-    'datasetDeliveryInterval': 'PT6H',
-    'issueDateTime': datetime_forecast_issuance
+    'issueDateTime': datetime_forecast_issuance, # All times are in UTC, DateTime format
+    'datetimeOfFirstRecord': '20210901T010000Z', # All times are in UTC, DateTime format
+    'geographicIdentifier': 'RegionName', # Optional
+    'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts', # Optional
+    'trendInterval': 60, # Optional (Minutes)
+    'datasetDeliveryInterval': 'PT6H', #Optional (ISO 8601 duration, format `YnMnDTnHnMnS`)
+    'epoch': 'G1762', # Optional
+    'verticalDatumEpoch': 'NOAA_NTDE_1983-2001', # Optional
+    'timeUncertainty': -1.0 # Optional
 }
 
-data_coding_format = 2
+
+data_coding_format = 2 # Only value allowed in S-104 Ed 2.0
 
 update_meta = {
         'dateTimeOfLastRecord': '20210901T020000Z',
         'numberOfGroups': 2,
         'numberOfTimes': 2,
-        'timeRecordInterval': 3600,
+        'timeRecordInterval': 3600, # Optional
         'num_instances': 1
     }
 
