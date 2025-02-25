@@ -674,7 +674,7 @@ class S1xxObject(ABC):
 
     def set_enum_attribute(self, val, hdf_name, enum_type):
         """ Function to set an attribute that is an enumeration type using either it's string or numeric value
-        or enumeration instance.
+        or enumeration instance.  Raises an S100Exception if the value is not found.
 
         Parameters
         ----------
@@ -689,10 +689,17 @@ class S1xxObject(ABC):
         -------
         None
         """
-        if isinstance(val, str):
-            val = enum_type[val]
-        if isinstance(val, (int, numpy.integer)):
-            val = enum_type(val)
+        try:
+            if isinstance(val, str):
+                val = enum_type[val]
+            elif isinstance(val, (int, numpy.integer)):
+                val = enum_type(val)
+            elif isinstance(val, enum_type):
+                pass
+            else:
+                raise
+        except:
+            raise S100Exception(f"{val} was not found as a valid choice in the enumeration {enum_type}")
         self._attributes[hdf_name] = val
 
     def set_datetime_attribute(self, val, hdf_name, date_type):

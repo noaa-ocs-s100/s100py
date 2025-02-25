@@ -1787,7 +1787,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
         return self._attributes[self.__data_coding_format_hdf_name__]
 
     @data_coding_format.setter
-    def data_coding_format(self, val: int):
+    def data_coding_format(self, val: Union[int, str, DATA_CODING_FORMAT]):
         self.set_enum_attribute(val, self.__data_coding_format_hdf_name__, self.__data_coding_format_type__)
 
     @property
@@ -2336,11 +2336,6 @@ class S100Root(GeographicBoundingBox):
     @vertical_datum.setter
     def vertical_datum(self, val: Union[int, str, VERTICAL_DATUM]):
         self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, self.__vertical_datum_type__)
-        # if isinstance(val, str):
-        #     val = self.__vertical_datum_type__[val]
-        # if isinstance(val , int):
-        #     val = self.__vertical_datum_type__(val)
-        # self._attributes[self.__vertical_datum_hdf_name__] = val
 
     @property
     def __vertical_datum_type__(self) -> Type[Enum]:

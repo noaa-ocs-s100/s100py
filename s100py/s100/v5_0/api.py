@@ -2531,8 +2531,11 @@ class S100Root(GeographicBoundingBox):
         return self._attributes[self.__horizontal_cs_hdf_name__]
 
     @horizontal_cs.setter
-    def horizontal_cs(self, val: Union[int]):
-        self.set_enum_attribute(val, self.__horizontal_cs_hdf_name__, self.__horizontal_cs_type__)
+    def horizontal_cs(self, val: Union[int, str, HORIZONTAL_CS]):
+        # Use an enumeration to control the values, though not officially an enum it essentially is, throws an exception if not in the enum
+        self.set_enum_attribute(val, self.__horizontal_cs_hdf_name__, HORIZONTAL_CS)
+        # convert the legal values into an integer
+        self._attributes[self.__horizontal_cs_hdf_name__] = self._attributes[self.__horizontal_cs_hdf_name__].value
 
     @property
     def __horizontal_cs_type__(self) -> Type[int]:
@@ -2629,7 +2632,10 @@ the EPSG documentation."""
 
     @projection_method.setter
     def projection_method(self, val: Union[int, str, PROJECTION_METHOD]):
-        self.set_enum_attribute(val, self.__projection_method_hdf_name__, self.__projection_method_type__)
+        # Use an enumeration to control the values, though not officially an enum it essentially is
+        self.set_enum_attribute(val, self.__projection_method_hdf_name__, PROJECTION_METHOD)
+        # convert the legal values into an integer
+        self._attributes[self.__projection_method_hdf_name__] = self._attributes[self.__projection_method_hdf_name__].value
 
     @property
     def __projection_method_type__(self) -> Type[PROJECTION_METHOD]:
@@ -2774,7 +2780,10 @@ the EPSG documentation."""
 
     @vertical_cs.setter
     def vertical_cs(self, val: Union[int, str, VERTICAL_CS]):
-        self.set_enum_attribute(val, self.__vertical_cs_hdf_name__, self.__vertical_cs_type__)
+        # Use an enumeration to control the values, though not officially an enum it essentially is
+        self.set_enum_attribute(val, self.__vertical_cs_hdf_name__, VERTICAL_CS)
+        # convert the legal values into an integer
+        self._attributes[self.__vertical_cs_hdf_name__] = self._attributes[self.__vertical_cs_hdf_name__].value
 
     @property
     def __vertical_cs_type__(self) -> Type[VERTICAL_CS]:
@@ -2829,15 +2838,25 @@ the EPSG documentation."""
     @property
     def vertical_datum(self) -> Enum:
         val = self._attributes[self.__vertical_datum_hdf_name__]
-        # try:
-        #     val = val.value  # convert to integer if it's an enum
-        # except AttributeError:
-        #     pass
         return val
 
     @vertical_datum.setter
     def vertical_datum(self, val: (int, str, VERTICAL_DATUM)):
-        self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, VERTICAL_DATUM)
+        # NOTE: When reading from a file h5py gets attributes alphabetically so we can't rely on vertical_datum_reference being set before vertical_datum
+        # verticalDatumReference when 1 is from the enumeration but when 2 is an EPSG code that we don't have a check for.
+        try:
+            self.vertical_datum_reference  # see if the attribute exists
+        except KeyError:
+            pass
+        else:
+            if self.vertical_datum_reference == VERTICAL_DATUM_REFERENCE(1):
+                try:
+                    self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, VERTICAL_DATUM)
+                except S100Exception as e:
+                    raise S100Exception(f"When vertical_datum_reference is '1' then vertical_datum must be a value given in the enumeration {VERTICAL_DATUM}, the supplied {val} was not found")
+                # convert the enumeration back to an integer
+                val = self._attributes[self.__vertical_datum_hdf_name__].value
+        self._attributes[self.__vertical_datum_hdf_name__] = val
 
     @property
     def __vertical_datum_type__(self) -> Type[int]:
