@@ -1566,7 +1566,7 @@ class S102File(S100File):
 
     @staticmethod
     def upgrade_in_place(s100_object):
-        if s100_object.root.product_specification != v2_0.PRODUCT_SPECIFICATION:
+        if s100_object.root.product_specification != PRODUCT_SPECIFICATION:
             v2_0.api.S102File.upgrade_in_place(s100_object)
         if s100_object.root.product_specification == v2_0.PRODUCT_SPECIFICATION:
             # update product specification

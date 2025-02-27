@@ -269,6 +269,8 @@ def test_s102_version_upgrade(bagname):
     f22 = v2_2.api.S102File.upgrade(upgrade_name)
     assert "2.2" in str(f22.root.product_specification)
     f22.close()
+    f21 = v2_1.api.S102File.upgrade(upgrade_name)
+    f21.close()
 
 
 # tiffname = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff"
