@@ -57,6 +57,9 @@ v2.2
 Add QualityOfSurvey for RasterAttribute storage.
 Revisions to the horizontal and vertical datum attributes at the root level.
 Stricter datatypes per S102 (but not S100) spec
+
+v3.0
+Make Uncertainty optional in BathymetryCoverage
 """
 
 
@@ -84,6 +87,59 @@ SEQUENCING_RULE_SCAN_DIRECTION: AxisNames, comma-separated (e.g. "longitude,lati
 START_SEQUENCE: Starting location of the scan.
 
 """
+
+class VERTICAL_DATUM(Enum):
+    """ Note: while a Vertical Datum can be created with the shorthand aliases, ex: MLWS, the string written and
+    returned from the file/S100 object will be the official long name, e.g. "meanLowWaterSprings" etc.
+    S100 Part 4a Metadata
+
+    S100 v5 Part 17 Vertical and Sounding Datum
+    Added balticSeaChartDatum2000 = 44 to hydrographicZero = 49
+    S100 v5.1 added 47,48,49 but S102 v3.0 only goes to 46
+    """
+    meanLowWaterSprings = 1
+    MLWS = 1
+    meanLowerLowWaterSprings = 2
+    meanSeaLevel = 3
+    MSL = 3
+    lowestLowWater = 4
+    meanLowWater = 5
+    MLW = 5
+    lowestLowWaterSprings = 6
+    approximateMeanLowWaterSprings = 7
+    indianSpringLowWater = 8
+    lowWaterSprings = 9
+    approximateLowestAstronomicalTide = 10
+    nearlyLowestLowWater = 11
+    meanLowerLowWater = 12
+    MLLW = 12
+    lowWater = 13
+    LW = 13
+    approximateMeanLowWater = 14
+    approximateMeanLowerLowWater = 15
+    meanHighWater = 16
+    MHW = 16
+    meanHighWaterSprings = 17
+    MHWS = 17
+    highWater = 18
+    approximateMeanSeaLevel = 19
+    highWaterSprings = 20
+    meanHigherHighWater = 21
+    MHHW = 21
+    equinoctialSpringLowWater = 22
+    lowestAstronomicalTide = 23
+    LAT = 23
+    localDatum = 24
+    internationalGreatLakesDatum1985 = 25
+    meanWaterLevel = 26
+    lowerLowWaterLargeTide = 27
+    higherHighWaterLargeTide = 28
+    nearlyHighestHighWater = 29
+    highestAstronomicalTide = 30
+    HAT = 30
+    balticSeaChartDatum2000 = 44
+    internationalGreatLakesDatum2020 = 46
+
 
 class BATHYMETRIC_UNCERTAINTY_TYPE(Enum):
     """ Note: while a Vertical Datum can be created with the shorthand aliases, ex: MLWS, the string written and
@@ -180,7 +236,13 @@ class BathymetryValues(S1xxGridsBase):
         self.uncertainty = self.__uncertainty_type__([], self.uncertainty_dtype)
 
     def get_write_order(self):
-        return [self.__depth_hdf_name__, self.__uncertainty_hdf_name__]
+        """Write depth attribute, optionally write uncertainty attribute"""
+        ret = [self.__depth_hdf_name__]
+        # uncertainty is optional so check if it has an entry in the attributes
+        # -- S102 Product Spec commit Oct 6 2023 c8d05a926d804af15794fa669a01ff228a0faace
+        if self.__uncertainty_hdf_name__ in self._attributes:
+            ret = [self.__depth_hdf_name__, self.__uncertainty_hdf_name__]
+        return ret
 
     def get_compound_dtype(self):
         return [self.depth_dtype, self.uncertainty_dtype]
