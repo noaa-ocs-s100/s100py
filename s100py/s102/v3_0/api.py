@@ -60,6 +60,8 @@ Stricter datatypes per S102 (but not S100) spec
 
 v3.0
 Make Uncertainty optional in BathymetryCoverage
+Renamed QualityOfSurvey to QualityOfBathymetryCoverage
+
 """
 
 
@@ -68,7 +70,7 @@ class S102Exception(S100Exception):
 
 
 BATHY_COVERAGE = "BathymetryCoverage"
-QUALITY_OF_SURVEY = "QualityOfBathymetryCoverage"
+QUALITY_OF_BATHYMETRY = "QualityOfBathymetryCoverage"
 DEPTH = "depth"
 UNCERTAINTY = "uncertainty"
 
@@ -480,7 +482,7 @@ class BathymetryCoveragesList(S102MetadataListBase):
 
 
 # TODO FIXME If this is not a feature attributed grid then it should be DataCodingFormat2
-#  (which has an additional interpolation attribute) and not any QualityOfSurvey structures
+#  (which has an additional interpolation attribute) and not any QualityOfBathymetryCoverage structures
 class BathymetryContainer(FeatureContainerDCF9, InterpolationType):
     """ This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named BathymetryCoverage.NN
@@ -603,7 +605,7 @@ class BathymetryCoverageDataset(S102FeatureInformationDataset):
 
 
 # @TODO can I just derive quality from the bathy?
-class QualityOfSurvey_GroupNNN(S1xxObject):
+class QualityOfBathymetryCoverage_GroupNNN(S1xxObject):
     """ This is the "Values" Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
 
     4.2.1.1.1 and Figure 4.4 of v2.0.0
@@ -708,7 +710,7 @@ class QualityGroupList(S102MetadataListBase):
 
     @property
     def metadata_type(self) -> type:
-        return QualityOfSurvey_GroupNNN
+        return QualityOfBathymetryCoverage_GroupNNN
 
 
 class QualityFeatureInstance(FeatureInstanceDCF9):
@@ -742,7 +744,7 @@ class QualityFeatureInstance(FeatureInstanceDCF9):
         Returns
         -------
         S102MetadataListBase
-            Contains a list of QualityOfSurvey_GroupNNN objects via the QualityCoveragesList class
+            Contains a list of QualityOfBathymetryCoverage_GroupNNN objects via the QualityCoveragesList class
         """
         return self._attributes[self.__quality_group_hdf_name__]
 
@@ -756,12 +758,12 @@ class QualityFeatureInstance(FeatureInstanceDCF9):
 
 
 # S102 adds the interpolationType
-class QualityOfSurveyContainer(FeatureContainerDCF9, InterpolationType):
-    """ This is the QualityOfSurvey right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
-    This will hold child groups named QualityOfSurvey.NN
+class QualityOfBathymetryCoverageContainer(FeatureContainerDCF9, InterpolationType):
+    """ This is the QualityOfBathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
+    This will hold child groups named QualityOfBathymetryCoverage.NN
     """
     #: attribute name will be automatically determined based on the containing list's index
-    __quality_of_survey_hdf_name__ = QUALITY_OF_SURVEY + r"[\._]\d+"
+    __quality_of_bathymetry_coverage_hdf_name__ = QUALITY_OF_BATHYMETRY + r"[\._]\d+"
     # featureAttributeTable is inherited via FeatureContainerDCF9 from S100 v5.0
     @property
     def __version__(self) -> int:
@@ -772,28 +774,28 @@ class QualityOfSurveyContainer(FeatureContainerDCF9, InterpolationType):
         return numpy.uint8  # S102 reduces this from uint32
 
     @property
-    def __quality_of_survey_type__(self):
-        return QualityOfSurveysList
+    def __quality_of_bathymetry_coverage_type__(self):
+        return QualityOfBathymetryCoveragesList
 
-    def quality_of_survey_create(self):
+    def quality_of_bathymetry_coverage_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.quality_of_survey = self.__quality_of_survey_type__()
+        self.quality_of_bathymetry_coverage = self.__quality_of_bathymetry_coverage_type__()
 
     @property
-    def quality_of_survey(self) -> S102MetadataListBase:
-        """ The quality_of_survey data, a list of QualityOfSurvey
+    def quality_of_bathymetry_coverage(self) -> S102MetadataListBase:
+        """ The quality_of_bathymetry_coverage data, a list of QualityOfBathymetryCoverage
 
         Returns
         -------
         S102MetadataListBase
-            Contains a list of QualityOfSurvey objects via the QualityOfSurveyList class
+            Contains a list of QualityOfBathymetryCoverage objects via the QualityOfBathymetryCoverageList class
         """
-        return self._attributes[self.__quality_of_survey_hdf_name__]
+        return self._attributes[self.__quality_of_bathymetry_coverage_hdf_name__]
 
-    @quality_of_survey.setter
-    def quality_of_survey(self, val: S102MetadataListBase):
-        self._attributes[self.__quality_of_survey_hdf_name__] = val
+    @quality_of_bathymetry_coverage.setter
+    def quality_of_bathymetry_coverage(self, val: S102MetadataListBase):
+        self._attributes[self.__quality_of_bathymetry_coverage_hdf_name__] = val
 
     def data_coding_format_create(self):
         """ Creates a blank, empty or zero value for data_coding_format"""
@@ -820,9 +822,9 @@ class QualityOfSurveyContainer(FeatureContainerDCF9, InterpolationType):
         self.feature_attribute_table = self.__feature_attribute_table_type__()
 
 
-class QualityOfSurveysList(S102MetadataListBase):
+class QualityOfBathymetryCoveragesList(S102MetadataListBase):
     """ 4.2.1.1.2 and Figure 4.4 and Table 10.1 of v2.0.0
-    This is the set of QualityOfSurvey.NN that act like a list here.
+    This is the set of QualityOfBathymetryCoverage.NN that act like a list here.
     They will contain a list of Groups.NNN as well as other attributes etc.
     """
     write_format_str = ".%02d"
@@ -833,7 +835,7 @@ class QualityOfSurveysList(S102MetadataListBase):
 
     @property
     def metadata_name(self) -> str:
-        return QUALITY_OF_SURVEY
+        return QUALITY_OF_BATHYMETRY
 
     @property
     def metadata_type(self) -> Type[QualityFeatureInstance]:
@@ -1185,26 +1187,26 @@ class FeatureAttributeDataset(S1xxDatasetBase):
 class QualityCoverageDataset(S102FeatureInformationDataset):
     """ This is for the Group_F information group.
     It is the same data structure as the BathymetryCoverageDataset.
-    Adds the QualityOfSurvey from S102 v2.2 section 10.2.2 and table 10.3
+    Adds the QualityOfBathymetryCoverage from S102 v2.2 section 10.2.2 and table 10.3
     """
     @property
     def metadata_name(self) -> str:
-        return QUALITY_OF_SURVEY
+        return QUALITY_OF_BATHYMETRY
 
 
 class FeatureCodes(GroupFBase):
     """ Table 10.1 and sect 10.2.1 of v2.0.0
-    Add the QualityOfSurvey from S102 v2.2 section 10.2.2 and table 10.3
+    Add the QualityOfBathymetryCoverage from S102 v2.2 section 10.2.2 and table 10.3
     """
 
     __feature_name_hdf_name__ = "featureName"  #: HDF5 naming
     __bathymetry_coverage_dataset_hdf_name__ = BATHY_COVERAGE
-    __quality_of_survey_dataset_hdf_name__ = QUALITY_OF_SURVEY
+    __quality_of_bathymetry_coverage_dataset_hdf_name__ = QUALITY_OF_BATHYMETRY
 
     def feature_code_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, QUALITY_OF_SURVEY], dtype=h5py_string_dtype)
+        self.feature_code = self.__feature_code_type__([BATHY_COVERAGE, QUALITY_OF_BATHYMETRY], dtype=h5py_string_dtype)
 
     @property
     def __version__(self) -> int:
@@ -1228,21 +1230,21 @@ class FeatureCodes(GroupFBase):
         self._attributes[self.__bathymetry_coverage_dataset_hdf_name__] = val
 
     @property
-    def __quality_of_survey_dataset_type__(self):
+    def __quality_of_bathymetry_coverage_dataset_type__(self):
         return QualityCoverageDataset
 
-    def quality_of_survey_dataset_create(self):
+    def quality_of_bathymetry_coverage_dataset_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.quality_of_survey_dataset = self.__quality_of_survey_dataset_type__()
+        self.quality_of_bathymetry_coverage_dataset = self.__quality_of_bathymetry_coverage_dataset_type__()
 
     @property
-    def quality_of_survey_dataset(self) -> QualityCoverageDataset:
-        return self._attributes[self.__quality_of_survey_dataset_hdf_name__]
+    def quality_of_bathymetry_coverage_dataset(self) -> QualityCoverageDataset:
+        return self._attributes[self.__quality_of_bathymetry_coverage_dataset_hdf_name__]
 
-    @quality_of_survey_dataset.setter
-    def quality_of_survey_dataset(self, val: QualityCoverageDataset):
-        self._attributes[self.__quality_of_survey_dataset_hdf_name__] = val
+    @quality_of_bathymetry_coverage_dataset.setter
+    def quality_of_bathymetry_coverage_dataset(self, val: QualityCoverageDataset):
+        self._attributes[self.__quality_of_bathymetry_coverage_dataset_hdf_name__] = val
 
 
 class S102Root(S100Root):
@@ -1252,10 +1254,11 @@ class S102Root(S100Root):
     10.2 and Figure 10.1 of v2.0.0
 
     v2.2 Adds the QualityOfSurvey from S102 v2.2 section 10.2.2 and table 10.3
+    v3.0 Renames QualityOfSurvey the QualityOfBathymetryCoverage from S102 v3.0 section 10.2.2 and table 10.3
     """
     __feature_information_hdf_name__ = "Group_F"  #: HDF5 naming
     __bathymetry_coverage_hdf_name__ = BATHY_COVERAGE
-    __quality_of_survey_hdf_name__ = QUALITY_OF_SURVEY  #: HDF5 naming
+    __quality_of_bathymetry_coverage_hdf_name__ = QUALITY_OF_BATHYMETRY  #: HDF5 naming
 
     # If the S100 file has a type that doesn't match the product spec (like float32 vs float64) then you can just override the type function.
     # @property
@@ -1304,22 +1307,22 @@ class S102Root(S100Root):
         self._attributes[self.__bathymetry_coverage_hdf_name__] = val
 
     @property
-    def quality_of_survey(self) -> S1xxObject:
-        return self._attributes[self.__quality_of_survey_hdf_name__]
+    def quality_of_bathymetry_coverage(self) -> S1xxObject:
+        return self._attributes[self.__quality_of_bathymetry_coverage_hdf_name__]
 
-    @quality_of_survey.setter
-    def quality_of_survey(self, val:S1xxObject):
-        self._attributes[self.__quality_of_survey_hdf_name__] = val
+    @quality_of_bathymetry_coverage.setter
+    def quality_of_bathymetry_coverage(self, val:S1xxObject):
+        self._attributes[self.__quality_of_bathymetry_coverage_hdf_name__] = val
 
     @property
-    def __quality_of_survey_type__(self) -> Type[S1xxObject]:
-        return QualityOfSurveyContainer
+    def __quality_of_bathymetry_coverage_type__(self) -> Type[S1xxObject]:
+        return QualityOfBathymetryCoverageContainer
 
-    def quality_of_survey_create(self):
-        """ Creates a blank, empty or zero value for quality_of_survey"""
+    def quality_of_bathymetry_coverage_create(self):
+        """ Creates a blank, empty or zero value for quality_of_bathymetry_coverage"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.quality_of_survey = self.__quality_of_survey_type__()
+        self.quality_of_bathymetry_coverage = self.__quality_of_bathymetry_coverage_type__()
 
     def vertical_cs_create(self):
         """ Sets the vertical_cs to Depth as S102 specifies
@@ -1569,7 +1572,7 @@ class S102File(S100File):
 
     def _set_quality_defaults(self, overwrite=True):
         root = self.root
-        quality_dset = root.feature_information.quality_of_survey_dataset
+        quality_dset = root.feature_information.quality_of_bathymetry_coverage_dataset
         quality_info = quality_dset.append_new_item()
         quality_info.initialize_properties(True, overwrite=overwrite)
         quality_info.code = "id"
@@ -1614,7 +1617,7 @@ class S102File(S100File):
         root.bathymetry_coverage.num_instances = 1  # how many Bathycoverages
         root.bathymetry_coverage.sequencing_rule_type = 1  # linear
         del root.bathymetry_coverage.time_uncertainty
-        del root.bathymetry_coverage.feature_attribute_table  # this only goes in the QualityOfSurvey group
+        del root.bathymetry_coverage.feature_attribute_table  # this only goes in the QualityOfBathymetryCoverage group
 
 
     @classmethod
@@ -1700,13 +1703,13 @@ class S102File(S100File):
 
         if quality_grid is not None:  # I'd like to just do a loop on bathy and quality but they have some different names and might have different values at some point in the future.
             try:
-                quality_01 = root.quality_of_survey.quality_of_survey[0]
+                quality_01 = root.quality_of_bathymetry_coverage.quality_of_bathymetry_coverage[0]
             except IndexError:
-                quality_01 = root.quality_of_survey.quality_of_survey.append_new_item()
+                quality_01 = root.quality_of_bathymetry_coverage.quality_of_bathymetry_coverage.append_new_item()
             quality_01.initialize_properties(recursively_create_children=True, overwrite=overwrite)
 
-            del root.quality_of_survey.data_offset_vector
-            del root.quality_of_survey.data_offset_code
+            del root.quality_of_bathymetry_coverage.data_offset_vector
+            del root.quality_of_bathymetry_coverage.data_offset_code
             del quality_01.grid_spacing_vertical
             del quality_01.grid_origin_vertical
             del quality_01.number_of_times
@@ -1814,7 +1817,7 @@ class S102File(S100File):
             uncert_grid[uncert_mask] = uncert_fill_value
             if quality_grid is not None:
                 quality_grid = numpy.copy(quality_grid)
-                quality_grid[quality_mask] = root.feature_information.quality_of_survey_dataset[0].fill_value  # will be zero per spec
+                quality_grid[quality_mask] = root.feature_information.quality_of_bathymetry_coverage_dataset[0].fill_value  # will be zero per spec
 
         # flip the z values if requested now that we have fixed the possible NaN logic issue
         if flip_z:
@@ -1840,7 +1843,7 @@ class S102File(S100File):
         grid.depth = depth_grid
         grid.uncertainty = uncert_grid
         if quality_grid is not None:
-            # there are no metadata attributes (min/max) for QualityOfSurvey Group_001 - see 10.2.10
+            # there are no metadata attributes (min/max) for QualityOfBathymetryCoverage Group_001 - see 10.2.10
             quality_group_object.values_create()
             try:
                 if not numpy.issubdtype(quality_grid.dtype, numpy.integer):
@@ -1848,7 +1851,7 @@ class S102File(S100File):
             except:
                 pass
             quality_group_object.values = quality_grid  # @TODO is this right or do we need to do like depth+uncertainty
-            # quality_group_object.values.quality_of_survey = quality_grid
+            # quality_group_object.values.quality_of_bathymetry_coverage = quality_grid
 
 
     @classmethod
@@ -1975,12 +1978,12 @@ class S102File(S100File):
 
         feature_instance_groups = [bathy_01]
         if quality_grid is not None:
-            quality_01 = root.quality_of_survey.quality_of_survey[0]
+            quality_01 = root.quality_of_bathymetry_coverage.quality_of_bathymetry_coverage[0]
             feature_instance_groups.append(quality_01)
-            root.quality_of_survey.axis_names = numpy.array(axes)  # row major order means X/longitude first
-            root.quality_of_survey.sequencing_rule_scan_direction = ", ".join(axes)
+            root.quality_of_bathymetry_coverage.axis_names = numpy.array(axes)  # row major order means X/longitude first
+            root.quality_of_bathymetry_coverage.sequencing_rule_scan_direction = ", ".join(axes)
 
-        # the bathymetry_coverage.01 and quality_of_survey.01 are defined to have the same attributes
+        # the bathymetry_coverage.01 and quality_of_bathymetry_coverage.01 are defined to have the same attributes
         for instance in feature_instance_groups:
             # S102 says this is in the CRS of the data (projected) against S100 which says units of Arc Degrees (lat/lon)
             instance.east_bound_longitude = maxx
@@ -2111,9 +2114,9 @@ class S102File(S100File):
             qual_data = quality_band.ReadAsArray()
         else:
             qual_data = None
-        # Fill the QualityOfSurvey table
+        # Fill the QualityOfBathymetryCoverage table
         if qual_data is not None:
-            table = self.root.quality_of_survey.feature_attribute_table
+            table = self.root.quality_of_bathymetry_coverage.feature_attribute_table
             rat = quality_band.GetDefaultRAT()
             column_map = {rat.GetNameOfCol(ncol):ncol for ncol in range(rat.GetColumnCount())}
 
@@ -2356,11 +2359,11 @@ class S102File(S100File):
 
     @property
     def quality(self):
-        return self.root.quality_of_survey.quality_of_survey[0].quality_group[0].values
+        return self.root.quality_of_bathymetry_coverage.quality_of_bathymetry_coverage[0].quality_group[0].values
 
     @property
     def feature_attribute_table(self):
-        return self.root.quality_of_survey.feature_attribute_table
+        return self.root.quality_of_bathymetry_coverage.feature_attribute_table
 
     def get_feature_attribute_dict(self):
         d = {}
