@@ -2267,8 +2267,70 @@ class GroupFBase(S1xxObject):
     def feature_code(self, val: s1xx_sequence):
         self._attributes[self.__feature_code_hdf_name__] = val
 
+class VerticalDatumAttributes:
+    """ Mixin class for verticalDatum and verticalDatumReference
+    """
+    __vertical_datum_reference_hdf_name__ = "verticalDatumReference"  #: HDF5 naming
+    __vertical_datum_hdf_name__ = "verticalDatum"  #: HDF5 naming
 
-class S100Root(GeographicBoundingBox):
+    @property
+    def vertical_datum_reference(self) -> VERTICAL_DATUM_REFERENCE:
+        return self._attributes[self.__vertical_datum_reference_hdf_name__]
+
+    @vertical_datum_reference.setter
+    def vertical_datum_reference(self, val: Union[int, str, VERTICAL_DATUM_REFERENCE]):
+        self.set_enum_attribute(val, self.__vertical_datum_reference_hdf_name__, self.__vertical_datum_reference_type__)
+
+    @property
+    def __vertical_datum_reference_type__(self) -> Type[VERTICAL_DATUM_REFERENCE]:
+        return VERTICAL_DATUM_REFERENCE
+
+    def vertical_datum_reference_create(self):
+        """ Creates a blank, empty or zero value for vertical_datum_reference
+        """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.vertical_datum_reference = list(VERTICAL_DATUM_REFERENCE)[0]
+
+    @property
+    def vertical_datum(self) -> Enum:
+        val = self._attributes[self.__vertical_datum_hdf_name__]
+        return val
+
+    @vertical_datum.setter
+    def vertical_datum(self, val: (int, str, VERTICAL_DATUM)):
+        # NOTE: When reading from a file h5py gets attributes alphabetically so we can't rely on vertical_datum_reference being set before vertical_datum
+        # verticalDatumReference when 1 is from the enumeration but when 2 is an EPSG code that we don't have a check for.
+        try:
+            self.vertical_datum_reference  # see if the attribute exists
+        except KeyError:
+            pass
+        else:
+            if self.vertical_datum_reference == VERTICAL_DATUM_REFERENCE(1):
+                try:
+                    self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, self.__vertical_datum_restriction__)
+                except S100Exception as e:
+                    raise S100Exception(f"When vertical_datum_reference is '1' then vertical_datum must be a value given in the enumeration {VERTICAL_DATUM}, the supplied {val} was not found")
+                # convert the enumeration back to an integer
+                val = self._attributes[self.__vertical_datum_hdf_name__].value
+        self._attributes[self.__vertical_datum_hdf_name__] = val
+
+    @property
+    def __vertical_datum_restriction__(self):
+        return VERTICAL_DATUM
+
+    @property
+    def __vertical_datum_type__(self) -> Type[int]:
+        return int
+
+    def vertical_datum_create(self):
+        """ Creates a blank, empty or zero value for vertical_datum"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.vertical_datum = "MLLW"
+
+
+class S100Root(GeographicBoundingBox, VerticalDatumAttributes):
     """ From table 10c-6 in S100 v4.0 spec.
 
     The root of the S100 v5.0 schema.  There are restrictions on many of the CRS attributes based on other attributes.
@@ -2302,8 +2364,6 @@ class S100Root(GeographicBoundingBox):
     __false_northing_hdf_name__ = "falseNorthing"  #: HDF5 naming
     __vertical_cs_hdf_name__ = "verticalCS"  #: HDF5 naming
     __vertical_coordinate_base_hdf_name__ = "verticalCoordinateBase"  #: HDF5 naming
-    __vertical_datum_reference_hdf_name__ = "verticalDatumReference"  #: HDF5 naming
-    __vertical_datum_hdf_name__ = "verticalDatum"  #: HDF5 naming
 
     # Removed in v5.0
     # __horizontal_datum_reference_hdf_name__ = "horizontalDatumReference"
@@ -2815,58 +2875,6 @@ the EPSG documentation."""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.vertical_coordinate_base = list(self.__vertical_coordinate_base_type__)[0]
-
-    @property
-    def vertical_datum_reference(self) -> VERTICAL_DATUM_REFERENCE:
-        return self._attributes[self.__vertical_datum_reference_hdf_name__]
-
-    @vertical_datum_reference.setter
-    def vertical_datum_reference(self, val: Union[int, str, VERTICAL_DATUM_REFERENCE]):
-        self.set_enum_attribute(val, self.__vertical_datum_reference_hdf_name__, self.__vertical_datum_reference_type__)
-
-    @property
-    def __vertical_datum_reference_type__(self) -> Type[VERTICAL_DATUM_REFERENCE]:
-        return VERTICAL_DATUM_REFERENCE
-
-    def vertical_datum_reference_create(self):
-        """ Creates a blank, empty or zero value for vertical_datum_reference
-        """
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum_reference = list(VERTICAL_DATUM_REFERENCE)[0]
-
-    @property
-    def vertical_datum(self) -> Enum:
-        val = self._attributes[self.__vertical_datum_hdf_name__]
-        return val
-
-    @vertical_datum.setter
-    def vertical_datum(self, val: (int, str, VERTICAL_DATUM)):
-        # NOTE: When reading from a file h5py gets attributes alphabetically so we can't rely on vertical_datum_reference being set before vertical_datum
-        # verticalDatumReference when 1 is from the enumeration but when 2 is an EPSG code that we don't have a check for.
-        try:
-            self.vertical_datum_reference  # see if the attribute exists
-        except KeyError:
-            pass
-        else:
-            if self.vertical_datum_reference == VERTICAL_DATUM_REFERENCE(1):
-                try:
-                    self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, VERTICAL_DATUM)
-                except S100Exception as e:
-                    raise S100Exception(f"When vertical_datum_reference is '1' then vertical_datum must be a value given in the enumeration {VERTICAL_DATUM}, the supplied {val} was not found")
-                # convert the enumeration back to an integer
-                val = self._attributes[self.__vertical_datum_hdf_name__].value
-        self._attributes[self.__vertical_datum_hdf_name__] = val
-
-    @property
-    def __vertical_datum_type__(self) -> Type[int]:
-        return int
-
-    def vertical_datum_create(self):
-        """ Creates a blank, empty or zero value for vertical_datum"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum = "MLLW"
 
 
 class S100File(S1XXFile):

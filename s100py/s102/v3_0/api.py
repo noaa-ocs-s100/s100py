@@ -33,9 +33,9 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py.s102"
 
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype, make_enum_dtype
-from ...s100.v5_0.api import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, VertexPoint, \
+from ...s100.v5_2.api import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
-    CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, InterpolationType, \
+    CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, InterpolationType, VerticalDatumAttributes, \
     VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_COORDINATE_BASE, VERTICAL_DATUM
 
 from .. import v2_0
@@ -43,7 +43,8 @@ from .. import v2_1
 from .. import v2_2
 
 EDITION = 3.0
-PRODUCT_SPECIFICATION = 'INT.IHO.S-102.3.0'
+# They added an extra .0 in edition 3
+PRODUCT_SPECIFICATION = 'INT.IHO.S-102.3.0.0'
 
 CHANGELOG = """
 v2.1
@@ -420,8 +421,40 @@ class BathymetryGroupList(S102MetadataListBase):
     def metadata_type(self) -> type:
         return BathymetryCoverage
 
+class S102_VerticalDatumAttributes(VerticalDatumAttributes):
+    def vertical_datum_reference_create(self):
+        """ Creates a blank, empty or zero value for vertical_datum_reference
+        """
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.vertical_datum_reference = 1
 
-class BathymetryFeatureInstance(FeatureInstanceDCF2):
+    @property
+    def vertical_datum_reference(self) -> int:
+        return VerticalDatumAttributes.vertical_datum_reference.fget(self)
+        # return self._attributes[self.__vertical_datum_reference_hdf_name__]
+
+    @vertical_datum_reference.setter
+    def vertical_datum_reference(self, val: Union[int, str, VERTICAL_DATUM_REFERENCE]):
+        self.set_enum_attribute(val, self.__vertical_datum_reference_hdf_name__, self.__vertical_datum_reference_type__)
+        self._attributes[self.__vertical_datum_hdf_name__] = self._attributes[self.__vertical_datum_hdf_name__].value
+        if self._attributes[self.__vertical_datum_hdf_name__] != 1:
+            raise S102Exception(f"vertical_datum_reference must be 1, not {self._attributes[self.__vertical_datum_hdf_name__]}")
+
+    @property
+    def __vertical_datum_reference_type__(self) -> Type[int]:
+        return numpy.uint8
+
+    @property
+    def __vertical_datum_restriction__(self):
+        # Use the limited S102 VERTICAL_DATUM rather than full S100 version
+        return VERTICAL_DATUM
+
+    @property
+    def __vertical_datum_type__(self) -> Type[int]:
+        return numpy.uint16
+
+class BathymetryFeatureInstance(FeatureInstanceDCF2, S102_VerticalDatumAttributes):
     """ This will be the BathymetryCoverage.001 element in HDF5.
     It will contain a Group.NNN which will have the "values" dataset of the deptha dn uncertainty.
     """
@@ -713,7 +746,7 @@ class QualityGroupList(S102MetadataListBase):
         return QualityOfBathymetryCoverage_GroupNNN
 
 
-class QualityFeatureInstance(FeatureInstanceDCF9):
+class QualityFeatureInstance(FeatureInstanceDCF9, S102_VerticalDatumAttributes):
     """ This will be the QualityCoverage.001 element in HDF5.
     It will contain a Group.NNN which will have the "values" dataset of the deptha dn uncertainty.
     """

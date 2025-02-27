@@ -286,3 +286,16 @@ def test_rat(s102, tif_with_rat_name, output_with_rat_path):
     new_s102 = s102.from_gdal(tif_with_rat_name, output_with_rat_path, metadata=metadata, flip_z=True)
     check_s102_rat_data(s102, new_s102)
     new_s102.to_geotiff(local_path.joinpath("test_rat.tif"))
+
+def test_vertical_datum():
+    """ Try an illegal vertical datum, like 50, one that is legal for s100 but not s102 and a verticalDatumReference that is not '1'"""
+    raise NotImplementedError("Need to implement vertical datum tests")
+    # @TODO test two vertical datums, Bathymetry.01 and BathymetryCoverage.02 should appear and numInstances of the BathymetryCoverage parent should be 2
+    # @TODO Make two quality of bathymetry that match the two bathymetry coverages
+    # @TODO make sure one of the vertical datums is against the file reference datum and doesn't have the verticalDatum attribute in it
+    # @TODO make sure the verticalDatum is not '1' fails
+    # @TODO Confirm that all BathymetryCoverage instances have the same extents (shape)
+    # @TODO There is only on QualityOfBathymetryCoverage for all BathymetryCoverages
+    # @TODO Must use a domainExtent.polygon for each BathymetryCoverage.NN but the QualityOfBathymetryCoverage should use the bounding box
+    # @TODO root.Metadata (xml file path) is now optional - make sure an empty string is not written
+    # @Todo surveyDateRange startDate, endDate, issuedate etc should use ISO8601 YYYYMMDD
