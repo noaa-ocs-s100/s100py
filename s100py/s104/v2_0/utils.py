@@ -54,6 +54,8 @@ def create_s104(output_file, dcf, uncertainty=False) -> S104File:
     """
     data_file = _get_S104File(output_file)
     root = data_file.root
+    # Set Water Level default structure and values as directed in
+    # S-104 Ed 2.0 production specification mandatory requirements
     root.water_level = data_file.make_container_for_dcf(dcf)
     root.water_level.water_level_create()
 
@@ -111,7 +113,6 @@ def add_metadata(metadata: dict, data_file) -> S104File:
             - "productSpecification": The product specification used to create
                 this dataset.
             - "horizontalCRS": Horizontal Datum EPSG code.
-            - "metadata": File name for the associated discovery metadata (xml)
             - "geographicIdentifier": Location of the data, ex: "Tampa Bay".
                 An empty string ("") is the default.
             - "waterLevelHeightUncertainty": In (meters) arises from the

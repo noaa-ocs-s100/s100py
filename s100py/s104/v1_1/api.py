@@ -7,7 +7,7 @@ import h5py
 from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
 from ...s100.v5_0.api import S100File, S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, \
     FeatureContainerDCF3, FeatureInstanceDCF3, FeatureContainerDCF7, FeatureInstanceDCF7, FeatureInformation, \
-    FeatureInformationDataset, GroupFBase, VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_DATUM
+    FeatureInformationDataset, GroupFBase
 
 WATER_LEVEL = "WaterLevel"
 
@@ -728,14 +728,6 @@ class S104Root(S100Root):
     @property
     def __issue_time_repr__(self) -> str:
         return self._attributes[self.__issue_time_hdf_name__].strftime('%H%M%SZ')
-
-
-class DiscoveryMetadata(S1xxObject):
-    """ 12.2.6 of v1.0.1"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        raise NotImplementedError()
 
 
 class S104File(S100File):

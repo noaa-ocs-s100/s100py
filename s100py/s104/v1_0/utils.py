@@ -89,7 +89,7 @@ def create_s104(output_file, dcf) -> S104File:
     water_level_time_info.upper = "21500101T000000Z"
     water_level_time_info.closure = "closedInterval"
 
-    utc_now = datetime.datetime.utcnow()
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
     root.issue_date = utc_now.strftime('%Y%m%d')
     root.issue_time = utc_now.strftime('%H%M%SZ')
 
