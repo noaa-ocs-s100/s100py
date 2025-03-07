@@ -13,6 +13,7 @@ from s100py import s100
 from s100py.s102 import v2_0
 from s100py.s102 import v2_1
 from s100py.s102 import v2_2
+from s100py.s102 import v3_0
 
 local_path = pathlib.Path(__file__).parent
 
@@ -287,8 +288,10 @@ def test_rat(s102, tif_with_rat_name, output_with_rat_path):
     check_s102_rat_data(s102, new_s102)
     new_s102.to_geotiff(local_path.joinpath("test_rat.tif"))
 
-def test_vertical_datum():
+def test_vertical_datum(s102, output_path):
     """ Try an illegal vertical datum, like 50, one that is legal for s100 but not s102 and a verticalDatumReference that is not '1'"""
+    if s102.api.EDITION >= 3.0:
+        pass
     raise NotImplementedError("Need to implement vertical datum tests")
     # @TODO test two vertical datums, Bathymetry.01 and BathymetryCoverage.02 should appear and numInstances of the BathymetryCoverage parent should be 2
     # @TODO Make two quality of bathymetry that match the two bathymetry coverages

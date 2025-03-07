@@ -2313,7 +2313,10 @@ class VerticalDatumAttributes:
                     raise S100Exception(f"When vertical_datum_reference is '1' then vertical_datum must be a value given in the enumeration {VERTICAL_DATUM}, the supplied {val} was not found")
                 # convert the enumeration back to an integer
                 val = self._attributes[self.__vertical_datum_hdf_name__].value
-        self._attributes[self.__vertical_datum_hdf_name__] = val
+        try:
+            self._attributes[self.__vertical_datum_hdf_name__] = int(val)
+        except ValueError:
+            raise S100Exception(f"vertical_datum must be an integer when vertical_datum_reference is '2' or not set, the supplied {val} was not an integer")
 
     @property
     def __vertical_datum_restriction__(self):
@@ -2327,7 +2330,7 @@ class VerticalDatumAttributes:
         """ Creates a blank, empty or zero value for vertical_datum"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.vertical_datum = "MLLW"
+        self.vertical_datum = VERTICAL_DATUM.MLLW.value  # "MLLW"
 
 
 class S100Root(GeographicBoundingBox, VerticalDatumAttributes):

@@ -434,16 +434,26 @@ class S102_VerticalDatumAttributes(VerticalDatumAttributes):
         return VerticalDatumAttributes.vertical_datum_reference.fget(self)
         # return self._attributes[self.__vertical_datum_reference_hdf_name__]
 
-    @vertical_datum_reference.setter
+    @VerticalDatumAttributes.vertical_datum_reference.setter
     def vertical_datum_reference(self, val: Union[int, str, VERTICAL_DATUM_REFERENCE]):
-        self.set_enum_attribute(val, self.__vertical_datum_reference_hdf_name__, self.__vertical_datum_reference_type__)
-        self._attributes[self.__vertical_datum_hdf_name__] = self._attributes[self.__vertical_datum_hdf_name__].value
-        if self._attributes[self.__vertical_datum_hdf_name__] != 1:
+        self.set_enum_attribute(val, self.__vertical_datum_reference_hdf_name__, self.__vertical_datum_reference_restriction__)
+        self._attributes[self.__vertical_datum_reference_hdf_name__] = self._attributes[self.__vertical_datum_reference_hdf_name__].value
+        if self._attributes[self.__vertical_datum_reference_hdf_name__] != 1:
             raise S102Exception(f"vertical_datum_reference must be 1, not {self._attributes[self.__vertical_datum_hdf_name__]}")
+
+    @property
+    def __vertical_datum_reference_restriction__(self):
+        # Use the limited S102 VERTICAL_DATUM rather than full S100 version
+        return VERTICAL_DATUM_REFERENCE
 
     @property
     def __vertical_datum_reference_type__(self) -> Type[int]:
         return numpy.uint8
+
+    @VerticalDatumAttributes.vertical_datum.setter
+    def vertical_datum(self, val: Union[int, str, VERTICAL_DATUM]):
+        self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, self.__vertical_datum_restriction__)
+        self._attributes[self.__vertical_datum_hdf_name__] = self._attributes[self.__vertical_datum_hdf_name__].value
 
     @property
     def __vertical_datum_restriction__(self):
