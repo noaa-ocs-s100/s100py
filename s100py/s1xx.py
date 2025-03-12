@@ -265,13 +265,13 @@ class S1xxObject(ABC):
         If those names are not found, will delete a non-standard attibute.  Will raise an AttributeError if not found.
         """
         # mapping = self.get_standard_properties_mapping()
-        if item in self._attributes or item in self.get_standard_properties_mapping():
-            del self._attributes[item]
-        elif item in self.get_standard_properties():
+        if item in self.get_standard_properties():
             try:
                 del self._attributes[eval("self.__{}_hdf_name__".format(item))]
             except KeyError:  # ignore if the thing to be deleted wasn't found
                 pass
+        elif item in self._attributes or item in self.get_standard_properties_mapping():
+            del self._attributes[item]
         else:
             del self.__dict__[item]
 
@@ -649,9 +649,13 @@ class S1xxObject(ABC):
 
             if overwrite or needs_creation :
                 exec("self.{}_create()".format(prop))
-                o = eval("self.{}".format(prop))
-                if recursively_create_children and isinstance(o, S1xxObject):
-                    o.initialize_properties(recursively_create_children, overwrite)
+                try:
+                    o = eval("self.{}".format(prop))
+                except KeyError:
+                    pass  # optional properties may not be created
+                else:
+                    if recursively_create_children and isinstance(o, S1xxObject):
+                        o.initialize_properties(recursively_create_children, overwrite)
 
     @classmethod
     def get_standard_properties(cls):
