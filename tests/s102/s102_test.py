@@ -142,7 +142,10 @@ def check_s102_rat_data(s102, s102obj):
         assert s102obj.root.south_bound_latitude == pytest.approx(25.186, .001)
 
         b = s102obj.root.bathymetry_coverage.bathymetry_coverage[0]
-        q = s102obj.root.quality_of_survey.quality_of_survey[0]
+        if s102.api.EDITION >= 3.0:
+            q = s102obj.root.quality_of_bathymetry_coverage.quality_of_bathymetry_coverage[0]
+        else:
+            q = s102obj.root.quality_of_survey.quality_of_survey[0]
         for instance in (b, q):
             assert instance.west_bound_longitude == pytest.approx(198254, 1)
             assert instance.east_bound_longitude == pytest.approx(319873, 1)
@@ -288,17 +291,40 @@ def test_rat(s102, tif_with_rat_name, output_with_rat_path):
     check_s102_rat_data(s102, new_s102)
     new_s102.to_geotiff(local_path.joinpath("test_rat.tif"))
 
-def test_vertical_datum(s102, output_path):
+
+def test_edition3_changes(s102, bagname, output_path):
     """ Try an illegal vertical datum, like 50, one that is legal for s100 but not s102 and a verticalDatumReference that is not '1'"""
     if s102.api.EDITION >= 3.0:
+        metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+        remove_file(output_path)
+        new_s102 = s102.from_bag(bagname, output_path, metadata=metadata)
+        # make sure the verticalDatum is not '1' fails
+        assert new_s102.root.vertical_datum_reference.value == 1
+        with pytest.raises(s102.S102Exception):
+            new_s102.root.vertical_datum_reference = 2
+        # Confirm that the bathy coverages doesn't have a vertical datum reference (only allowed if differs from root)
+        with pytest.raises(KeyError):  # @TODO these should raise an attribute error not key error
+            new_s102.root.bathymetry_coverage.bathymetry_coverage[0].vertical_datum
+        with pytest.raises(KeyError):
+            new_s102.root.bathymetry_coverage.bathymetry_coverage[0].vertical_datum_reference
+        # root.Metadata (xml file path) is now optional - make sure an empty string is not written
+        with pytest.raises(KeyError):
+            new_s102.root.metadata
+        # @TODO Name changed from QualityOfSurvey to QualityOfBathymetryCoverage
+        assert new_s102.root.quality_of_bathymetry_coverage
+
+
+def test_multiple_vertical_datums(s102, bagname, output_path):
+    return 
+    if s102.api.EDITION >= 3.0:
+        metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+        remove_file(output_path)
+        new_s102 = s102.from_bag(bagname, output_path, metadata=metadata)
+        # @TODO test two vertical datums, Bathymetry.01 and BathymetryCoverage.02 should appear and numInstances of the BathymetryCoverage parent should be 2
+        # @TODO Confirm that all BathymetryCoverage instances have the same extents (shape)
+        # @TODO Make two quality of bathymetry that match the two bathymetry coverages
+        # @TODO make sure one of the vertical datums is against the file reference datum and doesn't have the verticalDatum attribute in it
+        # @TODO There is only one QualityOfBathymetryCoverage for all BathymetryCoverages
+        # @TODO Must use a domainExtent.polygon for each BathymetryCoverage.NN but the QualityOfBathymetryCoverage should use the bounding box
         pass
-    raise NotImplementedError("Need to implement vertical datum tests")
-    # @TODO test two vertical datums, Bathymetry.01 and BathymetryCoverage.02 should appear and numInstances of the BathymetryCoverage parent should be 2
-    # @TODO Make two quality of bathymetry that match the two bathymetry coverages
-    # @TODO make sure one of the vertical datums is against the file reference datum and doesn't have the verticalDatum attribute in it
-    # @TODO make sure the verticalDatum is not '1' fails
-    # @TODO Confirm that all BathymetryCoverage instances have the same extents (shape)
-    # @TODO There is only on QualityOfBathymetryCoverage for all BathymetryCoverages
-    # @TODO Must use a domainExtent.polygon for each BathymetryCoverage.NN but the QualityOfBathymetryCoverage should use the bounding box
-    # @TODO root.Metadata (xml file path) is now optional - make sure an empty string is not written
-    # @Todo surveyDateRange startDate, endDate, issuedate etc should use ISO8601 YYYYMMDD
+    

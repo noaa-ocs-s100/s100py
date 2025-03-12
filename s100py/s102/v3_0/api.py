@@ -91,59 +91,6 @@ START_SEQUENCE: Starting location of the scan.
 
 """
 
-class VERTICAL_DATUM(Enum):
-    """ Note: while a Vertical Datum can be created with the shorthand aliases, ex: MLWS, the string written and
-    returned from the file/S100 object will be the official long name, e.g. "meanLowWaterSprings" etc.
-    S100 Part 4a Metadata
-
-    S100 v5 Part 17 Vertical and Sounding Datum
-    Added balticSeaChartDatum2000 = 44 to hydrographicZero = 49
-    S100 v5.1 added 47,48,49 but S102 v3.0 only goes to 46
-    """
-    meanLowWaterSprings = 1
-    MLWS = 1
-    meanLowerLowWaterSprings = 2
-    meanSeaLevel = 3
-    MSL = 3
-    lowestLowWater = 4
-    meanLowWater = 5
-    MLW = 5
-    lowestLowWaterSprings = 6
-    approximateMeanLowWaterSprings = 7
-    indianSpringLowWater = 8
-    lowWaterSprings = 9
-    approximateLowestAstronomicalTide = 10
-    nearlyLowestLowWater = 11
-    meanLowerLowWater = 12
-    MLLW = 12
-    lowWater = 13
-    LW = 13
-    approximateMeanLowWater = 14
-    approximateMeanLowerLowWater = 15
-    meanHighWater = 16
-    MHW = 16
-    meanHighWaterSprings = 17
-    MHWS = 17
-    highWater = 18
-    approximateMeanSeaLevel = 19
-    highWaterSprings = 20
-    meanHigherHighWater = 21
-    MHHW = 21
-    equinoctialSpringLowWater = 22
-    lowestAstronomicalTide = 23
-    LAT = 23
-    localDatum = 24
-    internationalGreatLakesDatum1985 = 25
-    meanWaterLevel = 26
-    lowerLowWaterLargeTide = 27
-    higherHighWaterLargeTide = 28
-    nearlyHighestHighWater = 29
-    highestAstronomicalTide = 30
-    HAT = 30
-    balticSeaChartDatum2000 = 44
-    internationalGreatLakesDatum2020 = 46
-
-
 class BATHYMETRIC_UNCERTAINTY_TYPE(Enum):
     """ Note: while a Vertical Datum can be created with the shorthand aliases, ex: MLWS, the string written and
     returned from the file/S100 object will be the official long name, e.g. "meanLowWaterSprings" etc.
@@ -421,7 +368,8 @@ class BathymetryGroupList(S102MetadataListBase):
     def metadata_type(self) -> type:
         return BathymetryCoverage
 
-class S102_VerticalDatumAttributes(VerticalDatumAttributes):
+
+class S102_VerticalDatumRootAttributes(VerticalDatumAttributes):
     def vertical_datum_reference_create(self):
         """ Creates a blank, empty or zero value for vertical_datum_reference
         """
@@ -434,11 +382,10 @@ class S102_VerticalDatumAttributes(VerticalDatumAttributes):
         return VerticalDatumAttributes.vertical_datum_reference.fget(self)
         # return self._attributes[self.__vertical_datum_reference_hdf_name__]
 
-    @VerticalDatumAttributes.vertical_datum_reference.setter
+    @vertical_datum_reference.setter
     def vertical_datum_reference(self, val: Union[int, str, VERTICAL_DATUM_REFERENCE]):
         self.set_enum_attribute(val, self.__vertical_datum_reference_hdf_name__, self.__vertical_datum_reference_restriction__)
-        self._attributes[self.__vertical_datum_reference_hdf_name__] = self._attributes[self.__vertical_datum_reference_hdf_name__].value
-        if self._attributes[self.__vertical_datum_reference_hdf_name__] != 1:
+        if self._attributes[self.__vertical_datum_reference_hdf_name__].value != 1:
             raise S102Exception(f"vertical_datum_reference must be 1, not {self._attributes[self.__vertical_datum_hdf_name__]}")
 
     @property
@@ -446,14 +393,12 @@ class S102_VerticalDatumAttributes(VerticalDatumAttributes):
         # Use the limited S102 VERTICAL_DATUM rather than full S100 version
         return VERTICAL_DATUM_REFERENCE
 
-    @property
-    def __vertical_datum_reference_type__(self) -> Type[int]:
-        return numpy.uint8
-
     @VerticalDatumAttributes.vertical_datum.setter
     def vertical_datum(self, val: Union[int, str, VERTICAL_DATUM]):
         self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, self.__vertical_datum_restriction__)
         self._attributes[self.__vertical_datum_hdf_name__] = self._attributes[self.__vertical_datum_hdf_name__].value
+        if self._attributes[self.__vertical_datum_hdf_name__] > 46:
+            raise ValueError(f"vertical_datum must be 46 or less, not {self._attributes[self.__vertical_datum_hdf_name__]}")
 
     @property
     def __vertical_datum_restriction__(self):
@@ -464,7 +409,37 @@ class S102_VerticalDatumAttributes(VerticalDatumAttributes):
     def __vertical_datum_type__(self) -> Type[int]:
         return numpy.uint16
 
-class BathymetryFeatureInstance(FeatureInstanceDCF2, S102_VerticalDatumAttributes):
+
+class S102_VerticalDatumAttributesCoverageInstance(S102_VerticalDatumRootAttributes):
+    """ The verticalDatumReference is enum in root and int8 in coverage instances """
+    @property
+    def vertical_datum_reference(self) -> VERTICAL_DATUM_REFERENCE:
+        return self._attributes[self.__vertical_datum_reference_hdf_name__]
+
+    @vertical_datum_reference.setter
+    def vertical_datum_reference(self, val: Union[int, str, VERTICAL_DATUM_REFERENCE]):
+        self.set_enum_attribute(val, self.__vertical_datum_reference_hdf_name__, self.__vertical_datum_reference_restriction__)
+        self._attributes[self.__vertical_datum_reference_hdf_name__] = self._attributes[self.__vertical_datum_reference_hdf_name__].value
+        if self._attributes[self.__vertical_datum_reference_hdf_name__] != 1:
+            raise S102Exception(f"vertical_datum_reference must be 1, not {self._attributes[self.__vertical_datum_hdf_name__]}")
+
+    @property
+    def __vertical_datum_reference_type__(self) -> Type[int]:
+        return numpy.uint8
+    
+    
+
+    def vertical_datum_reference_create(self):
+        """ Creates a blank, empty or zero value for vertical_datum_reference
+        """
+        pass  # in the feature instances this is required if not matching the root but otherwise not allowed
+
+    def vertical_datum_create(self):
+        """ Creates a blank, empty or zero value for vertical_datum"""
+        pass  # in the feature instances this is required if not matching the root but otherwise not allowed
+
+
+class BathymetryFeatureInstance(FeatureInstanceDCF2, S102_VerticalDatumAttributesCoverageInstance):
     """ This will be the BathymetryCoverage.001 element in HDF5.
     It will contain a Group.NNN which will have the "values" dataset of the deptha dn uncertainty.
     """
@@ -756,7 +731,7 @@ class QualityGroupList(S102MetadataListBase):
         return QualityOfBathymetryCoverage_GroupNNN
 
 
-class QualityFeatureInstance(FeatureInstanceDCF9, S102_VerticalDatumAttributes):
+class QualityFeatureInstance(FeatureInstanceDCF9, S102_VerticalDatumAttributesCoverageInstance):
     """ This will be the QualityCoverage.001 element in HDF5.
     It will contain a Group.NNN which will have the "values" dataset of the deptha dn uncertainty.
     """
@@ -1290,7 +1265,7 @@ class FeatureCodes(GroupFBase):
         self._attributes[self.__quality_of_bathymetry_coverage_dataset_hdf_name__] = val
 
 
-class S102Root(S100Root):
+class S102Root(S102_VerticalDatumRootAttributes, S100Root):
     """The root group contains a feature information group and N feature containers.
     In S102 there are currently two feature containers which are the 'coverages'  bathymetry and tracking list.
     The coverage names are determined from the matching CoveragesAttributes
@@ -1610,6 +1585,7 @@ class S102File(S100File):
         del r.projection_parameter_4, r.projection_parameter_5, r.false_easting, r.false_northing
         del r.name_of_horizontal_datum, r.type_of_horizontal_crs, r.horizontal_datum, r.prime_meridian, r.spheriod, r.projection_method
         del r.name_of_horizontal_crs, r.epoch
+        r.vertical_datum_reference_create()
         self._set_bathy_defaults()
         self._set_quality_defaults()  # added for DataCodingFormat9 only -- need to make this optional
 
@@ -2058,7 +2034,11 @@ class S102File(S100File):
             if not root.issue_time:  # remove optional field if empty
                 del root.issue_time
         if "metadataFile" in metadata or overwrite:
-            root.metadata = metadata.get('metadataFile', "")  # datetime.date.today().isoformat()
+            m = metadata.get('metadataFile', None)  # datetime.date.today().isoformat()
+            if m is not None:
+                root.metadata = m
+            else:
+                del root.metadata
 
         self.write()
         self.flush()
