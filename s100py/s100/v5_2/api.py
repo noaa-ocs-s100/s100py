@@ -2513,7 +2513,8 @@ class S100Root(GeographicBoundingBox, VerticalDatumAttributes):
         """ Creates a blank, empty or zero value for metadata"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.metadata = self.__metadata_type__()
+        pass  # There is no empty string allowed -- the attribute is optional as of 5.2
+        # self.metadata = self.__metadata_type__()
 
     @property
     def meta_features(self) -> str:
