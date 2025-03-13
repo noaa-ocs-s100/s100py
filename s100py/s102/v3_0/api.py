@@ -395,9 +395,14 @@ class S102_VerticalDatumRootAttributes(VerticalDatumAttributes):
 
     @VerticalDatumAttributes.vertical_datum.setter
     def vertical_datum(self, val: Union[int, str, VERTICAL_DATUM]):
+        orig = self._attributes.get(self.__vertical_datum_hdf_name__, None)
         self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, self.__vertical_datum_restriction__)
         self._attributes[self.__vertical_datum_hdf_name__] = self._attributes[self.__vertical_datum_hdf_name__].value
         if self._attributes[self.__vertical_datum_hdf_name__] > 46:
+            if orig is not None:
+                self._attributes[self.__vertical_datum_hdf_name__] = orig
+            else:
+                del self._attributes[self.__vertical_datum_hdf_name__]
             raise ValueError(f"vertical_datum must be 46 or less, not {self._attributes[self.__vertical_datum_hdf_name__]}")
 
     @property

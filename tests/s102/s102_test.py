@@ -312,7 +312,10 @@ def test_edition3_changes(s102, bagname, output_path):
             new_s102.root.metadata
         # @TODO Name changed from QualityOfSurvey to QualityOfBathymetryCoverage
         assert new_s102.root.quality_of_bathymetry_coverage
-
+        orig = new_s102.root.vertical_datum
+        with pytest.raises(ValueError):
+            new_s102.root.vertical_datum = 47
+        assert orig == new_s102.root.vertical_datum
 
 def test_multiple_vertical_datums(s102, bagname, output_path):
     return 
