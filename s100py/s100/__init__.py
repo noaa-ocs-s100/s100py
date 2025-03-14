@@ -14,12 +14,10 @@ def open(filename: (str, pathlib.Path), mode: str = "r") -> S1XXFile:
     file_object = S100File(filename, mode)
     # @todo use the new case statement when python 3.10 is required
     spec = file_object.root.product_specification
-    if h5py_string_comp(spec, 'INT.IHO.S-102.2.0'):
-        file_object = s100py.s102.v2_0.api.S102File(filename, mode)
-    elif h5py_string_comp(spec, 'INT.IHO.S-102.2.1'):
-        file_object = s100py.s102.v2_1.api.S102File(filename, mode)
-    elif h5py_string_comp(spec, 'INT.IHO.S-102.2.2'):
-        file_object = s100py.s102.v2_2.api.S102File(filename, mode)
+    for product in [s100py.s102.v3_0, s100py.s102.v2_2, s100py.s102.v2_1, s100py.s102.v2_0]:
+        if h5py_string_comp(spec, product.PRODUCT_SPECIFICATION):
+            file_object = product.api.S102File(filename, mode)
+            break
     else:
         print("Warning: unrecognized s100 product specification, using generic S100File object")
     return file_object

@@ -31,7 +31,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s102"
 
-from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype
+from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype, h5py_string_comp
 from ...s100.v4_0.api import S100File, GridCoordinate, DirectPosition, GeographicExtent, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule
@@ -1296,7 +1296,8 @@ class S102File(S100File):
             spec = s100_object.root.product_specification
         except:
             spec = "unknown"
-        raise S102Exception(f"Could not upgrade file of type {spec}")
+        if not h5py_string_comp(spec, PRODUCT_SPECIFICATION):
+            raise S102Exception(f"Could not upgrade file of type {spec}")
 
     @classmethod
     def upgrade(cls, src_filename, dest_filename=None, mode='r'):

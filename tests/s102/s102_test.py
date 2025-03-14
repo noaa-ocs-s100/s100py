@@ -263,7 +263,7 @@ def test_s102_versions(s102, bagname):
 def test_s102_version_upgrade(bagname):
     metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
     bagname = pathlib.Path(bagname)
-    upgrade_name = bagname.with_suffix(".2_0_to_2_2.h5")
+    upgrade_name = bagname.with_suffix(".2_0_to_3_0.h5")
     f20 = v2_0.api.S102File.from_bag(bagname, upgrade_name, metadata=metadata)
     assert "2.0" in str(f20.root.product_specification)
     f20.close()
@@ -273,8 +273,9 @@ def test_s102_version_upgrade(bagname):
     f22 = v2_2.api.S102File.upgrade(upgrade_name)
     assert "2.2" in str(f22.root.product_specification)
     f22.close()
-    f21 = v2_1.api.S102File.upgrade(upgrade_name)
-    f21.close()
+    f30 = v3_0.api.S102File.upgrade(upgrade_name)
+    assert "3.0" in str(f30.root.product_specification)
+    f30.close()
 
 
 # tiffname = r"C:\Data\BlueTopo\RATs\BlueTopo_BC25M26L_20221102.tiff"
@@ -316,6 +317,7 @@ def test_edition3_changes(s102, bagname, output_path):
         with pytest.raises(ValueError):
             new_s102.root.vertical_datum = 47
         assert orig == new_s102.root.vertical_datum
+
 
 def test_multiple_vertical_datums(s102, bagname, output_path):
     return 

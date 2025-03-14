@@ -62,6 +62,7 @@ Stricter datatypes per S102 (but not S100) spec
 v3.0
 Make Uncertainty optional in BathymetryCoverage
 Renamed QualityOfSurvey to QualityOfBathymetryCoverage
+Added option for multiple VerticalDatums with multiple BathymetryCoverages
 
 """
 
@@ -2236,9 +2237,14 @@ class S102File(S100File):
         if s100_object.root.product_specification != PRODUCT_SPECIFICATION:
             v2_2.S102File.upgrade_in_place(s100_object)
         if s100_object.root.product_specification == v2_2.PRODUCT_SPECIFICATION:
-            raise "Change quality_of_survey to quality_of_bathymetry_coverage"
             # # update product specification
-            # s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
+            s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
+            s100_object.attrs['verticalDatumReference'] = 1
+            try:
+                s100_object.move('QualityOfSurvey', "QualityOfBathymetryCoverage")
+            except ValueError:  # QualityOfSurvey doesn't exist
+                pass  
+
             # # Update horizontal CRS
             # del s100_object.attrs['horizontalDatumReference']
             # s100_object.attrs.create('horizontalCRS', s100_object.attrs['horizontalDatumValue'], dtype=numpy.int32)
