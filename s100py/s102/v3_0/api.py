@@ -63,6 +63,10 @@ v3.0
 Make Uncertainty optional in BathymetryCoverage
 Renamed QualityOfSurvey to QualityOfBathymetryCoverage
 Added option for multiple VerticalDatums with multiple BathymetryCoverages
+BathymetryCoverage Container
+    DataCodingFormat revised from 9 to 2
+    common_point_rule revised from 1 to 2  # low
+    data_offset_code = 5  # barycenter
 
 """
 
@@ -507,7 +511,7 @@ class BathymetryCoveragesList(S102MetadataListBase):
 
 # TODO FIXME If this is not a feature attributed grid then it should be DataCodingFormat2
 #  (which has an additional interpolation attribute) and not any QualityOfBathymetryCoverage structures
-class BathymetryContainer(FeatureContainerDCF9, InterpolationType):
+class BathymetryContainer(FeatureContainerDCF2, InterpolationType):
     """ This is the BathymetryCoverage right off the root of the HDF5 which has possible attributes from S100 spec table 10c-10
     This will hold child groups named BathymetryCoverage.NN
     """
@@ -550,7 +554,7 @@ class BathymetryContainer(FeatureContainerDCF9, InterpolationType):
         """ Creates a blank, empty or zero value for data_coding_format"""
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.data_coding_format = self.__data_coding_format_type__(9)  # regular grid
+        self.data_coding_format = self.__data_coding_format_type__(2)  # regular grid
 
     def dimension_create(self):
         """ Creates a blank, empty or zero value for dimension"""
@@ -1635,7 +1639,8 @@ class S102File(S100File):
 
         root.bathymetry_coverage.axis_names = numpy.array(["Longitude", "Latitude"])  # row major order means X/longitude first
         root.bathymetry_coverage.sequencing_rule_scan_direction = "Longitude, Latitude"
-        root.bathymetry_coverage.common_point_rule = 1  # average
+        root.bathymetry_coverage.common_point_rule = 2  # low
+        root.bathymetry_coverage.data_offset_code = 5  # barycenter
         # root.bathymetry_coverage.data_coding_format = 2  # default
         # root.bathymetry_coverage.dimension = 2  # default value
         root.bathymetry_coverage.interpolation_type = 1  # nearest neighbor
@@ -1952,9 +1957,9 @@ class S102File(S100File):
         rows, cols = depth_grid.shape
         corner_x, corner_y = metadata['origin']
 
-        # S-102 is node based, so distance to far corner is res * (n -1)
-        opposite_corner_x = corner_x + res_x * (cols - 1)
-        opposite_corner_y = corner_y + res_y * (rows - 1)
+        # S-102 is cell based, so distance to far corner is res * n
+        opposite_corner_x = corner_x + res_x * cols
+        opposite_corner_y = corner_y + res_y * rows
 
         minx = min((corner_x, opposite_corner_x))
         maxx = max((corner_x, opposite_corner_x))
@@ -2134,8 +2139,7 @@ class S102File(S100File):
             raise S102Exception("raster is not north up but is rotated, this is not handled at this time")
 
         if "origin" not in metadata:
-            # shift the gdal geotransform corner point to reference the node (pixel is center) rather than cell (pixel is area)
-            metadata["origin"] = [ulx + dxx / 2, uly + dyy / 2]
+            metadata["origin"] = [ulx, uly]
         if "res" not in metadata:
             metadata["res"] = [dxx, dyy]
         if dataset.RasterCount > 2:
@@ -2240,6 +2244,21 @@ class S102File(S100File):
             # # update product specification
             s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
             s100_object.attrs['verticalDatumReference'] = 1
+            s100_object.attrs['BathymetryCoverage']['dataCodingFormat'] = 2  # grid
+            s100_object.attrs['BathymetryCoverage']['commonPointRule'] = 2  # low
+            s100_object.attrs['BathymetryCoverage']['dataOffsetCode'] = 5  # barycenter
+            s100_object.attrs['BathymetryCoverage']['interpolationType'] = 1  # nearest neighbor
+
+            res_lat = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['gridSpacingLatitudinal']
+            res_lon = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['gridSpacingLongitudinal']
+            s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['northBoundLatitude'] += res_lat / 2
+            s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['southBoundLatitude'] -= res_lat / 2
+            s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['westBoundLongitude'] += res_lon / 2
+            s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['eastBoundLongitude'] -= res_lon / 2
+            s100_object.attrs['northBoundLatitude'] = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['northBoundLatitude']
+            s100_object.attrs['southBoundLatitude'] = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['southBoundLatitude']
+            s100_object.attrs['westBoundLongitude'] = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['westBoundLongitude']
+            s100_object.attrs['eastBoundLongitude'] = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['eastBoundLongitude']
             try:
                 s100_object.move('QualityOfSurvey', "QualityOfBathymetryCoverage")
             except ValueError:  # QualityOfSurvey doesn't exist
