@@ -2173,7 +2173,7 @@ def input_data(s104):
     metadata_2_0_dcf2 = {
         'horizontalCRS': 4326,
         'geographicIdentifier': 'Samoa Islands',
-        'epoch': 'G1762',
+        'epoch': '2005.0',
         'waterLevelHeightUncertainty': -1.0,
         'verticalUncertainty': -1.0,
         'horizontalPositionUncertainty': -1.0,
@@ -2252,25 +2252,25 @@ def input_data(s104):
     expected_chunks = '36,43'
 
     expected_groupf = numpy.array([
-        ('waterLevelHeight', 'Water level height', 'metres', '-9999', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
+        ('waterLevelHeight', 'Water level height', 'metre', '-9999', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
         ('waterLevelTrend', 'Water level trend', '', '0', 'H5T_ENUM', '', '', ''),
         ('waterLevelTime', 'Water level time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
         dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
     if s104.EDITION == 1.1:
         expected_groupf = numpy.array([
-            ('waterLevelHeight', 'Water Level Height', 'metres', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
+            ('waterLevelHeight', 'Water Level Height', 'metre', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
             ('waterLevelTrend', 'Water Level Trend', '', '0', 'H5T_ENUM', '', '', ''),
             ('waterLevelTime', 'Water Level Time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
             dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
     elif s104.EDITION == 2.0:
         expected_groupf = numpy.array([
-            ('waterLevelHeight', 'Water Level Height', 'metres', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
+            ('waterLevelHeight', 'Water Level Height', 'metre', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
             ('waterLevelTrend', 'Water Level Trend', '', '0', 'H5T_ENUM', '', '', '')],
             dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
     expected_groupf_uncertainty = numpy.array([
-        ('waterLevelHeight', 'Water Level Height', 'metres', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
+        ('waterLevelHeight', 'Water Level Height', 'metre', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
         ('waterLevelTrend', 'Water Level Trend', '', '0', 'H5T_ENUM', '', '', ''),
-        ('uncertainty', 'Uncertainty', 'metres', '-1.00', 'H5T_FLOAT', '0.00', '99.99', 'closedInterval')],
+        ('uncertainty', 'Uncertainty', 'metre', '-1.00', 'H5T_FLOAT', '0.00', '99.99', 'closedInterval')],
         dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
     return InputData(height_dcf2_001, trend_dcf2_001, uncertainty_dcf2_001, height_dcf2_002, uncertainty_dcf2_002,
                      grid_properties_dcf2, height_dcf3_dcf7_001, height_dcf3_dcf7_002, height_dcf3_dcf7_003,

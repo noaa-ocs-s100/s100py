@@ -69,7 +69,7 @@ def create_s104(output_file, dcf, uncertainty=False) -> S104File:
     water_level_height_info = water_level_feature_dataset.append_new_item()
     water_level_height_info.code = "waterLevelHeight"
     water_level_height_info.name = "Water Level Height"
-    water_level_height_info.unit_of_measure = "metres"
+    water_level_height_info.unit_of_measure = "metre"
     water_level_height_info.datatype = "H5T_FLOAT"
     water_level_height_info.fill_value = f"{FILLVALUE_HEIGHT:0.02f}"
     water_level_height_info.lower = "-99.99"
@@ -90,7 +90,7 @@ def create_s104(output_file, dcf, uncertainty=False) -> S104File:
         water_level_uncertainty_info = water_level_feature_dataset.append_new_item()
         water_level_uncertainty_info.code = "uncertainty"
         water_level_uncertainty_info.name = "Uncertainty"
-        water_level_uncertainty_info.unit_of_measure = "metres"
+        water_level_uncertainty_info.unit_of_measure = "metre"
         water_level_uncertainty_info.datatype = "H5T_FLOAT"
         water_level_uncertainty_info.fill_value = f"{FILLVALUE_UNCERTAINTY:0.02f}"
         water_level_uncertainty_info.lower = "0.00"
@@ -216,8 +216,6 @@ def add_metadata(metadata: dict, data_file) -> S104File:
 
     water_level_feature_instance_01.water_level_group_create()
 
-    water_level_feature.min_dataset_height = 0
-    water_level_feature.max_dataset_height = 0
     water_level_feature_instance_01.time_record_interval = 0
 
     utc_now = datetime.datetime.now(datetime.timezone.utc)
@@ -351,13 +349,13 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         water_level_feature_instance_01.uncertainty_dataset_create()
         water_level_height_uncertainty = water_level_feature_instance_01.uncertainty_dataset.append_new_item()
         water_level_height_uncertainty.name = "waterLevelHeight"
-        water_level_height_uncertainty.value = f"{uncertainty:0.02f}"
+        water_level_height_uncertainty.value = uncertainty
 
     if uncertainty is None:
         water_level_feature_instance_01.uncertainty_dataset_create()
         water_level_height_uncertainty = water_level_feature_instance_01.uncertainty_dataset.append_new_item()
         water_level_height_uncertainty.name = "waterLevelHeight"
-        water_level_height_uncertainty.value = f"{FILLVALUE_UNCERTAINTY:0.02f}"
+        water_level_height_uncertainty.value = FILLVALUE_UNCERTAINTY
 
     if data_coding_format == 2:
         water_level_feature.data_coding_format = data_coding_format
@@ -372,16 +370,13 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         water_level_feature_instance_01.num_points_latitudinal = grid_properties['ny']
         water_level_feature_instance_01.num_points_longitudinal = grid_properties['nx']
 
-    water_level_feature_instance_01.east_bound_longitude = grid_properties['maxx']
-    water_level_feature_instance_01.west_bound_longitude = grid_properties['minx']
-    water_level_feature_instance_01.south_bound_latitude = grid_properties['miny']
-    water_level_feature_instance_01.north_bound_latitude = grid_properties['maxy']
-
     water_level_feature.axis_names = numpy.array(["longitude", "latitude"])
     root.water_level.dimension = len(water_level_feature.axis_names)
 
-    min_height = numpy.round(numpy.nanmin(height), decimals=2)
-    max_height = numpy.round(numpy.nanmax(height), decimals=2)
+    min_height = numpy.min(height[numpy.where(height != FILLVALUE_HEIGHT)])
+    max_height = numpy.max(height[numpy.where(height != FILLVALUE_HEIGHT)])
+    water_level_feature.min_dataset_height = numpy.round(min_height, decimals=2)
+    water_level_feature.max_dataset_height =  numpy.round(max_height, decimals=2)
 
     if min_height < water_level_feature.min_dataset_height and min_height != FILLVALUE_HEIGHT:
         water_level_feature.min_dataset_height = min_height
@@ -390,7 +385,7 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         water_level_feature.max_dataset_height = max_height
 
     if numpy.ma.is_masked(height):
-        height = height.filled(FILLVALUE_HEIGHT)
+        height = height.filled(f"{FILLVALUE_HEIGHT:0.02f}")
 
     height = numpy.round(height, decimals=2)
     trend.astype(int)

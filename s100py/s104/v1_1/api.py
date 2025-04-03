@@ -4,7 +4,7 @@ from enum import Enum, IntEnum
 import numpy
 import h5py
 
-from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
+from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
 from ...s100.v5_0.api import S100File, S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, \
     FeatureContainerDCF3, FeatureInstanceDCF3, FeatureContainerDCF7, FeatureInstanceDCF7, FeatureInformation, \
     FeatureInformationDataset, GroupFBase

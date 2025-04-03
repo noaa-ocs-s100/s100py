@@ -4,7 +4,7 @@ from enum import Enum, IntEnum
 import numpy
 import h5py
 
-from s100py.s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
+from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxDatasetBase, S1xxGridsBase, S1XXFile, h5py_string_dtype
 from ...s100.v5_2.api import S100File, S100Root, S100Exception, FeatureContainerDCF2, FeatureInstanceDCF2, \
     FeatureInformation, FeatureInformationDataset, GroupFBase
 
@@ -292,14 +292,9 @@ class WaterLevelUncertaintyDataset(S1xxDatasetBase):
 
 class WaterLevelDomainExtentPolygonDataset(S1xxDatasetBase):
     """Create domainExtent.polygon dataset S-100 Ed 5.2
-    Table 10c-11 – Structure of feature instance groups
-    compound(float, float) Optional
-        Spatial extent of the domain of the coverage
-        Array (1-d): i=0, P
-        Components: <longitude, latitude> or <X, Y> (coordinates of bounding polygon vertices
-        as a closed ring; that is, the first and last elements will contain the same values)
-        Either this or the bounding box attribute must be populated. For irregular arrays, this
-        dataset must specify the polygon indicating the area for which data are provided
+    Table 10c-11 (Optional) – Containing coordinates of
+    bounding polygon vertices of the spatial extent
+    of the domain of the coverage
     """
 
     @property
@@ -916,10 +911,6 @@ class S104Root(S100Root):
     @property
     def vertical_datum(self) -> Enum:
         val = self._attributes[self.__vertical_datum_hdf_name__]
-        # try:
-        #     val = val.value  # convert to integer if it's an enum
-        # except AttributeError:
-        #     pass
         return val
 
     @vertical_datum.setter
@@ -943,14 +934,6 @@ class S104Root(S100Root):
     @property
     def __issue_time_repr__(self) -> str:
         return self._attributes[self.__issue_time_hdf_name__].strftime('%H%M%SZ')
-
-
-class DiscoveryMetadata(S1xxObject):
-    """ 12.2.6 of v1.0.1"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        raise NotImplementedError()
 
 
 class S104File(S100File):

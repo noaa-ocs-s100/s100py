@@ -143,7 +143,7 @@ metadata = {
     'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts', # Optional
     'trendInterval': 60, # Optional (Minutes)
     'datasetDeliveryInterval': 'PT6H', #Optional (ISO 8601 duration, format `YnMnDTnHnMnS`)
-    'epoch': 'G1762', # Optional
+    'epoch': '2005.0', # Optional
     'verticalDatumEpoch': 'NOAA_NTDE_1983-2001', # Optional
     'timeUncertainty': -1.0 # Optional
 }

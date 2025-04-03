@@ -62,7 +62,7 @@ def create_s104(output_file, dcf) -> S104File:
     water_level_height_info = water_level_feature_dataset.append_new_item()
     water_level_height_info.code = "waterLevelHeight"
     water_level_height_info.name = "Water level height"
-    water_level_height_info.unit_of_measure = "metres"
+    water_level_height_info.unit_of_measure = "metre"
     water_level_height_info.datatype = "H5T_FLOAT"
     water_level_height_info.fill_value = FILLVALUE_HEIGHT
     water_level_height_info.lower = "-99.99"
@@ -218,8 +218,6 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     water_level_height_uncertainty.name = "waterLevelHeight"
     water_level_height_uncertainty.value = metadata["waterLevelHeightUncertainty"]
 
-    water_level_feature.min_dataset_height = 0
-    water_level_feature.max_dataset_height = 0
     water_level_feature_instance_01.time_record_interval = 0
 
     root.product_specification = S104File.PRODUCT_SPECIFICATION
@@ -324,8 +322,10 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
     water_level_feature.axis_names = numpy.array(["longitude", "latitude"])
     root.water_level.dimension = len(water_level_feature.axis_names)
 
-    min_height = numpy.round(numpy.nanmin(height), decimals=2)
-    max_height = numpy.round(numpy.nanmax(height), decimals=2)
+    min_height = numpy.min(height[numpy.where(height != FILLVALUE_HEIGHT)])
+    max_height = numpy.max(height[numpy.where(height != FILLVALUE_HEIGHT)])
+    water_level_feature.min_dataset_height = numpy.round(min_height, decimals=2)
+    water_level_feature.max_dataset_height =  numpy.round(max_height, decimals=2)
 
     if min_height < water_level_feature.min_dataset_height and min_height != FILLVALUE_HEIGHT:
         water_level_feature.min_dataset_height = min_height
