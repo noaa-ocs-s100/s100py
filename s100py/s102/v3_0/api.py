@@ -63,6 +63,9 @@ v3.0
 Make Uncertainty optional in BathymetryCoverage
 Renamed QualityOfSurvey to QualityOfBathymetryCoverage
 Added option for multiple VerticalDatums with multiple BathymetryCoverages
+dataOffsetCode now required in s102 and must have value of 5 (barycentric)
+BathymetryCoverage now is dataCodingFormat is 2, regular grid
+QualityOfBathymetryCoverage dataCodingFormat remains 9, feature oriented
 BathymetryCoverage Container
     DataCodingFormat revised from 9 to 2
     common_point_rule revised from 1 to 2  # low
@@ -220,6 +223,7 @@ class BathymetryCoverage(S1xxObject):
     __maximum_depth_hdf_name__ = "maximumDepth"  #: HDF5 naming
     __minimum_uncertainty_hdf_name__ = "minimumUncertainty"  #: HDF5 naming
     __maximum_uncertainty_hdf_name__ = "maximumUncertainty"  #: HDF5 naming
+    __time_point_hdf_name__ = "timePoint"  #: HDF5 naming
 
     @property
     def values(self) -> BathymetryValues:
@@ -353,6 +357,24 @@ class BathymetryCoverage(S1xxObject):
         # pylint: disable=attribute-defined-outside-init
         self.maximum_uncertainty = self.__maximum_uncertainty_type__()
 
+    @property
+    def time_point(self) -> str:
+        """The attribute timePoint has the value type DateTime and describes the time of the measurement.
+        This attribute is required. There is no default"""
+        return self._attributes[self.__time_point_hdf_name__]
+
+    @time_point.setter
+    def time_point(self, val: str):
+        self._attributes[self.__time_point_hdf_name__] = val
+
+    @property
+    def __time_point_type__(self) -> Type[str]:
+        return str
+
+    def time_point_create(self):
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.time_point = "00010101T000000Z"  # fill value
 
 # v2.1 change to Group_001  "." to "_"
 class BathymetryGroupList(S102MetadataListBase):
@@ -562,6 +584,8 @@ class BathymetryContainer(FeatureContainerDCF2, InterpolationType):
         # pylint: disable=attribute-defined-outside-init
         self.dimension = self.__dimension_type__(2)
 
+    def data_offset_code_create(self):
+        self.data_offset_code = 5
 
 class S102FeatureInformation(FeatureInformation):
     """ S102 specifc version of FeatureInformation.
@@ -784,6 +808,8 @@ class QualityFeatureInstance(FeatureInstanceDCF9, S102_VerticalDatumAttributesCo
     def __east_bound_longitude_type__(self):
         return numpy.float32
 
+    def data_offset_code_create(self):
+        self.data_offset_code = 5
 
 # S102 adds the interpolationType
 class QualityOfBathymetryCoverageContainer(FeatureContainerDCF9, InterpolationType):
@@ -812,7 +838,10 @@ class QualityOfBathymetryCoverageContainer(FeatureContainerDCF9, InterpolationTy
 
     @property
     def quality_of_bathymetry_coverage(self) -> S102MetadataListBase:
-        """ The quality_of_bathymetry_coverage data, a list of QualityOfBathymetryCoverage
+        """ The quality_of_bathymetry_coverage data, a list of QualityOfBathymetryCoverage.
+        This is a shared object between the potentially multiple vertical datums.
+        There is only one quality of bathymetry coverage for however many bathemetry coverages there are.
+        NOTE: multiple vertical datums will require domainExtent.polygon objects.
 
         Returns
         -------
@@ -1640,7 +1669,7 @@ class S102File(S100File):
         root.bathymetry_coverage.axis_names = numpy.array(["Longitude", "Latitude"])  # row major order means X/longitude first
         root.bathymetry_coverage.sequencing_rule_scan_direction = "Longitude, Latitude"
         root.bathymetry_coverage.common_point_rule = 2  # low
-        root.bathymetry_coverage.data_offset_code = 5  # barycenter
+        # root.bathymetry_coverage.data_offset_code = 5  # barycenter
         # root.bathymetry_coverage.data_coding_format = 2  # default
         # root.bathymetry_coverage.dimension = 2  # default value
         root.bathymetry_coverage.interpolation_type = 1  # nearest neighbor
