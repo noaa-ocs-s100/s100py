@@ -174,7 +174,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
     surface_current_feature.max_dataset_current_speed = 0
     surface_current_feature_instance_01.time_record_interval = 0
 
-    utc_now = datetime.datetime.utcnow()
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
 
     if metadata["issueDateTime"]:
         root.issue_date = metadata["issueDateTime"]

@@ -52,14 +52,13 @@ grid_properties = {
         'ny': 6
 }
 
-datetime_forecast_issuance = datetime.datetime(2021, 1, 7, 12, 0, 0)
+datetime_forecast_issuance = datetime.datetime(2025, 6, 5, 12, 0, 0)
 
-datetime_interval = datetime.timedelta(seconds=3600)
+datetime_interval = datetime.timedelta(seconds=0)
 
 # Example metadata
 metadata = {
     'horizontalCRS': 4326,
-    'metadata': '',
     'geographicIdentifier': 'RegionName',
     'speedUncertainty': -1.0, # Default or Unknown values
     'directionUncertainty': -1.0, # Default or Unknown values
@@ -70,22 +69,24 @@ metadata = {
     'commonPointRule': 3, # 3:high
     'interpolationType': 10, # 10:discrete
     'dataDynamicity': 5, # 5:Hydrodynamic model forecast (F)
-    'methodCurrentsProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
-    'datetimeOfFirstRecord': '20210107T130000Z',
+    'methodCurrentsProduct': 'Hydrodynamic_Model_Forecasts',
+    'datetimeOfFirstRecord': '20250605T130000Z',
     'verticalCS': 6498,
     'verticalDatumReference': 1,
+    'verticalCoordinateBase': 2, # Only allowed valued 2:verticalDatum
     'verticalDatum': 48,
     'datasetDeliveryInterval': 'PT6H',
-    'issueDateTime': datetime_forecast_issuance
+    'issueDate': datetime_forecast_issuance,
+    'issueTime': datetime_forecast_issuance
 }
 
 data_coding_format = 2
 
 update_meta = {
-        'dateTimeOfLastRecord': '20210107T130000Z',
+        'dateTimeOfLastRecord': '20250605T130000Z',
         'numberOfGroups': 1,
         'numberOfTimes': 1,
-        'timeRecordInterval': 3600,
+        'timeRecordInterval': 0,
         'num_instances': 1
     }
 

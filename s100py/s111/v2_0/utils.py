@@ -4,11 +4,11 @@
 import logging
 import sys
 import datetime
-
 import numpy
+import warnings
 
 from ...s1xx import s1xx_sequence
-from .api import S111File, FILLVALUE, S111Exception
+from .api import S111File, FILLVALUE, S111Exception, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE
 
 
 def _get_S111File(output_file):
@@ -25,10 +25,10 @@ def _get_S111File(output_file):
 
     return data_file
 
-
 def create_s111(output_file, dcf) -> S111File:
     """ Creates or updates an S111File object.
-    Default values are set for any data that doesn't have options or are mandatory to be filled in the S111 spec.
+    Default values are set for any data that doesn't have options
+    or are mandatory to be filled in the S111 spec.
 
     Parameters
     ----------
@@ -58,28 +58,24 @@ def create_s111(output_file, dcf) -> S111File:
 
     surface_current_speed_info = surface_current_feature_dataset.append_new_item()
     surface_current_speed_info.code = "surfaceCurrentSpeed"
-    surface_current_speed_info.name = "Surface current speed"
-    surface_current_speed_info.unit_of_measure = "knots"
+    surface_current_speed_info.name = "Surface Current Speed"
+    surface_current_speed_info.unit_of_measure = "knot"
     surface_current_speed_info.datatype = "H5T_FLOAT"
-    surface_current_speed_info.fill_value = FILLVALUE
-    surface_current_speed_info.lower = "0.0"
-    surface_current_speed_info.upper = ""
+    surface_current_speed_info.fill_value = f"{FILLVALUE:0.02f}"
+    surface_current_speed_info.lower = "0.00"
+    surface_current_speed_info.upper = "99.00"
     surface_current_speed_info.closure = "geSemiInterval"
 
     surface_current_direction_info = surface_current_feature_dataset.append_new_item()
     surface_current_direction_info.code = "surfaceCurrentDirection"
-    surface_current_direction_info.name = "Surface current direction"
-    surface_current_direction_info.unit_of_measure = "arc-degrees"
+    surface_current_direction_info.name = "Surface Current Direction"
+    surface_current_direction_info.unit_of_measure = "degree"
     surface_current_direction_info.datatype = "H5T_FLOAT"
-    surface_current_direction_info.fill_value = FILLVALUE
-    surface_current_direction_info.lower = "0"
-    surface_current_direction_info.upper = "360"
-    surface_current_direction_info.closure = "geLtInterval"
+    surface_current_direction_info.fill_value = f"{FILLVALUE:0.01f}"
+    surface_current_direction_info.lower = "0.0"
+    surface_current_direction_info.upper = "359.9"
+    surface_current_direction_info.closure = "closedInterval"
 
-    utc_now = datetime.datetime.now(datetime.timezone.utc)
-
-    root.issue_date = utc_now.strftime('%Y%m%d')
-    root.issue_time = utc_now.strftime('%H%M%SZ')
 
     return data_file
 
@@ -95,64 +91,60 @@ def add_metadata(metadata: dict, data_file) -> S111File:
         a dictionary of metadata describing the grids passed in,
         metadata should have the following key/value pairs:
             - "productSpecification": The product specification used to create this dataset.
-            - "horizontalDatumReference":  Reference to the register from which the horizontal datum value is taken.
-                "EPSG" is the default value.
-            - "horizontalDatumValue":  Horizontal Datum of the entire dataset.
+            - "horizontalCRS":  Horizontal EPSG code or -1.
             - "metadata": File name for the associated discovery metadata (xml)
-            - "epoch": Code denoting the epoch of the geodetic datum used by the CRS
             - "geographicIdentifier": Location of the data, ex: "Chesapeake Bay".
-                An empty string ("") is the default.
-            - "speedUncertainty": In (knots) arises from the current meter data on which the model is verified,
-                the hydrodynamic model, and the spatial interpolation method.
-                The default, denoting a missing value, is -1.0.
-            - "directionUncertainty": In (degrees) arises from the current meter data on which the model is verified,
-                the hydrodynamic model, and the spatial interpolation method.
-                The default, denoting a missing value, is -1.0.
-            - "verticalUncertainty": Accuracy of vertical datum
-                The default, denoting a missing value, is -1.0.
-            - "horizontalPositionUncertainty": Accuracy of geolocation techniques, model grid accuracy
-                The default, denoting a missing value, is -1.0.
-            - "timeUncertainty": Sensor accuracy, ata time tagging accuracy
-                The default, denoting a missing value, is -1.0.
-            - "surfaceCurrentDepth": Layer thickness (depthTypeIndex=1) or height (depthTypeIndex=2, 3, 4) (m)
-            - "depthTypeIndex":
-                - 'Layer average': 1
-                - 'Sea surface': 2
-                - 'Vertical datum': 3
-                - 'Sea Bottom': 4
-           - "commonPointRule":
-                - 'average': 1
-                - 'low': 2
-                - 'high': 3
-                - 'all': 4
-           - "interpolationType":
-                Interpolation method recommended for evaluation of the S100_GridCoverage.
-                    - 'nearestneighbor': 1
-                    - 'linear': 2
-                    - 'quadratic': 3
-                    - 'cubic': 4
-                    - 'bilinear': 5
-                    - 'biquadratic': 6
-                    - 'bicubic': 7
-                    - 'lostarea': 8
-                    - 'barycentric': 9
-                    - 'discrete': 10
-            - "typeOfCurrentData:
-                - 'Historical observation (O)': 1
-                - 'Real-time observation (R)': 2
-                - 'Astronomical prediction (A)': 3
-                - 'Analysis or hybrid method (Y)': 4
-                - 'Hydrodynamic model hindcast (M)': 5
-                - 'Hydrodynamic model forecast (F)': 6
-            - "methodCurrentsProduct": Brief description of current meter type, forecast method or model, etc.
-            - "datetimeOfFirstRecord": Valid time of earliest value, 'YYYYMMDDTHHMMSSZ'
+                    An empty string ("") is the default.
+                - "speedUncertainty": In (knots) arises from the current meter data on which the model is verified,
+                    the hydrodynamic model, and the spatial interpolation method.
+                    The default, denoting a missing value, is -1.0.
+                - "directionUncertainty": In (degrees) arises from the current meter data on which the model is verified,
+                    the hydrodynamic model, and the spatial interpolation method.
+                    The default, denoting a missing value, is -1.0.
+                - "verticalUncertainty": Accuracy of vertical datum
+                    The default, denoting a missing value, is -1.0.
+                - "horizontalPositionUncertainty": Accuracy of geolocation techniques, model grid accuracy
+                    The default, denoting a missing value, is -1.0.
+                - "timeUncertainty": Sensor accuracy, data time tagging accuracy
+                    The default, denoting a missing value, is -1.0.
+                - "surfaceCurrentDepth": Depth or height (depthTypeIndex=1) or layer thickness (depthTypeIndex=2) (m)
+                - "depthTypeIndex":
+                    - 'heightOrDepth': 1
+                    - 'layerAverage': 2
+               - "commonPointRule":
+                    - 'average': 1
+                    - 'low': 2
+                    - 'high': 3
+                    - 'all': 4
+               - "interpolationType":
+                    Interpolation method recommended for evaluation of the S100_GridCoverage.
+                        - 'nearestneighbor': 1
+                        - 'linear': 2
+                        - 'quadratic': 3
+                        - 'cubic': 4
+                        - 'bilinear': 5
+                        - 'biquadratic': 6
+                        - 'bicubic': 7
+                        - 'lostarea': 8
+                        - 'barycentric': 9
+                        - 'discrete': 10
+                - "dataDynamicity":
+                    - 'observation': 1
+                    - 'astronomicalPrediction': 2
+                    - 'analysisOrHybrid': 3
+                    - 'hydrodynamicHindcast': 4
+                    - 'hydrodynamicForecast': 5
+                - "methodCurrentsProduct": Brief description of current meter type, forecast method or model, etc.
+                - "datetimeOfFirstRecord": Valid time of the earliest value, 'YYYYMMDDTHHMMSSZ'
+                - "datasetDeliveryInterval": The expected time interval between availability of successive datasets
+                    for time-varying data. Must be formatted as 'PnYnMnDTnHnMnS' (ISO 8601 duration)
 
-    Returns
-    -------
-    data_file
-        An S111File object updated by this function.
+        Returns
+        -------
+        data_file
+            An S111File object updated by this function.
 
-    """
+        """
     root = data_file.root
     surface_current_feature = root.surface_current
 
@@ -172,22 +164,83 @@ def add_metadata(metadata: dict, data_file) -> S111File:
     surface_current_feature.max_dataset_current_speed = 0
     surface_current_feature_instance_01.time_record_interval = 0
 
-    root.product_specification = S111File.PRODUCT_SPECIFICATION
-    root.metadata = ""
-    root.horizontal_datum_reference = metadata["horizontalDatumReference"]
-    root.horizontal_datum_value = metadata["horizontalDatumValue"]
-    root.epoch = metadata["epoch"]
-    root.geographic_identifier = metadata["geographicIdentifier"]
-    root.surface_current_depth = metadata["surfaceCurrentDepth"]
-    root.depth_type_index = metadata["depthTypeIndex"]
-    surface_current_feature.common_point_rule = metadata["commonPointRule"]
-    surface_current_feature.interpolation_type = metadata["interpolationType"]
-    surface_current_feature.time_uncertainty = metadata["timeUncertainty"]
-    surface_current_feature.vertical_uncertainty = metadata["verticalUncertainty"]
-    surface_current_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
-    surface_current_feature.type_of_current_data = metadata["typeOfCurrentData"]
-    surface_current_feature.method_currents_product = metadata["methodCurrentsProduct"]
-    surface_current_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
+    try:
+        root.product_specification = S111File.PRODUCT_SPECIFICATION
+        root.issue_date = (metadata["issueDate"] if "issueDate" in metadata else utc_now.date())
+        root.horizontal_crs = int(metadata["horizontalCRS"])
+
+        # Optional general metadata
+        if "geographicIdentifier" in metadata:
+            root.geographic_identifier = metadata["geographicIdentifier"]
+        if "horizontalCRS" in metadata and metadata["horizontalCRS"] == -1:
+            root.name_of_horizontal_crs = metadata["nameOfHorizontalCRS"]
+            root.type_of_horizontal_crs = metadata["typeOfHorizontalCRS"]
+            root.horizontal_cs = metadata["horizontalCS"]
+            root.horizontal_datum = metadata["horizontalDatum"]
+            if "horizontalDatum" in metadata and metadata["horizontalDatum"] == -1:
+                root.name_of_horizontal_datum = metadata["nameOfHorizontalDatum"]
+                root.prime_meridian = metadata["primeMedian"]
+                root.spheroid = metadata["spheroid"]
+                if "typeOfHorizontalCRS" in metadata and metadata["typeOfHorizontalCRS"] == 2:
+                    root.projection_method = metadata["projectionMethod"]
+                    if "projectionMethod" in metadata:
+                        root.projection_parameter_1 = metadata["projectionParameter1"]
+                        root.projection_parameter_2 = metadata["projectionParameter2"]
+                        root.projection_parameter_3 = metadata["projectionParameter3"]
+                        root.projection_parameter_4 = metadata["projectionParameter4"]
+                        root.projection_parameter_5 = metadata["projectionParameter5"]
+                        root.false_northing = metadata["falseNorthing"]
+                        root.false_easting = metadata["falseEasting"]
+        if "epoch" in metadata:
+            root.epoch = metadata["epoch"]
+
+        # Additional general metadata
+        if "datasetDeliveryInterval" in metadata:
+            root.dataset_delivery_interval = metadata["datasetDeliveryInterval"]
+
+        root.depth_type_index = metadata["depthTypeIndex"]
+        root.surface_current_depth = metadata["surfaceCurrentDepth"]
+
+        # Additional restrictions on core general metadata for S-111
+        root.issue_time = (metadata["issueTime"] if "issueTime" in metadata else utc_now.time())
+        if metadata["verticalCoordinateBase"] != 2:
+            warnings.warn("Warning the only allowed value for verticalCoordinateBase is verticalDatum (2)")
+            metadata["verticalCoordinateBase"] = 2
+        else:
+            root.vertical_coordinate_base = metadata["verticalCoordinateBase"]
+
+        if "depthTypeIndex" in metadata:
+            if metadata["depthTypeIndex"] == 1:
+                root.vertical_cs = metadata["verticalCS"]
+                root.vertical_datum_reference = metadata.get('verticalDatumReference', VERTICAL_DATUM_REFERENCE.s100VerticalDatum)
+                if metadata["verticalDatumReference"] == 1:
+                    root.vertical_datum = metadata.get("verticalDatum", VERTICAL_DATUM.seaSurface)
+
+        # SurfaceCurrent Feature Type Metadata
+        surface_current_feature.common_point_rule = metadata["commonPointRule"]
+        surface_current_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
+        surface_current_feature.vertical_uncertainty = metadata["verticalUncertainty"]
+
+        # Optional SurfaceCurrent Feature type metadata
+        if "timeUncertainty" in metadata:
+            surface_current_feature.time_uncertainty = metadata["timeUncertainty"]
+        if "dataOffsetCode" in metadata:
+            surface_current_feature.data_offset_code = metadata["dataOffsetCode"]
+
+        # SurfaceCurrent Feature Type Additional Metadata
+        if "methodCurrentsProduct" in metadata:
+            surface_current_feature.method_currents_product = metadata["methodCurrentsProduct"]
+
+        # Optional SurfaceCurrent.NN Feature Instance Metadata
+        if "datetimeOfFirstRecord" in metadata:
+            surface_current_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
+
+        # SurfaceCurrent.NN Feature Instance Additional Metadata
+        surface_current_feature_instance_01.data_dynamicity = metadata["dataDynamicity"]
+
+    except KeyError as e:
+        raise S111Exception(f"Error: Mandatory S-111 attribute {e} not found in the metadata dictionary")
 
     return data_file
 
@@ -226,7 +279,8 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
             - 'Time series at fixed stations': 1,
             - 'Regularly-gridded arrays': 2,
             - 'Ungeorectified gridded arrays': 3,
-            - 'Moving platform': 4
+            - 'Time series data for one moving platform': 4
+            - 'Time Series at fixed stations (stationwise)': 8
 
         Returns
         -------
@@ -234,6 +288,7 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
             An S111File object updated by this function.
 
         """
+
     root = data_file.root
     surface_current_feature = root.surface_current
     surface_current_feature_instance_01 = root.surface_current.surface_current[0]
@@ -244,7 +299,7 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
     if data_coding_format == 2:
         surface_current_feature.data_coding_format = data_coding_format
         surface_current_feature_instance_01.start_sequence = "0,0"
-        surface_current_feature.sequencing_rule_scan_direction = "longitude, latitude"
+        surface_current_feature.sequencing_rule_scan_direction = "longitude,latitude"
         surface_current_feature.sequencing_rule_type = 1
         surface_current_feature_instance_01.grid_origin_longitude = grid_properties['minx']
         surface_current_feature_instance_01.grid_origin_latitude = grid_properties['miny']
@@ -265,6 +320,9 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
         geometry_values.longitude = grid_properties['longitude']
         geometry_values.latitude = grid_properties['latitude']
 
+    if data_coding_format == 2 or data_coding_format == 3:
+        surface_current_feature.interpolation_type = 10
+
     surface_current_feature_instance_01.east_bound_longitude = grid_properties['maxx']
     surface_current_feature_instance_01.west_bound_longitude = grid_properties['minx']
     surface_current_feature_instance_01.south_bound_latitude = grid_properties['miny']
@@ -273,13 +331,15 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
     surface_current_feature.axis_names = numpy.array(["longitude", "latitude"])
     root.surface_current.dimension = len(surface_current_feature.axis_names)
 
-    min_speed = numpy.round(numpy.nanmin(speed), decimals=2)
-    max_speed = numpy.round(numpy.nanmax(speed), decimals=2)
+    min_speed = numpy.min(speed[numpy.where(speed != FILLVALUE)])
+    max_speed = numpy.max(speed[numpy.where(speed != FILLVALUE)])
+    surface_current_feature.min_dataset_current_speed = numpy.round(min_speed, decimals=2)
+    surface_current_feature.max_dataset_current_speed =  numpy.round(max_speed, decimals=2)
 
-    if min_speed < surface_current_feature.min_dataset_current_speed:
+    if min_speed < surface_current_feature.min_dataset_current_speed and min_speed != FILLVALUE:
         surface_current_feature.min_dataset_current_speed = min_speed
 
-    if max_speed > surface_current_feature.max_dataset_current_speed:
+    if max_speed > surface_current_feature.max_dataset_current_speed and max_speed != FILLVALUE:
         surface_current_feature.max_dataset_current_speed = max_speed
 
     if numpy.ma.is_masked(speed):

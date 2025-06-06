@@ -1,11 +1,14 @@
 from .v1_0 import api as v1_0
 from .v1_2 import api as v1_2
-from .v1_2.api import *
+from .v2_0 import api as v2_0
+from .v2_0.api import *
 
 
 def open(name, *args, version=EDITION, **kwargs):
     obj = None
-    if version == 1.2:
+    if version == 2.0:
+        obj = v2_0.S111File(name, *args, **kwargs)
+    elif version == 1.2:
         obj = v1_2.S111File(name, *args, **kwargs)
     elif version == 1.0:
         obj = v1_0.S111File(name, *args, **kwargs)
