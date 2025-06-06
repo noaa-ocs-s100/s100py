@@ -26,8 +26,9 @@ def remove_file(pth, quiet=True):
         if not quiet:
             logging.warning(f"{pth} not found")
 
-@pytest.fixture(scope="module", params=[v2_2, v2_1, v2_0])
+@pytest.fixture(scope="module", params=[v3_0])  
 def s102(request):
+    # , v2_2, v2_1, v2_0])
     yield request.param
 
 def h5py_string_comp(h5py_val, cmp_str):
@@ -320,7 +321,7 @@ def test_edition3_changes(s102, bagname, output_path):
 
 
 def test_multiple_vertical_datums(s102, bagname, output_path):
-    return 
+    raise NotImplementedError("This test is not implemented yet, see the TODOs in the function")
     if s102.api.EDITION >= 3.0:
         metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
         remove_file(output_path)

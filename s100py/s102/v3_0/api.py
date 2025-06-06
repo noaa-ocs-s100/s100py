@@ -33,7 +33,7 @@ except:  # fake out sphinx and autodoc which are loading the module directly and
     __package__ = "s100py.s102"
 
 from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype, make_enum_dtype
-from ...s100.v5_2.api import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, VertexPoint, \
+from ...s100.v5_2.api import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, ValuesGroup, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, InterpolationType, VerticalDatumAttributes, \
     VERTICAL_CS, VERTICAL_DATUM_REFERENCE, VERTICAL_COORDINATE_BASE, VERTICAL_DATUM
@@ -192,6 +192,7 @@ class BathymetryValues(S1xxGridsBase):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.uncertainty = self.__uncertainty_type__([], self.uncertainty_dtype)
+        raise "This is an optional array now - check for handling"
 
     def get_write_order(self):
         """Write depth attribute, optionally write uncertainty attribute"""
@@ -208,7 +209,7 @@ class BathymetryValues(S1xxGridsBase):
 
 # v2.1 Chagne to .01 from .001
 # v2.1 removed min/max display scale mixin
-class BathymetryCoverage(S1xxObject):
+class BathymetryCoverage(ValuesGroup):
     """ This is the "Values" Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
     S100 v4.0 table 10c-18
     4.2.1.1.1 and Figure 4.4 of v2.0.0
@@ -218,12 +219,10 @@ class BathymetryCoverage(S1xxObject):
     # Changed to %02d in v2.1
     write_format_str = ".%02d"
 
-    __values_hdf_name__ = "values"  #: HDF5 naming
     __minimum_depth_hdf_name__ = "minimumDepth"  #: HDF5 naming
     __maximum_depth_hdf_name__ = "maximumDepth"  #: HDF5 naming
     __minimum_uncertainty_hdf_name__ = "minimumUncertainty"  #: HDF5 naming
     __maximum_uncertainty_hdf_name__ = "maximumUncertainty"  #: HDF5 naming
-    __time_point_hdf_name__ = "timePoint"  #: HDF5 naming
 
     @property
     def values(self) -> BathymetryValues:
@@ -253,19 +252,19 @@ class BathymetryCoverage(S1xxObject):
         """
         return self._attributes[self.__values_hdf_name__]
 
-    @values.setter
-    def values(self, val: BathymetryValues):
-        self._attributes[self.__values_hdf_name__] = val
+    # @values.setter
+    # def values(self, val: BathymetryValues):
+    #     self._attributes[self.__values_hdf_name__] = val
 
     @property
     def __values_type__(self) -> Type[BathymetryValues]:
         return BathymetryValues
 
-    def values_create(self):
-        """ Creates a blank, empty or zero value for values"""
-        # noinspection PyAttributeOutsideInit
-        # pylint: disable=attribute-defined-outside-init
-        self.values = self.__values_type__()
+    # def values_create(self):
+    #     """ Creates a blank, empty or zero value for values"""
+    #     # noinspection PyAttributeOutsideInit
+    #     # pylint: disable=attribute-defined-outside-init
+    #     self.values = self.__values_type__()
 
     @property
     def __version__(self) -> int:
@@ -357,20 +356,20 @@ class BathymetryCoverage(S1xxObject):
         # pylint: disable=attribute-defined-outside-init
         self.maximum_uncertainty = self.__maximum_uncertainty_type__()
 
-    @property
-    def time_point(self) -> str:
-        """The attribute timePoint has the value type DateTime and describes the time of the measurement.
-        This attribute is required. There is no default"""
-        return self._attributes[self.__time_point_hdf_name__]
-
-    @time_point.setter
-    def time_point(self, val: str):
-        self._attributes[self.__time_point_hdf_name__] = val
-
-    @property
-    def __time_point_type__(self) -> Type[str]:
-        return str
-
+    # @property
+    # def time_point(self) -> str:
+    #     """The attribute timePoint has the value type DateTime and describes the time of the measurement.
+    #     This attribute is required. There is no default"""
+    #     return self._attributes[self.__time_point_hdf_name__]
+    #
+    # @time_point.setter
+    # def time_point(self, val: str):
+    #     self._attributes[self.__time_point_hdf_name__] = val
+    #
+    # @property
+    # def __time_point_type__(self) -> Type[str]:
+    #     return str
+    #
     def time_point_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
@@ -425,12 +424,12 @@ class S102_VerticalDatumRootAttributes(VerticalDatumAttributes):
         orig = self._attributes.get(self.__vertical_datum_hdf_name__, None)
         self.set_enum_attribute(val, self.__vertical_datum_hdf_name__, self.__vertical_datum_restriction__)
         self._attributes[self.__vertical_datum_hdf_name__] = self._attributes[self.__vertical_datum_hdf_name__].value
-        if self._attributes[self.__vertical_datum_hdf_name__] > 46:
+        if self._attributes[self.__vertical_datum_hdf_name__] > 44:  # IGLD2020 (46) was removed in discussion ticket #119
             if orig is not None:
                 self._attributes[self.__vertical_datum_hdf_name__] = orig
             else:
                 del self._attributes[self.__vertical_datum_hdf_name__]
-            raise ValueError(f"vertical_datum must be 46 or less, not {self._attributes[self.__vertical_datum_hdf_name__]}")
+            raise ValueError(f"vertical_datum must be 44 or less, not {self._attributes[self.__vertical_datum_hdf_name__]}")
 
     @property
     def __vertical_datum_restriction__(self):
@@ -474,6 +473,8 @@ class S102_VerticalDatumAttributesCoverageInstance(S102_VerticalDatumRootAttribu
 class BathymetryFeatureInstance(FeatureInstanceDCF2, S102_VerticalDatumAttributesCoverageInstance):
     """ This will be the BathymetryCoverage.001 element in HDF5.
     It will contain a Group.NNN which will have the "values" dataset of the deptha dn uncertainty.
+    Bathymetry instances will be as distinct as possible when using polygons,
+    only the cells intersecting multiple polygons will be filled in two different instance arrays.
     """
     __bathymetry_group_hdf_name__ = "Group" + r"[\._]\d+"
     """ Basic template for HDF5 naming of the attribute.  
@@ -619,12 +620,12 @@ class S102FeatureInformation(FeatureInformation):
     def lower_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.lower = self.__lower_type__(-12000)
+        self.lower = self.__lower_type__(-14)
 
     def upper_create(self):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
-        self.upper = self.__upper_type__(12000)
+        self.upper = self.__upper_type__(11050)
 
     def closure_create(self):
         # noinspection PyAttributeOutsideInit
@@ -919,7 +920,7 @@ class FeatureAttributeRecord(S1xxObject):
     __date_end_hdf_name__ = "surveyDateRange.dateEnd"  #: HDF5 naming
     __source_survey_id_hdf_name__ = "sourceSurveyID"  #: HDF5 naming
     __survey_authority_hdf_name__ = "surveyAuthority"  #: HDF5 naming
-    __bathymetric_uncertainty_type_hdf_name__ = "bathymetricUncertaintyType"  #: HDF5 naming
+    __bathymetric_uncertainty_type_hdf_name__ = "typeOfBathymetricEstimationUncertainty"  #: HDF5 naming
 
     @property
     def id(self) -> int:
@@ -1381,6 +1382,15 @@ class S102Root(S102_VerticalDatumRootAttributes, S100Root):
         # pylint: disable=attribute-defined-outside-init
         self.quality_of_bathymetry_coverage = self.__quality_of_bathymetry_coverage_type__()
 
+    @S100Root.vertical_cs.setter
+    def vertical_cs(self, val: Union[int, str, VERTICAL_CS]):
+        # Use an enumeration to control the values, though not officially an enum it essentially is
+        self.set_enum_attribute(val, self.__vertical_cs_hdf_name__, VERTICAL_CS)
+        # convert the legal values into an integer
+        self._attributes[self.__vertical_cs_hdf_name__] = self._attributes[self.__vertical_cs_hdf_name__].value
+        if self._attributes[self.__vertical_cs_hdf_name__] != VERTICAL_CS.Depth.value:
+            raise ValueError(f"Vertical coordinate system {self._attributes[self.__vertical_cs_hdf_name__]} is not supported by S102, must be Depth")
+
     def vertical_cs_create(self):
         """ Sets the vertical_cs to Depth as S102 specifies
         """
@@ -1633,8 +1643,8 @@ class S102File(S100File):
         quality_dset = root.feature_information.quality_of_bathymetry_coverage_dataset
         quality_info = quality_dset.append_new_item()
         quality_info.initialize_properties(True, overwrite=overwrite)
-        quality_info.code = "id"
-        quality_info.name = ""
+        quality_info.code = "iD"
+        quality_info.name = "ID"
         quality_info.unit_of_measure = ""
         quality_info.fill_value = 0
         quality_info.datatype = "H5T_INTEGER"
@@ -1646,7 +1656,22 @@ class S102File(S100File):
         """ This function initializes the values in more recent versions of the spec to reduce redundant code in later modules
         """
         root = self.root
-        bathy_cov_dset = root.feature_information.bathymetry_coverage_dataset
+        self.add_bathy_defaults(root.feature_information, overwrite=overwrite)
+        root.bathymetry_coverage.axis_names = numpy.array(["Longitude", "Latitude"])  # row major order means X/longitude first
+        root.bathymetry_coverage.sequencing_rule_scan_direction = "Longitude, Latitude"
+        root.bathymetry_coverage.common_point_rule = 2  # low
+        # root.bathymetry_coverage.data_offset_code = 5  # barycenter
+        # root.bathymetry_coverage.data_coding_format = 2  # default
+        # root.bathymetry_coverage.dimension = 2  # default value
+        root.bathymetry_coverage.interpolation_type = 1  # nearest neighbor
+        root.bathymetry_coverage.num_instances = 1  # how many Bathycoverages
+        root.bathymetry_coverage.sequencing_rule_type = 1  # linear
+        del root.bathymetry_coverage.time_uncertainty
+        del root.bathymetry_coverage.feature_attribute_table  # this only goes in the QualityOfBathymetryCoverage group
+
+    @staticmethod
+    def add_bathy_defaults(parent, overwrite=False):
+        bathy_cov_dset = parent.bathymetry_coverage_dataset
         bathy_depth_info = bathy_cov_dset.append_new_item()  # bathy_cov_dset.append(bathy_cov_dset.metadata_type())
         bathy_depth_info.initialize_properties(True, overwrite=overwrite)
         bathy_depth_info.code = DEPTH
@@ -1664,19 +1689,9 @@ class S102File(S100File):
         bathy_uncertainty_info.code = UNCERTAINTY
         bathy_uncertainty_info.name = UNCERTAINTY
         bathy_uncertainty_info.lower = 0
-        bathy_uncertainty_info.closure = "gtLeInterval"
+        bathy_uncertainty_info.upper = ""  # defined to be Empty
+        bathy_uncertainty_info.closure = "geSemiInterval"
 
-        root.bathymetry_coverage.axis_names = numpy.array(["Longitude", "Latitude"])  # row major order means X/longitude first
-        root.bathymetry_coverage.sequencing_rule_scan_direction = "Longitude, Latitude"
-        root.bathymetry_coverage.common_point_rule = 2  # low
-        # root.bathymetry_coverage.data_offset_code = 5  # barycenter
-        # root.bathymetry_coverage.data_coding_format = 2  # default
-        # root.bathymetry_coverage.dimension = 2  # default value
-        root.bathymetry_coverage.interpolation_type = 1  # nearest neighbor
-        root.bathymetry_coverage.num_instances = 1  # how many Bathycoverages
-        root.bathymetry_coverage.sequencing_rule_type = 1  # linear
-        del root.bathymetry_coverage.time_uncertainty
-        del root.bathymetry_coverage.feature_attribute_table  # this only goes in the QualityOfBathymetryCoverage group
 
 
     @classmethod
@@ -2291,7 +2306,14 @@ class S102File(S100File):
             try:
                 s100_object.move('QualityOfSurvey', "QualityOfBathymetryCoverage")
             except ValueError:  # QualityOfSurvey doesn't exist
-                pass  
+                pass
+            # How to modify parts of the array?
+            s100_object.attrs["Group_F"]["BathymetryCoverage"][1][5] = 0
+            s100_object.attrs["Group_F"]["BathymetryCoverage"][1][6] = ""
+            s100_object.attrs["Group_F"]["BathymetryCoverage"][1][7] = "goSemiInterval"
+            s100_object.attrs["Group_F"]["QualityOfBathymetryCoverage"][0][0] = "iD"  # they changed from id
+            s100_object.attrs["Group_F"]["QualityOfBathymetryCoverage"][0][1] = "ID"  # had been blank
+            raise NotImplementedError("bathymetricUncertaintyType to typeOfBathymetricEstimationUncertainty in the FeatureAttributeRecord (RasterAttributeTable)")
 
             # # Update horizontal CRS
             # del s100_object.attrs['horizontalDatumReference']

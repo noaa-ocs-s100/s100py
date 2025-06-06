@@ -2176,6 +2176,55 @@ class DataOffset:
         self.data_offset_vector =numpy.array([0, 0], dtype=float)
 
 
+class ValuesGroup(S1xxObject, ABC):
+    __values_hdf_name__ = "values"  #: HDF5 naming
+    __time_point_hdf_name__ = "timePoint"  #: HDF5 naming
+    @property
+    def values(self):
+        """Plain text name of the dataset (e.g values)"""
+        return self._attributes[self.__values_hdf_name__]
+
+    @values.setter
+    def values(self, val):
+        self._attributes[self.__values_hdf_name__] = val
+
+    @property
+    def __values_type__(self):
+        raise NotImplementedError("Must be overloaded by subclass")
+
+    def values_create(self):
+        """ Creates a blank, empty or zero value for values"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.values = self.__values_type__()
+
+    @property
+    def time_point(self) -> datetime.datetime:
+        return self._attributes[self.__time_point_hdf_name__]
+
+    @time_point.setter
+    def time_point(self, val: Union[datetime.date, datetime.datetime, str]):
+        self.set_datetime_attribute(val, self.__time_point_hdf_name__, self.__time_point_type__)
+
+    @property
+    def __time_point_type__(self) -> Type[datetime.datetime]:
+        return datetime.datetime
+
+    @property
+    def __time_point_repr__(self) -> str:
+        return self._attributes[self.__time_point_hdf_name__].strftime("%Y%m%dT%H%M%SZ")
+
+    def time_point_create(self):
+        """ Creates a blank, empty or zero value for time_point"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        self.time_point = self.__time_point_type__(1970, 1, 1)
+
+    @property
+    def __version__(self) -> int:
+        return 1
+
+
 class FeatureContainerDCF1(FeatureContainer):
     """ Container for Data Coding Format 1 """
 
