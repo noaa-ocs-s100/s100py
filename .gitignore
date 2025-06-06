@@ -6,6 +6,8 @@
 *.dbf
 *.tif
 *.tiff
+*.tiff.aux.xml
+*.tif.aux.xml
 *.h5
 *.gpkg
 docs/_build

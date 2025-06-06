@@ -220,71 +220,76 @@ def add_metadata(metadata: dict, data_file) -> S104File:
 
     utc_now = datetime.datetime.now(datetime.timezone.utc)
 
-    # General metadata
-    root.product_specification = S104File.PRODUCT_SPECIFICATION
-    root.issue_date = (metadata["issueDate"] if "issueDate" in metadata else utc_now.date())
-    root.horizontal_crs = int(metadata["horizontalCRS"])
-    # Optional general metadata
-    if "geographicIdentifier" in metadata:
-        root.geographic_identifier = metadata["geographicIdentifier"]
-    if "epoch" in metadata:
-        root.epoch = metadata["epoch"]
-    if "horizontalCRS" in metadata and metadata["horizontalCRS"] == -1:
-        water_level_feature.name_of_horizontal_crs = metadata["nameOfHorizontalCRS"]
-        water_level_feature.type_of_horizontal_crs = metadata["typeOfHorizontalCRS"]
-        water_level_feature.horizontal_cs = metadata["horizontalCS"]
-        water_level_feature.horizontal_datum = metadata["horizontalDatum"]
-        if "horizontalDatum" in metadata and metadata["horizontalDatum"] == -1:
-            water_level_feature.name_of_horizontal_datum = metadata["nameOfHorizontalDatum"]
-            water_level_feature.prime_meridian = metadata["primeMedian"]
-            water_level_feature.spheroid = metadata["spheroid"]
-            if "typeOfHorizontalCRS" in metadata and metadata["typeOfHorizontalCRS"] == 2:
-                water_level_feature.projection_method = metadata["projectionMethod"]
-                if "projectionMethod" in metadata:
-                    water_level_feature.projection_parameter_1 = metadata["projectionParameter1"]
-                    water_level_feature.projection_parameter_2 = metadata["projectionParameter2"]
-                    water_level_feature.projection_parameter_3 = metadata["projectionParameter3"]
-                    water_level_feature.projection_parameter_4 = metadata["projectionParameter4"]
-                    water_level_feature.projection_parameter_5 = metadata["projectionParameter5"]
-                    water_level_feature.false_northing = metadata["falseNorthing"]
-                    water_level_feature.false_easting = metadata["falseEasting"]
+    try:
+        # General metadata
+        root.product_specification = S104File.PRODUCT_SPECIFICATION
+        root.issue_date = (metadata["issueDate"] if "issueDate" in metadata else utc_now.date())
+        root.horizontal_crs = int(metadata["horizontalCRS"])
 
-    # Additional general metadata
-    root.water_level_trend_threshold = metadata["waterLevelTrendThreshold"]
-    # Optional additional general metadata
-    if "datasetDeliveryInterval" in metadata:
-        root.dataset_delivery_interval = metadata["datasetDeliveryInterval"]
-    if "trendInterval" in metadata:
-        root.trend_interval = metadata["trendInterval"]
-    if "verticalDatumEpoch" in metadata:
-        root.vertical_datum_epoch = metadata["verticalDatumEpoch"]
-    # Additional restrictions on core general metadata for S-104
-    root.issue_time = (metadata["issueTime"] if "issueTime" in metadata else utc_now.time())
-    root.vertical_cs = metadata["verticalCS"]
-    root.vertical_coordinate_base = metadata["verticalCoordinateBase"]
-    root.vertical_datum_reference = metadata["verticalDatumReference"]
-    root.vertical_datum = metadata["verticalDatum"]
+        # Optional general metadata
+        if "geographicIdentifier" in metadata:
+            root.geographic_identifier = metadata["geographicIdentifier"]
+        if "horizontalCRS" in metadata and metadata["horizontalCRS"] == -1:
+            root.name_of_horizontal_crs = metadata["nameOfHorizontalCRS"]
+            root.type_of_horizontal_crs = metadata["typeOfHorizontalCRS"]
+            root.horizontal_cs = metadata["horizontalCS"]
+            root.horizontal_datum = metadata["horizontalDatum"]
+            if "horizontalDatum" in metadata and metadata["horizontalDatum"] == -1:
+                root.name_of_horizontal_datum = metadata["nameOfHorizontalDatum"]
+                root.prime_meridian = metadata["primeMedian"]
+                root.spheroid = metadata["spheroid"]
+                if "typeOfHorizontalCRS" in metadata and metadata["typeOfHorizontalCRS"] == 2:
+                    root.projection_method = metadata["projectionMethod"]
+                    if "projectionMethod" in metadata:
+                        root.projection_parameter_1 = metadata["projectionParameter1"]
+                        root.projection_parameter_2 = metadata["projectionParameter2"]
+                        root.projection_parameter_3 = metadata["projectionParameter3"]
+                        root.projection_parameter_4 = metadata["projectionParameter4"]
+                        root.projection_parameter_5 = metadata["projectionParameter5"]
+                        root.false_northing = metadata["falseNorthing"]
+                        root.false_easting = metadata["falseEasting"]
+        if "epoch" in metadata:
+            root.epoch = metadata["epoch"]
 
-    # Feature type metadata
-    water_level_feature.common_point_rule = metadata["commonPointRule"]
-    water_level_feature.vertical_uncertainty = metadata["verticalUncertainty"]
-    water_level_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
-    # Optional feature type metadata
-    if "timeUncertainty" in metadata:
-        water_level_feature.time_uncertainty = metadata["timeUncertainty"]
-    # Additional feature type metadata
-    water_level_feature.method_water_level_product = metadata["methodWaterLevelProduct"]
-    # Feature type metadata dataCodingFormat = 2 (regGrid) feature type metadata
-    water_level_feature.interpolation_type = metadata["interpolationType"]
-    # Optional, Allowed values 1: XMin, YMin (“Lower left”) or 5:Barycenter (centroid) of cell
-    if "dataOffsetCode" in metadata:
-        water_level_feature.data_offset_code = metadata["dataOffsetCode"]
+        # Additional general metadata
+        root.water_level_trend_threshold = metadata["waterLevelTrendThreshold"]
+        # Optional additional general metadata
+        if "datasetDeliveryInterval" in metadata:
+            root.dataset_delivery_interval = metadata["datasetDeliveryInterval"]
+        if "trendInterval" in metadata:
+            root.trend_interval = metadata["trendInterval"]
+        if "verticalDatumEpoch" in metadata:
+            root.vertical_datum_epoch = metadata["verticalDatumEpoch"]
 
-    # Feature Instance Metadata
-    water_level_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
-    # Additional feature instance metadata
-    water_level_feature_instance_01.data_dynamicity = metadata["dataDynamicity"]
+        # Additional restrictions on core general metadata for S-104
+        root.issue_time = (metadata["issueTime"] if "issueTime" in metadata else utc_now.time())
+        root.vertical_cs = metadata["verticalCS"]
+        root.vertical_coordinate_base = metadata["verticalCoordinateBase"]
+        root.vertical_datum_reference = metadata["verticalDatumReference"]
+        root.vertical_datum = metadata["verticalDatum"]
 
+        # WaterLevel Feature type metadata
+        water_level_feature.common_point_rule = metadata["commonPointRule"]
+        water_level_feature.vertical_uncertainty = metadata["verticalUncertainty"]
+        water_level_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
+        # Optional feature type metadata
+        if "timeUncertainty" in metadata:
+            water_level_feature.time_uncertainty = metadata["timeUncertainty"]
+        # Additional feature type metadata
+        water_level_feature.method_water_level_product = metadata["methodWaterLevelProduct"]
+        # Feature type metadata dataCodingFormat = 2 (regGrid) feature type metadata
+        water_level_feature.interpolation_type = metadata["interpolationType"]
+        # Optional, Allowed values 1: XMin, YMin (“Lower left”) or 5:Barycenter (centroid) of cell
+        if "dataOffsetCode" in metadata:
+            water_level_feature.data_offset_code = metadata["dataOffsetCode"]
+
+        # Feature Instance Metadata
+        water_level_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
+        # Additional feature instance metadata
+        water_level_feature_instance_01.data_dynamicity = metadata["dataDynamicity"]
+
+    except KeyError as e:
+        raise S104Exception(f"Error: Mandatory S-104 attribute {e} not found in the metadata dictionary")
 
     return data_file
 
@@ -386,6 +391,7 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
 
     if numpy.ma.is_masked(height):
         height = height.filled(f"{FILLVALUE_HEIGHT:0.02f}")
+        trend = trend.filled(f"{FILLVALUE_TREND}")
 
     height = numpy.round(height, decimals=2)
     trend.astype(int)

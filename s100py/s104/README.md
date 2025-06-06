@@ -125,7 +125,7 @@ datetime_interval = datetime.timedelta(seconds=3600)
 # Example metadata
 # Optional attributes are denoted below and can be removed
 metadata = {
-    'horizontalCRS': 4362, # EPSG code
+    'horizontalCRS': 4326, # EPSG code
     'waterLevelHeightUncertainty': -1.0, # -1.0 (unknown) or positive value (m)
     'horizontalPositionUncertainty': -1.0, # -1.0 (unknown) or positive value (m)
     'verticalUncertainty': -1.0, # -1.0 (unknown) or positive value (m)
