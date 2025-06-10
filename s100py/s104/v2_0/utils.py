@@ -40,10 +40,11 @@ def create_s104(output_file, dcf, uncertainty=False) -> S104File:
     dcf
        S100 Data Coding Format (Int)
     uncertainty
-        (Optional, default is False) Features attribute uncertainty,
+        (Bool, optional, default is False) Feature attribute uncertainty,
         which represents the uncertainty at a particular grid point,
         may be omitted if the uncertainty is unknown or the same
-        value at all grid points ('Bool')
+        value at all grid points, if True the feature attribute
+        with mandatory values are added to Group_F.
 
     Returns
     -------
@@ -53,9 +54,8 @@ def create_s104(output_file, dcf, uncertainty=False) -> S104File:
 
     """
     data_file = _get_S104File(output_file)
+
     root = data_file.root
-    # Set Water Level default structure and values as directed in
-    # S-104 Ed 2.0 production specification mandatory requirements
     root.water_level = data_file.make_container_for_dcf(dcf)
     root.water_level.water_level_create()
 
@@ -65,37 +65,10 @@ def create_s104(output_file, dcf, uncertainty=False) -> S104File:
     group_f.water_level_feature_dataset_create()
 
     water_level_feature_dataset = root.feature_information.water_level_feature_dataset
-
-    water_level_height_info = water_level_feature_dataset.append_new_item()
-    water_level_height_info.code = "waterLevelHeight"
-    water_level_height_info.name = "Water Level Height"
-    water_level_height_info.unit_of_measure = "metre"
-    water_level_height_info.datatype = "H5T_FLOAT"
-    water_level_height_info.fill_value = f"{FILLVALUE_HEIGHT:0.02f}"
-    water_level_height_info.lower = "-99.99"
-    water_level_height_info.upper = "99.99"
-    water_level_height_info.closure = "closedInterval"
-
-    water_level_trend_info = water_level_feature_dataset.append_new_item()
-    water_level_trend_info.code = "waterLevelTrend"
-    water_level_trend_info.name = "Water Level Trend"
-    water_level_trend_info.unit_of_measure = ""
-    water_level_trend_info.datatype = "H5T_ENUM"
-    water_level_trend_info.fill_value = FILLVALUE_TREND
-    water_level_trend_info.lower = ""
-    water_level_trend_info.upper = ""
-    water_level_trend_info.closure = ""
+    data_file.set_feature_information_defaults(water_level_feature_dataset)
 
     if uncertainty:
-        water_level_uncertainty_info = water_level_feature_dataset.append_new_item()
-        water_level_uncertainty_info.code = "uncertainty"
-        water_level_uncertainty_info.name = "Uncertainty"
-        water_level_uncertainty_info.unit_of_measure = "metre"
-        water_level_uncertainty_info.datatype = "H5T_FLOAT"
-        water_level_uncertainty_info.fill_value = f"{FILLVALUE_UNCERTAINTY:0.02f}"
-        water_level_uncertainty_info.lower = "0.00"
-        water_level_uncertainty_info.upper = "99.99"
-        water_level_uncertainty_info.closure = "closedInterval"
+        data_file.set_water_level_uncertainty_defaults(water_level_feature_dataset)
 
     return data_file
 
@@ -396,9 +369,6 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
     height = numpy.round(height, decimals=2)
     trend.astype(int)
 
-    if isinstance(uncertainty, numpy.ndarray):
-        uncertainty = numpy.round(uncertainty, decimals=2)
-
     if height.shape != trend.shape:
         raise S104Exception("Water level height & trend grids have different shapes")
 
@@ -413,8 +383,19 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
     grid.water_level_height = height
     grid.water_level_trend = trend
 
+    feature_info = root.feature_information.water_level_feature_dataset
+
     if isinstance(uncertainty, numpy.ndarray):
-        grid.water_level_uncertainty = uncertainty
+        uncertainty_feature_info = False
+        for i in range(len(feature_info)):
+            if feature_info[i].name == 'Uncertainty':
+                uncertainty_feature_info = True
+                uncertainty = numpy.round(uncertainty, decimals=2)
+                grid.water_level_uncertainty = uncertainty
+                break
+        if not uncertainty_feature_info:
+            raise S104Exception("AttributeError: Water level uncertainty is not present in Group_F, values grid must"
+                                " conform to the feature information group, see create_s104()")
 
     return data_file
 

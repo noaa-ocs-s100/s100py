@@ -6,6 +6,7 @@ import sys
 import datetime
 import numpy
 import warnings
+from typing import Union, Optional
 
 from ...s1xx import s1xx_sequence
 from .api import S111File, FILLVALUE, S111Exception, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE
@@ -25,7 +26,7 @@ def _get_S111File(output_file):
 
     return data_file
 
-def create_s111(output_file, dcf) -> S111File:
+def create_s111(output_file, dcf, speed_uncertainty=False, direction_uncertainty=False) -> S111File:
     """ Creates or updates an S111File object.
     Default values are set for any data that doesn't have options
     or are mandatory to be filled in the S111 spec.
@@ -36,6 +37,16 @@ def create_s111(output_file, dcf) -> S111File:
         S111File object
     dcf
        S100 Data Coding Format (Int)
+    speed_uncertainty
+       (Bool, optional, default is False) Feature attribute characterising
+       the accuracy of a speed value, or of the magnitude component of
+       a velocity. The estimate is as defined within a particular confidence
+       level and expressed as a positive value, if True the feature attribute
+       and default values are added to Group_F.
+    direction_uncertainty
+       (Bool, optional, default is False) Feature attribute characterising
+       the best estimate of the accuracy of a bearing, if True the feature
+       attribute and default values are added to Group_F.
 
     Returns
     -------
@@ -45,6 +56,7 @@ def create_s111(output_file, dcf) -> S111File:
 
     """
     data_file = _get_S111File(output_file)
+
     root = data_file.root
     root.surface_current = data_file.make_container_for_dcf(dcf)
     root.surface_current.surface_current_create()
@@ -55,27 +67,12 @@ def create_s111(output_file, dcf) -> S111File:
     group_f.surface_current_feature_dataset_create()
 
     surface_current_feature_dataset = root.feature_information.surface_current_feature_dataset
+    data_file.set_feature_information_defaults(surface_current_feature_dataset)
 
-    surface_current_speed_info = surface_current_feature_dataset.append_new_item()
-    surface_current_speed_info.code = "surfaceCurrentSpeed"
-    surface_current_speed_info.name = "Surface Current Speed"
-    surface_current_speed_info.unit_of_measure = "knot"
-    surface_current_speed_info.datatype = "H5T_FLOAT"
-    surface_current_speed_info.fill_value = f"{FILLVALUE:0.02f}"
-    surface_current_speed_info.lower = "0.00"
-    surface_current_speed_info.upper = "99.00"
-    surface_current_speed_info.closure = "geSemiInterval"
-
-    surface_current_direction_info = surface_current_feature_dataset.append_new_item()
-    surface_current_direction_info.code = "surfaceCurrentDirection"
-    surface_current_direction_info.name = "Surface Current Direction"
-    surface_current_direction_info.unit_of_measure = "degree"
-    surface_current_direction_info.datatype = "H5T_FLOAT"
-    surface_current_direction_info.fill_value = f"{FILLVALUE:0.01f}"
-    surface_current_direction_info.lower = "0.0"
-    surface_current_direction_info.upper = "359.9"
-    surface_current_direction_info.closure = "closedInterval"
-
+    if speed_uncertainty:
+        data_file.set_speed_uncertainty_defaults(surface_current_feature_dataset)
+    if direction_uncertainty:
+        data_file.set_direction_uncertainty_defaults(surface_current_feature_dataset)
 
     return data_file
 
@@ -245,7 +242,9 @@ def add_metadata(metadata: dict, data_file) -> S111File:
     return data_file
 
 
-def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_file, grid_properties: dict, datetime_value, data_coding_format) -> S111File:
+def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_file,
+                         grid_properties: dict, datetime_value, data_coding_format,
+                         speed_uncertainty: Optional[s1xx_sequence]=None, direction_uncertainty: Optional[s1xx_sequence]=None ) -> S111File:
     """  Updates an S111File object based on numpy array/h5py datasets.
         Calls :any:`create_s111` then fills in the HDF5 datasets with the supplied speed and direction numpy.arrays.
 
@@ -281,6 +280,10 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
             - 'Ungeorectified gridded arrays': 3,
             - 'Time series data for one moving platform': 4
             - 'Time Series at fixed stations (stationwise)': 8
+        speed_uncertainty (Optional)
+            1d or 2d array containing surface current speed uncertainty.
+        direction_uncertainty (Optional)
+            1d or 2d array containing surface current direction uncertainty.
 
         Returns
         -------
@@ -356,6 +359,30 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
     grid = surface_current_group_object.values
     grid.surface_current_speed = speed
     grid.surface_current_direction = direction
+
+    feature_info = root.feature_information.surface_current_feature_dataset
+
+    if isinstance(speed_uncertainty, numpy.ndarray):
+        speed_uncertainty_feature_info = False
+        for i in range(len(feature_info)):
+            if feature_info[i].name == 'Speed Uncertainty':
+                speed_uncertainty_feature_info = True
+                grid.speed_uncertainty = speed_uncertainty
+                break
+        if not speed_uncertainty_feature_info:
+            raise S111Exception("AttributeError: Speed uncertainty is not present in Group_F, values grid must"
+                                " conform to the feature information group, see create_s111()")
+
+    if isinstance(direction_uncertainty, numpy.ndarray):
+        direction_uncertainty_feature_info = False
+        for i in range(len(feature_info)):
+            if feature_info[i].name == 'Direction Uncertainty':
+                direction_uncertainty_feature_info = True
+                grid.direction_uncertainty = direction_uncertainty
+                break
+        if not direction_uncertainty_feature_info:
+            raise S111Exception("AttributeError: Direction uncertainty is not present in Group_F, values grid must"
+                                " conform to the feature information group, see create_s111()")
 
     return data_file
 

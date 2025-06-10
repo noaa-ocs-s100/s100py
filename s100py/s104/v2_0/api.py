@@ -948,6 +948,66 @@ class S104File(S100File):
             raise S104Exception(f"DCF {data_coding_format} not supported in v2.0")
         return container
 
+    @staticmethod
+    def set_feature_information_defaults(water_level_feature_dataset):
+        """
+        Water Level Height is the height of a water surface relative to a
+        vertical datum and Water Level Trend is the tendency of water level
+        to change in a particular direction. Default values are set for any
+        data that don't have options or are mandatory.
+
+        Parameters
+        ----------
+        water_level_feature_dataset
+            water level feature information object
+
+        """
+
+        water_level_height_info = water_level_feature_dataset.append_new_item()
+        water_level_height_info.code = "waterLevelHeight"
+        water_level_height_info.name = "Water Level Height"
+        water_level_height_info.unit_of_measure = "metre"
+        water_level_height_info.datatype = "H5T_FLOAT"
+        water_level_height_info.fill_value = f"{FILLVALUE_HEIGHT:0.02f}"
+        water_level_height_info.lower = "-99.99"
+        water_level_height_info.upper = "99.99"
+        water_level_height_info.closure = "closedInterval"
+
+        water_level_trend_info = water_level_feature_dataset.append_new_item()
+        water_level_trend_info.code = "waterLevelTrend"
+        water_level_trend_info.name = "Water Level Trend"
+        water_level_trend_info.unit_of_measure = ""
+        water_level_trend_info.datatype = "H5T_ENUM"
+        water_level_trend_info.fill_value = FILLVALUE_TREND
+        water_level_trend_info.lower = ""
+        water_level_trend_info.upper = ""
+        water_level_trend_info.closure = ""
+
+    @staticmethod
+    def set_water_level_uncertainty_defaults(water_level_feature_dataset):
+        """
+        Estimate characterising the range of values within which the true
+        value of a measurement is expected to lie as defined within a particular
+        confidence level. It is expressed as a positive value. Default values
+        are set for any data that don't have options (Optional Attribute)
+
+        Parameters
+        ----------
+        water_level_feature_dataset
+            water level feature information object
+
+        """
+
+        water_level_uncertainty_info = water_level_feature_dataset.append_new_item()
+        water_level_uncertainty_info.code = "uncertainty"
+        water_level_uncertainty_info.name = "Uncertainty"
+        water_level_uncertainty_info.unit_of_measure = "metre"
+        water_level_uncertainty_info.datatype = "H5T_FLOAT"
+        water_level_uncertainty_info.fill_value = f"{FILLVALUE_UNCERTAINTY:0.02f}"
+        water_level_uncertainty_info.lower = "0.00"
+        water_level_uncertainty_info.upper = "99.99"
+        water_level_uncertainty_info.closure = "closedInterval"
+
     def __init__(self, *args, **kywrds):
         super().__init__(*args, root=S104Root, **kywrds)
         # when reading from a file we need to look inside the DataCodingFormat to know what type of object to create
@@ -959,3 +1019,4 @@ class S104File(S100File):
         else:
             self.root.water_level = self.make_container_for_dcf(dcf)
             self.root.water_level.read(self[container_key])
+

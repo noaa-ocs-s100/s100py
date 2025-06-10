@@ -305,10 +305,26 @@ class SurfaceCurrentValues(S1xxGridsBase):
 
 
     def get_write_order(self):
-        return [self.__surface_current_speed_hdf_name__, self.__surface_current_direction_hdf_name__]
+        """Write feature attributes, optionally write uncertainty attribute"""
+
+        feature_attributes = [self.__surface_current_speed_hdf_name__, self.__surface_current_direction_hdf_name__]
+        if self.__speed_uncertainty_hdf_name__ in self._attributes:
+            feature_attributes.extend([self.__speed_uncertainty_hdf_name__])
+        print("FEATURES", self._attributes, feature_attributes)
+        if self.__direction_uncertainty_hdf_name__ in self._attributes:
+            feature_attributes.extend([self.__direction_uncertainty_hdf_name__])
+        return feature_attributes
+
 
     def get_compound_dtype(self):
-        return [self.surface_current_speed_dtype, self.surface_current_direction_dtype]
+        """Write compound dtype, optionally write uncertainty compound dtype"""
+
+        feature_attributes_dtype = [self.surface_current_speed_dtype, self.surface_current_direction_dtype]
+        if self.__speed_uncertainty_hdf_name__ in self._attributes:
+            feature_attributes_dtype.extend([self.speed_uncertainty_dtype])
+        if self.__direction_uncertainty_hdf_name__ in self._attributes:
+            feature_attributes_dtype.extend([self.direction_uncertainty_dtype])
+        return feature_attributes_dtype
 
 
 class SurfaceCurrentGroup(S1xxObject):
@@ -771,6 +787,7 @@ class S111Root(S100Root):
         return self._attributes[self.__issue_time_hdf_name__].strftime('%H%M%SZ')
 
 class S111File(S100File):
+    """ HDF5 file object"""
     PRODUCT_SPECIFICATION = PRODUCT_SPECIFICATION
 
     @staticmethod
@@ -792,15 +809,98 @@ class S111File(S100File):
             raise S111Exception(f"DCF {data_coding_format} is not an allowed valude in S-111 Edition 2.0.0")
         return container
 
+    @staticmethod
+    def set_feature_information_defaults(surface_current_feature_dataset):
+        """
+        Surface Current Speed is the rate of motion, speed is a scalar,
+        having magnitude only and the Surface Current Direction is the
+        direction toward which a surface current is flowing, called the
+        set of the surface current. Default values are set for any data
+        that don't have options or are mandatory.
+
+        Parameters
+        ----------
+        surface_current_feature_dataset
+            surface current feature information object
+
+        """
+        surface_current_speed_info = surface_current_feature_dataset.append_new_item()
+        surface_current_speed_info.code = "surfaceCurrentSpeed"
+        surface_current_speed_info.name = "Surface Current Speed"
+        surface_current_speed_info.unit_of_measure = "knot"
+        surface_current_speed_info.datatype = "H5T_FLOAT"
+        surface_current_speed_info.fill_value = f"{FILLVALUE:0.02f}"
+        surface_current_speed_info.lower = "0.00"
+        surface_current_speed_info.upper = "99.00"
+        surface_current_speed_info.closure = "geSemiInterval"
+
+        surface_current_direction_info = surface_current_feature_dataset.append_new_item()
+        surface_current_direction_info.code = "surfaceCurrentDirection"
+        surface_current_direction_info.name = "Surface Current Direction"
+        surface_current_direction_info.unit_of_measure = "degree"
+        surface_current_direction_info.datatype = "H5T_FLOAT"
+        surface_current_direction_info.fill_value = f"{FILLVALUE:0.01f}"
+        surface_current_direction_info.lower = "0.0"
+        surface_current_direction_info.upper = "359.9"
+        surface_current_direction_info.closure = "closedInterval"
+
+    @staticmethod
+    def set_speed_uncertainty_defaults(surface_current_feature_dataset):
+        """
+        Estimate characterising the accuracy of a speed value, or of the magnitude
+        component of a velocity. The estimate is as defined within a particular
+        confidence level and expressed as a positive value. Default values are set
+        for any data that don't have options or are mandatory (Optional Attribute)
+
+        Parameters
+        ----------
+        surface_current_feature_dataset
+            surface current feature information object
+
+        """
+
+        speed_uncertainty_info = surface_current_feature_dataset.append_new_item()
+        speed_uncertainty_info.code = "speedUncertainty"
+        speed_uncertainty_info.name = "Speed Uncertainty"
+        speed_uncertainty_info.unit_of_measure = "knot"
+        speed_uncertainty_info.datatype = "H5T_FLOAT"
+        speed_uncertainty_info.fill_value = "-1.0"
+        speed_uncertainty_info.lower = "0.00"
+        speed_uncertainty_info.upper = "99.00"
+        speed_uncertainty_info.closure = "geSemiInterval"
+
+    @staticmethod
+    def set_direction_uncertainty_defaults(surface_current_feature_dataset):
+        """
+        The best estimate of the accuracy of a bearing. Default values are set
+        for any data that don't have options or are mandatory (Optional Attribute)
+
+        Parameters
+        ----------
+        surface_current_feature_dataset
+            surface current feature information object
+
+        """
+
+        direction_uncertainty_info = surface_current_feature_dataset.append_new_item()
+        direction_uncertainty_info.code = "directionUncertainty"
+        direction_uncertainty_info.name = "Direction Uncertainty"
+        direction_uncertainty_info.unit_of_measure = "degree"
+        direction_uncertainty_info.datatype = "H5T_FLOAT"
+        direction_uncertainty_info.fill_value = "-1.0"
+        direction_uncertainty_info.lower = "0.0"
+        direction_uncertainty_info.upper = "359.9"
+        direction_uncertainty_info.closure = "closedInterval"
+
     def __init__(self, *args, **kywrds):
         super().__init__(*args, root=S111Root, **kywrds)
         # when reading from a file we need to look inside the DataCodingFormat to know what type of object to create
         try:
             container_key = f'/{SURFACE_CURRENT}'
             dcf = self[container_key].attrs['dataCodingFormat']
+
         except KeyError:  # must not be reading an existing file or doesn't have data for some reason
             pass
         else:
             self.root.surface_current = self.make_container_for_dcf(dcf)
             self.root.surface_current.read(self[container_key])
-
