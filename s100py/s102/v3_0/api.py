@@ -2288,32 +2288,63 @@ class S102File(S100File):
             # # update product specification
             s100_object.attrs['productSpecification'] = S102File.PRODUCT_SPECIFICATION
             s100_object.attrs['verticalDatumReference'] = 1
-            s100_object.attrs['BathymetryCoverage']['dataCodingFormat'] = 2  # grid
-            s100_object.attrs['BathymetryCoverage']['commonPointRule'] = 2  # low
-            s100_object.attrs['BathymetryCoverage']['dataOffsetCode'] = 5  # barycenter
-            s100_object.attrs['BathymetryCoverage']['interpolationType'] = 1  # nearest neighbor
+            s100_object['BathymetryCoverage'].attrs['dataCodingFormat'] = 2  # grid
+            s100_object['BathymetryCoverage'].attrs['commonPointRule'] = 2  # s100.COMMON_POINT_RULE(2)  # low
+            s100_object['BathymetryCoverage'].attrs['dataOffsetCode'] = 5  # barycenter
+            s100_object['BathymetryCoverage'].attrs['interpolationType'] = 1  # nearest neighbor
 
-            res_lat = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['gridSpacingLatitudinal']
-            res_lon = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['gridSpacingLongitudinal']
-            s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['northBoundLatitude'] += res_lat / 2
-            s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['southBoundLatitude'] -= res_lat / 2
-            s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['westBoundLongitude'] += res_lon / 2
-            s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['eastBoundLongitude'] -= res_lon / 2
-            s100_object.attrs['northBoundLatitude'] = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['northBoundLatitude']
-            s100_object.attrs['southBoundLatitude'] = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['southBoundLatitude']
-            s100_object.attrs['westBoundLongitude'] = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['westBoundLongitude']
-            s100_object.attrs['eastBoundLongitude'] = s100_object.attrs['BathymetryCoverage']['BathymetryCoverage.01']['eastBoundLongitude']
+            res_lat = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['gridSpacingLatitudinal']
+            res_lon = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['gridSpacingLongitudinal']
+            s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['northBoundLatitude'] += res_lat / 2
+            s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['southBoundLatitude'] -= res_lat / 2
+            s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['westBoundLongitude'] += res_lon / 2
+            s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['eastBoundLongitude'] -= res_lon / 2
+            s100_object.attrs['northBoundLatitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['northBoundLatitude']
+            s100_object.attrs['southBoundLatitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['southBoundLatitude']
+            s100_object.attrs['westBoundLongitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['westBoundLongitude']
+            s100_object.attrs['eastBoundLongitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['eastBoundLongitude']
+            s100_object["Group_F"]["BathymetryCoverage"][1][5] = 0
+            s100_object["Group_F"]["BathymetryCoverage"][1][6] = ""
+            s100_object["Group_F"]["BathymetryCoverage"][1][7] = "goSemiInterval"
+
             try:
                 s100_object.move('QualityOfSurvey', "QualityOfBathymetryCoverage")
+                s100_object["QualityOfBathymetryCoverage"].move('QualityOfSurvey.01', "QualityOfBathymetryCoverage.01")
             except ValueError:  # QualityOfSurvey doesn't exist
                 pass
-            # How to modify parts of the array?
-            s100_object.attrs["Group_F"]["BathymetryCoverage"][1][5] = 0
-            s100_object.attrs["Group_F"]["BathymetryCoverage"][1][6] = ""
-            s100_object.attrs["Group_F"]["BathymetryCoverage"][1][7] = "goSemiInterval"
-            s100_object.attrs["Group_F"]["QualityOfBathymetryCoverage"][0][0] = "iD"  # they changed from id
-            s100_object.attrs["Group_F"]["QualityOfBathymetryCoverage"][0][1] = "ID"  # had been blank
-            raise NotImplementedError("bathymetricUncertaintyType to typeOfBathymetricEstimationUncertainty in the FeatureAttributeRecord (RasterAttributeTable)")
+            else:  # QualityOfSurvey exists
+                raise NotImplementedError("Need to change the GroupF Quality of Survey object to QualityOfBathymetryCoverage")
+                s100_object["Group_F"]["QualityOfBathymetryCoverage"][0][0] = "iD"  # they changed from id
+                s100_object["Group_F"]["QualityOfBathymetryCoverage"][0][1] = "ID"  # had been blank
+                orig_dset = s100_object['QualityOfSurvey']['featureAttributeTable']
+                orig_dtype = orig_dset.dtype
+
+                # Define new dtype with renamed column
+                new_dtype = numpy.dtype([
+                    ('typeOfBathymetricEstimationUncertainty', orig_dtype['bathymetricUncertaintyType'].dtype),
+                    *[(name, dt) for name, dt in orig_dtype.descr if name != 'bathymetricUncertaintyType']
+                ])
+
+                # Create new compound array with copied data
+                new_data = numpy.empty(orig_dset.shape, dtype=new_dtype)
+                new_data['typeOfBathymetricEstimationUncertainty'] = orig_dset['bathymetricUncertaintyType']
+                for name in orig_dtype.names:
+                    if name != 'bathymetricUncertaintyType':
+                        new_data[name] = orig_dset[name]
+
+                # Save existing attributes
+                attrs = dict(orig_dset.attrs)
+
+                # Delete and replace dataset
+                del s100_object['typeOfBathymetricEstimationUncertainty']
+                new_dset = s100_object.create_dataset('typeOfBathymetricEstimationUncertainty', data=new_data)
+
+                # Restore attributes  -- this may not retain datatypes properly (but there are not attributes in featureAttributeTable
+                for key, value in attrs.items():
+                    new_dset.attrs[key] = value
+
+
+
 
             # # Update horizontal CRS
             # del s100_object.attrs['horizontalDatumReference']

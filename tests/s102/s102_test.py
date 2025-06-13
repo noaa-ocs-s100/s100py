@@ -14,6 +14,7 @@ from s100py.s102 import v2_0
 from s100py.s102 import v2_1
 from s100py.s102 import v2_2
 from s100py.s102 import v3_0
+latest = v3_0
 
 local_path = pathlib.Path(__file__).parent
 
@@ -292,6 +293,7 @@ def test_rat(s102, tif_with_rat_name, output_with_rat_path):
     new_s102 = s102.from_gdal(tif_with_rat_name, output_with_rat_path, metadata=metadata, flip_z=True)
     check_s102_rat_data(s102, new_s102)
     new_s102.to_geotiff(local_path.joinpath("test_rat.tif"))
+    upgraded = latest.api.S102File.upgrade(output_with_rat_path)
 
 
 def test_edition3_changes(s102, bagname, output_path):
