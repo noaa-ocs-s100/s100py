@@ -32,7 +32,7 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s102"
 
-from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype, make_enum_dtype
+from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype, make_enum_dtype, change_attr_type
 from ...s100.v5_0.api import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, VertexPoint, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, InterpolationType, \
@@ -2149,12 +2149,6 @@ class S102File(S100File):
             s100_object.attrs.create('horizontalCRS', s100_object.attrs['horizontalDatumValue'], dtype=numpy.int32)
             del s100_object.attrs['horizontalDatumValue']
 
-            def change_attr_type(obj, name, new_type):
-                """Convenience function to change the type of an attribute which happened a lot in v2.2"""
-                if name in obj.attrs:
-                    temp = obj.attrs[name]
-                    del obj.attrs[name]
-                    obj.attrs.create(name, temp, dtype=new_type)
             for name in ['westBoundLongitude', 'eastBoundLongitude', 'southBoundLatitude', 'northBoundLatitude']:
                 change_attr_type(s100_object, name, numpy.float32)
                 change_attr_type(s100_object['BathymetryCoverage']['BathymetryCoverage.01'], name, numpy.float32)

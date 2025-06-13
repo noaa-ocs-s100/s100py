@@ -1095,6 +1095,58 @@ class S1XXFile(h5py.File):
                     print("    " * indent + "dtype not understood")
 
 
+def change_attr_type(obj, name, new_type):
+    """Convenience function to change the type of an attribute which happened a lot in S102 v2.2"""
+    if name in obj.attrs:
+        temp = obj.attrs[name]
+        del obj.attrs[name]
+        obj.attrs.create(name, temp, dtype=new_type)
+
+
+def rename_compound_field(hdf_object, dataset_name, old_field, new_field):
+    """ Revise the name of a field in a compound dataset.  This happened in S102 v2.2 to v3.0 at least.
+    Parameters
+    ----------
+    hdf_object
+    dataset_name
+    old_field
+    new_field
+
+    Returns
+    -------
+
+    """
+    orig_dset = hdf_object[dataset_name]
+    orig_dtype = orig_dset.dtype
+
+    if old_field not in orig_dtype.names:
+        raise ValueError(f"Field '{old_field}' not found in dataset '{dataset_name}'.")
+
+    # Create new dtype with the renamed field
+    new_dtype = numpy.dtype([
+        (new_field if name == old_field else name, orig_dset.dtype[name])
+        for name in orig_dtype.names
+    ])
+
+    # Prepare new data array
+    new_data = numpy.empty(orig_dset.shape, dtype=new_dtype)
+    for name in orig_dtype.names:
+        new_name = new_field if name == old_field else name
+        new_data[new_name] = orig_dset[name]
+
+    # Backup attributes and their original types
+    attrs = {key: value for key, value in orig_dset.attrs.items()}
+
+    # Replace the dataset
+    del hdf_object[dataset_name]
+    new_dset = hdf_object.create_dataset(dataset_name, data=new_data)
+
+    # Restore attributes with original values and types
+    for key, value in attrs.items():
+        new_dset.attrs[key] = value  # h5py will preserve type automatically
+
+    print(f"Field '{old_field}' successfully renamed to '{new_field}' in dataset '{dataset_name}', with all attributes preserved.")
+
 # def S1XXFile(name, *args, version=4.0, **kwargs):
 #     obj = None
 #     if version == 4.0:

@@ -2310,82 +2310,14 @@ class S102File(S100File):
             try:
                 s100_object.move('QualityOfSurvey', "QualityOfBathymetryCoverage")
                 s100_object["QualityOfBathymetryCoverage"].move('QualityOfSurvey.01', "QualityOfBathymetryCoverage.01")
+                s100_object["Group_F"].move('QualityOfSurvey', "QualityOfBathymetryCoverage")
             except ValueError:  # QualityOfSurvey doesn't exist
                 pass
             else:  # QualityOfSurvey exists
-                raise NotImplementedError("Need to change the GroupF Quality of Survey object to QualityOfBathymetryCoverage")
                 s100_object["Group_F"]["QualityOfBathymetryCoverage"][0][0] = "iD"  # they changed from id
                 s100_object["Group_F"]["QualityOfBathymetryCoverage"][0][1] = "ID"  # had been blank
-                orig_dset = s100_object['QualityOfSurvey']['featureAttributeTable']
-                orig_dtype = orig_dset.dtype
+                rename_compound_field(s100_object['QualityOfBathymetryCoverage'], 'featureAttributeTable', 'bathymetricUncertaintyType', 'typeOfBathymetricEstimationUncertainty')
 
-                # Define new dtype with renamed column
-                new_dtype = numpy.dtype([
-                    ('typeOfBathymetricEstimationUncertainty', orig_dtype['bathymetricUncertaintyType'].dtype),
-                    *[(name, dt) for name, dt in orig_dtype.descr if name != 'bathymetricUncertaintyType']
-                ])
-
-                # Create new compound array with copied data
-                new_data = numpy.empty(orig_dset.shape, dtype=new_dtype)
-                new_data['typeOfBathymetricEstimationUncertainty'] = orig_dset['bathymetricUncertaintyType']
-                for name in orig_dtype.names:
-                    if name != 'bathymetricUncertaintyType':
-                        new_data[name] = orig_dset[name]
-
-                # Save existing attributes
-                attrs = dict(orig_dset.attrs)
-
-                # Delete and replace dataset
-                del s100_object['typeOfBathymetricEstimationUncertainty']
-                new_dset = s100_object.create_dataset('typeOfBathymetricEstimationUncertainty', data=new_data)
-
-                # Restore attributes  -- this may not retain datatypes properly (but there are not attributes in featureAttributeTable
-                for key, value in attrs.items():
-                    new_dset.attrs[key] = value
-
-
-
-
-            # # Update horizontal CRS
-            # del s100_object.attrs['horizontalDatumReference']
-            # s100_object.attrs.create('horizontalCRS', s100_object.attrs['horizontalDatumValue'], dtype=numpy.int32)
-            # del s100_object.attrs['horizontalDatumValue']
-            #
-            # def change_attr_type(obj, name, new_type):
-            #     """Convenience function to change the type of an attribute which happened a lot in v2.2"""
-            #     if name in obj.attrs:
-            #         temp = obj.attrs[name]
-            #         del obj.attrs[name]
-            #         obj.attrs.create(name, temp, dtype=new_type)
-            # for name in ['westBoundLongitude', 'eastBoundLongitude', 'southBoundLatitude', 'northBoundLatitude']:
-            #     change_attr_type(s100_object, name, numpy.float32)
-            #     change_attr_type(s100_object['BathymetryCoverage']['BathymetryCoverage.01'], name, numpy.float32)
-            # change_attr_type(s100_object['BathymetryCoverage'], 'dimension', numpy.uint8)
-            # change_attr_type(s100_object['BathymetryCoverage'], 'horizontalPositionUncertainty', numpy.float32)
-            # change_attr_type(s100_object['BathymetryCoverage'], 'verticalUncertainty', numpy.float32)
-            # change_attr_type(s100_object['BathymetryCoverage'], 'numInstances', numpy.uint8)
-            # try:
-            #     # This was a mistake in s100py created data.
-            #     del s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['extentTypeCode']
-            # except KeyError:
-            #     pass
-            # change_attr_type(s100_object['BathymetryCoverage']['BathymetryCoverage.01'], 'numGRP', numpy.uint8)
-            # # Update the vertical CRS
-            # s100_object.attrs.create('verticalCS', 6498, dtype=numpy.int32)
-            # s100_object.attrs.create('verticalCoordinateBase', 2, dtype=make_enum_dtype(VERTICAL_COORDINATE_BASE))
-            # try:
-            #     # This was a mistake in s100py created data.
-            #     del s100_object['BathymetryCoverage']['BathymetryCoverage.01']['Group_001'].attrs['dimension']
-            # except KeyError:
-            #     pass
-            # # changes min/max values to single precision.
-            # for name in ['maximumDepth', 'maximumUncertainty', 'minimumDepth', 'minimumUncertainty']:
-            #     change_attr_type(s100_object['BathymetryCoverage']['BathymetryCoverage.01']['Group_001'], name, numpy.float32)
-            # try:
-            #     # This was a mistake in s100py created data.
-            #     del s100_object['BathymetryCoverage']['BathymetryCoverage.01']['Group_001']['extent']
-            # except KeyError:
-            #     pass
 
     def to_geotiff(self, output_path: (str, pathlib.Path), creation_options: list=None):
         """ Creates a GeoTIFF file from the S102File object.
