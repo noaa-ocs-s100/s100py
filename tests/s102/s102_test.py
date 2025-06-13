@@ -126,6 +126,7 @@ def check_s102_data(s102, s102obj):
     # depending on if the z is positive up or down the min depth can be 68.4 or 36.1, using min avoids the 1000000 nodata value
     assert numpy.min(group.values.depth) == pytest.approx(-68.44306, 0.0001) or numpy.min(group.values.depth) == pytest.approx(36.18454, 0.0001)
     assert numpy.min(s102obj.depth) == pytest.approx(-68.44306, 0.0001) or numpy.min(s102obj.depth) == pytest.approx(36.18454, 0.0001)
+    check_s102_optional_data(s102, s102obj)
 
 
 def check_s102_rat_data(s102, s102obj):
@@ -168,6 +169,20 @@ def check_s102_rat_data(s102, s102obj):
         assert numpy.min(qgroup.values) == 0
         assert numpy.max(qgroup.values) == 1188907
         assert numpy.min(qgroup.values[qgroup.values > 0]) == 11134
+    check_s102_optional_data(s102, s102obj)
+
+
+def check_s102_optional_data(s102, s102obj):
+    if s102.api.EDITION < 3.0:
+        qual_name = "QualityOfSurvey"
+    else:
+        qual_name = "QualityOfBathymetryCoverage"
+    if qual_name in s102obj.keys():
+        assert f"{qual_name}.01" in s102obj[qual_name].keys()  # must have feature instance QualityOfBathymetryCoverage.01
+        assert qual_name in s102obj['Group_F'].keys()  # must have the Group_F entry
+    else:
+        with pytest.raises(KeyError):
+            s102obj['Group_F'].attrs[qual_name]
 
 
 def test_make_from_gdal(s102, bagname, output_path):

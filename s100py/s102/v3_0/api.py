@@ -32,7 +32,8 @@ try:
 except:  # fake out sphinx and autodoc which are loading the module directly and losing the namespace
     __package__ = "s100py.s102"
 
-from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype, make_enum_dtype
+from ...s1xx import s1xx_sequence, S1xxObject, S1xxCollection, S1xxGridsBase, S1XXFile, h5py_string_dtype, make_enum_dtype, \
+    change_attr_type, rename_compound_field
 from ...s100.v5_2.api import S100File, GridCoordinate, DirectPosition, GridEnvelope, SequenceRule, ValuesGroup, \
     FeatureInformation, FeatureInformationDataset, FeatureContainerDCF2, S100Root, S100Exception, FeatureInstanceDCF2, GroupFBase, \
     CommonPointRule, FeatureInstanceDCF9, FeatureContainerDCF9, S1xxDatasetBase, InterpolationType, VerticalDatumAttributes, \
@@ -207,7 +208,7 @@ class BathymetryValues(S1xxGridsBase):
         return [self.depth_dtype, self.uncertainty_dtype]
 
 
-# v2.1 Chagne to .01 from .001
+# v2.1 Change to .01 from .001
 # v2.1 removed min/max display scale mixin
 class BathymetryCoverage(ValuesGroup):
     """ This is the "Values" Group.NNN object that contains the grid data in a values dataset and other metadata about the grids.
@@ -223,38 +224,6 @@ class BathymetryCoverage(ValuesGroup):
     __maximum_depth_hdf_name__ = "maximumDepth"  #: HDF5 naming
     __minimum_uncertainty_hdf_name__ = "minimumUncertainty"  #: HDF5 naming
     __maximum_uncertainty_hdf_name__ = "maximumUncertainty"  #: HDF5 naming
-
-    @property
-    def values(self) -> BathymetryValues:
-        """ The grids for depth and uncertainty.
-
-        4.2.1.1.2.1 S102_BathymetryValues semantics
-
-        The class S102_BathymetryValues is related to BathymetryCoverage by a composition relationship in which an ordered sequence
-        of depth values provide data values for each grid cell.
-        The class S102_BathymetryValues inherits from S100_Grid
-
-        4.2.1.1.2.2 values
-
-        The attribute values has the value type S102_BathymetryValueRecord which is
-         a sequence of value items that shall assign values to the grid points.
-        There are two attributes in the bathymetry value record, depth and uncertainty in the S102_BathymetryValues class.
-        The definition for the depth is defined by the depthCorrectionType attribute in the S102_DataIdentification class.
-        The definition of the type of data in the values record is defined by the verticalUncertaintyType attribute
-        in the S102_DataIdentification class
-
-        S100 v5.0
-        8-6.2.8 Grid cell structure S-100 utilizes the same view of grid cell structure as Section 8.2.2 of ISO 19123.
-        The grid data in S-100 grid coverages are nominally situated exactly at the grid points defined by the grid coordinates.
-        The grid points are therefore the “sample points.” Data values at a sample point represent measurements over a neighbourhood of the sample point.
-        This neighbourhood is assumed to extend a half-cell in each dimension.
-        The effect is that the sample space corresponding to each grid point is a cell centred at the grid point.
-        """
-        return self._attributes[self.__values_hdf_name__]
-
-    # @values.setter
-    # def values(self, val: BathymetryValues):
-    #     self._attributes[self.__values_hdf_name__] = val
 
     @property
     def __values_type__(self) -> Type[BathymetryValues]:
@@ -374,6 +343,31 @@ class BathymetryCoverage(ValuesGroup):
         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init
         self.time_point = "00010101T000000Z"  # fill value
+
+BathymetryCoverage.values.__doc__ = """ The grids for depth and uncertainty.
+
+        4.2.1.1.2.1 S102_BathymetryValues semantics
+
+        The class S102_BathymetryValues is related to BathymetryCoverage by a composition relationship in which an ordered sequence
+        of depth values provide data values for each grid cell.
+        The class S102_BathymetryValues inherits from S100_Grid
+
+        4.2.1.1.2.2 values
+
+        The attribute values has the value type S102_BathymetryValueRecord which is
+         a sequence of value items that shall assign values to the grid points.
+        There are two attributes in the bathymetry value record, depth and uncertainty in the S102_BathymetryValues class.
+        The definition for the depth is defined by the depthCorrectionType attribute in the S102_DataIdentification class.
+        The definition of the type of data in the values record is defined by the verticalUncertaintyType attribute
+        in the S102_DataIdentification class
+
+        S100 v5.0
+        8-6.2.8 Grid cell structure S-100 utilizes the same view of grid cell structure as Section 8.2.2 of ISO 19123.
+        The grid data in S-100 grid coverages are nominally situated exactly at the grid points defined by the grid coordinates.
+        The grid points are therefore the “sample points.” Data values at a sample point represent measurements over a neighbourhood of the sample point.
+        This neighbourhood is assumed to extend a half-cell in each dimension.
+        The effect is that the sample space corresponding to each grid point is a cell centred at the grid point.
+        """
 
 # v2.1 change to Group_001  "." to "_"
 class BathymetryGroupList(S102MetadataListBase):
@@ -1417,6 +1411,23 @@ class S102File(S100File):
         if 'root' not in kywrds:
             kywrds['root'] = S102Root  # inherited classes will specify their own root type
         super().__init__(name, *args, **kywrds)
+
+    def write(self):
+        super().write()
+        # If there is no quality of bathymetry coverage then we will remove the QualityOfBathymetryCoverage items from the file
+        # but not the memory object in case it gets added later by the caller
+        try:
+            self[QUALITY_OF_BATHYMETRY]
+            self[QUALITY_OF_BATHYMETRY][QUALITY_OF_BATHYMETRY+".01"]
+        except KeyError:
+            try:
+                del self[QUALITY_OF_BATHYMETRY]  # remove the quality of bathymetry coverage if it doesn't exist
+            except KeyError:
+                pass
+            try:
+                del self['Group_F'][QUALITY_OF_BATHYMETRY]  # remove the Group_F if it doesn't exist
+            except KeyError:
+                pass
 
     @property
     def z_down(self) -> bool:  # reverse Z direction
