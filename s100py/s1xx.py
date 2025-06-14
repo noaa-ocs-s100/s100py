@@ -1016,6 +1016,11 @@ class S1xxGridsBase(S1xxWritesGroupObjects):
         # rec_array = numpy.array(write_array, dtype=[(name, 'f4') for name in write_keys])
         rec_array = np_core.records.fromarrays(write_array, dtype=[(name, dtype) for name, dtype in zip(write_keys, write_compound_dtype)])
         opts = dataset_compression_params(rec_array)  # chunks=True, compression='gzip', compression_opts=9
+        if self.metadata_name in group_object:
+            try:
+                del group_object[self.metadata_name]
+            except KeyError:
+                pass
         dataset = group_object.create_dataset(self.metadata_name, data=rec_array, **opts)
         #         # noinspection PyAttributeOutsideInit
         # pylint: disable=attribute-defined-outside-init

@@ -210,6 +210,20 @@ def test_make_from_bag(s102, bagname, output_path):
     check_s102_data(s102, new_s102)
 
 
+def test_no_uncertainty(s102, bagname, output_path):
+    remove_file(output_path)
+    # the sample data is in NAD83 so does not meet spec - test that it's caught
+    pytest.raises(s102.S102Exception, s102.from_bag, *(bagname, output_path))
+
+    # override the metadata for the datum to WGS84 zone 10N and go from there
+    metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+    new_s102 = s102.from_bag(bagname, output_path, metadata=metadata)
+    assert new_s102['Group_F']['BathymetryCoverage'].shape[0] == 2
+    del new_s102.root.bathymetry_coverage.bathymetry_coverage[0].bathymetry_group[0].values.uncertainty
+    new_s102.write()
+    assert new_s102['Group_F']['BathymetryCoverage'].shape[0] == 1
+
+
 def test_read_s102(s102, output_path):
     s102_read_test = s102.S102File(output_path, "r")
     check_s102_data(s102, s102_read_test)

@@ -205,7 +205,10 @@ class BathymetryValues(S1xxGridsBase):
         return ret
 
     def get_compound_dtype(self):
-        return [self.depth_dtype, self.uncertainty_dtype]
+        ret = [self.depth_dtype]
+        if self.__uncertainty_hdf_name__ in self._attributes:
+            ret.append(self.uncertainty_dtype)
+        return ret
 
 
 # v2.1 Change to .01 from .001
@@ -1428,6 +1431,28 @@ class S102File(S100File):
                 del self['Group_F'][QUALITY_OF_BATHYMETRY]  # remove the Group_F if it doesn't exist
             except KeyError:
                 pass
+        # If there is no uncertainty layer in the BathymetryCoverage then we will remove the uncertainty items from the Group_F
+        if len(self[BATHY_COVERAGE][BATHY_COVERAGE+".01"]["Group_001"]['values'].dtype) == 1:
+            dset = self["Group_F"][BATHY_COVERAGE]
+            dtype = dset.dtype
+            data = dset[:]
+
+            # Assume we want to match against the first field which is CODE in S102
+            first_field = dtype.names[0]
+            mask = data[first_field] != b"uncertainty"  # Filter out rows where the first field is "uncertainty"
+            filtered_data = data[mask]
+
+            if filtered_data.shape[0] != data.shape[0]:
+                # Preserve attributes
+                attrs = dict(dset.attrs)
+
+                # Delete old dataset and create new one
+                del self["Group_F"][BATHY_COVERAGE]
+                new_dset = self["Group_F"].create_dataset(BATHY_COVERAGE, data=filtered_data)
+
+                # Restore attributes with original types
+                for key, value in attrs.items():
+                    new_dset.attrs[key] = value    @property
 
     @property
     def z_down(self) -> bool:  # reverse Z direction
