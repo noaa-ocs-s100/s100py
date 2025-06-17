@@ -1493,7 +1493,10 @@ class S102File(S100File):
         bathy_group_object = bathy_01.bathymetry_group[0]
         grid = bathy_group_object.values
         depth_grid = grid.depth
-        uncert_grid = grid.uncertainty
+        try:
+            uncert_grid = grid.uncertainty
+        except KeyError:
+            uncert_grid = None
         origin = numpy.array([bathy_01.grid_origin_longitude, bathy_01.grid_origin_latitude])
         res_x = bathy_01.grid_spacing_longitudinal
         res_y = bathy_01.grid_spacing_latitudinal
@@ -1524,7 +1527,10 @@ class S102File(S100File):
                 end_col = col_indices[c+1]
                 local_origin = origin + numpy.array([start_col, start_row]) * res
                 sub_depth_grid = depth_grid[start_row:end_row, start_col:end_col]
-                sub_uncert_grid = uncert_grid[start_row:end_row, start_col:end_col]
+                if uncert_grid is not None:
+                    sub_uncert_grid = uncert_grid[start_row:end_row, start_col:end_col]
+                else:
+                    sub_uncert_grid = None
                 # just set the origin and res for the load_arrays_with_metadata
                 # this will reset the coordinates and min/max automatically
                 # but use overwrite=False since we want to maintain the original file's spatial reference, dates etc.
@@ -1836,9 +1842,7 @@ class S102File(S100File):
 
         # @todo @fixme fix here -- row/column order?
         rows, cols = depth_grid.shape
-        if uncert_grid is None:
-            uncert_grid = numpy.full(depth_grid.shape, nodata_value, dtype=numpy.float32)
-        if depth_grid.shape != uncert_grid.shape:
+        if uncert_grid is not None and depth_grid.shape != uncert_grid.shape:
             raise S102Exception("Depth and Uncertainty grids have different shapes")
 
         if quality_grid is not None:
@@ -1888,12 +1892,14 @@ class S102File(S100File):
         #   Slower but saves resources
         if flip_x:
             depth_grid = numpy.fliplr(depth_grid)
-            uncert_grid = numpy.fliplr(uncert_grid)
+            if uncert_grid is not None:
+                uncert_grid = numpy.fliplr(uncert_grid)
             if quality_grid is not None:
                 quality_grid = numpy.fliplr(quality_grid)
         if flip_y:
             depth_grid = numpy.flipud(depth_grid)
-            uncert_grid = numpy.flipud(uncert_grid)
+            if uncert_grid is not None:
+                uncert_grid = numpy.flipud(uncert_grid)
             if quality_grid is not None:
                 quality_grid = numpy.flipud(quality_grid)
 
@@ -1902,14 +1908,16 @@ class S102File(S100File):
         depth_mask = None
         uncert_mask = None
         fill_value = root.feature_information.bathymetry_coverage_dataset[0].fill_value
-        uncert_fill_value = root.feature_information.bathymetry_coverage_dataset[1].fill_value
+        if uncert_grid is not None:
+            uncert_fill_value = root.feature_information.bathymetry_coverage_dataset[1].fill_value
 
         # Numpy comparison using NaN doesn't work (must use isnan function)
         # so check for NaN first and convert everything to a non-NaN (S102 uses 1000000)
         if numpy.isnan(nodata_value):  # if the nodata value is nan then use the fill value from the dataset
             if not numpy.isnan(fill_value):  # if fill value isn't also NaN then use it
                 depth_mask = numpy.isnan(depth_grid)
-                uncert_mask = numpy.isnan(uncert_grid)
+                if uncert_grid is not None:
+                    uncert_mask = numpy.isnan(uncert_grid)
                 if quality_grid is not None:
                     quality_mask = numpy.isnan(quality_grid)
         # the fill value is nan and nodata wasn't OR
@@ -1917,14 +1925,16 @@ class S102File(S100File):
         elif numpy.isnan(fill_value) or \
             nodata_value != fill_value:
             depth_mask = depth_grid == nodata_value
-            uncert_mask = uncert_grid == nodata_value
+            if uncert_grid is not None:
+                uncert_mask = uncert_grid == nodata_value
             if quality_grid is not None:
                 quality_mask = quality_grid == nodata_value
         if depth_mask is not None:
             depth_grid = numpy.copy(depth_grid)
             depth_grid[depth_mask] = fill_value
-            uncert_grid = numpy.copy(uncert_grid)
-            uncert_grid[uncert_mask] = uncert_fill_value
+            if uncert_grid is not None:
+                uncert_grid = numpy.copy(uncert_grid)
+                uncert_grid[uncert_mask] = uncert_fill_value
             if quality_grid is not None:
                 quality_grid = numpy.copy(quality_grid)
                 quality_grid[quality_mask] = root.feature_information.quality_of_bathymetry_coverage_dataset[0].fill_value  # will be zero per spec
@@ -1941,17 +1951,23 @@ class S102File(S100File):
         bathy_group_object.maximum_depth = depth_max
         bathy_group_object.minimum_depth = depth_min
 
-        try:
-            uncertainty_max = uncert_grid[uncert_grid != uncert_fill_value].max()
-            uncertainty_min = uncert_grid[uncert_grid != uncert_fill_value].min()
-        except ValueError:  # an empty uncertainty array (all values == nodata) will cause this
-            uncertainty_max = uncertainty_min = nodata_value
-        bathy_group_object.minimum_uncertainty = uncertainty_min
-        bathy_group_object.maximum_uncertainty = uncertainty_max
+        if uncert_grid is not None:
+            try:
+                uncertainty_max = uncert_grid[uncert_grid != uncert_fill_value].max()
+                uncertainty_min = uncert_grid[uncert_grid != uncert_fill_value].min()
+            except ValueError:  # an empty uncertainty array (all values == nodata) will cause this
+                uncertainty_max = uncertainty_min = nodata_value
+            bathy_group_object.minimum_uncertainty = uncertainty_min
+            bathy_group_object.maximum_uncertainty = uncertainty_max
+            grid.uncertainty = uncert_grid
+        else:
+            try:
+                del grid.uncertainty  # remove the uncertainty if it is not present
+            except KeyError:
+                pass
 
 
         grid.depth = depth_grid
-        grid.uncertainty = uncert_grid
         if quality_grid is not None:
             # there are no metadata attributes (min/max) for QualityOfBathymetryCoverage Group_001 - see 10.2.10
             quality_group_object.values_create()
