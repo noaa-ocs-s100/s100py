@@ -1452,7 +1452,7 @@ class S102File(S100File):
 
                 # Restore attributes with original types
                 for key, value in attrs.items():
-                    new_dset.attrs[key] = value    @property
+                    new_dset.attrs[key] = value
 
     @property
     def z_down(self) -> bool:  # reverse Z direction
@@ -2135,7 +2135,7 @@ class S102File(S100File):
         self.flush()
 
     @classmethod
-    def from_raster(cls, input_raster, output_file, metadata: dict = None, flip_z=False) -> S102File:  # gdal instance or filename accepted
+    def from_raster(cls, input_raster, output_file, metadata: dict = None, flip_z=False, replace_rat_ids=None) -> S102File:  # gdal instance or filename accepted
         """  Fills or creates an :any:`S102File` from the given arguments.
         Assumes that depth is in band 1, uncertainty is in band 2, quality is in band 3.
 
@@ -2147,12 +2147,12 @@ class S102File(S100File):
             Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
         """
         data_file = cls.create_s102(output_file)
-        data_file.load_gdal(input_raster, metadata=metadata, flip_z=flip_z)
+        data_file.load_gdal(input_raster, metadata=metadata, flip_z=flip_z, replace_rat_ids=replace_rat_ids)
         return data_file
 
     from_gdal = from_raster  # alias
 
-    def load_gdal(self, input_raster, metadata: dict = None, flip_z=False):  # gdal instance or filename accepted
+    def load_gdal(self, input_raster, metadata: dict = None, flip_z=False, replace_rat_ids=None):  # gdal instance or filename accepted
         """ Fills or creates an :any:`S102File` from the given arguments.
 
         Parameters
@@ -2167,7 +2167,9 @@ class S102File(S100File):
             would override the values that would have been populated based on the GDAL data.
 
             horizontalDatumReference, horizontalDatumValue, origin, res will be determined from GDAL if not otherwise specified.
-
+        replace_rat_ids
+            A dictionary of RAT IDs to replace in the QualityOfBathymetryCoverage table.
+            Replace the key with the value, e.g. {1: 100, 2: 200} would replace ID 1 with 100 and ID 2 with 200.
         Returns
         -------
         S102File
@@ -2177,6 +2179,8 @@ class S102File(S100File):
             metadata = {}
         else:
             metadata = metadata.copy()
+        if replace_rat_ids is None:
+            replace_rat_ids = {}
 
         if isinstance(input_raster, gdal.Dataset):
             dataset = input_raster
@@ -2225,6 +2229,8 @@ class S102File(S100File):
         if dataset.RasterCount > 2:
             quality_band = dataset.GetRasterBand(3)
             qual_data = quality_band.ReadAsArray()
+            for k, v in replace_rat_ids.items():
+                qual_data[qual_data == k] = v  # replace the RAT IDs in the quality data
         else:
             qual_data = None
         # Fill the QualityOfBathymetryCoverage table
@@ -2232,10 +2238,10 @@ class S102File(S100File):
             table = self.root.quality_of_bathymetry_coverage.feature_attribute_table
             rat = quality_band.GetDefaultRAT()
             column_map = {rat.GetNameOfCol(ncol):ncol for ncol in range(rat.GetColumnCount())}
-
             for nrow in range(rat.GetRowCount()):
                 rec = table.append_new_item()
-                rec.id = rat.GetValueAsInt(nrow, column_map['value'])
+                raw_id = rat.GetValueAsInt(nrow, column_map['value'])
+                rec.id = replace_rat_ids.get(raw_id, raw_id)
                 rec.data_assessment = rat.GetValueAsInt(nrow, column_map['data_assessment'])
                 rec.least_depth_of_detected_features_measured = rat.GetValueAsInt(nrow, column_map['feature_least_depth'])
                 rec.significant_features_detected = rat.GetValueAsInt(nrow, column_map['significant_features'])
