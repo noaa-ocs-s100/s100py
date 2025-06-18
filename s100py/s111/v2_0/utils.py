@@ -9,7 +9,7 @@ import warnings
 from typing import Union, Optional
 
 from ...s1xx import s1xx_sequence
-from .api import S111File, FILLVALUE, S111Exception, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE
+from .api import S111File, FILLVALUE_CURRENTS, FILLVALUE_UNCERTAINTY, S111Exception, VERTICAL_DATUM, VERTICAL_DATUM_REFERENCE
 
 
 def _get_S111File(output_file):
@@ -149,14 +149,6 @@ def add_metadata(metadata: dict, data_file) -> S111File:
 
     surface_current_feature_instance_01.surface_current_group_create()
 
-    surface_current_feature_instance_01.uncertainty_dataset_create()
-    speed_uncertainty = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
-    speed_uncertainty.name = "surfaceCurrentSpeed"
-    speed_uncertainty.value = metadata["speedUncertainty"]
-    direction_uncertainty = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
-    direction_uncertainty.name = "surfaceCurrentDirection"
-    direction_uncertainty.value = metadata["directionUncertainty"]
-
     surface_current_feature.min_dataset_current_speed = 0
     surface_current_feature.max_dataset_current_speed = 0
     surface_current_feature_instance_01.time_record_interval = 0
@@ -244,7 +236,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
 
 def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_file,
                          grid_properties: dict, datetime_value, data_coding_format,
-                         speed_uncertainty: Optional[s1xx_sequence]=None, direction_uncertainty: Optional[s1xx_sequence]=None ) -> S111File:
+                         speed_uncertainty = FILLVALUE_UNCERTAINTY, direction_uncertainty = FILLVALUE_UNCERTAINTY ) -> S111File:
     """  Updates an S111File object based on numpy array/h5py datasets.
         Calls :any:`create_s111` then fills in the HDF5 datasets with the supplied speed and direction numpy.arrays.
 
@@ -280,10 +272,10 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
             - 'Ungeorectified gridded arrays': 3,
             - 'Time series data for one moving platform': 4
             - 'Time Series at fixed stations (stationwise)': 8
-        speed_uncertainty (Optional)
-            1d or 2d array containing surface current speed uncertainty.
-        direction_uncertainty (Optional)
-            1d or 2d array containing surface current direction uncertainty.
+        speed_uncertainty
+            Optional 1d or 2d array containing surface current speed uncertainty.
+        direction_uncertainty
+            Optional 1d or 2d array containing surface current direction uncertainty.
 
         Returns
         -------
@@ -295,6 +287,25 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
     root = data_file.root
     surface_current_feature = root.surface_current
     surface_current_feature_instance_01 = root.surface_current.surface_current[0]
+
+    if not isinstance(speed_uncertainty, numpy.ndarray) and isinstance(direction_uncertainty, numpy.ndarray):
+        surface_current_feature_instance_01.uncertainty_dataset_create()
+        speed_uncertainty_item = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+        speed_uncertainty_item.name = "surfaceCurrentSpeed"
+        speed_uncertainty_item.value = speed_uncertainty
+    elif not isinstance(direction_uncertainty, numpy.ndarray) and isinstance(speed_uncertainty, numpy.ndarray):
+        surface_current_feature_instance_01.uncertainty_dataset_create()
+        direction_uncertainty_item = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+        direction_uncertainty_item.name = "surfaceCurrentDirection"
+        direction_uncertainty_item.value = direction_uncertainty
+    elif not isinstance(speed_uncertainty, numpy.ndarray) and not isinstance(direction_uncertainty, numpy.ndarray) :
+        surface_current_feature_instance_01.uncertainty_dataset_create()
+        speed_uncertainty_item = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+        speed_uncertainty_item.name = "surfaceCurrentSpeed"
+        speed_uncertainty_item.value = speed_uncertainty
+        direction_uncertainty_item = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+        direction_uncertainty_item.name = "surfaceCurrentDirection"
+        direction_uncertainty_item.value = direction_uncertainty
 
     if speed.shape != direction.shape:
         raise S111Exception("Speed and Direction grids have different shapes")
@@ -326,28 +337,23 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
     if data_coding_format == 2 or data_coding_format == 3:
         surface_current_feature.interpolation_type = 10
 
-    surface_current_feature_instance_01.east_bound_longitude = grid_properties['maxx']
-    surface_current_feature_instance_01.west_bound_longitude = grid_properties['minx']
-    surface_current_feature_instance_01.south_bound_latitude = grid_properties['miny']
-    surface_current_feature_instance_01.north_bound_latitude = grid_properties['maxy']
-
     surface_current_feature.axis_names = numpy.array(["longitude", "latitude"])
     root.surface_current.dimension = len(surface_current_feature.axis_names)
 
-    min_speed = numpy.min(speed[numpy.where(speed != FILLVALUE)])
-    max_speed = numpy.max(speed[numpy.where(speed != FILLVALUE)])
+    min_speed = numpy.min(speed[numpy.where(speed != FILLVALUE_CURRENTS)])
+    max_speed = numpy.max(speed[numpy.where(speed != FILLVALUE_CURRENTS)])
     surface_current_feature.min_dataset_current_speed = numpy.round(min_speed, decimals=2)
     surface_current_feature.max_dataset_current_speed =  numpy.round(max_speed, decimals=2)
 
-    if min_speed < surface_current_feature.min_dataset_current_speed and min_speed != FILLVALUE:
+    if min_speed < surface_current_feature.min_dataset_current_speed and min_speed != FILLVALUE_CURRENTS:
         surface_current_feature.min_dataset_current_speed = min_speed
 
-    if max_speed > surface_current_feature.max_dataset_current_speed and max_speed != FILLVALUE:
+    if max_speed > surface_current_feature.max_dataset_current_speed and max_speed != FILLVALUE_CURRENTS:
         surface_current_feature.max_dataset_current_speed = max_speed
 
     if numpy.ma.is_masked(speed):
-        speed = speed.filled(FILLVALUE)
-        direction = direction.filled(FILLVALUE)
+        speed = speed.filled(FILLVALUE_CURRENTS)
+        direction = direction.filled(FILLVALUE_CURRENTS)
 
     speed = numpy.round(speed, decimals=2)
     direction = numpy.round(direction, decimals=1)

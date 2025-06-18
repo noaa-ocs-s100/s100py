@@ -182,7 +182,7 @@ Sphinx is not interpreting the enum names properly when there are spaces. The co
 
 # noinspection PyPep8Naming
 class INTERPOLATION_TYPE(Enum):
-    """ S100 v4.0 table 10c-21
+    """ S100 v5.2 Table 8-13 – S100_CV_InterpolationMethod
     Enumeration S100_CV_InterpolationMethod Codes for interpolation methods between known feature attribute
     values associated with geometric objects in the domain of the discrete coverage
     Extension of ISO 19123
@@ -217,10 +217,6 @@ class INTERPOLATION_TYPE(Enum):
     Assign a value computed by using a bicubic function of position within the grid cell
     7 Only quadrilateral grids
 
-    Literal lostarea
-    Assign a value computed by using the lost area method described in ISO 19123
-    8 Only Thiessen polygons
-
     Literal barycentric
     Assign a value computed by using the barycentric method described in ISO 19123
     9 Only TIN
@@ -229,14 +225,17 @@ class INTERPOLATION_TYPE(Enum):
     No interpolation method applies to the coverage
     10
     """
+    # Note: The literals linear, quadratic, and cubic are prohibited since this Edition of S-100 does not
+    # include segmented curve coverages. The lostarea method is also omitted since this applies to
+    # Thiessen polygons which are not used in S-100 Edition 5.2.0.
     nearestneighbor = 1
-    # linear = 2  # these are struck through in the spec
-    # quadratic = 3  # these are struck through in the spec
-    # cubic = 4  # these are struck through in the spec
+    # linear = 2
+    # quadratic = 3
+    # cubic = 4
     bilinear = 5
     biquadratic = 6
     bicubic = 7
-    lostarea = 8
+    # lostarea = 8
     barycentric = 9
     discrete = 10
 

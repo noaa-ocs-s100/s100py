@@ -47,7 +47,8 @@ The allowed values in S-111 are:
 SURFACE_CURRENT = "SurfaceCurrent"
 
 # Default fill value for NetCDF variables
-FILLVALUE = -9999.00
+FILLVALUE_CURRENTS = -9999.00
+FILLVALUE_UNCERTAINTY = -1.0
 
 # Default depth in meters
 DEFAULT_TARGET_DEPTH = 4.5
@@ -829,7 +830,7 @@ class S111File(S100File):
         surface_current_speed_info.name = "Surface Current Speed"
         surface_current_speed_info.unit_of_measure = "knot"
         surface_current_speed_info.datatype = "H5T_FLOAT"
-        surface_current_speed_info.fill_value = f"{FILLVALUE:0.02f}"
+        surface_current_speed_info.fill_value = f"{FILLVALUE_CURRENTS:0.02f}"
         surface_current_speed_info.lower = "0.00"
         surface_current_speed_info.upper = "99.00"
         surface_current_speed_info.closure = "geSemiInterval"
@@ -839,7 +840,7 @@ class S111File(S100File):
         surface_current_direction_info.name = "Surface Current Direction"
         surface_current_direction_info.unit_of_measure = "degree"
         surface_current_direction_info.datatype = "H5T_FLOAT"
-        surface_current_direction_info.fill_value = f"{FILLVALUE:0.01f}"
+        surface_current_direction_info.fill_value = f"{FILLVALUE_CURRENTS:0.01f}"
         surface_current_direction_info.lower = "0.0"
         surface_current_direction_info.upper = "359.9"
         surface_current_direction_info.closure = "closedInterval"
@@ -864,7 +865,7 @@ class S111File(S100File):
         speed_uncertainty_info.name = "Speed Uncertainty"
         speed_uncertainty_info.unit_of_measure = "knot"
         speed_uncertainty_info.datatype = "H5T_FLOAT"
-        speed_uncertainty_info.fill_value = "-1.0"
+        speed_uncertainty_info.fill_value = str(FILLVALUE_UNCERTAINTY)
         speed_uncertainty_info.lower = "0.00"
         speed_uncertainty_info.upper = "99.00"
         speed_uncertainty_info.closure = "geSemiInterval"
@@ -887,10 +888,11 @@ class S111File(S100File):
         direction_uncertainty_info.name = "Direction Uncertainty"
         direction_uncertainty_info.unit_of_measure = "degree"
         direction_uncertainty_info.datatype = "H5T_FLOAT"
-        direction_uncertainty_info.fill_value = "-1.0"
+        direction_uncertainty_info.fill_value = str(FILLVALUE_UNCERTAINTY)
         direction_uncertainty_info.lower = "0.0"
         direction_uncertainty_info.upper = "359.9"
         direction_uncertainty_info.closure = "closedInterval"
+
 
     def __init__(self, *args, **kywrds):
         super().__init__(*args, root=S111Root, **kywrds)
@@ -904,3 +906,4 @@ class S111File(S100File):
         else:
             self.root.surface_current = self.make_container_for_dcf(dcf)
             self.root.surface_current.read(self[container_key])
+

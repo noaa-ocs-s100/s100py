@@ -5919,7 +5919,6 @@ def test_create_s111_dcf2_uncertainty(s111, input_data):
 
         assert 'Group_F/SurfaceCurrent' in h5_file
         assert 'Group_F/featureCode' in h5_file
-        assert 'SurfaceCurrent/SurfaceCurrent.01/uncertainty' in h5_file
         assert 'SurfaceCurrent/axisNames' in h5_file
 
         assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentSpeed'],
@@ -5980,7 +5979,6 @@ def test_create_s111_dcf3_uncertainty(s111, input_data):
 
         assert 'Group_F/SurfaceCurrent' in h5_file
         assert 'Group_F/featureCode' in h5_file
-        assert 'SurfaceCurrent/SurfaceCurrent.01/uncertainty' in h5_file
         assert 'SurfaceCurrent/axisNames' in h5_file
 
         assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentSpeed'],
