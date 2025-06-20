@@ -54,6 +54,7 @@ grid_properties = {
 
 datetime_forecast_issuance = datetime.datetime(2025, 6, 5, 12, 0, 0)
 
+
 datetime_interval = datetime.timedelta(seconds=0)
 
 # Example metadata
@@ -82,20 +83,13 @@ metadata = {
 
 data_coding_format = 2
 
-update_meta = {
-        'dateTimeOfLastRecord': '20250605T130000Z',
-        'numberOfGroups': 1,
-        'numberOfTimes': 1,
-        'timeRecordInterval': 0,
-        'num_instances': 1
-    }
-
 data_file = s111.utils.create_s111("test_s111.h5", 2)
 
 s111.utils.add_metadata(metadata, data_file)
-data_series_time_001 = datetime_forecast_issuance + datetime_interval
+s111.utils.add_surface_current_instance(data_file)
+data_series_time_001 = datetime_forecast_issuance + datetime.timedelta(hours=1)
 s111.utils.add_data_from_arrays(speed, direction, data_file, grid_properties, data_series_time_001, data_coding_format)
-s111.utils.update_metadata(data_file, grid_properties, update_meta)
+s111.utils.update_metadata(data_file, grid_properties, metadata)
 
 s111.utils.write_data_file(data_file)
 ```

@@ -61,33 +61,23 @@ def create_s104(output_file, dcf) -> S104File:
 
     water_level_height_info = water_level_feature_dataset.append_new_item()
     water_level_height_info.code = "waterLevelHeight"
-    water_level_height_info.name = "Water level height"
+    water_level_height_info.name = "Water Level Height"
     water_level_height_info.unit_of_measure = "metre"
     water_level_height_info.datatype = "H5T_FLOAT"
-    water_level_height_info.fill_value = FILLVALUE_HEIGHT
+    water_level_height_info.fill_value = f"{FILLVALUE_HEIGHT:0.02f}"
     water_level_height_info.lower = "-99.99"
     water_level_height_info.upper = "99.99"
     water_level_height_info.closure = "closedInterval"
 
     water_level_trend_info = water_level_feature_dataset.append_new_item()
     water_level_trend_info.code = "waterLevelTrend"
-    water_level_trend_info.name = "Water level trend"
+    water_level_trend_info.name = "Water Level Trend"
     water_level_trend_info.unit_of_measure = ""
     water_level_trend_info.datatype = "H5T_ENUM"
     water_level_trend_info.fill_value = FILLVALUE_TREND
     water_level_trend_info.lower = ""
     water_level_trend_info.upper = ""
     water_level_trend_info.closure = ""
-
-    water_level_time_info = water_level_feature_dataset.append_new_item()
-    water_level_time_info.code = "waterLevelTime"
-    water_level_time_info.name = "Water level time"
-    water_level_time_info.unit_of_measure = "DateTime"
-    water_level_time_info.datatype = "H5T_STRING"
-    water_level_time_info.fill_value = ""
-    water_level_time_info.lower = "19000101T000000Z"
-    water_level_time_info.upper = "21500101T000000Z"
-    water_level_time_info.closure = "closedInterval"
 
     utc_now = datetime.datetime.now(datetime.timezone.utc)
     root.issue_date = utc_now.strftime('%Y%m%d')

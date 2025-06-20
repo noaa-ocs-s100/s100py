@@ -185,12 +185,6 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     root = data_file.root
     water_level_feature = root.water_level
 
-    water_level_feature_instance_01 = water_level_feature.water_level.append_new_item()
-
-    water_level_feature_instance_01.water_level_group_create()
-
-    water_level_feature_instance_01.time_record_interval = 0
-
     utc_now = datetime.datetime.now(datetime.timezone.utc)
 
     try:
@@ -256,22 +250,43 @@ def add_metadata(metadata: dict, data_file) -> S104File:
         if "dataOffsetCode" in metadata:
             water_level_feature.data_offset_code = metadata["dataOffsetCode"]
 
-        # Feature Instance Metadata
-        water_level_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
-        # Additional feature instance metadata
-        water_level_feature_instance_01.data_dynamicity = metadata["dataDynamicity"]
-
     except KeyError as e:
         raise S104Exception(f"Error: Mandatory S-104 attribute {e} not found in the metadata dictionary")
 
     return data_file
 
 
+
+def add_water_level_instance(data_file):
+    """ Adds the water_level object container to the S104File object,
+        a feature instance is created each time the function is called
+        (e.g.`WaterLevel.01`, `WaterLevel.02). A series of feature
+        instances should be implemented in the same dataset for any
+        data collection that varies by extent, location, time, or grid
+        size.
+
+        Parameters
+        ----------
+        data_file
+            S104File object
+
+        Returns
+        -------
+        data_file
+            An S104File object updated by this function.
+    """
+    root = data_file.root
+    water_level_feature = root.water_level
+
+    water_level_feature_instance = water_level_feature.water_level.append_new_item()
+    water_level_feature_instance.water_level_group_create()
+
+
+    return data_file
+
 def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_properties: dict, datetime_value,
                          data_coding_format, uncertainty=None) -> S104File:
-    """  Updates an S104File object based on numpy array/h5py datasets.
-        Calls :any:`create_s104` then fills in the HDF5 datasets with the
-        supplied water level height and trend numpy.arrays.
+    """ Updates an S104File object with the supplied water level height and trend numpy.arrays.
 
         Raises an S104Exception if the shapes of the water level height and
         trend (if not None) grids are not equal.
@@ -307,11 +322,6 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
             inserted into the water level features uncertainty dataset
             and if None an uncertainty dataset will be created with the
             fill value
-        domain_extent_polygon
-            (Optional) Spatial extent of the domain coverage only to be used
-            if different vertical coverages exits, dataset contains coordinates
-            of bounding polygon vertices as a closed ring, the first and last
-            coordinates will contain the same values)
 
         Returns
         -------
@@ -321,32 +331,34 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         """
     root = data_file.root
     water_level_feature = root.water_level
-    water_level_feature_instance_01 = root.water_level.water_level[0]
+
+    feature_instance_object_id = len(root.water_level.water_level) - 1
+    water_level_feature_instance = root.water_level.water_level[feature_instance_object_id]
 
     if isinstance(uncertainty, float):
-        water_level_feature_instance_01.uncertainty_dataset_create()
-        water_level_height_uncertainty = water_level_feature_instance_01.uncertainty_dataset.append_new_item()
+        water_level_feature_instance.uncertainty_dataset_create()
+        water_level_height_uncertainty = water_level_feature_instance.uncertainty_dataset.append_new_item()
         water_level_height_uncertainty.name = "waterLevelHeight"
         water_level_height_uncertainty.value = uncertainty
 
     if uncertainty is None:
-        water_level_feature_instance_01.uncertainty_dataset_create()
-        water_level_height_uncertainty = water_level_feature_instance_01.uncertainty_dataset.append_new_item()
+        water_level_feature_instance.uncertainty_dataset_create()
+        water_level_height_uncertainty = water_level_feature_instance.uncertainty_dataset.append_new_item()
         water_level_height_uncertainty.name = "waterLevelHeight"
         water_level_height_uncertainty.value = FILLVALUE_UNCERTAINTY
 
     if data_coding_format == 2:
         water_level_feature.data_coding_format = data_coding_format
-        water_level_feature_instance_01.start_sequence = "0,0"
+        water_level_feature_instance.start_sequence = "0,0"
         water_level_feature.sequencing_rule_scan_direction = "longitude,latitude"
         water_level_feature.sequencing_rule_type = 1
-        water_level_feature_instance_01.grid_origin_longitude = grid_properties['minx']
-        water_level_feature_instance_01.grid_origin_latitude = grid_properties['miny']
-        water_level_feature_instance_01.grid_spacing_longitudinal = grid_properties['cellsize_x']
-        water_level_feature_instance_01.grid_spacing_latitudinal = grid_properties['cellsize_y']
+        water_level_feature_instance.grid_origin_longitude = grid_properties['minx']
+        water_level_feature_instance.grid_origin_latitude = grid_properties['miny']
+        water_level_feature_instance.grid_spacing_longitudinal = grid_properties['cellsize_x']
+        water_level_feature_instance.grid_spacing_latitudinal = grid_properties['cellsize_y']
 
-        water_level_feature_instance_01.num_points_latitudinal = grid_properties['ny']
-        water_level_feature_instance_01.num_points_longitudinal = grid_properties['nx']
+        water_level_feature_instance.num_points_latitudinal = grid_properties['ny']
+        water_level_feature_instance.num_points_longitudinal = grid_properties['nx']
 
     water_level_feature.axis_names = numpy.array(["longitude", "latitude"])
     root.water_level.dimension = len(water_level_feature.axis_names)
@@ -372,11 +384,8 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
     if height.shape != trend.shape:
         raise S104Exception("Water level height & trend grids have different shapes")
 
-    water_level_group_object = water_level_feature_instance_01.water_level_group.append_new_item()
+    water_level_group_object = water_level_feature_instance.water_level_group.append_new_item()
     water_level_group_object.time_point = datetime_value
-    # Optional values group metadata
-    # water_level_group_object.water_level_trend_threshold = root.water_level_trend_threshold
-    # water_level_group_object.trend_interval = root.trend_interval
 
     water_level_group_object.values_create()
     grid = water_level_group_object.values
@@ -399,7 +408,7 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
 
     return data_file
 
-def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S104File:
+def update_metadata(data_file, grid_properties: dict, metadata: dict) -> S104File:
     """  Updates an S104File object based on dynamic metadata.
 
           Parameters
@@ -417,14 +426,8 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S104
                   - "cellsize_y": Only for DCF2, grid spacing latitude
                   - "nx": Only for DCF2, number of points longitudinal
                   - "ny": Only for DCF2, number of points latitudinal
-          update_meta
-              a dictionary of dynamic metadata, metadata can have the following
-              key/value pairs:
-                  - "dateTimeOfLastRecord": Valid ISO 8601 time of latest value
-                  - "numberOfGroups": Number of forecasts
-                  - "numberOfTimes": Number of valid times
-                  - "timeRecordInterval": Time between forecasts in seconds
-                  - "num_instances": Number of water level feature instances
+         metadata
+              a dictionary of metadata describing the data
 
           Returns
           -------
@@ -434,13 +437,33 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S104
     """
     root = data_file.root
     water_level_feature = root.water_level
-    water_level_feature.num_instances = update_meta["num_instances"]
-    water_level_feature_instance_01 = root.water_level.water_level[0]
+    num_feature_instances = len(root.water_level.water_level)
+    feature_instance_object_id = num_feature_instances - 1
+    water_level_feature_instance = root.water_level.water_level[feature_instance_object_id]
 
-    water_level_feature_instance_01.date_time_of_last_record = update_meta['dateTimeOfLastRecord']
-    water_level_feature_instance_01.num_grp = update_meta['numberOfGroups']
-    water_level_feature_instance_01.number_of_times = update_meta['numberOfTimes']
-    water_level_feature_instance_01.time_record_interval = update_meta['timeRecordInterval']
+    num_groups = len(water_level_feature_instance.water_level_group)
+    num_groups_id = num_groups - 1
+
+    last_time_point = water_level_feature_instance.water_level_group[num_groups_id].time_point
+    last_datetime_record = last_time_point.strftime("%Y%m%dT%H%M%SZ")
+    time_record_interval = 0
+    if num_groups >= 2:
+        first_timestamp = water_level_feature_instance.water_level_group[0].time_point
+        second_timestamp = water_level_feature_instance.water_level_group[1].time_point
+
+        interval = second_timestamp - first_timestamp
+        time_record_interval = interval.total_seconds()
+
+
+    water_level_feature_instance.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
+    # Additional feature instance metadata
+    water_level_feature_instance.data_dynamicity = metadata["dataDynamicity"]
+
+    water_level_feature.num_instances = num_feature_instances
+    water_level_feature_instance.date_time_of_last_record = last_datetime_record
+    water_level_feature_instance.num_grp = num_groups
+    water_level_feature_instance.number_of_times = num_groups
+    water_level_feature_instance.time_record_interval = time_record_interval
 
     root.east_bound_longitude = grid_properties["maxx"]
     root.west_bound_longitude = grid_properties["minx"]

@@ -79,16 +79,6 @@ def create_s104(output_file, dcf) -> S104File:
     water_level_trend_info.upper = ""
     water_level_trend_info.closure = ""
 
-    water_level_time_info = water_level_feature_dataset.append_new_item()
-    water_level_time_info.code = "waterLevelTime"
-    water_level_time_info.name = "Water Level Time"
-    water_level_time_info.unit_of_measure = "DateTime"
-    water_level_time_info.datatype = "H5T_STRING"
-    water_level_time_info.fill_value = ""
-    water_level_time_info.lower = "19000101T000000Z"
-    water_level_time_info.upper = "21500101T000000Z"
-    water_level_time_info.closure = "closedInterval"
-
     return data_file
 
 

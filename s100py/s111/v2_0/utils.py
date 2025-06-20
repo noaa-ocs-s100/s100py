@@ -85,7 +85,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
     data_file
         S111File object
     metadata
-        a dictionary of metadata describing the grids passed in,
+        a dictionary of metadata describing the input data,
         metadata should have the following key/value pairs:
             - "productSpecification": The product specification used to create this dataset.
             - "horizontalCRS":  Horizontal EPSG code or -1.
@@ -145,13 +145,8 @@ def add_metadata(metadata: dict, data_file) -> S111File:
     root = data_file.root
     surface_current_feature = root.surface_current
 
-    surface_current_feature_instance_01 = surface_current_feature.surface_current.append_new_item()
-
-    surface_current_feature_instance_01.surface_current_group_create()
-
     surface_current_feature.min_dataset_current_speed = 0
     surface_current_feature.max_dataset_current_speed = 0
-    surface_current_feature_instance_01.time_record_interval = 0
 
     utc_now = datetime.datetime.now(datetime.timezone.utc)
     try:
@@ -221,24 +216,40 @@ def add_metadata(metadata: dict, data_file) -> S111File:
         if "methodCurrentsProduct" in metadata:
             surface_current_feature.method_currents_product = metadata["methodCurrentsProduct"]
 
-        # Optional SurfaceCurrent.NN Feature Instance Metadata
-        if "datetimeOfFirstRecord" in metadata:
-            surface_current_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
-
-        # SurfaceCurrent.NN Feature Instance Additional Metadata
-        surface_current_feature_instance_01.data_dynamicity = metadata["dataDynamicity"]
-
     except KeyError as e:
         raise S111Exception(f"Error: Mandatory S-111 attribute {e} not found in the metadata dictionary")
 
     return data_file
 
+def add_surface_current_instance(data_file):
+    """ Adds the surface current object container to the S111File object,
+        a feature instance is created each time the function is called
+        (e.g.`SurfaceCurrent.01`, `SurfaceCurrent.02). A series of feature
+        instances should be implemented in the same dataset for any data
+        collection that varies by extent, location, time, or grid size.
+
+        Parameters
+        ----------
+        data_file
+            S111File object
+
+        Returns
+        -------
+        data_file
+            An S111File object updated by this function.
+    """
+    root = data_file.root
+    surface_current_feature = root.surface_current
+
+    surface_current_feature_instance = surface_current_feature.surface_current.append_new_item()
+    surface_current_feature_instance.surface_current_group_create()
+
+    return data_file
 
 def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_file,
                          grid_properties: dict, datetime_value, data_coding_format,
-                         speed_uncertainty = FILLVALUE_UNCERTAINTY, direction_uncertainty = FILLVALUE_UNCERTAINTY ) -> S111File:
-    """  Updates an S111File object based on numpy array/h5py datasets.
-        Calls :any:`create_s111` then fills in the HDF5 datasets with the supplied speed and direction numpy.arrays.
+                         speed_uncertainty = FILLVALUE_UNCERTAINTY, direction_uncertainty = FILLVALUE_UNCERTAINTY, ) -> S111File:
+    """  Updates an S111File object with the supplied speed and direction numpy.arrays.
 
         Raises an S11Exception if the shapes of the speed and direction (if not None) grids are not equal.
 
@@ -253,8 +264,8 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
         datetime_value
             datetime object
         grid_properties
-            a dictionary of metadata describing the grids passed in,
-            metadata can have the following key/value pairs:
+            a dictionary of metadata describing the grids spatial
+            structure, metadata can have the following key/value pairs:
                 - "minx": West bound longitude
                 - "maxx": East bound longitude
                 - "miny": South bound latitude
@@ -286,24 +297,26 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
 
     root = data_file.root
     surface_current_feature = root.surface_current
-    surface_current_feature_instance_01 = root.surface_current.surface_current[0]
+
+    feature_instance_object_id = len(root.surface_current.surface_current) - 1
+    surface_current_feature_instance = root.surface_current.surface_current[feature_instance_object_id]
 
     if not isinstance(speed_uncertainty, numpy.ndarray) and isinstance(direction_uncertainty, numpy.ndarray):
-        surface_current_feature_instance_01.uncertainty_dataset_create()
-        speed_uncertainty_item = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+        surface_current_feature_instance.uncertainty_dataset_create()
+        speed_uncertainty_item = surface_current_feature_instance.uncertainty_dataset.append_new_item()
         speed_uncertainty_item.name = "surfaceCurrentSpeed"
         speed_uncertainty_item.value = speed_uncertainty
     elif not isinstance(direction_uncertainty, numpy.ndarray) and isinstance(speed_uncertainty, numpy.ndarray):
-        surface_current_feature_instance_01.uncertainty_dataset_create()
-        direction_uncertainty_item = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+        surface_current_feature_instance.uncertainty_dataset_create()
+        direction_uncertainty_item = surface_current_feature_instance.uncertainty_dataset.append_new_item()
         direction_uncertainty_item.name = "surfaceCurrentDirection"
         direction_uncertainty_item.value = direction_uncertainty
     elif not isinstance(speed_uncertainty, numpy.ndarray) and not isinstance(direction_uncertainty, numpy.ndarray) :
-        surface_current_feature_instance_01.uncertainty_dataset_create()
-        speed_uncertainty_item = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+        surface_current_feature_instance.uncertainty_dataset_create()
+        speed_uncertainty_item = surface_current_feature_instance.uncertainty_dataset.append_new_item()
         speed_uncertainty_item.name = "surfaceCurrentSpeed"
         speed_uncertainty_item.value = speed_uncertainty
-        direction_uncertainty_item = surface_current_feature_instance_01.uncertainty_dataset.append_new_item()
+        direction_uncertainty_item = surface_current_feature_instance.uncertainty_dataset.append_new_item()
         direction_uncertainty_item.name = "surfaceCurrentDirection"
         direction_uncertainty_item.value = direction_uncertainty
 
@@ -312,23 +325,23 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
 
     if data_coding_format == 2:
         surface_current_feature.data_coding_format = data_coding_format
-        surface_current_feature_instance_01.start_sequence = "0,0"
+        surface_current_feature_instance.start_sequence = "0,0"
         surface_current_feature.sequencing_rule_scan_direction = "longitude,latitude"
         surface_current_feature.sequencing_rule_type = 1
-        surface_current_feature_instance_01.grid_origin_longitude = grid_properties['minx']
-        surface_current_feature_instance_01.grid_origin_latitude = grid_properties['miny']
-        surface_current_feature_instance_01.grid_spacing_longitudinal = grid_properties['cellsize_x']
-        surface_current_feature_instance_01.grid_spacing_latitudinal = grid_properties['cellsize_y']
+        surface_current_feature_instance.grid_origin_longitude = grid_properties['minx']
+        surface_current_feature_instance.grid_origin_latitude = grid_properties['miny']
+        surface_current_feature_instance.grid_spacing_longitudinal = grid_properties['cellsize_x']
+        surface_current_feature_instance.grid_spacing_latitudinal = grid_properties['cellsize_y']
 
-        surface_current_feature_instance_01.num_points_latitudinal = grid_properties['ny']
-        surface_current_feature_instance_01.num_points_longitudinal = grid_properties['nx']
+        surface_current_feature_instance.num_points_latitudinal = grid_properties['ny']
+        surface_current_feature_instance.num_points_longitudinal = grid_properties['nx']
 
     elif data_coding_format == 3:
         surface_current_feature.data_coding_format = data_coding_format
-        surface_current_feature_instance_01.number_of_nodes = grid_properties['nodes']
+        surface_current_feature_instance.number_of_nodes = grid_properties['nodes']
 
-        surface_current_feature_instance_01.positioning_create()
-        positioning = surface_current_feature_instance_01.positioning
+        surface_current_feature_instance.positioning_create()
+        positioning = surface_current_feature_instance.positioning
         positioning.geometry_values_create()
         geometry_values = positioning.geometry_values
         geometry_values.longitude = grid_properties['longitude']
@@ -358,7 +371,7 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
     speed = numpy.round(speed, decimals=2)
     direction = numpy.round(direction, decimals=1)
 
-    surface_current_group_object = surface_current_feature_instance_01.surface_current_group.append_new_item()
+    surface_current_group_object = surface_current_feature_instance.surface_current_group.append_new_item()
     surface_current_group_object.time_point = datetime_value
 
     surface_current_group_object.values_create()
@@ -393,7 +406,7 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
     return data_file
 
 
-def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S111File:
+def update_metadata(data_file, grid_properties: dict, metadata: dict) -> S111File:
     """  Updates an S111File object based on dynamic metadata.
 
           Parameters
@@ -401,8 +414,8 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S111
           data_file
               S111File object
           grid_properties
-              a dictionary of metadata describing the grids passed in,
-              metadata can have the following key/value pairs:
+              a dictionary of metadata describing the grids spatial
+              structure, metadata can have the following key/value pairs:
                  - "minx": West bound longitude
                  - "maxx": East bound longitude
                  - "miny": South bound latitude
@@ -414,14 +427,8 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S111
                  - "latitude": Only for DCF3, latitude of nodes
                  - "longitude": Only for DCF3, longitudes of nodes
                  - "nodes": Only for DCF3, number of nodes
-          update_meta
-              a dictionary of dynamic metadata, metadata can have the following
-              key/value pairs:
-                  - "dateTimeOfLastRecord": Valid ISO 8601 time of latest value
-                  - "numberOfGroups": Number of forecasts
-                  - "numberOfTimes": Number of valid times
-                  - "timeRecordInterval": Time between forecasts in seconds
-                  - "num_instances": Number of surface current feature instances
+            metadata
+                a dictionary of metadata describing the data
 
           Returns
           -------
@@ -431,13 +438,35 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S111
           """
     root = data_file.root
     surface_current_feature = root.surface_current
-    surface_current_feature.num_instances = update_meta["num_instances"]
-    surface_current_feature_instance_01 = root.surface_current.surface_current[0]
+    num_feature_instances = len(root.surface_current.surface_current)
+    feature_instance_object_id = num_feature_instances - 1
+    surface_current_feature_instance = root.surface_current.surface_current[feature_instance_object_id]
 
-    surface_current_feature_instance_01.date_time_of_last_record = update_meta['dateTimeOfLastRecord']
-    surface_current_feature_instance_01.num_grp = update_meta['numberOfGroups']
-    surface_current_feature_instance_01.number_of_times = update_meta['numberOfTimes']
-    surface_current_feature_instance_01.time_record_interval = update_meta['timeRecordInterval']
+    surface_current_feature.num_instances = num_feature_instances
+    num_groups = len(surface_current_feature_instance.surface_current_group)
+    num_groups_id = num_groups - 1
+
+    last_time_point = surface_current_feature_instance.surface_current_group[num_groups_id].time_point
+    last_datetime_record = last_time_point.strftime("%Y%m%dT%H%M%SZ")
+    time_record_interval = 0
+    if num_groups >= 2:
+        first_timestamp = surface_current_feature_instance.surface_current_group[0].time_point
+        second_timestamp = surface_current_feature_instance.surface_current_group[1].time_point
+
+        interval = second_timestamp - first_timestamp
+        time_record_interval = interval.total_seconds()
+
+    # Optional SurfaceCurrent.NN Feature Instance Metadata
+    if "datetimeOfFirstRecord" in metadata:
+        surface_current_feature_instance.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
+        surface_current_feature_instance.date_time_of_last_record = last_datetime_record
+        surface_current_feature_instance.time_record_interval = time_record_interval
+        surface_current_feature_instance.number_of_times = num_groups
+
+    # SurfaceCurrent.NN Feature Instance Additional Metadata
+    surface_current_feature_instance.data_dynamicity = metadata["dataDynamicity"]
+
+    surface_current_feature_instance.num_grp = num_groups
 
     root.east_bound_longitude = grid_properties["maxx"]
     root.west_bound_longitude = grid_properties["minx"]

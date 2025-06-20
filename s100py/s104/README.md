@@ -151,17 +151,10 @@ metadata = {
 
 data_coding_format = 2 # Only value allowed in S-104 Ed 2.0
 
-update_meta = {
-        'dateTimeOfLastRecord': '20210901T020000Z',
-        'numberOfGroups': 2,
-        'numberOfTimes': 2,
-        'timeRecordInterval': 3600, # Optional
-        'num_instances': 1
-    }
-
 data_file = s104.utils.create_s104("test_s104.h5", 2)
 
 s104.utils.add_metadata(metadata, data_file)
+s104.utils.add_water_level_instance(data_file)
 data_series_time_001 = datetime_forecast_issuance + datetime_interval
 s104.utils.add_data_from_arrays(water_level_height_001, water_level_trend_001, data_file, grid_properties, data_series_time_001, data_coding_format)
 data_series_time_002 = data_series_time_001 + datetime_interval
@@ -175,7 +168,7 @@ water_level_trend_002 = numpy.where(( -1 * metadata['waterLevelTrendThreshold'] 
 
 s104.utils.add_data_from_arrays(water_level_height_002, water_level_trend_002, data_file, grid_properties, data_series_time_002, data_coding_format)
 
-s104.utils.update_metadata(data_file, grid_properties, update_meta)
+s104.utils.update_metadata(data_file, grid_properties, metadata)
 
 s104.utils.write_data_file(data_file)
 ```

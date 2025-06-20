@@ -2252,21 +2252,9 @@ def input_data(s104):
     expected_chunks = '36,43'
 
     expected_groupf = numpy.array([
-        ('waterLevelHeight', 'Water level height', 'metre', '-9999', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
-        ('waterLevelTrend', 'Water level trend', '', '0', 'H5T_ENUM', '', '', ''),
-        ('waterLevelTime', 'Water level time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
+        ('waterLevelHeight', 'Water Level Height', 'metre', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
+        ('waterLevelTrend', 'Water Level Trend', '', '0', 'H5T_ENUM', '', '', '')],
         dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
-    if s104.EDITION == 1.1:
-        expected_groupf = numpy.array([
-            ('waterLevelHeight', 'Water Level Height', 'metre', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
-            ('waterLevelTrend', 'Water Level Trend', '', '0', 'H5T_ENUM', '', '', ''),
-            ('waterLevelTime', 'Water Level Time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z', '21500101T000000Z', 'closedInterval')],
-            dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
-    elif s104.EDITION == 2.0:
-        expected_groupf = numpy.array([
-            ('waterLevelHeight', 'Water Level Height', 'metre', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
-            ('waterLevelTrend', 'Water Level Trend', '', '0', 'H5T_ENUM', '', '', '')],
-            dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'), ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
     expected_groupf_uncertainty = numpy.array([
         ('waterLevelHeight', 'Water Level Height', 'metre', '-9999.00', 'H5T_FLOAT', '-99.99', '99.99', 'closedInterval'),
         ('waterLevelTrend', 'Water Level Trend', '', '0', 'H5T_ENUM', '', '', ''),
@@ -2295,6 +2283,7 @@ def test_create_s104_dcf2(s104, input_data):
     elif s104.EDITION == 2.0:
         s104.utils.add_metadata(input_data.metadata_2_0_dcf2, data_file)
         water_level_trend_threshold = input_data.metadata_2_0_dcf2['waterLevelTrendThreshold']
+        s104.utils.add_water_level_instance(data_file)
 
     data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
     s104.utils.add_data_from_arrays(input_data.height_dcf2_001, input_data.trend_dcf2_001, data_file,
@@ -2313,7 +2302,10 @@ def test_create_s104_dcf2(s104, input_data):
                                     input_data.grid_properties_dcf2,
                                     data_series_time_002, 2)
 
-    s104.utils.update_metadata(data_file, input_data.grid_properties_dcf2, input_data.update_meta_dcf2)
+    if s104.EDITION == 2.0:
+        s104.utils.update_metadata(data_file, input_data.grid_properties_dcf2, input_data.metadata_2_0_dcf2)
+    else:
+        s104.utils.update_metadata(data_file, input_data.grid_properties_dcf2, input_data.update_meta_dcf2)
 
     s104.utils.write_data_file(data_file)
 
@@ -2341,9 +2333,7 @@ def test_create_s104_dcf2(s104, input_data):
                                                                                 input_data.expected_groupf[0])])
     assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][1],
                                                                                input_data.expected_groupf[1])])
-    if not s104.EDITION == 2.0:
-        assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][2],
-                                                                                   input_data.expected_groupf[2])])
+
 
     assert pytest.approx((h5_file.attrs['westBoundLongitude'] + h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal']
            * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLongitudinal']), rel=0.005) == h5_file.attrs['eastBoundLongitude']
@@ -2353,9 +2343,11 @@ def test_create_s104_dcf2(s104, input_data):
 
 def test_create_s104_dcf2_uncertainty(s104, input_data):
     if s104.EDITION == 2.0:
-        data_file = s104.utils.create_s104(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_v2.h5", 2, uncertainty=True)
+        data_file = s104.utils.create_s104(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty.h5", 2, uncertainty=True)
 
         s104.utils.add_metadata(input_data.metadata_2_0_dcf2, data_file)
+        s104.utils.add_water_level_instance(data_file)
+
         water_level_trend_threshold = input_data.metadata_2_0_dcf2['waterLevelTrendThreshold']
 
         data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
@@ -2374,12 +2366,12 @@ def test_create_s104_dcf2_uncertainty(s104, input_data):
         s104.utils.add_data_from_arrays(input_data.height_dcf2_002, trend_002, data_file, input_data.grid_properties_dcf2,
                                         data_series_time_002, 2, input_data.uncertainty_dcf2_002)
 
-        s104.utils.update_metadata(data_file, input_data.grid_properties_dcf2, input_data.update_meta_dcf2)
+        s104.utils.update_metadata(data_file, input_data.grid_properties_dcf2,input_data.metadata_2_0_dcf2)
 
         s104.utils.write_data_file(data_file)
 
-        assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_v2.h5")
-        h5_file = h5py.File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_v2.h5", "r")
+        assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty.h5")
+        h5_file = h5py.File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty.h5", "r")
 
         assert 'Group_F/WaterLevel' in h5_file
         assert 'Group_F/featureCode' in h5_file
@@ -2478,6 +2470,110 @@ def test_create_s104_dcf3(s104, input_data):
         assert h5_file.attrs['westBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['minx'])
         assert h5_file.attrs['northBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['maxy'])
         assert h5_file.attrs['southBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf3_dcf7['miny'])
+
+
+def test_create_s104_dcf2_instances(s104, input_data):
+    if s104.EDITION == 2.0:
+        data_file = s104.utils.create_s104(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_instances.h5", 2)
+        s104.utils.add_metadata(input_data.metadata_2_0_dcf2, data_file)
+        water_level_trend_threshold = input_data.metadata_2_0_dcf2['waterLevelTrendThreshold']
+
+        # Feature instance 1
+        s104.utils.add_water_level_instance(data_file)
+        # Group 1
+        data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf2_001, input_data.trend_dcf2_001, data_file,
+                                        input_data.grid_properties_dcf2, data_series_time_001, 2)
+
+        trend = numpy.round((input_data.height_dcf2_002 - input_data.height_dcf2_001), decimals=2)
+
+        trend_002 = numpy.where((-1 * water_level_trend_threshold < trend) &
+                                (trend < water_level_trend_threshold), 3,
+                                numpy.where(trend >= water_level_trend_threshold, 2,
+                                            numpy.where(trend <= -1 * water_level_trend_threshold, 1,
+                                                        numpy.any(trend))))
+
+        # Group 2
+        data_series_time_002 = data_series_time_001 + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf2_002, trend_002, data_file,
+                                        input_data.grid_properties_dcf2,
+                                        data_series_time_002, 2)
+
+
+        s104.utils.update_metadata(data_file, input_data.grid_properties_dcf2, input_data.metadata_2_0_dcf2)
+        # Feature Instance 2
+        s104.utils.add_water_level_instance(data_file)
+        # Group 1
+        data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf2_001, input_data.trend_dcf2_001, data_file,
+                                        input_data.grid_properties_dcf2, data_series_time_001, 2)
+
+        trend = numpy.round((input_data.height_dcf2_002 - input_data.height_dcf2_001), decimals=2)
+
+        trend_002 = numpy.where((-1 * water_level_trend_threshold < trend) &
+                                (trend < water_level_trend_threshold), 3,
+                                numpy.where(trend >= water_level_trend_threshold, 2,
+                                            numpy.where(trend <= -1 * water_level_trend_threshold, 1,
+                                                        numpy.any(trend))))
+
+        # Group 2
+        data_series_time_002 = data_series_time_001 + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf2_002, trend_002, data_file,
+                                        input_data.grid_properties_dcf2,
+                                        data_series_time_002, 2)
+
+        s104.utils.update_metadata(data_file, input_data.grid_properties_dcf2, input_data.metadata_2_0_dcf2)
+
+        s104.utils.write_data_file(data_file)
+
+        assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_instances.h5")
+        h5_file = h5py.File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_instances.h5", "r")
+
+        assert 'Group_F/WaterLevel' in h5_file
+        assert 'Group_F/featureCode' in h5_file
+        assert 'WaterLevel/WaterLevel.01/uncertainty' in h5_file
+        assert 'WaterLevel/axisNames' in h5_file
+        assert 'WaterLevel/WaterLevel.01' in h5_file
+        assert 'WaterLevel/WaterLevel.02' in h5_file
+
+        assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'] == pytest.approx(
+         input_data.height_dcf2_001)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'] == pytest.approx(
+         input_data.height_dcf2_002)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'] == pytest.approx(
+         input_data.trend_dcf2_001)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'] == pytest.approx(trend_002)
+        assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal'] == input_data.height_dcf2_001.shape[1]
+        assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal'] == input_data.height_dcf2_001.shape[0]
+
+        assert h5_file['WaterLevel/WaterLevel.02/Group_001/values']['waterLevelHeight'] == pytest.approx(
+         input_data.height_dcf2_001)
+        assert h5_file['WaterLevel/WaterLevel.02/Group_002/values']['waterLevelHeight'] == pytest.approx(
+         input_data.height_dcf2_002)
+        assert h5_file['WaterLevel/WaterLevel.02/Group_001/values']['waterLevelTrend'] == pytest.approx(
+         input_data.trend_dcf2_001)
+        assert h5_file['WaterLevel/WaterLevel.02/Group_002/values']['waterLevelTrend'] == pytest.approx(trend_002)
+        assert h5_file['WaterLevel/WaterLevel.02/'].attrs['numPointsLongitudinal'] == input_data.height_dcf2_001.shape[ 1]
+        assert h5_file['WaterLevel/WaterLevel.02/'].attrs['numPointsLatitudinal'] == input_data.height_dcf2_001.shape[0]
+
+        assert h5_file.attrs['eastBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf2['maxx'])
+        assert h5_file.attrs['westBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf2['minx'])
+        assert h5_file.attrs['northBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf2['maxy'])
+        assert h5_file.attrs['southBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf2['miny'])
+
+        assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][0],
+                                                                                   input_data.expected_groupf[0])])
+        assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][1],
+                                                                                   input_data.expected_groupf[1])])
+        assert pytest.approx(
+         (h5_file.attrs['westBoundLongitude'] + h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal']
+          * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLongitudinal']), rel=0.005) == h5_file.attrs[
+                'eastBoundLongitude']
+        assert pytest.approx(
+         (h5_file.attrs['southBoundLatitude'] + h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal']
+          * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLatitudinal']), rel=0.005) == h5_file.attrs[
+                'northBoundLatitude']
+
 
 
 def test_create_s104_dcf7(s104, input_data):

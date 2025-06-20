@@ -986,7 +986,8 @@ def input_data(s111):
          -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
          -9999., -9999., -9999., -9999., -9999.]])
 
-    speed_uncertainty_dcf2_001 = numpy.array([[-1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
+    speed_uncertainty_dcf2_001 = numpy.array([
+       [-1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
@@ -1311,7 +1312,8 @@ def input_data(s111):
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ]])
 
-    direction_uncertainty_dcf2_001 = numpy.array([[-1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
+    direction_uncertainty_dcf2_001 = numpy.array([
+     [-1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
@@ -2558,7 +2560,8 @@ def input_data(s111):
         -9999. , -9999. , -9999. , -9999. , -9999. , -9999. , -9999. ,
         -9999. , -9999. , -9999. , -9999. , -9999. ]])
 
-    speed_uncertainty_dcf2_002 = numpy.array([[-1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
+    speed_uncertainty_dcf2_002 = numpy.array([
+       [-1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
@@ -2883,7 +2886,8 @@ def input_data(s111):
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ]])
 
-    direction_uncertainty_dcf2_002 = numpy.array([[-1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
+    direction_uncertainty_dcf2_002 = numpy.array([
+       [-1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
         -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  , -1.  ,
@@ -5773,9 +5777,7 @@ def input_data(s111):
             ('surfaceCurrentSpeed', 'Surface Current Speed', 'knot', '-9999.00', 'H5T_FLOAT', '0.00', '',
              'geSemiInterval'),
             ('surfaceCurrentDirection', 'Surface Current Direction', 'degree', '-9999.0', 'H5T_FLOAT', '0.0', '359.9',
-             'closedInterval'),
-            ('surfaceCurrentTime', 'Surface Current Time', 'DateTime', '', 'H5T_STRING', '19000101T000000Z',
-             '21500101T000000Z', 'closedInterval')],
+             'closedInterval')],
             dtype=[('code', 'O'), ('name', 'O'), ('uom.name', 'O'), ('fillValue', 'O'), ('datatype', 'O'),
                    ('lower', 'O'), ('upper', 'O'), ('closure', 'O')])
 
@@ -5816,6 +5818,7 @@ def test_create_s111_dcf2(s111, input_data):
         s111.utils.add_metadata(input_data.metadata_1_2, data_file)
     elif s111.EDITION == 2.0:
         s111.utils.add_metadata(input_data.metadata_2_0, data_file)
+        s111.utils.add_surface_current_instance(data_file)
 
 
     data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
@@ -5824,8 +5827,11 @@ def test_create_s111_dcf2(s111, input_data):
     data_series_time_002 = data_series_time_001 + input_data.datetime_interval
     s111.utils.add_data_from_arrays(input_data.speed_dcf2_002, input_data.direction_dcf2_002, data_file,
                                     input_data.grid_dcf2_properties, data_series_time_002, 2)
-    s111.utils.update_metadata(data_file, input_data.grid_dcf2_properties, input_data.update_dcf2_meta)
 
+    if s111.EDITION == 2.0:
+        s111.utils.update_metadata(data_file, input_data.grid_dcf2_properties, input_data.metadata_2_0)
+    else:
+        s111.utils.update_metadata(data_file, input_data.grid_dcf2_properties, input_data.update_dcf2_meta)
     s111.utils.write_data_file(data_file)
 
     assert os.path.isfile(f"{current_directory}/test_s111_dcf2_{s111.EDITION}.h5")
@@ -5857,9 +5863,6 @@ def test_create_s111_dcf2(s111, input_data):
                 zip(h5_file['Group_F/SurfaceCurrent'][()][0], input_data.expected_groupf[0])])
     assert all([h5py_string_comp(actual, expected) for actual, expected in
                 zip(h5_file['Group_F/SurfaceCurrent'][()][1], input_data.expected_groupf[1])])
-    if s111.EDITION == 1.2:
-        assert all([h5py_string_comp(actual, expected) for actual, expected in
-                    zip(h5_file['Group_F/SurfaceCurrent'][()][2], input_data.expected_groupf[2])])
 
 
 def test_create_s111_dcf3(s111, input_data):
@@ -5871,11 +5874,15 @@ def test_create_s111_dcf3(s111, input_data):
         s111.utils.add_metadata(input_data.metadata_1_2, data_file)
     elif s111.EDITION == 2.0:
         s111.utils.add_metadata(input_data.metadata_2_0, data_file)
+        s111.utils.add_surface_current_instance(data_file)
 
     data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
     s111.utils.add_data_from_arrays(input_data.speed_dcf3, input_data.direction_dcf3, data_file,
                                     input_data.grid_dcf3_properties, data_series_time_001, 3)
-    s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.update_dcf3_meta)
+    if s111.EDITION == 2.0:
+        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.metadata_2_0)
+    else:
+        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.update_dcf3_meta)
 
     s111.utils.write_data_file(data_file)
 
@@ -5901,6 +5908,7 @@ def test_create_s111_dcf2_uncertainty(s111, input_data):
                                            speed_uncertainty=True, direction_uncertainty=True)
 
         s111.utils.add_metadata(input_data.metadata_2_0, data_file)
+        s111.utils.add_surface_current_instance(data_file)
 
         data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
         s111.utils.add_data_from_arrays(input_data.speed_dcf2_001, input_data.direction_dcf2_001, data_file,
@@ -5910,7 +5918,7 @@ def test_create_s111_dcf2_uncertainty(s111, input_data):
         s111.utils.add_data_from_arrays(input_data.speed_dcf2_002, input_data.direction_dcf2_002, data_file,
                                         input_data.grid_dcf2_properties, data_series_time_002, 2,
                                         input_data.speed_uncertainty_dcf2_002, input_data.direction_uncertainty_dcf2_002)
-        s111.utils.update_metadata(data_file, input_data.grid_dcf2_properties, input_data.update_dcf2_meta)
+        s111.utils.update_metadata(data_file, input_data.grid_dcf2_properties, input_data.metadata_2_0)
 
         s111.utils.write_data_file(data_file)
 
@@ -5965,12 +5973,13 @@ def test_create_s111_dcf3_uncertainty(s111, input_data):
                                            speed_uncertainty=True, direction_uncertainty=True)
 
         s111.utils.add_metadata(input_data.metadata_2_0, data_file)
+        s111.utils.add_surface_current_instance(data_file)
 
         data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
         s111.utils.add_data_from_arrays(input_data.speed_dcf3, input_data.direction_dcf3, data_file,
                                         input_data.grid_dcf3_properties, data_series_time_001, 3,
                                         input_data.speed_uncertainty_dcf3, input_data.direction_uncertainty_dcf3)
-        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.update_dcf3_meta)
+        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.metadata_2_0)
 
         s111.utils.write_data_file(data_file)
 
@@ -6004,6 +6013,98 @@ def test_create_s111_dcf3_uncertainty(s111, input_data):
         assert all([h5py_string_comp(actual, expected) for actual, expected in
                     zip(h5_file['Group_F/SurfaceCurrent'][()][3], input_data.expected_groupf_uncertainty[3])])
 
+
+def test_create_s111_dcf3_multiple_instances(s111, input_data):
+    if s111.EDITION == 2.0:
+        data_file = s111.utils.create_s111(f"{current_directory}/test_s111_dcf3_{s111.EDITION}_instances.h5", 3)
+        s111.utils.add_metadata(input_data.metadata_2_0, data_file)
+
+
+        # Feature Instance 1
+        s111.utils.add_surface_current_instance(data_file)
+        # Group 1
+        data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
+        s111.utils.add_data_from_arrays(input_data.speed_dcf3, input_data.direction_dcf3, data_file,
+                                        input_data.grid_dcf3_properties, data_series_time_001, 3)
+        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.metadata_2_0)
+        # Group 2
+        data_series_time_002 = data_series_time_001 + input_data.datetime_interval
+        s111.utils.add_data_from_arrays(input_data.speed_dcf3, input_data.direction_dcf3, data_file,
+                                        input_data.grid_dcf3_properties, data_series_time_002, 3)
+        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.metadata_2_0)
+
+        # Feature Instance 2
+        s111.utils.add_surface_current_instance(data_file)
+        # Group 1
+        s111.utils.add_data_from_arrays(input_data.speed_dcf3, input_data.direction_dcf3, data_file,
+                                        input_data.grid_dcf3_properties, data_series_time_001, 3)
+
+        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.metadata_2_0)
+        # Group 2
+        data_series_time_002 = data_series_time_001 + input_data.datetime_interval
+        s111.utils.add_data_from_arrays(input_data.speed_dcf3, input_data.direction_dcf3, data_file,
+                                        input_data.grid_dcf3_properties, data_series_time_002, 3)
+        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.metadata_2_0)
+
+        # Feature Instance 3
+        s111.utils.add_surface_current_instance(data_file)
+        # Group 1
+        s111.utils.add_data_from_arrays(input_data.speed_dcf3, input_data.direction_dcf3, data_file,
+                                        input_data.grid_dcf3_properties, data_series_time_001, 3)
+        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.metadata_2_0)
+        # Group 2
+        data_series_time_002 = data_series_time_001 + input_data.datetime_interval
+
+        s111.utils.add_data_from_arrays(input_data.speed_dcf3, input_data.direction_dcf3, data_file,
+                                        input_data.grid_dcf3_properties, data_series_time_002, 3)
+        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.metadata_2_0)
+        # Group 3
+        data_series_time_003 = data_series_time_002 + input_data.datetime_interval
+        s111.utils.add_data_from_arrays(input_data.speed_dcf3, input_data.direction_dcf3, data_file,
+                                        input_data.grid_dcf3_properties, data_series_time_003, 3)
+        s111.utils.update_metadata(data_file, input_data.grid_dcf3_properties, input_data.metadata_2_0)
+
+        s111.utils.write_data_file(data_file)
+
+        assert os.path.isfile(f"{current_directory}/test_s111_dcf3_{s111.EDITION}_instances.h5")
+        h5_file = h5py.File(f"{current_directory}/test_s111_dcf3_{s111.EDITION}_instances.h5", "r")
+
+        assert 'Group_F/SurfaceCurrent' in h5_file
+        assert 'Group_F/featureCode' in h5_file
+        assert 'SurfaceCurrent/axisNames' in h5_file
+        assert 'SurfaceCurrent/SurfaceCurrent.01' in h5_file
+        assert 'SurfaceCurrent/SurfaceCurrent.02' in h5_file
+        assert 'SurfaceCurrent/SurfaceCurrent.03' in h5_file
+
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentSpeed'],
+                              input_data.speed_dcf3)
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Group_001/values']['surfaceCurrentDirection'],
+                              input_data.direction_dcf3)
+        assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numberOfNodes'] == input_data.speed_dcf3.size
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Positioning/geometryValues']['longitude'],
+                              input_data.lon)
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.01/Positioning/geometryValues']['latitude'],
+                              input_data.lat)
+
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.02/Group_001/values']['surfaceCurrentSpeed'],
+                              input_data.speed_dcf3)
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.02/Group_001/values']['surfaceCurrentDirection'],
+                              input_data.direction_dcf3)
+        assert h5_file['SurfaceCurrent/SurfaceCurrent.01/'].attrs['numberOfNodes'] == input_data.speed_dcf3.size
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.02/Positioning/geometryValues']['longitude'],
+                              input_data.lon)
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.02/Positioning/geometryValues']['latitude'],
+                              input_data.lat)
+
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.03/Group_001/values']['surfaceCurrentSpeed'],
+                              input_data.speed_dcf3)
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.03/Group_001/values']['surfaceCurrentDirection'],
+                              input_data.direction_dcf3)
+        assert h5_file['SurfaceCurrent/SurfaceCurrent.03/'].attrs['numberOfNodes'] == input_data.speed_dcf3.size
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.03/Positioning/geometryValues']['longitude'],
+                              input_data.lon)
+        assert numpy.allclose(h5_file['SurfaceCurrent/SurfaceCurrent.03/Positioning/geometryValues']['latitude'],
+                              input_data.lat)
 
 def test_to_geotiff(input_data, s111):
     if s111.EDITION == 1.2:

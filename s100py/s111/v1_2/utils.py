@@ -77,16 +77,6 @@ def create_s111(output_file, dcf) -> S111File:
     surface_current_direction_info.upper = "359.9"
     surface_current_direction_info.closure = "closedInterval"
 
-    surface_current_direction_info = surface_current_feature_dataset.append_new_item()
-    surface_current_direction_info.code = "surfaceCurrentTime"
-    surface_current_direction_info.name = "Surface Current Time"
-    surface_current_direction_info.unit_of_measure = "DateTime"
-    surface_current_direction_info.datatype = "H5T_STRING"
-    surface_current_direction_info.fill_value = ''
-    surface_current_direction_info.lower = "19000101T000000Z"
-    surface_current_direction_info.upper = "21500101T000000Z"
-    surface_current_direction_info.closure = "closedInterval"
-
     return data_file
 
 
