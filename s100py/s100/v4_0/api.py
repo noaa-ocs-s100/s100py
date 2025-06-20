@@ -1143,7 +1143,7 @@ class GeometryValuesDataset(S1xxGridsBase):
 
 class PositioningGroup(S1xxObject):
 
-    __geometry_values_hdf_name__ = "geometry_values"
+    __geometry_values_hdf_name__ = "geometryValues"
     __triangles_hdf_name__ = "triangles"
     __adjacency_hdf_name__ = "adjacency"
 
