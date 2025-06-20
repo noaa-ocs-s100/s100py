@@ -2670,14 +2670,14 @@ def test_to_geotiff(input_data, s104):
     assert rows == tif_file1.RasterYSize
 
     if s104.EDITION == 2.0:
-        s104_file = s104.api.S104File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_v2.h5")
+        s104_file = s104.api.S104File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty.h5")
         s104_file.to_geotiffs(f"{current_directory}")
 
-        assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_v2_20210901T010000Z.tif")
-        assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_v2_20210901T020000Z.tif")
+        assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty_20210901T010000Z.tif")
+        assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty_20210901T020000Z.tif")
 
-        tif_file1 = gdal.Open(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_v2_20210901T010000Z.tif")
-        tif_file2 = gdal.Open(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_v2_20210901T020000Z.tif")
+        tif_file1 = gdal.Open(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty_20210901T010000Z.tif")
+        tif_file2 = gdal.Open(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty_20210901T020000Z.tif")
 
         height_raster = tif_file1.GetRasterBand(1)
         trend_raster = tif_file1.GetRasterBand(2)
@@ -2685,7 +2685,7 @@ def test_to_geotiff(input_data, s104):
         height_array = height_raster.ReadAsArray()
         rows, cols = height_array.shape
 
-        h5_file = h5py.File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_v2.h5", "r")
+        h5_file = h5py.File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty.h5", "r")
         feature_instance = h5_file['/WaterLevel/WaterLevel.01/']
 
         fillvalue = float(h5_file['Group_F']['WaterLevel']['fillValue'][0])
