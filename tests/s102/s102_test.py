@@ -351,17 +351,17 @@ def test_edition3_changes(s102, bagname, output_path):
         assert orig == new_s102.root.vertical_datum
 
 
-def test_multiple_vertical_datums(s102, bagname, output_path):
-    raise NotImplementedError("This test is not implemented yet, see the TODOs in the function")
-    if s102.api.EDITION >= 3.0:
-        metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
-        remove_file(output_path)
-        new_s102 = s102.from_bag(bagname, output_path, metadata=metadata)
-        # @TODO test two vertical datums, Bathymetry.01 and BathymetryCoverage.02 should appear and numInstances of the BathymetryCoverage parent should be 2
-        # @TODO Confirm that all BathymetryCoverage instances have the same extents (shape)
-        # @TODO Make two quality of bathymetry that match the two bathymetry coverages
-        # @TODO make sure one of the vertical datums is against the file reference datum and doesn't have the verticalDatum attribute in it
-        # @TODO There is only one QualityOfBathymetryCoverage for all BathymetryCoverages
-        # @TODO Must use a domainExtent.polygon for each BathymetryCoverage.NN but the QualityOfBathymetryCoverage should use the bounding box
-        pass
+# def test_multiple_vertical_datums(s102, bagname, output_path):
+#     raise NotImplementedError("This test is not implemented yet, see the TODOs in the function")
+#     if s102.api.EDITION >= 3.0:
+#         metadata = {"horizontalDatumReference": "EPSG", "horizontalDatumValue": 32610}
+#         remove_file(output_path)
+#         new_s102 = s102.from_bag(bagname, output_path, metadata=metadata)
+#         # @TODO test two vertical datums, Bathymetry.01 and BathymetryCoverage.02 should appear and numInstances of the BathymetryCoverage parent should be 2
+#         # @TODO Confirm that all BathymetryCoverage instances have the same extents (shape)
+#         # @TODO Make two quality of bathymetry that match the two bathymetry coverages
+#         # @TODO make sure one of the vertical datums is against the file reference datum and doesn't have the verticalDatum attribute in it
+#         # @TODO There is only one QualityOfBathymetryCoverage for all BathymetryCoverages
+#         # @TODO Must use a domainExtent.polygon for each BathymetryCoverage.NN but the QualityOfBathymetryCoverage should use the bounding box
+#         pass
     
