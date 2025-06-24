@@ -2290,12 +2290,16 @@ def test_create_s104_dcf2(s104, input_data):
                                     input_data.grid_properties_dcf2, data_series_time_001, 2)
 
     trend = numpy.round((input_data.height_dcf2_002 - input_data.height_dcf2_001), decimals=2)
+    trend = numpy.ma.masked_where((input_data.height_dcf2_002 == -9999.0) | (input_data.height_dcf2_001 == -9999.0),
+                                  trend)
 
-    trend_002 = numpy.where((-1 * water_level_trend_threshold < trend) &
-                            (trend < water_level_trend_threshold), 3,
-                            numpy.where(trend >= water_level_trend_threshold, 2,
-                                        numpy.where(trend <= -1 * water_level_trend_threshold, 1,
-                                                    numpy.any(trend))))
+    trend_002 = numpy.ma.where((-1 * water_level_trend_threshold < trend) &
+                               (trend < water_level_trend_threshold), 3,
+                               numpy.ma.where(trend >= water_level_trend_threshold, 2,
+                                              numpy.ma.where(trend <= -1 * water_level_trend_threshold, 1,
+                                                             numpy.any(trend))))
+
+    trend_002 = numpy.ma.filled(trend_002, 0)
 
     data_series_time_002 = data_series_time_001 + input_data.datetime_interval
     s104.utils.add_data_from_arrays(input_data.height_dcf2_002, trend_002, data_file,
@@ -2356,11 +2360,15 @@ def test_create_s104_dcf2_uncertainty(s104, input_data):
                                         input_data.uncertainty_dcf2_001)
 
         trend = numpy.round((input_data.height_dcf2_002 - input_data.height_dcf2_001), decimals=2)
+        trend = numpy.ma.masked_where((input_data.height_dcf2_002 == -9999.0) | (input_data.height_dcf2_001 == -9999.0), trend)
 
-        trend_002 = numpy.where((-1 * water_level_trend_threshold < trend) &
+        trend_002 = numpy.ma.where((-1 * water_level_trend_threshold < trend) &
                                 (trend < water_level_trend_threshold), 3,
-                                numpy.where(trend >= water_level_trend_threshold, 2,
-                                            numpy.where(trend <= -1 * water_level_trend_threshold, 1, numpy.any(trend))))
+                                numpy.ma.where(trend >= water_level_trend_threshold, 2,
+                                            numpy.ma.where(trend <= -1 * water_level_trend_threshold, 1,
+                                                        numpy.any(trend))))
+
+        trend_002 = numpy.ma.filled(trend_002, 0)
 
         data_series_time_002 = data_series_time_001 + input_data.datetime_interval
         s104.utils.add_data_from_arrays(input_data.height_dcf2_002, trend_002, data_file, input_data.grid_properties_dcf2,
@@ -2509,12 +2517,15 @@ def test_create_s104_dcf2_instances(s104, input_data):
                                         input_data.grid_properties_dcf2, data_series_time_001, 2)
 
         trend = numpy.round((input_data.height_dcf2_002 - input_data.height_dcf2_001), decimals=2)
+        trend = numpy.ma.masked_where((input_data.height_dcf2_002 == -9999.0) | (input_data.height_dcf2_001 == -9999.0), trend)
 
-        trend_002 = numpy.where((-1 * water_level_trend_threshold < trend) &
+        trend_002 = numpy.ma.where((-1 * water_level_trend_threshold < trend) &
                                 (trend < water_level_trend_threshold), 3,
-                                numpy.where(trend >= water_level_trend_threshold, 2,
-                                            numpy.where(trend <= -1 * water_level_trend_threshold, 1,
+                                numpy.ma.where(trend >= water_level_trend_threshold, 2,
+                                            numpy.ma.where(trend <= -1 * water_level_trend_threshold, 1,
                                                         numpy.any(trend))))
+
+        trend_002 = numpy.ma.filled(trend_002, 0)
 
         # Group 2
         data_series_time_002 = data_series_time_001 + input_data.datetime_interval
@@ -2553,7 +2564,7 @@ def test_create_s104_dcf2_instances(s104, input_data):
         assert h5_file['WaterLevel/WaterLevel.02/Group_001/values']['waterLevelTrend'] == pytest.approx(
          input_data.trend_dcf2_001)
         assert h5_file['WaterLevel/WaterLevel.02/Group_002/values']['waterLevelTrend'] == pytest.approx(trend_002)
-        assert h5_file['WaterLevel/WaterLevel.02/'].attrs['numPointsLongitudinal'] == input_data.height_dcf2_001.shape[ 1]
+        assert h5_file['WaterLevel/WaterLevel.02/'].attrs['numPointsLongitudinal'] == input_data.height_dcf2_001.shape[1]
         assert h5_file['WaterLevel/WaterLevel.02/'].attrs['numPointsLatitudinal'] == input_data.height_dcf2_001.shape[0]
 
         assert h5_file.attrs['eastBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf2['maxx'])

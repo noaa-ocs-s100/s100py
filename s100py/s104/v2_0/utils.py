@@ -256,7 +256,6 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     return data_file
 
 
-
 def add_water_level_instance(data_file):
     """ Adds the water_level object container to the S104File object,
         a feature instance is created each time the function is called
@@ -283,6 +282,7 @@ def add_water_level_instance(data_file):
 
 
     return data_file
+
 
 def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_properties: dict, datetime_value,
                          data_coding_format, uncertainty=None) -> S104File:
@@ -374,9 +374,15 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
     if max_height > water_level_feature.max_dataset_height and max_height != FILLVALUE_HEIGHT:
         water_level_feature.max_dataset_height = max_height
 
-    if numpy.ma.is_masked(height):
-        height = height.filled(f"{FILLVALUE_HEIGHT:0.02f}")
-        trend = trend.filled(f"{FILLVALUE_TREND}")
+    height[numpy.isnan(height)] = FILLVALUE_HEIGHT
+    trend[numpy.isnan(trend)] = FILLVALUE_TREND
+
+    if not numpy.ma.is_masked(height):
+        height = numpy.ma.masked_equal(height, FILLVALUE_HEIGHT)
+
+    if not numpy.ma.is_masked(trend):
+        trend =  numpy.ma.masked_array(trend, mask=height.mask)
+        trend =  numpy.ma.filled(trend, FILLVALUE_TREND)
 
     height = numpy.round(height, decimals=2)
     trend.astype(int)

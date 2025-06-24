@@ -47,7 +47,7 @@ The allowed values in S-111 are:
 SURFACE_CURRENT = "SurfaceCurrent"
 
 # Default fill value for NetCDF variables
-FILLVALUE_CURRENTS = -9999.00
+FILLVALUE_CURRENTS = -9999.0
 FILLVALUE_UNCERTAINTY = -1.0
 
 # Default depth in meters

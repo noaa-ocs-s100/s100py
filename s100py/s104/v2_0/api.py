@@ -10,7 +10,7 @@ from ...s100.v5_2.api import S100File, S100Root, S100Exception, FeatureContainer
 
 WATER_LEVEL = "WaterLevel"
 
-FILLVALUE_HEIGHT = -9999.00
+FILLVALUE_HEIGHT = -9999.0
 FILLVALUE_TREND = 0
 FILLVALUE_UNCERTAINTY = -1.0
 
