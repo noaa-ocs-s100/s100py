@@ -585,6 +585,21 @@ class BathymetryContainer(FeatureContainerDCF2, InterpolationType):
     def data_offset_code_create(self):
         self.data_offset_code = 5
 
+    @property
+    def time_uncertainty(self) -> float:
+        return self._attributes[self.__time_uncertainty_hdf_name__]
+
+    @time_uncertainty.setter
+    def time_uncertainty(self, val: float):
+        raise NotImplementedError("This attribute is not used in S102. ")
+
+    def time_uncertainty_create(self):
+        """ Creates a blank, empty or zero value for time_uncertainty"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        pass
+
+
 class S102FeatureInformation(FeatureInformation):
     """ S102 specifc version of FeatureInformation.
     Sets defaults of uom.name to metres, fillValue to 1000000, upper and lower to 12000, -12000 and closure to closedInterval
@@ -876,6 +891,19 @@ class QualityOfBathymetryCoverageContainer(FeatureContainerDCF9, InterpolationTy
         # FIXME @TODO -- this has to be an arbitrary number of strings, is this limiting it to two?
         self.feature_attribute_table = self.__feature_attribute_table_type__()
 
+    @property
+    def time_uncertainty(self) -> float:
+        return self._attributes[self.__time_uncertainty_hdf_name__]
+
+    @time_uncertainty.setter
+    def time_uncertainty(self, val: float):
+        raise NotImplementedError("This attribute is not used in S102. ")
+
+    def time_uncertainty_create(self):
+        """ Creates a blank, empty or zero value for time_uncertainty"""
+        # noinspection PyAttributeOutsideInit
+        # pylint: disable=attribute-defined-outside-init
+        pass
 
 class QualityOfBathymetryCoveragesList(S102MetadataListBase):
     """ 4.2.1.1.2 and Figure 4.4 and Table 10.1 of v2.0.0
@@ -1708,7 +1736,6 @@ class S102File(S100File):
         root.bathymetry_coverage.interpolation_type = 1  # nearest neighbor
         root.bathymetry_coverage.num_instances = 1  # how many Bathycoverages
         root.bathymetry_coverage.sequencing_rule_type = 1  # linear
-        del root.bathymetry_coverage.time_uncertainty
         del root.bathymetry_coverage.feature_attribute_table  # this only goes in the QualityOfBathymetryCoverage group
 
     @staticmethod
@@ -1808,7 +1835,6 @@ class S102File(S100File):
         del root.geographic_identifier
         del root.meta_features
         del root.bathymetry_coverage.data_offset_vector
-        del root.bathymetry_coverage.data_offset_code
         del bathy_01.grid_spacing_vertical
         del bathy_01.grid_origin_vertical
         del bathy_01.number_of_times
@@ -1825,7 +1851,6 @@ class S102File(S100File):
             quality_01.initialize_properties(recursively_create_children=True, overwrite=overwrite)
 
             del root.quality_of_bathymetry_coverage.data_offset_vector
-            del root.quality_of_bathymetry_coverage.data_offset_code
             del quality_01.grid_spacing_vertical
             del quality_01.grid_origin_vertical
             del quality_01.number_of_times
@@ -1838,7 +1863,7 @@ class S102File(S100File):
             bathy_group_object = bathy_01.bathymetry_group[0]
         except IndexError:
             bathy_group_object = bathy_01.bathymetry_group.append_new_item()
-        # bathy_group_object.initialize_properties()  # Not creating everything as I'm not sure if the grid attributes should be there
+        bathy_group_object.initialize_properties()
 
         # @todo @fixme fix here -- row/column order?
         rows, cols = depth_grid.shape
@@ -1961,6 +1986,8 @@ class S102File(S100File):
             bathy_group_object.maximum_uncertainty = uncertainty_max
             grid.uncertainty = uncert_grid
         else:
+            bathy_group_object.minimum_uncertainty = fill_value
+            bathy_group_object.maximum_uncertainty = fill_value
             try:
                 del grid.uncertainty  # remove the uncertainty if it is not present
             except KeyError:
@@ -2364,6 +2391,14 @@ class S102File(S100File):
             s100_object["Group_F"]["BathymetryCoverage"][1][5] = 0
             s100_object["Group_F"]["BathymetryCoverage"][1][6] = ""
             s100_object["Group_F"]["BathymetryCoverage"][1][7] = "goSemiInterval"
+            try:
+                del s100_object["QualityOfSurvey"].attrs["timeUncertainty"]
+            except KeyError:
+                pass
+            try:
+                del s100_object["BathymetryCoverage"].attrs["timeUncertainty"]
+            except KeyError:
+                pass
 
             try:
                 s100_object.move('QualityOfSurvey', "QualityOfBathymetryCoverage")

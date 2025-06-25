@@ -262,7 +262,7 @@ class S1xxObject(ABC):
 
     def __delattr__(self, item):
         """ Delete an attribute from the current data.  Does the conversion from python names to S100+ names,
-        If those names are not found, will delete a non-standard attibute.  Will raise an AttributeError if not found.
+        If those names are not found, will delete a non-standard attribute.  Will raise an AttributeError if not found.
         """
         # mapping = self.get_standard_properties_mapping()
         if item in self.get_standard_properties():
