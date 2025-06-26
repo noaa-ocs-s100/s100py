@@ -135,7 +135,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
                 - 'hydrodynamicHindcast': 4
                 - 'hydrodynamicForecast': 5
             - "methodCurrentsProduct": Brief description of current meter type, forecast method or model, etc.
-            - "datetimeOfFirstRecord": Valid time of the earliest value, 'YYYYMMDDTHHMMSSZ'
+            - "dateTimeOfFirstRecord": Valid time of the earliest value, 'YYYYMMDDTHHMMSSZ'
             - "datasetDeliveryInterval": The expected time interval between availability of successive datasets
                 for time-varying data. Must be formatted as 'PnYnMnDTnHnMnS' (ISO 8601 duration)
 
@@ -187,7 +187,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
     surface_current_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
     surface_current_feature_instance_01.data_dynamicity = metadata["dataDynamicity"]
     surface_current_feature.method_currents_product = metadata["methodCurrentsProduct"]
-    surface_current_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
+    surface_current_feature_instance_01.date_time_of_first_record = metadata["dateTimeOfFirstRecord"]
 
     # Optional
     # surface_current_feature.time_uncertainty = metadata["timeUncertainty"]

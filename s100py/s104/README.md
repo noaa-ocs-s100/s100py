@@ -138,7 +138,7 @@ metadata = {
     'interpolationType': 1, # 1:nearestneighbor (Only value allowed)
     'dataDynamicity': 5, # 5:Hydrodynamic model forecast (F)
     'issueDateTime': datetime_forecast_issuance, # All times are in UTC, DateTime format
-    'datetimeOfFirstRecord': '20210901T010000Z', # All times are in UTC, DateTime format
+    'dateTimeOfFirstRecord': '20210901T010000Z', # All times are in UTC, DateTime format
     'geographicIdentifier': 'RegionName', # Optional
     'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts', # Optional
     'trendInterval': 60, # Optional (Minutes)

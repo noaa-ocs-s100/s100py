@@ -132,7 +132,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
                     - 'hydrodynamicHindcast': 4
                     - 'hydrodynamicForecast': 5
                 - "methodCurrentsProduct": Brief description of current meter type, forecast method or model, etc.
-                - "datetimeOfFirstRecord": Valid time of the earliest value, 'YYYYMMDDTHHMMSSZ'
+                - "dateTimeOfFirstRecord": Valid time of the earliest value, 'YYYYMMDDTHHMMSSZ'
                 - "datasetDeliveryInterval": The expected time interval between availability of successive datasets
                     for time-varying data. Must be formatted as 'PnYnMnDTnHnMnS' (ISO 8601 duration)
 
@@ -299,7 +299,12 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
     surface_current_feature = root.surface_current
 
     feature_instance_object_id = len(root.surface_current.surface_current) - 1
-    surface_current_feature_instance = root.surface_current.surface_current[feature_instance_object_id]
+    surface_current_feature_instance = None
+    try:
+        surface_current_feature_instance = root.surface_current.surface_current[feature_instance_object_id]
+    except IndexError as e:
+        raise S111Exception(f"IndexError: Surface Current Feature Instance {e}, feature instance does not exist, "
+                            f"use 'add_surface_current_instance()' to add a surface current feature instance")
 
     if not isinstance(speed_uncertainty, numpy.ndarray) and isinstance(direction_uncertainty, numpy.ndarray):
         surface_current_feature_instance.uncertainty_dataset_create()
@@ -401,7 +406,7 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
                 break
         if not direction_uncertainty_feature_info:
             raise S111Exception("AttributeError: Direction uncertainty is not present in Group_F, values grid must"
-                                " conform to the feature information group, see create_s111()")
+                                " conform to the feature information group, use 'create_s111()'")
 
     return data_file
 
@@ -435,43 +440,47 @@ def update_metadata(data_file, grid_properties: dict, metadata: dict) -> S111Fil
           data_file
               An S111File object updated by this function.
 
-          """
-    root = data_file.root
-    surface_current_feature = root.surface_current
-    num_feature_instances = len(root.surface_current.surface_current)
-    feature_instance_object_id = num_feature_instances - 1
-    surface_current_feature_instance = root.surface_current.surface_current[feature_instance_object_id]
+    """
+    try:
+        root = data_file.root
+        surface_current_feature = root.surface_current
+        num_feature_instances = len(root.surface_current.surface_current)
+        feature_instance_object_id = num_feature_instances - 1
+        surface_current_feature_instance = root.surface_current.surface_current[feature_instance_object_id]
 
-    surface_current_feature.num_instances = num_feature_instances
-    num_groups = len(surface_current_feature_instance.surface_current_group)
-    num_groups_id = num_groups - 1
+        surface_current_feature.num_instances = num_feature_instances
+        num_groups = len(surface_current_feature_instance.surface_current_group)
+        num_groups_id = num_groups - 1
 
-    last_time_point = surface_current_feature_instance.surface_current_group[num_groups_id].time_point
-    last_datetime_record = last_time_point.strftime("%Y%m%dT%H%M%SZ")
-    time_record_interval = 0
-    if num_groups >= 2:
-        first_timestamp = surface_current_feature_instance.surface_current_group[0].time_point
-        second_timestamp = surface_current_feature_instance.surface_current_group[1].time_point
+        last_time_point = surface_current_feature_instance.surface_current_group[num_groups_id].time_point
+        last_datetime_record = last_time_point.strftime("%Y%m%dT%H%M%SZ")
+        time_record_interval = 0
+        if num_groups >= 2:
+            first_timestamp = surface_current_feature_instance.surface_current_group[0].time_point
+            second_timestamp = surface_current_feature_instance.surface_current_group[1].time_point
 
-        interval = second_timestamp - first_timestamp
-        time_record_interval = interval.total_seconds()
+            interval = second_timestamp - first_timestamp
+            time_record_interval = interval.total_seconds()
 
-    # Optional SurfaceCurrent.NN Feature Instance Metadata
-    if "datetimeOfFirstRecord" in metadata:
-        surface_current_feature_instance.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
-        surface_current_feature_instance.date_time_of_last_record = last_datetime_record
-        surface_current_feature_instance.time_record_interval = time_record_interval
-        surface_current_feature_instance.number_of_times = num_groups
+        # Optional SurfaceCurrent.NN Feature Instance Metadata
+        if "dateTimeOfFirstRecord" in metadata:
+            surface_current_feature_instance.date_time_of_first_record = metadata["dateTimeOfFirstRecord"]
+            surface_current_feature_instance.date_time_of_last_record = last_datetime_record
+            surface_current_feature_instance.time_record_interval = time_record_interval
+            surface_current_feature_instance.number_of_times = num_groups
 
-    # SurfaceCurrent.NN Feature Instance Additional Metadata
-    surface_current_feature_instance.data_dynamicity = metadata["dataDynamicity"]
+        # SurfaceCurrent.NN Feature Instance Additional Metadata
+        surface_current_feature_instance.data_dynamicity = metadata["dataDynamicity"]
 
-    surface_current_feature_instance.num_grp = num_groups
+        surface_current_feature_instance.num_grp = num_groups
 
-    root.east_bound_longitude = grid_properties["maxx"]
-    root.west_bound_longitude = grid_properties["minx"]
-    root.south_bound_latitude = grid_properties["miny"]
-    root.north_bound_latitude = grid_properties["maxy"]
+        root.east_bound_longitude = grid_properties["maxx"]
+        root.west_bound_longitude = grid_properties["minx"]
+        root.south_bound_latitude = grid_properties["miny"]
+        root.north_bound_latitude = grid_properties["maxy"]
+
+    except KeyError as e:
+        raise S111Exception(f"KeyError: S-111 attribute {e} not found in the metadata dictionary")
 
     return data_file
 

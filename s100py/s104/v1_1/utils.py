@@ -182,7 +182,7 @@ def add_metadata(metadata: dict, data_file) -> S104File:
                     - 'observedMinusForecast': 9
             - "methodWaterLevelProduct": Brief description of tide gauge type,
             forecast method or model, etc.
-            - "datetimeOfFirstRecord": Valid time of earliest value, 'YYYYMMDDTHHMMSSZ'
+            - "dateTimeOfFirstRecord": Valid time of earliest value, 'YYYYMMDDTHHMMSSZ'
             - "datasetDeliveryInterval": The expected time interval between availability of successive
                 datasets for time-varying data. Must be formatted as 'PnYnMnDTnHnMnS' (ISO 8601 duration)
             - "trendInterval": The interval over which trend at a particular time is calculated.
@@ -235,7 +235,7 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     water_level_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
     water_level_feature.method_water_level_product = metadata["methodWaterLevelProduct"]
     water_level_feature_instance_01.data_dynamicity = metadata["dataDynamicity"]
-    water_level_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
+    water_level_feature_instance_01.date_time_of_first_record = metadata["dateTimeOfFirstRecord"]
 
     return data_file
 

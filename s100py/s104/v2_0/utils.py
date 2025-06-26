@@ -170,7 +170,7 @@ def add_metadata(metadata: dict, data_file) -> S104File:
                     - 'observedMinusForecast': 9
             - "methodWaterLevelProduct": Brief description of tide gauge type,
                 forecast method or model, etc.
-            - "datetimeOfFirstRecord": Valid time of earliest value, 'YYYYMMDDTHHMMSSZ'
+            - "dateTimeOfFirstRecord": Valid time of earliest value, 'YYYYMMDDTHHMMSSZ'
             - "datasetDeliveryInterval": The expected time interval between availability of successive
                 datasets for time-varying data. Must be formatted as 'PnYnMnDTnHnMnS' (ISO 8601 duration)
             - "trendInterval": The interval over which trend at a particular time is calculated.
@@ -251,7 +251,7 @@ def add_metadata(metadata: dict, data_file) -> S104File:
             water_level_feature.data_offset_code = metadata["dataOffsetCode"]
 
     except KeyError as e:
-        raise S104Exception(f"Error: Mandatory S-104 attribute {e} not found in the metadata dictionary")
+        raise S104Exception(f"AttributeError: Mandatory S-104 attribute {e} not found in the metadata dictionary")
 
     return data_file
 
@@ -333,7 +333,12 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
     water_level_feature = root.water_level
 
     feature_instance_object_id = len(root.water_level.water_level) - 1
-    water_level_feature_instance = root.water_level.water_level[feature_instance_object_id]
+    water_level_feature_instance = None
+    try:
+        water_level_feature_instance = root.water_level.water_level[feature_instance_object_id]
+    except IndexError as e:
+        raise S104Exception(f"IndexError: Water Level Feature Instance {e}, feature instance does not exist, "
+                            f"use 'add_water_level_instance()' to add a water level feature instance")
 
     if isinstance(uncertainty, float):
         water_level_feature_instance.uncertainty_dataset_create()
@@ -441,40 +446,43 @@ def update_metadata(data_file, grid_properties: dict, metadata: dict) -> S104Fil
               An S104File object updated by this function.
 
     """
-    root = data_file.root
-    water_level_feature = root.water_level
-    num_feature_instances = len(root.water_level.water_level)
-    feature_instance_object_id = num_feature_instances - 1
-    water_level_feature_instance = root.water_level.water_level[feature_instance_object_id]
+    try:
+        root = data_file.root
+        water_level_feature = root.water_level
+        num_feature_instances = len(root.water_level.water_level)
+        feature_instance_object_id = num_feature_instances - 1
+        water_level_feature_instance = root.water_level.water_level[feature_instance_object_id]
 
-    num_groups = len(water_level_feature_instance.water_level_group)
-    num_groups_id = num_groups - 1
+        num_groups = len(water_level_feature_instance.water_level_group)
+        num_groups_id = num_groups - 1
 
-    last_time_point = water_level_feature_instance.water_level_group[num_groups_id].time_point
-    last_datetime_record = last_time_point.strftime("%Y%m%dT%H%M%SZ")
-    time_record_interval = 0
-    if num_groups >= 2:
-        first_timestamp = water_level_feature_instance.water_level_group[0].time_point
-        second_timestamp = water_level_feature_instance.water_level_group[1].time_point
+        last_time_point = water_level_feature_instance.water_level_group[num_groups_id].time_point
+        last_datetime_record = last_time_point.strftime("%Y%m%dT%H%M%SZ")
+        time_record_interval = 0
+        if num_groups >= 2:
+            first_timestamp = water_level_feature_instance.water_level_group[0].time_point
+            second_timestamp = water_level_feature_instance.water_level_group[1].time_point
 
-        interval = second_timestamp - first_timestamp
-        time_record_interval = interval.total_seconds()
+            interval = second_timestamp - first_timestamp
+            time_record_interval = interval.total_seconds()
 
 
-    water_level_feature_instance.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
-    # Additional feature instance metadata
-    water_level_feature_instance.data_dynamicity = metadata["dataDynamicity"]
+        water_level_feature_instance.date_time_of_first_record = metadata["dateTimeOfFirstRecord"]
+        # Additional feature instance metadata
+        water_level_feature_instance.data_dynamicity = metadata["dataDynamicity"]
 
-    water_level_feature.num_instances = num_feature_instances
-    water_level_feature_instance.date_time_of_last_record = last_datetime_record
-    water_level_feature_instance.num_grp = num_groups
-    water_level_feature_instance.number_of_times = num_groups
-    water_level_feature_instance.time_record_interval = time_record_interval
+        water_level_feature.num_instances = num_feature_instances
+        water_level_feature_instance.date_time_of_last_record = last_datetime_record
+        water_level_feature_instance.num_grp = num_groups
+        water_level_feature_instance.number_of_times = num_groups
+        water_level_feature_instance.time_record_interval = time_record_interval
 
-    root.east_bound_longitude = grid_properties["maxx"]
-    root.west_bound_longitude = grid_properties["minx"]
-    root.south_bound_latitude = grid_properties["miny"]
-    root.north_bound_latitude = grid_properties["maxy"]
+        root.east_bound_longitude = grid_properties["maxx"]
+        root.west_bound_longitude = grid_properties["minx"]
+        root.south_bound_latitude = grid_properties["miny"]
+        root.north_bound_latitude = grid_properties["maxy"]
+    except KeyError as e:
+        raise S104Exception(f"KeyError: S-104 attribute {e} not found in the metadata dictionary")
 
     return data_file
 

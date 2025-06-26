@@ -71,7 +71,7 @@ metadata = {
     'interpolationType': 10, # 10:discrete
     'dataDynamicity': 5, # 5:Hydrodynamic model forecast (F)
     'methodCurrentsProduct': 'Hydrodynamic_Model_Forecasts',
-    'datetimeOfFirstRecord': '20250605T130000Z',
+    'dateTimeOfFirstRecord': '20250605T130000Z',
     'verticalCS': 6498,
     'verticalDatumReference': 1,
     'verticalCoordinateBase': 2, # Only allowed valued 2:verticalDatum

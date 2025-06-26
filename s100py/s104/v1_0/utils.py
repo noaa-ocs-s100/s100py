@@ -187,7 +187,7 @@ def add_metadata(metadata: dict, data_file) -> S104File:
 
             - "methodWaterLevelProduct": Brief description of tide gauge type,
             forecast method or model, etc.
-            - "datetimeOfFirstRecord": Valid time of earliest value,
+            - "dateTimeOfFirstRecord": Valid time of earliest value,
             'YYYYMMDDTHHMMSSZ'
 
     Returns
@@ -226,7 +226,7 @@ def add_metadata(metadata: dict, data_file) -> S104File:
     water_level_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
     water_level_feature.method_water_level_product = metadata["methodWaterLevelProduct"]
     water_level_feature_instance_01.type_of_water_level_data = metadata["typeOfWaterLevelData"]
-    water_level_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
+    water_level_feature_instance_01.date_time_of_first_record = metadata["dateTimeOfFirstRecord"]
 
     return data_file
 

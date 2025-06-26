@@ -145,7 +145,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
                 - 'Hydrodynamic model hindcast (M)': 5
                 - 'Hydrodynamic model forecast (F)': 6
             - "methodCurrentsProduct": Brief description of current meter type, forecast method or model, etc.
-            - "datetimeOfFirstRecord": Valid time of earliest value, 'YYYYMMDDTHHMMSSZ'
+            - "dateTimeOfFirstRecord": Valid time of earliest value, 'YYYYMMDDTHHMMSSZ'
 
     Returns
     -------
@@ -187,7 +187,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
     surface_current_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
     surface_current_feature.type_of_current_data = metadata["typeOfCurrentData"]
     surface_current_feature.method_currents_product = metadata["methodCurrentsProduct"]
-    surface_current_feature_instance_01.date_time_of_first_record = metadata["datetimeOfFirstRecord"]
+    surface_current_feature_instance_01.date_time_of_first_record = metadata["dateTimeOfFirstRecord"]
 
     return data_file
 

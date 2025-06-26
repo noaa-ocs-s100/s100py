@@ -5695,7 +5695,7 @@ def input_data(s111):
         'interpolationType': 10,
         'typeOfCurrentData': 6,
         'methodCurrentsProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
-        'datetimeOfFirstRecord': '20210107T130000Z'
+        'dateTimeOfFirstRecord': '20210107T130000Z'
 
     }
 
@@ -5712,7 +5712,7 @@ def input_data(s111):
         'interpolationType': 10,
         'dataDynamicity': 5,
         'methodCurrentsProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
-        'datetimeOfFirstRecord': '20210107T130000Z',
+        'dateTimeOfFirstRecord': '20210107T130000Z',
         'verticalCS': 6498,
         'verticalDatumReference': 1,
         'verticalDatum': 48,
@@ -5734,7 +5734,7 @@ def input_data(s111):
      'interpolationType': 10,
      'dataDynamicity': 5,
      'methodCurrentsProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
-     'datetimeOfFirstRecord': '20210107T130000Z',
+     'dateTimeOfFirstRecord': '20210107T130000Z',
      'verticalCS': 6498,
      'verticalDatumReference': 1,
      'verticalCoordinateBase': 2,

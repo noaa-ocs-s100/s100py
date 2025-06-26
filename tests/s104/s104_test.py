@@ -12,6 +12,7 @@ try:
 except ModuleNotFoundError:
     import gdal, ogr
 
+from s100py import s100
 from s100py.s104 import v1_0
 from s100py.s104 import v1_1
 from s100py.s104 import v2_0
@@ -2147,7 +2148,7 @@ def input_data(s104):
         'interpolationType': 10,
         'typeOfWaterLevelData': 5,
         'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
-        'datetimeOfFirstRecord': '2021-09-01T01:00:00'
+        'dateTimeOfFirstRecord': '2021-09-01T01:00:00'
     }
 
     metadata_1_1_dcf2 = {
@@ -2164,7 +2165,7 @@ def input_data(s104):
         'interpolationType': 10,
         'dataDynamicity': 5,
         'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
-        'datetimeOfFirstRecord': '20210901T010000Z',
+        'dateTimeOfFirstRecord': '20210901T010000Z',
         'datasetDeliveryInterval': 'PT6H',
         'trendInterval': 60,
         'issueDateTime': datetime_forecast_issuance,
@@ -2187,7 +2188,7 @@ def input_data(s104):
         'interpolationType': 1,
         'dataDynamicity': 5,
         'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
-        'datetimeOfFirstRecord': '20210901T010000Z',
+        'dateTimeOfFirstRecord': '20210901T010000Z',
         'datasetDeliveryInterval': 'PT6H',
         'trendInterval': 60,
         'issueDateTime': datetime_forecast_issuance,
@@ -2207,7 +2208,7 @@ def input_data(s104):
         'interpolationType': 10,
         'dataDynamicity': 5,
         'methodWaterLevelProduct': 'ROMS_Hydrodynamic_Model_Forecasts',
-        'datetimeOfFirstRecord': '20210901T010000Z',
+        'dateTimeOfFirstRecord': '20210901T010000Z',
         'datasetDeliveryInterval': 'PT6H',
         'trendInterval': 60,
         'issueDateTime': datetime_forecast_issuance,
@@ -2227,7 +2228,7 @@ def input_data(s104):
         'interpolationType': 9,
         'dataDynamicity': 5,
         'methodWaterLevelProduct': 'TIN model',
-        'datetimeOfFirstRecord': '20210901T010000Z',
+        'dateTimeOfFirstRecord': '20210901T010000Z',
         'datasetDeliveryInterval': 'PT6H',
         'trendInterval': 60,
         'issueDateTime': datetime_forecast_issuance,
@@ -2380,6 +2381,7 @@ def test_create_s104_dcf2_uncertainty(s104, input_data):
 
         assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty.h5")
         h5_file = h5py.File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_uncertainty.h5", "r")
+
 
         assert 'Group_F/WaterLevel' in h5_file
         assert 'Group_F/featureCode' in h5_file
