@@ -158,16 +158,11 @@ def add_metadata(metadata: dict, data_file) -> S104File:
                     - 'lostarea': 8
                     - 'barycentric': 9
                     - 'discrete': 10
-            - "typeOfWaterLevelData:
+            - "dataDynamicity":
                     - 'observation': 1
                     - 'astronomicalPrediction': 2
                     - 'analysisOrHybrid': 3
-                    - 'hydrodynamicHindcast': 4
                     - 'hydrodynamicForecast': 5
-                    - 'observedMinusPredicted': 6
-                    - 'observedMinusAnalysis': 7
-                    - 'observedMinusHindcast': 8
-                    - 'observedMinusForecast': 9
             - "methodWaterLevelProduct": Brief description of tide gauge type,
                 forecast method or model, etc.
             - "dateTimeOfFirstRecord": Valid time of earliest value, 'YYYYMMDDTHHMMSSZ'
@@ -437,8 +432,17 @@ def update_metadata(data_file, grid_properties: dict, metadata: dict) -> S104Fil
                   - "cellsize_y": Only for DCF2, grid spacing latitude
                   - "nx": Only for DCF2, number of points longitudinal
                   - "ny": Only for DCF2, number of points latitudinal
-         metadata
-              a dictionary of metadata describing the data
+          metadata
+              a dictionary of metadata describing the data, metadata must have
+              the following key/value pairs:
+                  - "dateTimeOfFirstRecord": Valid time of earliest value, 'YYYYMMDDTHHMMSSZ'
+                  - "dataDynamicity": Classification of data according to the relationship between the time of its
+                  collection, generation, or calculation of generation parameters, in relation to the time of
+                  publication of the dataset
+                      - 'observation': 1
+                      - 'astronomicalPrediction': 2
+                      - 'analysisOrHybrid': 3
+                      - 'hydrodynamicForecast': 5
 
           Returns
           -------
@@ -466,7 +470,6 @@ def update_metadata(data_file, grid_properties: dict, metadata: dict) -> S104Fil
             interval = second_timestamp - first_timestamp
             time_record_interval = interval.total_seconds()
 
-
         water_level_feature_instance.date_time_of_first_record = metadata["dateTimeOfFirstRecord"]
         # Additional feature instance metadata
         water_level_feature_instance.data_dynamicity = metadata["dataDynamicity"]
@@ -481,6 +484,7 @@ def update_metadata(data_file, grid_properties: dict, metadata: dict) -> S104Fil
         root.west_bound_longitude = grid_properties["minx"]
         root.south_bound_latitude = grid_properties["miny"]
         root.north_bound_latitude = grid_properties["maxy"]
+
     except KeyError as e:
         raise S104Exception(f"KeyError: S-104 attribute {e} not found in the metadata dictionary")
 

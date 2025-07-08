@@ -2588,7 +2588,6 @@ def test_create_s104_dcf2_instances(s104, input_data):
                 'northBoundLatitude']
 
 
-
 def test_create_s104_dcf7(s104, input_data):
     if s104.EDITION == 1.1:
         data_file = s104.utils.create_s104(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.h5", 7)
@@ -2717,6 +2716,7 @@ def test_to_geotiff(input_data, s104):
         assert cols == tif_file1.RasterXSize
         assert rows == tif_file1.RasterYSize
 
+
 def test_to_gpkg(s104, input_data):
     if s104.EDITION == 1.1:
         s104_dcf7 = s104.api.S104File(f"{current_directory}/test_s104_dcf7_{s104.EDITION}.h5")
@@ -2732,3 +2732,8 @@ def test_to_gpkg(s104, input_data):
         gpkg_file = ogr.Open(f"{current_directory}/test_s104_dcf3_{s104.EDITION}.gpkg")
 
 
+def test_s104_versions(s104):
+    open_file = s100.open(f"{current_directory}/test_s104_dcf2_{s104.EDITION}.h5")
+    assert f".{s104.api.EDITION}" in str(open_file.root.product_specification)
+    assert isinstance(open_file, s104.api.S104File)
+    open_file.close()

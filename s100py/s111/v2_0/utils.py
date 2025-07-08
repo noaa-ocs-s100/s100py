@@ -125,15 +125,20 @@ def add_metadata(metadata: dict, data_file) -> S111File:
                         - 'lostarea': 8
                         - 'barycentric': 9
                         - 'discrete': 10
-                - "dataDynamicity":
+               - "dataDynamicity":
                     - 'observation': 1
                     - 'astronomicalPrediction': 2
                     - 'analysisOrHybrid': 3
                     - 'hydrodynamicHindcast': 4
                     - 'hydrodynamicForecast': 5
-                - "methodCurrentsProduct": Brief description of current meter type, forecast method or model, etc.
-                - "dateTimeOfFirstRecord": Valid time of the earliest value, 'YYYYMMDDTHHMMSSZ'
-                - "datasetDeliveryInterval": The expected time interval between availability of successive datasets
+                    - 'observedMinusPredicted': 6
+                    - 'observedMinusAnalysis': 7
+                    - 'observedMinusHindcast': 8
+                    - 'observedMinusForecast': 9
+                    - 'forecastMinusPredicted': 10
+               - "methodCurrentsProduct": Brief description of current meter type, forecast method or model, etc.
+               - "dateTimeOfFirstRecord": Valid time of the earliest value, 'YYYYMMDDTHHMMSSZ'
+               - "datasetDeliveryInterval": The expected time interval between availability of successive datasets
                     for time-varying data. Must be formatted as 'PnYnMnDTnHnMnS' (ISO 8601 duration)
 
         Returns
@@ -432,8 +437,23 @@ def update_metadata(data_file, grid_properties: dict, metadata: dict) -> S111Fil
                  - "latitude": Only for DCF3, latitude of nodes
                  - "longitude": Only for DCF3, longitudes of nodes
                  - "nodes": Only for DCF3, number of nodes
-            metadata
-                a dictionary of metadata describing the data
+          metadata
+              a dictionary of metadata describing the data, metadata must have
+              the following key/value pairs:
+                 - "dateTimeOfFirstRecord": Valid time of the earliest value, 'YYYYMMDDTHHMMSSZ'
+                 - "dataDynamicity": Classification of data according to the relationship between the time of its
+                 collection, generation, or calculation of generation parameters, in relation to the time of
+                 publication of the dataset
+                    - 'observation': 1
+                    - 'astronomicalPrediction': 2
+                    - 'analysisOrHybrid': 3
+                    - 'hydrodynamicHindcast': 4
+                    - 'hydrodynamicForecast': 5
+                    - 'observedMinusPredicted': 6
+                    - 'observedMinusAnalysis': 7
+                    - 'observedMinusHindcast': 8
+                    - 'observedMinusForecast': 9
+                    - 'forecastMinusPredicted': 10
 
           Returns
           -------

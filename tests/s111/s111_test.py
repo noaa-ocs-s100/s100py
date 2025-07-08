@@ -12,6 +12,7 @@ try:
 except ModuleNotFoundError:
     import gdal, ogr
 
+from s100py import s100
 from s100py.s111 import v1_0
 from s100py.s111 import v1_2
 from s100py.s111 import v2_0
@@ -6210,3 +6211,9 @@ def test_to_gpkg(input_data, s111):
 
         gpkg_file = ogr.Open(f"{current_directory}/test_s111_dcf3_{s111.EDITION}.gpkg")
 
+
+def test_s111_versions(s111):
+    open_file = s100.open(f"{current_directory}/test_s111_dcf2_{s111.EDITION}.h5")
+    assert f".{s111.api.EDITION}" in str(open_file.root.product_specification)
+    assert isinstance(open_file, s111.api.S111File)
+    open_file.close()

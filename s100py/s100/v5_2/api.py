@@ -242,7 +242,7 @@ class INTERPOLATION_TYPE(Enum):
 
 # noinspection PyPep8Naming
 class COMMON_POINT_RULE(Enum):
-    """ S100 v4.0 Table 10c-19
+    """ S100 v5.2 Table 10c-10
     """
     average = 1
     low = 2
@@ -254,7 +254,7 @@ class COMMON_POINT_RULE(Enum):
 
 # noinspection PyPep8Naming
 class SEQUENCING_RULE_TYPE(Enum):
-    """ S100 v4.0 Table 10c-20
+    """ S100 v5.2 Table 8-12 – CV_SequenceType enumeration
     """
     linear = 1
     boustrophedonic = 2
@@ -264,7 +264,7 @@ class SEQUENCING_RULE_TYPE(Enum):
     Hilbert = 6
 
 
-SEQUENCING_RULE_SCAN_DIRECTION = 'longitude,latitude'  # See S100 v4.0 Table 10c-10
+SEQUENCING_RULE_SCAN_DIRECTION = 'longitude,latitude'  # See S100 v5.2 Table 10c-10
 START_SEQUENCE = '0,0'
 
 # Table 10c-24
@@ -534,7 +534,7 @@ class Point(S1xxObject):
 
     @property
     def position(self) -> DirectPosition:
-        """ DirectPosition - see Figure 7-3 in S100 v4.0.0
+        """ DirectPosition - see Figure 7-4.1.1 in S100 v5.2.0
         """
         return self._attributes[self.__position_hdf_name__]
 
@@ -688,7 +688,7 @@ class GeographicBoundingBox(S1xxObject):  # GeographicExtent
 
 
 class VertexPoint(S1xxObject):
-    """ From Figure 8-21 in S100 v4.0.0
+    """ From Figure 8-21 in S100 v5.2.0
 
     """
 
@@ -701,7 +701,7 @@ class VertexPoint(S1xxObject):
 
     @property
     def geometry(self) -> Point:
-        """ Derived from ISO 19107, referenced figure 7-3 and 8-A-5 of S100 v4.0.0"""
+        """ Derived from ISO 19107, referenced figure 7-4.1.1 and 8-A-5 of S100 v5.2.0"""
         return self._attributes[self.__geometry_hdf_name__]
 
     @geometry.setter
@@ -746,7 +746,7 @@ class VertexPoint(S1xxObject):
 
 # FIXME @TODO Add base class (maybe full implementation for many of the datasets) for FeatureInstanceBase
 #  Positioning, Group_IDX, Group_TL, cellGeometry, uncertainty, extent, domainExtent.verticalElement, domainExtent.polygon
-#  This would be added to the FeatureInstanceBase - See S100 v4.0 table 10c-11 and 10c-12
+#  This would be added to the FeatureInstanceBase - See S100 v5.2 table 10c-11 and 10c-12
 
 
 class FeatureInstanceBase(GeographicBoundingBox):
@@ -1796,7 +1796,7 @@ class FeatureContainer(CommonPointRule, S1xxObject):
     The respective levels of the complex data type are separated by a dot up to the simple data type;
     for example, "surveyDateRange.dateEnd" & "surveyDateRange.dateStart".
 
-    From v4.0:  This class comes from S100 in Table 10c-9 – Structure of feature container groups and
+    From v5.2:  This class comes from S100 in Table 10c-9 – Structure of feature container groups and
     Table 10c-10 – Attributes of feature container groups
     """
     __axis_names_hdf_name__ = "axisNames"
@@ -2027,38 +2027,52 @@ class SequencingRule:
 
     @property
     def sequencing_rule_type(self) -> SEQUENCING_RULE_TYPE:
-        # @todo -- clean up formatting
-        """ table 10c-20 of S100
+        """
+        S100 5.2 Table 8-12 – CV_SequenceType enumeration
+        .. list-table:: S100 5.2 Table 8-12 – CV_SequenceType enumeration
+           :widths: 15 20 30 5 30
+           :header-rows: 1
 
-        Enumeration CV_SequenceType Codes that identify the method of ordering grid
-        points or value records
-        ISO 19123 CV_SequenceType
-        Literal linear Sequencing is consecutive along grid lines,
-        starting with the first grid axis listed in
-        scanDirection
-
-        1 For example, for 2-D
-        grids with scan
-        direction=(x,y), scanning
-        will be in row-major order
-        Literal boustrophedonic Variant of linear sequencing in which the
-        direction of the scan is reversed on alternating
-        grid lines. For grids of dimension > 2, it is also
-        reversed on alternating planes
-
-        2
-        Literal CantorDiagonal Sequencing in alternating directions along
-        parallel diagonals of the grid. For dimension > 2,
-        it is repeated in successive planes
-
-        3
-        Literal spiral Sequencing in spiral order 4
-        S-100 Edition 4.0.0 December 2018
-        40 Part 10c – HDF5 Data Format
-        Literal Morton Sequencing along a Morton curve 5
-        Literal Hilbert Sequencing along a Hilbert curve 6
-        Morton
-
+           * - Item
+             - Name
+             - Description
+             - Code
+             - Remarks
+           * - Enumeration
+             - CV_SequenceType
+             - Codes that identify the method of ordering grid points or value records
+             -
+             - ISO 19123 CV_SequenceType
+           * - Literal
+             - linear
+             - Sequencing is consecutive along grid lines, starting with the first grid axis listed in scanDirection
+             - 1
+             - For example, for 2-D grids with scan direction=(x,y), scanning will be in rowmajor order
+           * - Literal
+             - boustrophedonic
+             - Variant of linear sequencing in which the direction of the scan is reversed on alternating grid lines. For grids of dimension > 2, it is also reversed on alternating planes
+             - 2
+             -
+           * - Literal
+             - CantorDiagonal
+             - Sequencing in alternating directions along parallel diagonals of the grid. For dimension > 2, it is repeated in successive planes
+             - 3
+             -
+           * - Literal
+             - spiral
+             - Sequencing in spiral order
+             - 4
+             -
+           * - Literal
+             - Morton
+             - Sequencing along a Morton curve
+             - 5
+             -
+           * - Literal
+             - Hilbert
+             - Sequencing along a Hilbert curve
+             - 6
+             -
         Returns
         -------
 
@@ -2382,7 +2396,7 @@ class VerticalDatumAttributes:
 
 
 class S100Root(GeographicBoundingBox, VerticalDatumAttributes):
-    """ From table 10c-6 in S100 v4.0 spec.
+    """ From table 10c-5 in S100 v5.2 spec.
 
     The root of the S100 v5.0 schema.  There are restrictions on many of the CRS attributes based on other attributes.
     For example, the horizontal_cs has different value options based on horizontal_crs.

@@ -139,7 +139,7 @@ metadata = {
     'dataDynamicity': 5, # 5:Hydrodynamic model forecast (F)
     'issueDateTime': datetime_forecast_issuance, # All times are in UTC, DateTime format
     'dateTimeOfFirstRecord': '20210901T010000Z', # All times are in UTC, DateTime format
-    'geographicIdentifier': 'RegionName', # Optional
+    'geographicIdentifier': 'Add Region Name', # Optional
     'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts', # Optional
     'trendInterval': 60, # Optional (Minutes)
     'datasetDeliveryInterval': 'PT6H', #Optional (ISO 8601 duration, format `YnMnDTnHnMnS`)
@@ -147,7 +147,6 @@ metadata = {
     'verticalDatumEpoch': 'NOAA_NTDE_1983-2001', # Optional
     'timeUncertainty': -1.0 # Optional
 }
-
 
 data_coding_format = 2 # Only value allowed in S-104 Ed 2.0
 
@@ -159,13 +158,13 @@ data_series_time_001 = datetime_forecast_issuance + datetime_interval
 s104.utils.add_data_from_arrays(water_level_height_001, water_level_trend_001, data_file, grid_properties, data_series_time_001, data_coding_format)
 data_series_time_002 = data_series_time_001 + datetime_interval
 
-trend = numpy.round((water_level_height_002 - water_level_height_001), decimals=2)
-trend = numpy.ma.masked_where((water_level_height_002 == -9999.0) | (water_level_height_001 == -9999.0), trend)
+water_level_difference = numpy.round((water_level_height_002 - water_level_height_001), decimals=2)
+water_level_difference = numpy.ma.masked_where((water_level_height_002 == -9999.0) | (water_level_height_001 == -9999.0), water_level_difference)
 
-water_level_trend_002 = numpy.where(( -1 * metadata['waterLevelTrendThreshold'] < trend) &
-                                (trend < metadata['waterLevelTrendThreshold']),3,
-                                numpy.where(trend >= metadata['waterLevelTrendThreshold'], 2,
-                                    numpy.where( trend <= -1 * metadata['waterLevelTrendThreshold'], 1,numpy.any(trend))))
+#Trend is determined using S-104 Edition 2.0.0 Annex A-2 Feature Attributes Section 2: Water Level Trend (waterLevelTrend)
+water_level_trend_002 = numpy.where((-metadata['waterLevelTrendThreshold'] < water_level_difference) & (water_level_difference < metadata['waterLevelTrendThreshold'] ), 3,
+                 numpy.where(water_level_difference >= metadata['waterLevelTrendThreshold'] , 2,
+                         numpy.where(water_level_difference <= -metadata['waterLevelTrendThreshold'] , 1, 0)))
 
 water_level_trend_002 = numpy.ma.filled(water_level_trend_002, 0)
 

@@ -36,9 +36,8 @@ CHANGELOG = """
 v2.0 
 * Aligned with S-100 Edition 5.2.0
 * Scope reduced to use only the regular grid spatial type
-* 104_DataDynamicity classifications hydrodynamicHindcast, observedMinusPredicted,
- observedMinusAnalysis, observedMinusHindcast, observedMinusForecast no longer 
- allowed (S-104 Ed 2.0 Table 12-10)
+* 104_DataDynamicity classifications hydrodynamicHindcast, observedMinusPredicted, observedMinusAnalysis,
+observedMinusHindcast, observedMinusForecast, forecastMinusPredicted no longer allowed (S-104 Ed 2.0 Table 12-10)
 * verticalCoordinateBase attribute added (S-104 Ed 2.0 Table 12-1, S-100 Ed 5.2 Table 10c-22)  
 the only allowed value is verticalDatum (2), the attribute is now mandatory
 * Instance metadata constraints  (Table 12-3) adjusted for Water Level adjustment compatibility
