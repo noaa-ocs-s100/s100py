@@ -5,7 +5,6 @@ dependencies:
   - python>=3.8   # or 2.7
   - pip
   - sphinx
-  - sphinx-automodapi
   - sphinx-autodoc-typehints
   - python-graphviz
   - sphinxcontrib-fulltoc
@@ -15,3 +14,5 @@ dependencies:
   - h5py
   - numpy
   - gdal>=3.2
+  - pip:
+    - sphinx-automodapi>=0.17.0
