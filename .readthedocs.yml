@@ -28,6 +28,9 @@ build:
   os: "ubuntu-20.04"
   tools:
     python: "mambaforge-22.9"
+  jobs:
+    pre_create_environment:
+      - conda clean --all
 
 conda:
   environment: rtd_environment.yml

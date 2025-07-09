@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python>=3.8   # or 2.7
+  - pip
   - sphinx
   - sphinx-automodapi
   - sphinx-autodoc-typehints
