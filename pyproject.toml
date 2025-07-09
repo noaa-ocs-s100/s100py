@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "s100py"
-version = "1.0.2"
+version = "2.0.0"
 authors = [
   { name="Barry Gallagher", email="barry.gallagher@noaa.gov" },
   { name="Erin Nagel", email="erin.nagel@noaa.gov" }

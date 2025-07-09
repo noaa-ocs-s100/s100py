@@ -115,6 +115,79 @@ pip install s100py
 
 Release Notes
 -------------
+**Version 2.0.0 (2025-07-09)**
+- This is a major release, which includes several new APIs that encapsulate the latest S-100 standard (S-100 Edition 5.2.0) and S-100 Product Specifications (S-102 Edition 3.0.0, S-111 Edition 2.0.0, S-104 Edition 2.0.0)
+- Additional convenience utilities have been added to generate:
+  * S-102 Edition 3.0.0 datasets
+    * **Not Supported in s100py v2.0.0**:
+      * Option for multiple VerticalDatums with multiple BathymetryCoverages
+  * S-111 Edition 2.0.0 datasets
+    * **Breaking Changes in s100py v2.0.0**:
+      * Must call `add_surface_current_instance()` before calling `add_data_from_arrays()` to generate datasets
+      * `update_metadata()` parameter requirements have changed and only dataDynamicity and dateTimeOfFirstRecord are required in the metadata dictionary parameter
+    * **New Features in s100py v2.0.0**:
+      * Optional speed_uncertainty and direction_uncertainty grids now supported, if adding an uncertainty grids, speed_uncertainty and direction_uncertainty must be set to True in `create_s111()` and uncertainty data grids must be added to `add_data_from_arrays()`
+      * `add_surface_current_instance()` can be used to create multiple surface current feature instances in a single dataset
+    * **Not Supported in s100py v2.0.0**:
+      * Utilities for generating S-111 Data Coding Formats 4 and 8
+  * S-104 Edition 2.0.0 datasets
+    * **Breaking Changes in s100py v2.0.0**:
+      * Must call `add_water_level_instance()` before calling `add_data_from_arrays()` to generate datasets
+      * `update_metadata()` parameter requirements have changed and only dataDynamicity and dateTimeOfFirstRecord are required in the metadata dictionary parameter
+    * **New Features in s100py v2.0.0**:
+      * Optional water level height uncertainty grid now supported, if adding an uncertainty grid , uncertainty must be set to True in `create_s104()` and uncertainty data grids must be added to `add_data_from_arrays()`
+      * `add_water_level_instance()` can be used to create multiple water level feature instances in a single dataset
+    *    * **Not Supported in s100py v2.0.0**:
+      * Option for multiple VerticalDatums with multiple coverages
+- S-102 Edition 3.0.0 (S-100 Edition 5.2.0) significant changes include:
+    * Make Uncertainty optional in BathymetryCoverage
+    * Renamed QualityOfSurvey to QualityOfBathymetryCoverage
+    * Added option for multiple VerticalDatums with multiple BathymetryCoverages
+    * dataOffsetCode now required in s102 and must have value of 5 (barycentric)
+    * BathymetryCoverage now is dataCodingFormat is 2, regular grid
+    * QualityOfBathymetryCoverage dataCodingFormat remains 9, feature oriented
+    * BathymetryCoverage Container
+      * DataCodingFormat revised from 9 to 2 (regularGrid)
+      * common_point_rule revised from 1 to 2 (low)
+      * data_offset_code = 5  (barycenter)
+- S-111 Edition 2.0.0 (S-100 Edition 5.2.0) significant changes include:
+    * Added directionUncertainty and speedUncertainty added to the values record as optional attributes
+    * New fill value for date-time attribute
+    * Added UTM zones and newer WGS84 epochs
+    * Added verticalCoordinateBase embedded metadata for S-100 consistency
+    * Removed “DateTime” as UoM name for surface current time attribute in Group_F
+    * Removed ISO metadata files
+    * Added restriction on length of string attributes in metadata
+    * The following DataDynamicity classification have been added:
+        * 6: observedMinusPredicted - Observation minus astronomical prediction
+        * 7: observedMinusAnalysis - Observation minus analysis or hybrid
+        * 8: observedMinusHindcast - Observation minus hydrodynamic hindcast
+        * 9: observedMinusForecast - Observation minus hydrodynamic forecast
+        * 10: forecastMinusPredicted - Hydrodynamic forecast minus astronomical prediction
+    * Added optional dataOffsetCode enumeration for Offset of data point in cell data, mandatory if data points are at grid cell centres
+- S-104 Edition 2.0.0 (S-100 Edition 5.2.0) significant changes include:
+    * Scope reduced to use only the regular grid spatial type
+    * The only allowed interpolation type for DCF2 is 1 (nearestneighbor)
+    * The following s104_DataDynamicity classifications are not allowed in S-104 Edition 2.0:
+        * 4: hydrodynamicHindcast - Observation minus astronomical prediction
+        * 6: observedMinusPredicted - Observation minus analysis or hybrid
+        * 7: observedMinusAnalysis - Observation minus hydrodynamic hindcast
+        * 8: observedMinusHindcast - Observation minus hydrodynamic hindcast
+        * 9: observedMinusForecast - Observation minus hydrodynamic forecast
+        * 10: forecastMinusPredicted - Hydrodynamic forecast minus astronomical prediction
+    * verticalCoordinateBase attribute added the only allowed value is verticalDatum (2), the attribute is now mandatory
+    * Instance metadata constraints adjusted for Water Level adjustment compatibility
+    * Restricted maximum length of HDF5 string attributes
+    * Optional uncertainty attribute added to values record, represents the uncertainty at a particular grid point and may be omitted if the uncertainty is the same at all grid points
+    * Added UTM zones and newer WGS84 realizations
+    * Removed ISO metadata files
+    * Optional Group F waterLevelTime attribute has been removed
+    * Optional Group F uncertainty attribute has been added
+    * Extended format to include grids with datum jumps (multiple vertical datums)
+    * Domain extent polygon added to Feature Instance if and only if the feature covers an area with a different vertical datum from the root group
+    * Added optional dataOffsetCode enumeration for offset of data point in cell data, mandatory if data points are at grid cell centres
+    * The values seaFloor (47), seaSurface (48), and hydrographicZero (49) from S100 allowable vertical and sounding datums are now not allowed in S-104 Edition 2.0
+
 **Version 1.0.0 (2023-10-27)**
 - This is a major release, which includes several new APIs that encapsulate the latest S-100 standard (S-100 Edition 5.0.0)
 and S-100 Product Specifications (S-102 Edition 2.2.0, S-111 Edition 1.2.0, S-104 Edition 1.1.0) and adds support for
