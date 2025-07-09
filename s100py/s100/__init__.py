@@ -15,21 +15,20 @@ def open(filename: (str, pathlib.Path), mode: str = "r") -> S1XXFile:
     # @todo use the new case statement when python 3.10 is required
     spec = file_object.root.product_specification
 
-    if 'S-102' in spec:
-        for product in [s100py.s102.v3_0, s100py.s102.v2_2, s100py.s102.v2_1, s100py.s102.v2_0]:
-            if h5py_string_comp(spec, product.PRODUCT_SPECIFICATION):
+    for product in [s100py.s102.v3_0, s100py.s102.v2_2, s100py.s102.v2_1, s100py.s102.v2_0,
+                    s100py.s111.v1_0, s100py.s111.v1_2, s100py.s111.v2_0,
+                    s100py.s104.v1_0, s100py.s104.v1_1, s100py.s104.v2_0]:
+        if h5py_string_comp(spec, product.PRODUCT_SPECIFICATION):
+            if 'S-102' in spec:
                 file_object = product.api.S102File(filename, mode)
-                break
-    if 'S-111' in spec:
-        for product in [s100py.s111.v1_0, s100py.s111.v1_2, s100py.s111.v2_0]:
-            if h5py_string_comp(spec, product.PRODUCT_SPECIFICATION):
+            elif 'S-111' in spec:
                 file_object = product.api.S111File(filename, mode)
-                break
-    if 'S-104' in spec:
-        for product in [s100py.s104.v1_0, s100py.s104.v1_1, s100py.s104.v2_0]:
-            if h5py_string_comp(spec, product.PRODUCT_SPECIFICATION):
+            elif 'S-104' in spec:
                 file_object = product.api.S104File(filename, mode)
-                break
+            else:
+                print("Warning: unrecognized s100 product specification, using generic S100File object")
+            break
+
     else:
         print("Warning: unrecognized s100 product specification, using generic S100File object")
     return file_object

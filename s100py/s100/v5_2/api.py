@@ -2028,9 +2028,12 @@ class SequencingRule:
     @property
     def sequencing_rule_type(self) -> SEQUENCING_RULE_TYPE:
         """
+        S100 5.2 Table 8-12 – CV_SequenceType enumeration
+
         .. list-table:: S100 5.2 Table 8-12 – CV_SequenceType enumeration
            :widths: 15 20 30 5 30
            :header-rows: 1
+
            * - Item
              - Name
              - Description

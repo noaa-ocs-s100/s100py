@@ -1,4 +1,4 @@
-name: ENVs100py
+name: RTDs100py
 channels:
   - conda-forge
 dependencies:
