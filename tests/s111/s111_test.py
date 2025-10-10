@@ -5796,7 +5796,7 @@ def input_data(s111):
              'geSemiInterval'),
             ('surfaceCurrentDirection', 'Surface Current Direction', 'degree', '-9999.0', 'H5T_FLOAT', '0.0', '359.9',
              'closedInterval'),
-            ('speedUncertainty', 'Speed Uncertainty', 'knot', '-1.0', 'H5T_FLOAT', '0.00', '99.00',
+            ('speedUncertainty', 'Speed Uncertainty', 'knot', '-1.00', 'H5T_FLOAT', '0.00', '99.00',
              'geSemiInterval'),
             ('directionUncertainty', 'Direction Uncertainty', 'degree', '-1.0', 'H5T_FLOAT', '0.0', '359.9',
              'closedInterval')],

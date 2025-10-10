@@ -234,6 +234,9 @@ def add_metadata(metadata: dict, data_file) -> S104File:
         water_level_feature.common_point_rule = metadata["commonPointRule"]
         water_level_feature.vertical_uncertainty = metadata["verticalUncertainty"]
         water_level_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
+        water_level_feature.min_dataset_height = 0
+        water_level_feature.max_dataset_height = 0
+
         # Optional feature type metadata
         if "timeUncertainty" in metadata:
             water_level_feature.time_uncertainty = metadata["timeUncertainty"]
@@ -244,6 +247,7 @@ def add_metadata(metadata: dict, data_file) -> S104File:
         # Optional, Allowed values 1: XMin, YMin (“Lower left”) or 5:Barycenter (centroid) of cell
         if "dataOffsetCode" in metadata:
             water_level_feature.data_offset_code = metadata["dataOffsetCode"]
+
 
     except KeyError as e:
         raise S104Exception(f"AttributeError: Mandatory S-104 attribute {e} not found in the metadata dictionary")
@@ -274,7 +278,6 @@ def add_water_level_instance(data_file):
 
     water_level_feature_instance = water_level_feature.water_level.append_new_item()
     water_level_feature_instance.water_level_group_create()
-
 
     return data_file
 
@@ -323,7 +326,7 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
         data_file
             An S104File object updated by this function.
 
-        """
+    """
     root = data_file.root
     water_level_feature = root.water_level
 
@@ -365,14 +368,12 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
 
     min_height = numpy.min(height[numpy.where(height != FILLVALUE_HEIGHT)])
     max_height = numpy.max(height[numpy.where(height != FILLVALUE_HEIGHT)])
-    water_level_feature.min_dataset_height = numpy.round(min_height, decimals=2)
-    water_level_feature.max_dataset_height =  numpy.round(max_height, decimals=2)
 
     if min_height < water_level_feature.min_dataset_height and min_height != FILLVALUE_HEIGHT:
-        water_level_feature.min_dataset_height = min_height
+        water_level_feature.min_dataset_height = numpy.round(min_height, decimals=2)
 
     if max_height > water_level_feature.max_dataset_height and max_height != FILLVALUE_HEIGHT:
-        water_level_feature.max_dataset_height = max_height
+        water_level_feature.max_dataset_height = numpy.round(max_height, decimals=2)
 
     height[numpy.isnan(height)] = FILLVALUE_HEIGHT
     trend[numpy.isnan(trend)] = FILLVALUE_TREND

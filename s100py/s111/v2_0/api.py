@@ -311,7 +311,7 @@ class SurfaceCurrentValues(S1xxGridsBase):
         feature_attributes = [self.__surface_current_speed_hdf_name__, self.__surface_current_direction_hdf_name__]
         if self.__speed_uncertainty_hdf_name__ in self._attributes:
             feature_attributes.extend([self.__speed_uncertainty_hdf_name__])
-        print("FEATURES", self._attributes, feature_attributes)
+
         if self.__direction_uncertainty_hdf_name__ in self._attributes:
             feature_attributes.extend([self.__direction_uncertainty_hdf_name__])
         return feature_attributes
@@ -865,7 +865,7 @@ class S111File(S100File):
         speed_uncertainty_info.name = "Speed Uncertainty"
         speed_uncertainty_info.unit_of_measure = "knot"
         speed_uncertainty_info.datatype = "H5T_FLOAT"
-        speed_uncertainty_info.fill_value = str(FILLVALUE_UNCERTAINTY)
+        speed_uncertainty_info.fill_value = f"{FILLVALUE_UNCERTAINTY:0.02f}"
         speed_uncertainty_info.lower = "0.00"
         speed_uncertainty_info.upper = "99.00"
         speed_uncertainty_info.closure = "geSemiInterval"

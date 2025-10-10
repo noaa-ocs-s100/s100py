@@ -150,10 +150,8 @@ def add_metadata(metadata: dict, data_file) -> S111File:
     root = data_file.root
     surface_current_feature = root.surface_current
 
-    surface_current_feature.min_dataset_current_speed = 0
-    surface_current_feature.max_dataset_current_speed = 0
-
     utc_now = datetime.datetime.now(datetime.timezone.utc)
+
     try:
         root.product_specification = S111File.PRODUCT_SPECIFICATION
         root.issue_date = (metadata["issueDate"] if "issueDate" in metadata else utc_now.date())
@@ -210,6 +208,8 @@ def add_metadata(metadata: dict, data_file) -> S111File:
         surface_current_feature.common_point_rule = metadata["commonPointRule"]
         surface_current_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
         surface_current_feature.vertical_uncertainty = metadata["verticalUncertainty"]
+        surface_current_feature.min_dataset_current_speed = 0
+        surface_current_feature.max_dataset_current_speed = 0
 
         # Optional SurfaceCurrent Feature type metadata
         if "timeUncertainty" in metadata:
@@ -365,14 +365,12 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
 
     min_speed = numpy.min(speed[numpy.where(speed != FILLVALUE_CURRENTS)])
     max_speed = numpy.max(speed[numpy.where(speed != FILLVALUE_CURRENTS)])
-    surface_current_feature.min_dataset_current_speed = numpy.round(min_speed, decimals=2)
-    surface_current_feature.max_dataset_current_speed =  numpy.round(max_speed, decimals=2)
 
     if min_speed < surface_current_feature.min_dataset_current_speed and min_speed != FILLVALUE_CURRENTS:
-        surface_current_feature.min_dataset_current_speed = min_speed
+        surface_current_feature.min_dataset_current_speed = numpy.round(min_speed, decimals=2)
 
     if max_speed > surface_current_feature.max_dataset_current_speed and max_speed != FILLVALUE_CURRENTS:
-        surface_current_feature.max_dataset_current_speed = max_speed
+        surface_current_feature.max_dataset_current_speed = numpy.round(max_speed, decimals=2)
 
     if numpy.ma.is_masked(speed):
         speed = speed.filled(FILLVALUE_CURRENTS)
