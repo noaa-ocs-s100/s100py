@@ -234,9 +234,6 @@ def add_metadata(metadata: dict, data_file) -> S104File:
         water_level_feature.common_point_rule = metadata["commonPointRule"]
         water_level_feature.vertical_uncertainty = metadata["verticalUncertainty"]
         water_level_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
-        water_level_feature.min_dataset_height = 0
-        water_level_feature.max_dataset_height = 0
-
         # Optional feature type metadata
         if "timeUncertainty" in metadata:
             water_level_feature.time_uncertainty = metadata["timeUncertainty"]
@@ -247,7 +244,6 @@ def add_metadata(metadata: dict, data_file) -> S104File:
         # Optional, Allowed values 1: XMin, YMin (“Lower left”) or 5:Barycenter (centroid) of cell
         if "dataOffsetCode" in metadata:
             water_level_feature.data_offset_code = metadata["dataOffsetCode"]
-
 
     except KeyError as e:
         raise S104Exception(f"AttributeError: Mandatory S-104 attribute {e} not found in the metadata dictionary")
@@ -366,15 +362,6 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
     water_level_feature.axis_names = numpy.array(["longitude", "latitude"])
     root.water_level.dimension = len(water_level_feature.axis_names)
 
-    min_height = numpy.min(height[numpy.where(height != FILLVALUE_HEIGHT)])
-    max_height = numpy.max(height[numpy.where(height != FILLVALUE_HEIGHT)])
-
-    if min_height < water_level_feature.min_dataset_height and min_height != FILLVALUE_HEIGHT:
-        water_level_feature.min_dataset_height = numpy.round(min_height, decimals=2)
-
-    if max_height > water_level_feature.max_dataset_height and max_height != FILLVALUE_HEIGHT:
-        water_level_feature.max_dataset_height = numpy.round(max_height, decimals=2)
-
     height[numpy.isnan(height)] = FILLVALUE_HEIGHT
     trend[numpy.isnan(trend)] = FILLVALUE_TREND
 
@@ -390,6 +377,17 @@ def add_data_from_arrays(height: s1xx_sequence, trend, data_file, grid_propertie
 
     if height.shape != trend.shape:
         raise S104Exception("Water level height & trend grids have different shapes")
+
+    min_height = numpy.min(height[numpy.where(height != FILLVALUE_HEIGHT)])
+    max_height = numpy.max(height[numpy.where(height != FILLVALUE_HEIGHT)])
+    try:
+        water_level_feature.min_dataset_height = min(water_level_feature.min_dataset_height, min_height)
+    except (AttributeError, KeyError):
+        water_level_feature.min_dataset_height = min_height
+    try:
+        water_level_feature.max_dataset_height = max(water_level_feature.max_dataset_height, max_height)
+    except (AttributeError, KeyError):
+        water_level_feature.max_dataset_height = max_height
 
     water_level_group_object = water_level_feature_instance.water_level_group.append_new_item()
     water_level_group_object.time_point = datetime_value
