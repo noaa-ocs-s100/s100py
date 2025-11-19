@@ -26,6 +26,7 @@ def _get_S111File(output_file):
 
     return data_file
 
+
 def create_s111(output_file, dcf, speed_uncertainty=False, direction_uncertainty=False) -> S111File:
     """ Creates or updates an S111File object.
     Default values are set for any data that doesn't have options
@@ -208,8 +209,6 @@ def add_metadata(metadata: dict, data_file) -> S111File:
         surface_current_feature.common_point_rule = metadata["commonPointRule"]
         surface_current_feature.horizontal_position_uncertainty = metadata["horizontalPositionUncertainty"]
         surface_current_feature.vertical_uncertainty = metadata["verticalUncertainty"]
-        surface_current_feature.min_dataset_current_speed = 0
-        surface_current_feature.max_dataset_current_speed = 0
 
         # Optional SurfaceCurrent Feature type metadata
         if "timeUncertainty" in metadata:
@@ -225,6 +224,7 @@ def add_metadata(metadata: dict, data_file) -> S111File:
         raise S111Exception(f"Error: Mandatory S-111 attribute {e} not found in the metadata dictionary")
 
     return data_file
+
 
 def add_surface_current_instance(data_file):
     """ Adds the surface current object container to the S111File object,
@@ -250,6 +250,7 @@ def add_surface_current_instance(data_file):
     surface_current_feature_instance.surface_current_group_create()
 
     return data_file
+
 
 def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_file,
                          grid_properties: dict, datetime_value, data_coding_format,
@@ -363,18 +364,20 @@ def add_data_from_arrays(speed: s1xx_sequence, direction: s1xx_sequence, data_fi
     surface_current_feature.axis_names = numpy.array(["longitude", "latitude"])
     root.surface_current.dimension = len(surface_current_feature.axis_names)
 
-    min_speed = numpy.min(speed[numpy.where(speed != FILLVALUE_CURRENTS)])
-    max_speed = numpy.max(speed[numpy.where(speed != FILLVALUE_CURRENTS)])
-
-    if min_speed < surface_current_feature.min_dataset_current_speed and min_speed != FILLVALUE_CURRENTS:
-        surface_current_feature.min_dataset_current_speed = numpy.round(min_speed, decimals=2)
-
-    if max_speed > surface_current_feature.max_dataset_current_speed and max_speed != FILLVALUE_CURRENTS:
-        surface_current_feature.max_dataset_current_speed = numpy.round(max_speed, decimals=2)
-
     if numpy.ma.is_masked(speed):
         speed = speed.filled(FILLVALUE_CURRENTS)
         direction = direction.filled(FILLVALUE_CURRENTS)
+
+    min_speed = numpy.min(speed[numpy.where(speed != FILLVALUE_CURRENTS)])
+    max_speed = numpy.max(speed[numpy.where(speed != FILLVALUE_CURRENTS)])
+    try:
+        surface_current_feature.min_dataset_current_speed = min(surface_current_feature.min_dataset_current_speed, min_speed)
+    except (AttributeError, KeyError):
+        surface_current_feature.min_dataset_current_speed = min_speed
+    try:
+        surface_current_feature.max_dataset_current_speed = max(surface_current_feature.max_dataset_current_speed, max_speed)
+    except (AttributeError, KeyError):
+        surface_current_feature.max_dataset_current_speed = max_speed
 
     speed = numpy.round(speed, decimals=2)
     direction = numpy.round(direction, decimals=1)
