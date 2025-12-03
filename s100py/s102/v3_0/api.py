@@ -2266,7 +2266,8 @@ class S102File(S100File):
             raise S102Exception("raster is not north up but is rotated, this is not handled at this time")
 
         if "origin" not in metadata:
-            metadata["origin"] = [ulx, uly]
+            # shift the gdal geotransform corner point to reference the node (pixel is center) rather than cell (pixel is area)
+            metadata["origin"] = [ulx + dxx / 2, uly + dyy / 2]
         if "res" not in metadata:
             metadata["res"] = [dxx, dyy]
         if dataset.RasterCount > 2:
