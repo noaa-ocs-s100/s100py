@@ -14,7 +14,10 @@ def open(filename: (str, pathlib.Path), mode: str = "r") -> S1XXFile:
     file_object = S100File(filename, mode)
     # @todo use the new case statement when python 3.10 is required
     spec = file_object.root.product_specification
-
+    # this is bad form but avoids circular imports and loading all specs unless trying to generically loading something
+    import s100py.s102.v3_0, s100py.s102.v2_2, s100py.s102.v2_1, s100py.s102.v2_0
+    import s100py.s111.v1_0, s100py.s111.v1_2, s100py.s111.v2_0
+    import s100py.s104.v1_0, s100py.s104.v1_1, s100py.s104.v2_0
     for product in [s100py.s102.v3_0, s100py.s102.v2_2, s100py.s102.v2_1, s100py.s102.v2_0,
                     s100py.s111.v1_0, s100py.s111.v1_2, s100py.s111.v2_0,
                     s100py.s104.v1_0, s100py.s104.v1_1, s100py.s104.v2_0]:

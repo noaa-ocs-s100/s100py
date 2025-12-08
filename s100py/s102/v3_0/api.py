@@ -2405,7 +2405,7 @@ class S102File(S100File):
             bathy01.attrs['westBoundLongitude'] -= res_lon / 2
             bathy01.attrs['eastBoundLongitude'] += res_lon / 2
             srs = osr.SpatialReference()
-            srs.ImportFromEPSG(int(s100_object['horizontalCRS']))
+            srs.ImportFromEPSG(int(s100_object.attrs['horizontalCRS']))
             if srs.IsProjected():
                 wgs = osr.SpatialReference()
                 wgs.ImportFromEPSG(4326)  # 4326 is WGS84 geodetic - and S102 specifies WGS84
