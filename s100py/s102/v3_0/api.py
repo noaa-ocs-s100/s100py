@@ -905,6 +905,9 @@ class QualityOfBathymetryCoverageContainer(FeatureContainerDCF9, InterpolationTy
         # pylint: disable=attribute-defined-outside-init
         pass
 
+    def data_offset_code_create(self):
+        self.data_offset_code = 5
+
 class QualityOfBathymetryCoveragesList(S102MetadataListBase):
     """ 4.2.1.1.2 and Figure 4.4 and Table 10.1 of v2.0.0
     This is the set of QualityOfBathymetryCoverage.NN that act like a list here.
@@ -1721,6 +1724,8 @@ class S102File(S100File):
         quality_info.lower = 1
         quality_info.upper = ""
         quality_info.closure = "geSemiInterval"
+        root.quality_of_bathymetry_coverage.num_instances = root.bathymetry_coverage.num_instances
+        root.quality_of_bathymetry_coverage.common_point_rule = root.bathymetry_coverage.common_point_rule
 
     def _set_bathy_defaults(self, overwrite=True):
         """ This function initializes the values in more recent versions of the spec to reduce redundant code in later modules
@@ -2039,8 +2044,11 @@ class S102File(S100File):
         metadata
             a dictionary of metadata describing the grids passed in,
             metadata should have the following key/value pairs:
-                - "origin": tuple of the position (x,y) or (lon, lat) for the reference corner node.
+                - "origin": tuple of the position (x,y) or (lon, lat) for the reference corner node (cell center).
                     Other corners are calulated from this corner using the resolution and size of the data array.
+                - "origin_corner": tuple of the position (x,y) or (lon, lat) for the origin cell corner.
+                    This is the cell edges and can be used instead of "origin".
+                    If both are supplied then "origin" takes precedence.
                 - "res": tuple of the resolution (cell size) of each grid cell (x, y).
                     Lower left corner is the first point of both resolutions are positive.
                     If a resolution is negative then the grid will be flipped in that dimension and the origin adjusted accordingly.
@@ -2078,7 +2086,14 @@ class S102File(S100File):
                                 flip_z=flip_z, quality_grid=quality_grid)
 
         rows, cols = depth_grid.shape
-        corner_x, corner_y = metadata['origin']
+        if 'origin' in metadata:
+            bary_x, bary_y = metadata['origin']
+            corner_x = bary_x - res_x / 2.0
+            corner_y = bary_y - res_y / 2.0
+        else:
+            corner_x, corner_y = metadata['origin_corner']
+            bary_x = corner_x + res_x / 2.0
+            bary_y = corner_y + res_y / 2.0
 
         # S-102 is cell based, so distance to far corner is res * n
         opposite_corner_x = corner_x + res_x * cols
@@ -2145,8 +2160,9 @@ class S102File(S100File):
             instance.north_bound_latitude = maxy
 
             # S102 says this is in the CRS of the data (projected) while S100 says units of Arc Degrees (lat/lon)
-            instance.grid_origin_longitude = minx
-            instance.grid_origin_latitude = miny
+            # We recompute the origin to be the center of the first cell since it may have changed due to negative resolution
+            instance.grid_origin_longitude = minx + abs(res_x) / 2.0  # center of the first cell
+            instance.grid_origin_latitude = miny + abs(res_y) / 2.0  # center of the first cell
             instance.grid_spacing_longitudinal = abs(res_x)  # we adjust for negative resolution in the from_arrays
             instance.grid_spacing_latitudinal = abs(res_y)
 
@@ -2178,7 +2194,7 @@ class S102File(S100File):
         self.flush()
 
     @classmethod
-    def from_raster(cls, input_raster, output_file, metadata: dict = None, flip_z=False, replace_rat_ids=None) -> S102File:  # gdal instance or filename accepted
+    def from_raster(cls, input_raster, output_file, metadata: dict = None, flip_z=False, replace_rat_ids=None, trim_nodata=False) -> S102File:  # gdal instance or filename accepted
         """  Fills or creates an :any:`S102File` from the given arguments.
         Assumes that depth is in band 1, uncertainty is in band 2, quality is in band 3.
 
@@ -2190,12 +2206,12 @@ class S102File(S100File):
             Can be an S102File object or anything the h5py.File would accept, e.g. string file path, tempfile obect, BytesIO etc.
         """
         data_file = cls.create_s102(output_file)
-        data_file.load_gdal(input_raster, metadata=metadata, flip_z=flip_z, replace_rat_ids=replace_rat_ids)
+        data_file.load_gdal(input_raster, metadata=metadata, flip_z=flip_z, replace_rat_ids=replace_rat_ids, trim_nodata=trim_nodata)
         return data_file
 
     from_gdal = from_raster  # alias
 
-    def load_gdal(self, input_raster, metadata: dict = None, flip_z=False, replace_rat_ids=None):  # gdal instance or filename accepted
+    def load_gdal(self, input_raster, metadata: dict = None, flip_z=False, replace_rat_ids=None, trim_nodata=False):  # gdal instance or filename accepted
         """ Fills or creates an :any:`S102File` from the given arguments.
 
         Parameters
@@ -2225,6 +2241,9 @@ class S102File(S100File):
         if replace_rat_ids is None:
             replace_rat_ids = {}
 
+        if trim_nodata:
+            input_raster = create_trimmed_disk_raster(input_raster)
+            # pass
         if isinstance(input_raster, gdal.Dataset):
             dataset = input_raster
         else:
@@ -2265,8 +2284,8 @@ class S102File(S100File):
         if dxy != 0.0 or dyx != 0.0:
             raise S102Exception("raster is not north up but is rotated, this is not handled at this time")
 
-        if "origin" not in metadata:
-            metadata["origin"] = [ulx, uly]
+        if "origin" not in metadata and "origin_corner" not in metadata:
+            metadata["origin_corner"] = [ulx, uly]
         if "res" not in metadata:
             metadata["res"] = [dxx, dyy]
         if dataset.RasterCount > 2:
@@ -2380,14 +2399,25 @@ class S102File(S100File):
 
             res_lat = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['gridSpacingLatitudinal']
             res_lon = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['gridSpacingLongitudinal']
-            s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['northBoundLatitude'] += res_lat / 2
-            s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['southBoundLatitude'] -= res_lat / 2
-            s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['westBoundLongitude'] += res_lon / 2
-            s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['eastBoundLongitude'] -= res_lon / 2
-            s100_object.attrs['northBoundLatitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['northBoundLatitude']
-            s100_object.attrs['southBoundLatitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['southBoundLatitude']
-            s100_object.attrs['westBoundLongitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['westBoundLongitude']
-            s100_object.attrs['eastBoundLongitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['eastBoundLongitude']
+            bathy01 = s100_object['BathymetryCoverage']['BathymetryCoverage.01']
+            bathy01.attrs['northBoundLatitude'] += res_lat / 2
+            bathy01.attrs['southBoundLatitude'] -= res_lat / 2
+            bathy01.attrs['westBoundLongitude'] -= res_lon / 2
+            bathy01.attrs['eastBoundLongitude'] += res_lon / 2
+            srs = osr.SpatialReference()
+            srs.ImportFromEPSG(int(s100_object['horizontalCRS']))
+            if srs.IsProjected():
+                wgs = osr.SpatialReference()
+                wgs.ImportFromEPSG(4326)  # 4326 is WGS84 geodetic - and S102 specifies WGS84
+                transform = osr.CoordinateTransformation(srs, wgs)
+                south_lat, west_lon = transform.TransformPoint(bathy01.attrs['westBoundLongitude'], bathy01.attrs['southBoundLatitude'])[:2]
+                north_lat, east_lon = transform.TransformPoint(bathy01.attrs['eastBoundLongitude'], bathy01.attrs['northBoundLatitude'])[:2]
+            else:
+                s100_object.attrs['northBoundLatitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['northBoundLatitude']
+                s100_object.attrs['southBoundLatitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['southBoundLatitude']
+                s100_object.attrs['westBoundLongitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['westBoundLongitude']
+                s100_object.attrs['eastBoundLongitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['eastBoundLongitude']
+
             s100_object["Group_F"]["BathymetryCoverage"][1][5] = 0
             s100_object["Group_F"]["BathymetryCoverage"][1][6] = ""
             s100_object["Group_F"]["BathymetryCoverage"][1][7] = "goSemiInterval"
@@ -2404,6 +2434,9 @@ class S102File(S100File):
                 s100_object.move('QualityOfSurvey', "QualityOfBathymetryCoverage")
                 s100_object["QualityOfBathymetryCoverage"].move('QualityOfSurvey.01', "QualityOfBathymetryCoverage.01")
                 s100_object["Group_F"].move('QualityOfSurvey', "QualityOfBathymetryCoverage")
+                s100_object['QualityOfBathymetryCoverage'].attrs['commonPointRule'] = 2  # s100.COMMON_POINT_RULE(2)  # low
+                s100_object['QualityOfBathymetryCoverage'].attrs['dataOffsetCode'] = 5  # barycenter
+                s100_object['QualityOfBathymetryCoverage'].attrs['interpolationType'] = 1  # nearest neighbor
             except ValueError:  # QualityOfSurvey doesn't exist
                 pass
             else:  # QualityOfSurvey exists
@@ -2543,3 +2576,141 @@ class S102File(S100File):
 #     else:
 #         raise ValueError(f"Version {version} is not supported in this version of the S100py module")
 #     return obj
+
+
+def create_trimmed_disk_raster(src_input):
+    """
+    Creates a new trimmed raster dataset on disk, named 'tmp30_[original_name]',
+    cropped to the minimum extent that contains non-NoData values, and explicitly
+    copies the Raster Attribute Table (RAT) for each band.
+
+    Raises:
+        TypeError: If the input is neither a file path (str) nor a GDAL Dataset.
+        FileNotFoundError: If the input path does not exist.
+        Exception: For general errors during GDAL operations.
+
+    Args:
+        src_input (gdal.Dataset or str): The source GDAL dataset object or
+                                         the file path to the raster.
+
+    Returns:
+        str: The file path to the newly created, trimmed raster dataset.
+    """
+    src_ds = None
+    ds_to_close = None
+
+    # --- 1. Handle Input Type and Determine Output Path ---
+    if isinstance(src_input, str):
+        if not os.path.exists(src_input):
+            raise FileNotFoundError(f"File not found at path: {src_input}")
+
+        input_dir = os.path.dirname(src_input)
+        input_filename = os.path.basename(src_input)
+        output_filename = f"tmp30_{input_filename}"
+        output_filepath = os.path.join(input_dir, output_filename)
+
+        src_ds = gdal.Open(src_input, gdal.GA_ReadOnly)
+        if src_ds is None:
+            raise Exception(f"Could not open dataset from file: {src_input}")
+        ds_to_close = src_ds
+
+    elif isinstance(src_input, gdal.Dataset):
+        src_ds = src_input
+        source_name = src_ds.GetDescription()
+        if source_name and source_name != '':
+            input_dir = os.path.dirname(source_name)
+            input_filename = os.path.basename(source_name)
+            output_filename = f"tmp30_{input_filename}"
+        else:
+            input_dir = os.getcwd()
+            output_filename = "tmp30_trimmed_output.tif"
+
+        output_filepath = os.path.join(input_dir, output_filename)
+    else:
+        raise TypeError("Input must be a file path (str) or a GDAL Dataset object.")
+
+    # --- 2. Determine Trimming Extent (Using Band 1) ---
+    try:
+        band_count = src_ds.RasterCount
+        if band_count == 0:
+            raise Exception("Source dataset has no raster bands.")
+
+        src_band_1 = src_ds.GetRasterBand(1)
+        nodata_value_1 = src_band_1.GetNoDataValue()
+        src_array_1 = src_band_1.ReadAsArray()
+
+        if src_array_1 is None:
+            raise Exception("Could not read Band 1 array.")
+
+        if nodata_value_1 is not None:
+            valid_data_mask = numpy.logical_and(src_array_1 != nodata_value_1,
+                                                ~numpy.isnan(src_array_1))
+        else:
+            valid_data_mask = ~numpy.isnan(src_array_1)
+
+        valid_indices = numpy.argwhere(valid_data_mask)
+
+        if valid_indices.size == 0:
+            raise Exception("The raster contains all NoData values and cannot be trimmed.")
+
+        row_min = numpy.min(valid_indices[:, 0])
+        row_max = numpy.max(valid_indices[:, 0])
+        col_min = numpy.min(valid_indices[:, 1])
+        col_max = numpy.max(valid_indices[:, 1])
+
+        new_y_size = row_max - row_min + 1
+        new_x_size = col_max - col_min + 1
+
+        # --- 3. Create New On-Disk Dataset (GTiff) ---
+        driver = gdal.GetDriverByName('GTiff')
+
+        if os.path.exists(output_filepath):
+            driver.Delete(output_filepath)
+
+        dst_ds = driver.Create(output_filepath, int(new_x_size), int(new_y_size), int(band_count), src_band_1.DataType)
+
+        gt = src_ds.GetGeoTransform()
+        new_gt = list(gt)
+        new_gt[0] = gt[0] + col_min * gt[1] + row_min * gt[2]
+        new_gt[3] = gt[3] + col_min * gt[4] + row_min * gt[5]
+
+        dst_ds.SetGeoTransform(new_gt)
+        dst_ds.SetProjection(src_ds.GetProjection())
+
+        # --- 4. Loop Through All Bands and Copy Trimmed Data and Metadata ---
+        for i in range(1, band_count + 1):
+            src_band = src_ds.GetRasterBand(i)
+            dst_band = dst_ds.GetRasterBand(i)
+
+            current_array = src_band.ReadAsArray()
+            trimmed_array = current_array[row_min:row_max + 1, col_min:col_max + 1]
+            dst_band.WriteArray(trimmed_array)
+
+            # Copy band metadata (NoData value)
+            nodata_value = src_band.GetNoDataValue()
+            if nodata_value is not None:
+                dst_band.SetNoDataValue(nodata_value)
+
+            # CRITICAL: Copy the Raster Attribute Table (RAT)
+            src_rat = src_band.GetDefaultRAT()
+            if src_rat:
+                # Clone the RAT object and assign it to the destination band
+                dst_band.SetDefaultRAT(src_rat.Clone())
+
+            # Copy over Color Table if present (often tied to classified data)
+            src_ct = src_band.GetColorTable()
+            if src_ct:
+                dst_band.SetColorTable(src_ct)
+
+        # Explicitly close the destination dataset to ensure data and metadata are flushed to disk
+        dst_ds = None
+
+        return output_filepath
+
+    finally:
+        # Clean up source dataset reference if it was opened inside this function
+        if ds_to_close is not None:
+            ds_to_close = None
+
+        # --- Verification ---
+
