@@ -5,7 +5,7 @@ import os
 import datetime
 import numpy
 import h5py
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import pyproj
 
 try:
