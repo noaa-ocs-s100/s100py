@@ -348,10 +348,23 @@ def update_metadata(data_file, grid_properties: dict, update_meta: dict) -> S111
     surface_current_feature_instance_01.number_of_times = update_meta['numberOfTimes']
     surface_current_feature_instance_01.time_record_interval = update_meta['timeRecordInterval']
 
-    root.east_bound_longitude = grid_properties["maxx"]
-    root.west_bound_longitude = grid_properties["minx"]
-    root.south_bound_latitude = grid_properties["miny"]
-    root.north_bound_latitude = grid_properties["maxy"]
+    code = update_meta.get("dataOffsetCode", 1)
+
+    if code == 5:
+        west = grid_properties["minx"] - 0.5 * grid_properties["cellsize_x"]
+        east = grid_properties["maxx"] + 0.5 * grid_properties["cellsize_x"]
+        south = grid_properties["miny"] - 0.5 * grid_properties["cellsize_y"]
+        north = grid_properties["maxy"] + 0.5 * grid_properties["cellsize_y"]
+    else:
+        west = grid_properties["minx"]
+        east = grid_properties["maxx"]
+        south = grid_properties["miny"]
+        north = grid_properties["maxy"]
+
+    root.west_bound_longitude = west
+    root.east_bound_longitude = east
+    root.south_bound_latitude = south
+    root.north_bound_latitude = north
 
     return data_file
 

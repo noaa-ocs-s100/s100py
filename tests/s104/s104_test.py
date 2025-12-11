@@ -2,20 +2,23 @@ from collections import namedtuple
 import pytest
 
 import os
-
 import datetime
 import numpy
 import h5py
+import matplotlib.pyplot as plt
+import pyproj
 
 try:
-    from osgeo import gdal, ogr
+    from osgeo import gdal, ogr, osr
 except ModuleNotFoundError:
-    import gdal, ogr
+    import gdal, ogr, osr
 
 from s100py import s100
 from s100py.s104 import v1_0
 from s100py.s104 import v1_1
 from s100py.s104 import v2_0
+
+os.environ['PROJ_LIB'] = pyproj.datadir.get_data_dir()
 
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
@@ -2333,17 +2336,94 @@ def test_create_s104_dcf2(s104, input_data):
     assert h5_file.attrs['westBoundLongitude'] == pytest.approx(input_data.grid_properties_dcf2['minx'])
     assert h5_file.attrs['northBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf2['maxy'])
     assert h5_file.attrs['southBoundLatitude'] == pytest.approx(input_data.grid_properties_dcf2['miny'])
+    assert h5_file["WaterLevel/WaterLevel.01"].attrs['gridOriginLongitude'] == pytest.approx(h5_file.attrs['westBoundLongitude'])
+    assert h5_file["WaterLevel/WaterLevel.01"].attrs['gridOriginLatitude'] == pytest.approx(h5_file.attrs['southBoundLatitude'])
 
     assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][0],
                                                                                 input_data.expected_groupf[0])])
     assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][1],
                                                                                input_data.expected_groupf[1])])
 
-
     assert pytest.approx((h5_file.attrs['westBoundLongitude'] + h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal']
            * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLongitudinal']), rel=0.005) == h5_file.attrs['eastBoundLongitude']
     assert pytest.approx((h5_file.attrs['southBoundLatitude'] + h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal']
            * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLatitudinal']), rel=0.005) == h5_file.attrs['northBoundLatitude']
+
+    epsg = h5_file.attrs["horizontalCRS"]
+    origin_lon = float(h5_file["WaterLevel"]["WaterLevel.01"].attrs["gridOriginLongitude"])
+    origin_lat = float(h5_file["WaterLevel"]["WaterLevel.01"].attrs["gridOriginLatitude"])
+
+    origin_point = ogr.Geometry(ogr.wkbPoint)
+    origin_point.AddPoint(origin_lon, origin_lat)
+
+    root_west = float(h5_file.attrs["westBoundLongitude"])
+    root_east = float(h5_file.attrs["eastBoundLongitude"])
+    root_south = float(h5_file.attrs["southBoundLatitude"])
+    root_north = float(h5_file.attrs["northBoundLatitude"])
+
+    ring = ogr.Geometry(ogr.wkbLinearRing)
+    ring.AddPoint(root_west, root_south)
+    ring.AddPoint(root_west, root_north)
+    ring.AddPoint(root_east, root_north)
+    ring.AddPoint(root_east, root_south)
+    ring.AddPoint(root_west, root_south)
+
+    dataset_poly = ogr.Geometry(ogr.wkbPolygon)
+    dataset_poly.AddGeometry(ring)
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(int(epsg))
+
+    gpkg = ogr.GetDriverByName("GPKG")
+    ds = gpkg.CreateDataSource(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_extent.gpkg")
+
+    layer_bounds = ds.CreateLayer("bounds", srs, geom_type=ogr.wkbPolygon)
+
+    field_type = ogr.FieldDefn("type", ogr.OFTString)
+    layer_bounds.CreateField(field_type)
+
+    feat_def_bounds = layer_bounds.GetLayerDefn()
+    feat_bounds = ogr.Feature(feat_def_bounds)
+    feat_bounds.SetField("type", "boundingBox")
+    feat_bounds.SetGeometry(dataset_poly)
+    layer_bounds.CreateFeature(feat_bounds)
+    feat_bounds = None
+
+    layer_origin = ds.CreateLayer("origin", srs, geom_type=ogr.wkbPoint)
+
+    layer_origin.CreateField(field_type)
+
+    feat_def_origin = layer_origin.GetLayerDefn()
+    feat_origin = ogr.Feature(feat_def_origin)
+    feat_origin.SetField("type", "gridOrigin")
+    feat_origin.SetGeometry(origin_point)
+    layer_origin.CreateFeature(feat_origin)
+    feat_origin = None
+
+    ds = None
+
+    # # Plot Bounding Box and Grid Origin
+    # fig, ax = plt.subplots(figsize=(10, 10))
+    #
+    # # Bounds polygon
+    # ring = dataset_poly.GetGeometryRef(0)
+    # pts = ring.GetPoints()
+    # bx, by = zip(*[(p[0], p[1]) for p in pts])
+    #
+    # ax.fill(bx, by, alpha=0.2, color="orange", label="Bounds")
+    # ax.plot(bx, by, color="red", linewidth=2)
+    #
+    # # Origin point
+    # ox = origin_point.GetX()
+    # oy = origin_point.GetY()
+    #
+    # ax.scatter(ox, oy, color="blue", s=50, label="Origin")
+    #
+    # ax.set_title(f"S-104 v{s104.EDITION} Plot: Bounding Box + Default Origin")
+    # ax.set_xlabel("Longitude")
+    # ax.set_ylabel("Latitude")
+    # ax.legend()
+    # plt.show()
 
 
 def test_create_s104_dcf2_uncertainty(s104, input_data):
@@ -2420,6 +2500,156 @@ def test_create_s104_dcf2_uncertainty(s104, input_data):
          (h5_file.attrs['southBoundLatitude'] + h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal']
           * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLatitudinal']), rel=0.005) == h5_file.attrs[
                 'northBoundLatitude']
+
+
+def test_create_s104_data_offset(s104, input_data):
+    if s104.EDITION == 2.0:
+        data_file = s104.utils.create_s104(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_data_offset.h5", 2)
+        water_level_trend_threshold = 0.2
+        input_data.metadata_2_0_dcf2["dataOffsetCode"] = 5
+        s104.utils.add_metadata(input_data.metadata_2_0_dcf2, data_file)
+        water_level_trend_threshold = input_data.metadata_2_0_dcf2['waterLevelTrendThreshold']
+        s104.utils.add_water_level_instance(data_file)
+
+        data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf2_001, input_data.trend_dcf2_001, data_file,
+                                        input_data.grid_properties_dcf2, data_series_time_001, 2)
+
+        trend = numpy.round((input_data.height_dcf2_002 - input_data.height_dcf2_001), decimals=2)
+        trend = numpy.ma.masked_where((input_data.height_dcf2_002 == -9999.0) | (input_data.height_dcf2_001 == -9999.0),
+                                      trend)
+
+        trend_002 = numpy.ma.where((-1 * water_level_trend_threshold < trend) &
+                                   (trend < water_level_trend_threshold), 3,
+                                   numpy.ma.where(trend >= water_level_trend_threshold, 2,
+                                                  numpy.ma.where(trend <= -1 * water_level_trend_threshold, 1,
+                                                                 numpy.any(trend))))
+
+        trend_002 = numpy.ma.filled(trend_002, 0)
+
+        data_series_time_002 = data_series_time_001 + input_data.datetime_interval
+        s104.utils.add_data_from_arrays(input_data.height_dcf2_002, trend_002, data_file,
+                                        input_data.grid_properties_dcf2,
+                                        data_series_time_002, 2)
+
+        s104.utils.update_metadata(data_file, input_data.grid_properties_dcf2, input_data.metadata_2_0_dcf2)
+
+        s104.utils.write_data_file(data_file)
+
+        assert os.path.isfile(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_data_offset.h5")
+        h5_file = h5py.File(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_data_offset.h5", "r")
+
+        assert 'Group_F/WaterLevel' in h5_file
+        assert 'Group_F/featureCode' in h5_file
+        assert 'WaterLevel/WaterLevel.01/uncertainty' in h5_file
+        assert 'WaterLevel/axisNames' in h5_file
+
+        assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf2_001)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelHeight'] == pytest.approx(input_data.height_dcf2_002)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_001/values']['waterLevelTrend'] == pytest.approx(input_data.trend_dcf2_001)
+        assert h5_file['WaterLevel/WaterLevel.01/Group_002/values']['waterLevelTrend'] == pytest.approx(trend_002)
+        assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal'] == input_data.height_dcf2_001.shape[1]
+        assert h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal'] == input_data.height_dcf2_001.shape[0]
+
+        assert (h5_file.attrs['eastBoundLongitude'] ==
+                pytest.approx(input_data.grid_properties_dcf2["maxx"] + 0.5 * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLongitudinal']))
+        assert (h5_file.attrs['westBoundLongitude'] ==
+                pytest.approx(input_data.grid_properties_dcf2["minx"] - 0.5 * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLongitudinal']))
+        assert (h5_file.attrs['northBoundLatitude'] ==
+                pytest.approx(input_data.grid_properties_dcf2["maxy"] + 0.5 * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLatitudinal']))
+        assert (h5_file.attrs['southBoundLatitude'] ==
+                pytest.approx(input_data.grid_properties_dcf2["miny"] - 0.5 * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLatitudinal']))
+
+        assert h5_file["WaterLevel/WaterLevel.01"].attrs['gridOriginLongitude'] != h5_file.attrs['westBoundLongitude']
+        assert h5_file["WaterLevel/WaterLevel.01"].attrs['gridOriginLatitude'] != h5_file.attrs['southBoundLatitude']
+
+        assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][0],
+                                                                                    input_data.expected_groupf[0])])
+        assert all([h5py_string_comp(actual, expected) for actual, expected in zip(h5_file['Group_F/WaterLevel'][()][1],
+                                                                                   input_data.expected_groupf[1])])
+
+        assert pytest.approx((h5_file.attrs['westBoundLongitude'] + h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLongitudinal']
+               * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLongitudinal']), rel=0.005) == h5_file.attrs['eastBoundLongitude']
+        assert pytest.approx((h5_file.attrs['southBoundLatitude'] + h5_file['WaterLevel/WaterLevel.01/'].attrs['numPointsLatitudinal']
+               * h5_file['WaterLevel/WaterLevel.01/'].attrs['gridSpacingLatitudinal']), rel=0.005) == h5_file.attrs['northBoundLatitude']
+
+        del input_data.metadata_2_0_dcf2["dataOffsetCode"]
+
+        epsg = h5_file.attrs["horizontalCRS"]
+        origin_lon = float(h5_file["WaterLevel"]["WaterLevel.01"].attrs["gridOriginLongitude"])
+        origin_lat = float(h5_file["WaterLevel"]["WaterLevel.01"].attrs["gridOriginLatitude"])
+
+        origin_point = ogr.Geometry(ogr.wkbPoint)
+        origin_point.AddPoint(origin_lon, origin_lat)
+
+        root_west = float(h5_file.attrs["westBoundLongitude"])
+        root_east = float(h5_file.attrs["eastBoundLongitude"])
+        root_south = float(h5_file.attrs["southBoundLatitude"])
+        root_north = float(h5_file.attrs["northBoundLatitude"])
+
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+        ring.AddPoint(root_west, root_south)
+        ring.AddPoint(root_west, root_north)
+        ring.AddPoint(root_east, root_north)
+        ring.AddPoint(root_east, root_south)
+        ring.AddPoint(root_west, root_south)
+
+        dataset_poly = ogr.Geometry(ogr.wkbPolygon)
+        dataset_poly.AddGeometry(ring)
+
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(int(epsg))
+
+        gpkg = ogr.GetDriverByName("GPKG")
+        ds = gpkg.CreateDataSource(f"{current_directory}/test_s104_dcf2_{s104.EDITION}_data_offset_extent.gpkg")
+
+        layer_bounds = ds.CreateLayer("bounds", srs, geom_type=ogr.wkbPolygon)
+
+        field_type = ogr.FieldDefn("type", ogr.OFTString)
+        layer_bounds.CreateField(field_type)
+
+        feat_def_bounds = layer_bounds.GetLayerDefn()
+        feat_bounds = ogr.Feature(feat_def_bounds)
+        feat_bounds.SetField("type", "boundingBox")
+        feat_bounds.SetGeometry(dataset_poly)
+        layer_bounds.CreateFeature(feat_bounds)
+        feat_bounds = None
+
+        layer_origin = ds.CreateLayer("origin", srs, geom_type=ogr.wkbPoint)
+
+        layer_origin.CreateField(field_type)
+
+        feat_def_origin = layer_origin.GetLayerDefn()
+        feat_origin = ogr.Feature(feat_def_origin)
+        feat_origin.SetField("type", "gridOrigin")
+        feat_origin.SetGeometry(origin_point)
+        layer_origin.CreateFeature(feat_origin)
+        feat_origin = None
+
+        ds = None
+
+        # # Plot Bounding Box and Grid Origin
+        # fig, ax = plt.subplots(figsize=(10, 10))
+        #
+        # # Bounds polygon
+        # ring = dataset_poly.GetGeometryRef(0)
+        # pts = ring.GetPoints()
+        # bx, by = zip(*[(p[0], p[1]) for p in pts])
+        #
+        # ax.fill(bx, by, alpha=0.2, color="orange", label="Bounds")
+        # ax.plot(bx, by, color="red", linewidth=2)
+        #
+        # # Origin point
+        # ox = origin_point.GetX()
+        # oy = origin_point.GetY()
+        #
+        # ax.scatter(ox, oy, color="blue", s=50, label="Origin")
+        #
+        # ax.set_title(f"S-104 v{s104.EDITION} Plot: Bounding Box + Barycentric Origin")
+        # ax.set_xlabel("Longitude")
+        # ax.set_ylabel("Latitude")
+        # ax.legend()
+        # plt.show()
 
 
 def test_create_s104_dcf3(s104, input_data):
