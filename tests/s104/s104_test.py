@@ -6,7 +6,6 @@ import datetime
 import numpy
 import h5py
 # import matplotlib.pyplot as plt
-import pyproj
 
 try:
     from osgeo import gdal, ogr, osr
@@ -17,8 +16,6 @@ from s100py import s100
 from s100py.s104 import v1_0
 from s100py.s104 import v1_1
 from s100py.s104 import v2_0
-
-os.environ['PROJ_LIB'] = pyproj.datadir.get_data_dir()
 
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
