@@ -26,11 +26,10 @@ jobs:
         # all tests fail if one fails, this may allow other tests to continue
         # fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: conda-incubator/setup-miniconda@v3
         with:
-          miniforge-variant: Miniforge
-          miniforge-version: "latest"
+          miniforge-version: latest
           activate-environment: ENVs100py
           environment-file: environment.yml
           python-version: ${{ matrix.python-version }}
