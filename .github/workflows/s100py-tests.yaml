@@ -29,13 +29,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
         with:
+          miniforge-variant: Mambaforge
           activate-environment: ENVs100py
           environment-file: environment.yml
           python-version: ${{ matrix.python-version }}
           auto-activate-base: false
+          channels: conda-forge
+          channel-priority: strict
       - shell: bash -el {0}
         run: |
-          conda install --freeze-installed pytest
+          mamba install --yes --freeze-installed pytest
           conda env export --no-builds
           python3 -m pip install --upgrade pip
           pip install -e .
