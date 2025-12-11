@@ -30,6 +30,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-variant: Miniforge
+          miniforge-version: "latest"
           activate-environment: ENVs100py
           environment-file: environment.yml
           python-version: ${{ matrix.python-version }}
