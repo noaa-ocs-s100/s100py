@@ -397,7 +397,7 @@ class S1xxObject(ABC):
                     expected_items = self.get_standard_properties_mapping()
                     str_val = self.__getattribute__("__" + expected_items[key] + "_repr__")
                 except AttributeError:
-                    str_val = val.isoformat()
+                    str_val = val.isoformat().replace(":", "").replace("-", "")  # convert to the delimiterless basic format
                 group_object.attrs[key] = str_val
             else:  # Enum or simple types
                 # The trick here is to make any plain integers into Enum() if appropriate (like typeOfHorizontalCRS)
