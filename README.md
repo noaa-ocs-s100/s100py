@@ -115,6 +115,22 @@ pip install s100py
 
 Release Notes
 -------------
+**Version 2.0.1 (2025-12-12)**
+- This release delivers specification-aligned corrections and functional enhancements across the S100, S102, S104, and S111 API and utilities
+
+- **S102 v3.0**:
+  - Fix georeferencing offset where grid cells were shifted by half the spatial resolution
+  - Add origin_corner argument so gdal GetGeoTransform( ) results can be used directly
+  - Add missing attributes on QualityOfBathymetry that should match BathymetryCoverage values (dataOffsetCode, numInstances, commonPointRule)
+  - Add flag to trim nodata buffer around outside of supplied raster
+  - Fix version upgrade function for bounding box
+  - Deprecate horizontalDatumValue
+- **S104/S111**: Add barycentric grid coordinate support with bounding-box offset adjustments
+- **S111**: Fix surface current speed calculations across v1.0, v1.2, and v2.0
+- **S104**: Fix water level height calculations across v1.0, v1.1, and v2.0
+- **S100**: Convert python isoformat to basic iso 8601 by removing delimiters
+- **S100**: Update `to_geotiffs()` to account for `dataOffsetCode`
+
 **Version 2.0.0 (2025-07-09)**
 - This is a major release, which includes several new APIs that encapsulate the latest S-100 standard (S-100 Edition 5.2.0) and S-100 Product Specifications (S-102 Edition 3.0.0, S-111 Edition 2.0.0, S-104 Edition 2.0.0)
 - Additional convenience utilities have been added to generate:
