@@ -2055,7 +2055,8 @@ class S102File(S100File):
                 - "horizontalDatumReference": Removed in S102 v2.2
                     See :any:`S102Root` horizontal_datum_reference, ex: "EPSG".
                     "EPSG" is the default value.
-                - "horizontalDatumValue":  The value for the horizontal data such as the EPSG code ex: 32611
+                - "horizontalDatumValue": (deprecated, use horizontalCRS) The value for the horizontal data such as the EPSG code ex: 32611
+                - "horizontalCRS": The value for the horizontal data such as the EPSG code ex: 32611
                 - "epoch":
                 - "geographicIdentifier": Location of the data, ex: "Long Beach, CA, USA".
                     An empty string ("") is the default.
@@ -2118,8 +2119,11 @@ class S102File(S100File):
         # but are hard coded here to allow the S102 spec to change but not affect any tools built on these utility functions
         # if "horizontalDatumReference" in metadata or overwrite:
         #     root.horizontal_datum_reference = metadata.get("horizontalDatumReference", "EPSG")
-        if "horizontalDatumValue" in metadata or overwrite:
-            source_epsg = int(metadata.get("horizontalDatumValue", 0))
+        if "horizontalDatumValue" in metadata or "horizontalCRS" in metadata or overwrite:
+            if "horizontalCRS" in metadata:
+                source_epsg = int(metadata.get("horizontalCRS", 0))
+            else:
+                source_epsg = int(metadata.get("horizontalDatumValue", 0))
             if source_epsg in self.get_valid_epsg():
                 root.horizontal_crs = source_epsg
             else:
@@ -2225,7 +2229,8 @@ class S102File(S100File):
             All the metadata used in :any:`from_from_arrays_with_metadata` can be specified and
             would override the values that would have been populated based on the GDAL data.
 
-            horizontalDatumReference, horizontalDatumValue, origin, res will be determined from GDAL if not otherwise specified.
+            horizontalCRS, origin, res will be determined from GDAL if not otherwise specified.
+            (horizontalDatumValue is deprecated, use horizontalCRS)
         replace_rat_ids
             A dictionary of RAT IDs to replace in the QualityOfBathymetryCoverage table.
             Replace the key with the value, e.g. {1: 100, 2: 200} would replace ID 1 with 100 and ID 2 with 200.
@@ -2252,7 +2257,7 @@ class S102File(S100File):
         # @todo @fixme -- transform the coordinate system to a WGS84.  Strictly this may not end up being square, so how do we handle
         #  transform = osr.CoordinateTransformation( src_srs, tgt_srs)
         # Until we have a working datum engine this module should not do datum transformations - GR 20200402
-        if "horizontalDatumValue" not in metadata:
+        if "horizontalDatumValue" not in metadata and "horizontalCRS" not in metadata:
             sr = osr.SpatialReference(dataset.GetProjection())
             epsg = sr.GetAuthorityCode(None)
             if epsg is None and sr.IsProjected():
@@ -2261,12 +2266,12 @@ class S102File(S100File):
                 crs_2d.DemoteTo2D()
                 epsg = crs_2d.GetAuthorityCode(None)
             if epsg:
-                metadata["horizontalDatumValue"] = int(epsg)
+                metadata["horizontalCRS"] = int(epsg)
             else:
                 if sr.GetAttrValue("GEOGCS") == 'WGS 84':
-                    metadata["horizontalDatumValue"] = 4326
+                    metadata["horizontalCRS"] = 4326
                 # elif sr.GetAttrValue("GEOGCS") == 'North_American_Datum_1983':
-                #    metadata["horizontalDatumValue"] = 4269
+                #    metadata["horizontalCRS"] = 4269
                 else:
                     raise S102Exception("Projection not understood, was searching for an EPSG code and found " + osr.SpatialReference(
                         dataset.GetProjection()).ExportToWkt())

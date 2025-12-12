@@ -3003,7 +3003,8 @@ class S100File(S1XXFile):
             raise ValueError("Unable to convert to GeoTIFF.  EPSG code is not valid.")
         for data, dataname, feature_instance, group_instance in self.iter_groups():
             if data.data_coding_format.value not in (2, 9):
-                raise S100Exception(f"Unable to convert to GeoTIFF.  Data coding format ({data.data_coding_format.value}) must be regular grid (2 or 9).")
+                raise S100Exception(
+                    f"Unable to convert to GeoTIFF.  Data coding format ({data.data_coding_format.value}) must be regular grid (2 or 9).")
             values = group_instance['values']
             bands = []
             for i, name in enumerate(self['Group_F'][dataname]['code']):
@@ -3015,8 +3016,18 @@ class S100File(S1XXFile):
             y_dim, x_dim = values[bands[0][0]].shape
             dxx = feature_instance.attrs['gridSpacingLongitudinal']
             dyy = feature_instance.attrs['gridSpacingLatitudinal']
+
+            data_offset_code = feature_instance.parent.attrs.get('dataOffsetCode', 1)
+
+            epsg = feature_instance.parent.parent.attrs['horizontalCRS']
             x_min = feature_instance.attrs['gridOriginLongitude']
             y_min = feature_instance.attrs['gridOriginLatitude']
+
+            if data_offset_code == 5:
+                # This moves the origin to outer corner
+                x_min -= dxx / 2
+                y_min -= dyy / 2
+
             # TIFF convention is to list the upper left corner of the upper left pixel
             # S100 convention is to list the center of the bottom left pixel
             # But rather than assuming, check the gridspacing and flip if necessary
@@ -3026,19 +3037,19 @@ class S100File(S1XXFile):
             # QGIS is internally reversing the value but also modifying it in the fourth decimal place making a slight visual distortion.
             if dyy > 0:  # the origin is the bottom corner - so flip the dyy and move the origin to the other side
                 # remove one from dimension to stay to inside the grid.  Imagine a 1 cell rester -- the move has to be zero.
-                y_min = y_min + dyy * (y_dim - 1)
+                y_min = y_min + dyy * y_dim
                 dyy *= -1
                 flipy = True
             if dxx < 0:  # the origin is the right corner - so flip the dxx and move the origin to the other side
                 # remove one from dimension to stay to inside the grid.  Imagine a 1 cell rester -- the move has to be zero.
-                x_min = x_min + dxx * (x_dim - 1)
+                x_min = x_min + dxx * x_dim
                 dxx *= -1
                 flipx = True
-            # now we know the origin is upper left, so we can adjust from center to upper left of the cell
-            geoTransform = [x_min - dxx / 2.0,  # dxx is positive so this moves the origin left by half a cell
+
+            geoTransform = [x_min,
                             dxx,
                             0,  # dxy - zero because we are not rotating the raster
-                            y_min - dyy / 2.0,  # dyy is negative so this is adding half a cell height
+                            y_min,
                             0,  # dyx - zero because we are not rotating the raster
                             dyy
                             ]
@@ -3056,9 +3067,9 @@ class S100File(S1XXFile):
                     band_values = numpy.fliplr(band_values)
                 if flipy:
                     band_values = numpy.flipud(band_values)
-                dataset.GetRasterBand(band_num+1).WriteArray(band_values)
-                dataset.GetRasterBand(band_num+1).SetDescription(band_name)
-                dataset.GetRasterBand(band_num+1).SetNoDataValue(fill_value)
+                dataset.GetRasterBand(band_num + 1).WriteArray(band_values)
+                dataset.GetRasterBand(band_num + 1).SetDescription(band_name)
+                dataset.GetRasterBand(band_num + 1).SetNoDataValue(fill_value)
             # Forces geotiffs to use nodata value from first band rather than the last band
             # that contains a different fillvalue
             dataset.GetRasterBand(2).SetNoDataValue(bands[0][1])
