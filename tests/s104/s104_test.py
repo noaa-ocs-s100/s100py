@@ -2148,7 +2148,7 @@ def input_data(s104):
         'interpolationType': 10,
         'typeOfWaterLevelData': 5,
         'methodWaterLevelProduct': 'ADCIRC_Hydrodynamic_Model_Forecasts',
-        'dateTimeOfFirstRecord': '2021-09-01T01:00:00'
+        'dateTimeOfFirstRecord': '20210901T010000Z'
     }
 
     metadata_1_1_dcf2 = {
@@ -2287,6 +2287,7 @@ def test_create_s104_dcf2(s104, input_data):
         s104.utils.add_water_level_instance(data_file)
 
     data_series_time_001 = input_data.datetime_forecast_issuance + input_data.datetime_interval
+
     s104.utils.add_data_from_arrays(input_data.height_dcf2_001, input_data.trend_dcf2_001, data_file,
                                     input_data.grid_properties_dcf2, data_series_time_001, 2)
 

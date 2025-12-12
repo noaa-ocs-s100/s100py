@@ -244,6 +244,10 @@ class WaterLevelGroup(S1xxObject):
         """Attribute datatype"""
         return str
 
+    @property
+    def __time_point_repr__(self) -> str:
+        return self._attributes[self.__time_point_hdf_name__].strftime("%Y%m%dT%H%M%SZ")
+
     def time_point_create(self):
         """ Creates a blank, empty or zero value for time_point"""
         # noinspection PyAttributeOutsideInit
