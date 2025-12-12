@@ -20,11 +20,10 @@ jobs:
     name: Miniconda ${{ matrix.os }} python ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
+        fail-fast: False
         matrix:
             os: ["ubuntu-latest", "windows-latest"]
             python-version: [ '3.8', '3.10' ]
-        # all tests fail if one fails, this may allow other tests to continue
-        # fail-fast: false
     steps:
       - uses: actions/checkout@v5
       - uses: conda-incubator/setup-miniconda@v3
@@ -38,20 +37,20 @@ jobs:
           channel-priority: strict
       - shell: bash -el {0}
         run: |
-          conda activate ENVs100py
-          mamba install --yes --freeze-installed pytest
-          conda env export --no-builds
           python3 -m pip install --upgrade pip
+          pip install pytest
           pip install -e .
 
-#      - name: Lint
-#        shell: bash -l {0}
-#        run: |
-#            conda install flake8
-#            python -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-#            python -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Run pytest
         shell: bash -el {0}
         run: |
-          conda activate ENVs100py
           python -m pytest
+
+      - name: Debug environment
+        if: failure()
+        shell: bash -el {0}
+        run: |
+          conda env export --no-builds
+          which python
+          which pytest
+          python -m pip list | grep pytest
