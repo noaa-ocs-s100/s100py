@@ -42,6 +42,7 @@ from ...s100.v5_2.api import S100File, GridCoordinate, DirectPosition, GridEnvel
 from .. import v2_0
 from .. import v2_1
 from .. import v2_2
+from ..bounds import geographic_bounds  # issue #22: enclosing WGS84 root bounding box
 
 EDITION = 3.0
 # They added an extra .0 in edition 3
@@ -2132,16 +2133,15 @@ class S102File(S100File):
         srs.ImportFromEPSG(int(root.horizontal_crs))
         if srs.IsProjected():
             axes = ["Easting", "Northing"]  # ["Northing", "Easting"]  # row major instead of
-            wgs = osr.SpatialReference()
-            wgs.ImportFromEPSG(4326)  # 4326 is WGS84 geodetic - and S102 specifies WGS84
-            transform = osr.CoordinateTransformation(srs, wgs)
-            # mytransf = Transformer.from_crs(root.horizontal_crs, CRS.from_epsg(4326), always_xy=True)
-            south_lat, west_lon = transform.TransformPoint(minx, miny)[:2]
-            north_lat, east_lon = transform.TransformPoint(maxx, maxy)[:2]
         else:
             axes = ["Longitude", "Latitude"]  # ["Latitude", "Longitude"]  # row major instead of
-            south_lat, west_lon = miny, minx
-            north_lat, east_lon = maxy, maxx
+        # The root bounds are always WGS84 geographic and must enclose the whole grid
+        # (outer cell edges, S-102 3.0.0 Table 10-2).
+        # Projecting only the SW and NE corners (the previous code) misses the SE/NW corners of a projected grid,
+        # which grid convergence rotates outside that box - see GitHub issue #22.  geographic_bounds() densifies
+        # all four edges with TransformBounds and rounds each edge outward to the stored dtype;
+        # see s100py/s102/bounds.py.
+        west_lon, south_lat, east_lon, north_lat = geographic_bounds(int(root.horizontal_crs), minx, miny, maxx, maxy)
 
         root.east_bound_longitude = east_lon
         root.west_bound_longitude = west_lon
@@ -2409,19 +2409,18 @@ class S102File(S100File):
             bathy01.attrs['southBoundLatitude'] -= res_lat / 2
             bathy01.attrs['westBoundLongitude'] -= res_lon / 2
             bathy01.attrs['eastBoundLongitude'] += res_lon / 2
-            srs = osr.SpatialReference()
-            srs.ImportFromEPSG(int(s100_object.attrs['horizontalCRS']))
-            if srs.IsProjected():
-                wgs = osr.SpatialReference()
-                wgs.ImportFromEPSG(4326)  # 4326 is WGS84 geodetic - and S102 specifies WGS84
-                transform = osr.CoordinateTransformation(srs, wgs)
-                south_lat, west_lon = transform.TransformPoint(bathy01.attrs['westBoundLongitude'], bathy01.attrs['southBoundLatitude'])[:2]
-                north_lat, east_lon = transform.TransformPoint(bathy01.attrs['eastBoundLongitude'], bathy01.attrs['northBoundLatitude'])[:2]
-            else:
-                s100_object.attrs['northBoundLatitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['northBoundLatitude']
-                s100_object.attrs['southBoundLatitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['southBoundLatitude']
-                s100_object.attrs['westBoundLongitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['westBoundLongitude']
-                s100_object.attrs['eastBoundLongitude'] = s100_object['BathymetryCoverage']['BathymetryCoverage.01'].attrs['eastBoundLongitude']
+            # v3.0 root bounds must enclose the outer cell edges (Table 10-2), which the instance box now holds.
+            # Previously the projected branch computed a two-corner lon/lat box and never wrote it to the root
+            # attributes, leaving the v2.2 root box in place (issue #22).  Both branches now go through
+            # geographic_bounds(), which densifies projected edges and rounds outward to float32.
+            west_lon, south_lat, east_lon, north_lat = geographic_bounds(
+                int(s100_object.attrs['horizontalCRS']),
+                bathy01.attrs['westBoundLongitude'], bathy01.attrs['southBoundLatitude'],
+                bathy01.attrs['eastBoundLongitude'], bathy01.attrs['northBoundLatitude'])
+            s100_object.attrs.create('westBoundLongitude', west_lon, dtype=numpy.float32)
+            s100_object.attrs.create('eastBoundLongitude', east_lon, dtype=numpy.float32)
+            s100_object.attrs.create('southBoundLatitude', south_lat, dtype=numpy.float32)
+            s100_object.attrs.create('northBoundLatitude', north_lat, dtype=numpy.float32)
 
             s100_object["Group_F"]["BathymetryCoverage"][1][5] = 0
             s100_object["Group_F"]["BathymetryCoverage"][1][6] = ""

@@ -40,6 +40,7 @@ from ...s100.v5_0.api import S100File, GridCoordinate, DirectPosition, GridEnvel
 
 from .. import v2_0
 from .. import v2_1
+from ..bounds import geographic_bounds  # issue #22: enclosing WGS84 root bounding box
 
 EDITION = 2.2
 PRODUCT_SPECIFICATION = 'INT.IHO.S-102.2.2'
@@ -1894,16 +1895,15 @@ class S102File(S100File):
         srs.ImportFromEPSG(int(root.horizontal_crs))
         if srs.IsProjected():
             axes = ["Easting", "Northing"]  # ["Northing", "Easting"]  # row major instead of
-            wgs = osr.SpatialReference()
-            wgs.ImportFromEPSG(4326)  # 4326 is WGS84 geodetic - and S102 specifies WGS84
-            transform = osr.CoordinateTransformation(srs, wgs)
-            # mytransf = Transformer.from_crs(root.horizontal_crs, CRS.from_epsg(4326), always_xy=True)
-            south_lat, west_lon = transform.TransformPoint(minx, miny)[:2]
-            north_lat, east_lon = transform.TransformPoint(maxx, maxy)[:2]
         else:
             axes = ["Longitude", "Latitude"]  # ["Latitude", "Longitude"]  # row major instead of
-            south_lat, west_lon = miny, minx
-            north_lat, east_lon = maxy, maxx
+        # The root bounds are always WGS84 geographic and must enclose the whole grid
+        # (S-102 2.2 uses the grid node extent here).
+        # Projecting only the SW and NE corners (the previous code) misses the SE/NW corners of a projected grid,
+        # which grid convergence rotates outside that box - see GitHub issue #22.  geographic_bounds() densifies
+        # all four edges with TransformBounds and rounds each edge outward to the stored dtype;
+        # see s100py/s102/bounds.py.
+        west_lon, south_lat, east_lon, north_lat = geographic_bounds(int(root.horizontal_crs), minx, miny, maxx, maxy)
 
         root.east_bound_longitude = east_lon
         root.west_bound_longitude = west_lon

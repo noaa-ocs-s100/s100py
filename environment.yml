@@ -6,4 +6,4 @@ dependencies:
   - h5py
   - numpy
   - libgdal-hdf5
-  - gdal>=3.2
+  - gdal>=3.4  # TransformBounds, used for S-102 geographic bounds (issue #22)
